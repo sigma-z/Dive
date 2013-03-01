@@ -1,0 +1,6 @@
+.idea
+test/fixtures/test.db
+coverage
+sqlite.bat
+phpunit.xml
+phpunit_db_config.php

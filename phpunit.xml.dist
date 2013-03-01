@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="test/bootstrap.php"
+         colors="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         syntaxCheck="false"
+>
+    <testsuites>
+        <testsuite name="DiveSuite">
+            <directory>test/Dive</directory>
+        </testsuite>
+    </testsuites>
+
+    <php>
+        <const name="VENDOR_DIR" value="vendor"/>
+    </php>
+</phpunit>

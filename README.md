@@ -1,4 +1,7 @@
-Dive ORM Framework [![Build Status](https://travis-ci.org/sigma-z/Dive.png)](https://travis-ci.org/sigma-z/Dive)
+Build-Status sigma-z\Dive: [![Build Status](https://travis-ci.org/sigma-z/Dive.png)](https://travis-ci.org/sigma-z/Dive)
+Build-Status glady\Dive: [![Build Status](https://travis-ci.org/glady/Dive.png)](https://travis-ci.org/glady/Dive)
+
+Dive ORM Framework 
 ===
 
 Just another ORM implementation... Just another? No, not really...

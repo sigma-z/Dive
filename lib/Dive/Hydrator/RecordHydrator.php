@@ -48,7 +48,7 @@ class RecordHydrator extends Hydrator
      */
     protected function hydrateRecord(Table $table, array $row)
     {
-        $record = $this->recordManager->getRecord($table, $row, true);
+        $record = $this->recordManager->getRecord($table, $row);
 //        $id = $record->getIdentifierAsString();
 //        foreach ($referencingRelations as $relation) {
 //            $referencingField = $relation->getReferencingField();

@@ -31,7 +31,7 @@ class RecordCollectionTest extends \Dive\TestSuite\TestCase
     {
         parent::setUp();
 
-        $this->rm = self::getDefaultRecordManager();
+        $this->rm = self::createDefaultRecordManager();
         $table = $this->rm->getTable('user');
         $coll = new \Dive\Collection\RecordCollection($table);
         $this->userColl = $coll;

@@ -262,4 +262,17 @@ class RecordManager
         throw new Exception("Hydrator '$name' is not defined!");
     }
 
+
+    /**
+     * Gets record
+     *
+     * @param Table $table
+     * @param array $data
+     * @return Record
+     */
+    public function getRecord(Table $table, array $data)
+    {
+        return $this->unitOfWork->getRecord($table, $data);
+    }
+
 }

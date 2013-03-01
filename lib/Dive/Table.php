@@ -356,13 +356,13 @@ class Table
 
 
     /**
-     * finds record by primary key
+     * Finds record by primary key
      *
-     * @param  string|array     $id
-     * @return bool|\Dive\Record
-     * @throws
+     * @param  string|array $id
+     * @param  string       $fetchMode
+     * @return bool|\Dive\Record|array
      */
-    public function findByPk($id)
+    public function findByPk($id, $fetchMode = RecordManager::FETCH_RECORD)
     {
         $query = $this->createQuery();
         if (!is_array($id)) {
@@ -372,8 +372,7 @@ class Table
         $this->throwExceptionIfIdentifierDoesNotMatchFields($id);
 
         $query->where(implode(' = ? AND ', $identifier) . ' = ?', $id);
-        // TODO
-        return $query->fetchOneAsObject();
+        return $query->execute($fetchMode);
     }
 
 

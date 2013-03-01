@@ -7,6 +7,7 @@ use Dive\Event\Dispatcher;
 use Dive\Event\Event;
 use Dive\RecordManager;
 use Dive\Schema\Schema;
+use Dive\Table;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -15,14 +16,21 @@ use Dive\Schema\Schema;
 abstract class TestCase extends \PHPUnit_Framework_TestCase
 {
 
+    /**
+     * @var array
+     */
     private static $databases = array();
-
     /**
      * @var \Dive\Schema\Schema
      */
     private static $schema;
 
 
+    /**
+     * Gets schema
+     *
+     * @return \Dive\Schema\Schema
+     */
     public static function getSchema()
     {
         if (!self::$schema) {
@@ -33,6 +41,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * Adds mock listener via closure to event dispatcher
+     *
+     * @param \Dive\Event\Dispatcher                $eventDispatcher
+     * @param \Dive\Event\Event|\Dive\Event\Event[] $events
+     * @param array $expectedEventsCalled
+     */
     protected function addMockListenerToEventDispatcher(
         Dispatcher $eventDispatcher,
         $events,
@@ -47,6 +62,11 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * Gets database config arrays for unit tests
+     *
+     * @return array
+     */
     public static function getDatabases()
     {
         if (empty(self::$databases)) {
@@ -54,9 +74,11 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $dbConfigDistFile = __DIR__ . '/../../phpunit_db_config.php.dist';
             $databases = array();
             if (is_file($dbConfigFile)) {
+                /** @noinspection PhpIncludeInspection */
                 $databases = require_once $dbConfigFile;
             }
             else if (is_file($dbConfigDistFile)) {
+                /** @noinspection PhpIncludeInspection */
                 $databases = require_once $dbConfigDistFile;
             }
             foreach ($databases as $database) {
@@ -69,17 +91,20 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
-    public static function getDefaultRecordManager()
+    /**
+     * Gets default record manager
+     *
+     * @return \Dive\RecordManager
+     */
+    public static function createDefaultRecordManager()
     {
         $databases = self::getDatabases();
-        $conn = self::createDatabaseConnection($databases[0]);
-        $schema = self::getSchema();
-        return new RecordManager($conn, $schema);
+        return self::createRecordManager($databases[0]);
     }
 
 
     /**
-     * gets scheme from dsn
+     * Gets scheme from dsn
      *
      * @param  string|array $dsn
      * @return string
@@ -116,7 +141,21 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * creates database connection instance
+     * Creates record manager by given database array
+     *
+     * @param  array $database
+     * @return \Dive\RecordManager
+     */
+    protected static function createRecordManager($database)
+    {
+        $conn = self::createDatabaseConnection($database);
+        $schema = self::getSchema();
+        return new RecordManager($conn, $schema);
+    }
+
+
+    /**
+     * Creates database connection instance
      *
      * @param   array   $database           must have keys: dsn, user, password
      * @return  \Dive\Connection\Connection
@@ -126,17 +165,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $scheme = self::getSchemeFromDsn($database['dsn']);
         /** @var \Dive\Connection\Driver\DriverInterface $driver */
         $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
-        return new Connection(
-            $driver,
-            $database['dsn'],
-            $database['user'],
-            $database['password']
-        );
+        return new Connection($driver, $database['dsn'], $database['user'], $database['password']);
     }
 
 
     /**
-     * creates class instance
+     * Creates class instance
      *
      * @param   string $namespace
      * @param   string $className
@@ -162,7 +196,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * creates class instance, or mark test as skipped, if instance could not be created
+     * Creates class instance, or mark test as skipped, if instance could not be created
      *
      * @param  string $namespace
      * @param  string $className
@@ -224,7 +258,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * data provider method for test cases that do not need other arguments like '$expected' and so on
+     * Data provider method for test cases that do not need other arguments like '$expected' and so on
      *
      * @return array
      */

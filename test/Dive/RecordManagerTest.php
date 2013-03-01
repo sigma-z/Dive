@@ -30,7 +30,7 @@ class RecordManagerTest extends \Dive\TestSuite\TestCase
         parent::setUp();
 
         // record manager
-        $this->rm = $this->getDefaultRecordManager();
+        $this->rm = $this->createDefaultRecordManager();
     }
 
 

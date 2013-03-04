@@ -32,6 +32,7 @@ class RecordHydrator extends Hydrator
         }
 
         $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
+        $this->statement->closeCursor();
         if ($row === false) {
             return false;
         }

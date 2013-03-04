@@ -23,7 +23,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * @var \Dive\Schema\Schema
      */
-    private static $schema;
+    private static $schema = null;
 
 
     /**

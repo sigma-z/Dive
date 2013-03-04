@@ -227,6 +227,24 @@ class Connection
     }
 
 
+    public function beginTransaction()
+    {
+        $this->getDbh()->beginTransaction();
+    }
+
+
+    public function commit()
+    {
+        $this->getDbh()->commit();
+    }
+
+
+    public function rollBack()
+    {
+        $this->getDbh()->rollBack();
+    }
+
+
     // TODO unittest
     /**
      * @param string $sql

@@ -34,8 +34,27 @@ Features
 Development milestones
 ---
 ### Milestone Query building (in progress)
+ * Support of select/from/left join/where/where in/where not in/group by/having/order by/limit/offset/distinct/for update
+ * Deletes through select queries (select query used as sub-query)
+ * Update queries
+
 ### Milestone Query result hydration (in progress)
+ * fetch as object (\Dive\Record)
+ * fetch as objects (\Dive\Collection\RecordCollection)
+ * fetch as single array
+ * fetch as array
+ * fetch as single scalar
+ * fetch as scalars
+
 ### Milestone intelligent Relation/Reference management using repositories as registers
+ * repositories that hold already loading records
+ * relations knows which records belongs to each other
+
 ### Milestone UnitOfWork for saving / deleting object graphs
+ * change set processing by object graph and corresponding relations
+ * abstraction of foreign key constraints by Dive
+
 ### First alpha release
+
+
 

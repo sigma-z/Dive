@@ -188,6 +188,19 @@ class RecordManager
 
 
     /**
+     * Creates query for given table name
+     *
+     * @param  string $tableName
+     * @param  string $alias
+     * @return Query\Query
+     */
+    public function createQuery($tableName, $alias = 'a')
+    {
+        return $this->getTable($tableName)->createQuery($alias);
+    }
+
+
+    /**
      * @param Record               $record
      * @param UnitOfWork\ChangeSet $changeSet
      * @return bool

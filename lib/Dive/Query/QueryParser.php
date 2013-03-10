@@ -32,17 +32,17 @@ class QueryParser
     {
         $posParentAlias = strpos($leftJoin, '.');
         if ($posParentAlias === false) {
-            throw new QueryException("Left join $leftJoin misses parent alias!");
+            throw new QueryException("Left join '$leftJoin' misses parent alias!");
         }
         $posAlias = strpos($leftJoin, ' ');
         if ($posAlias === false) {
-            throw new QueryException("Left join $leftJoin misses alias!");
+            throw new QueryException("Left join '$leftJoin' misses alias!");
         }
         $explodePositions = array($posParentAlias, $posAlias);
         list($parentAlias, $relationName, $alias) = StringExplode::explodeAt($leftJoin, $explodePositions);
 
         if (!$query->hasQueryComponent($parentAlias)) {
-            throw new QueryException("Missing parent alias '$parentAlias' in query!");
+            throw new QueryException("Parent alias '$parentAlias' is not defined in query!");
         }
         if ($query->hasQueryComponent($alias)) {
             throw new QueryException("Duplicate alias '$alias' in query!");
@@ -91,19 +91,19 @@ class QueryParser
         );
 
         if (!empty($queryParts['where'])) {
-            $sqlParts['where'] = ' WHERE ' . implode(' AND ', $queryParts['where']);
+            $sqlParts['where'] = ' WHERE ' . implode("\n  ", $queryParts['where']);
         }
         if (!empty($queryParts['groupBy'])) {
             $sqlParts['groupBy'] = ' GROUP BY ' . implode(', ', $queryParts['groupBy']);
         }
         if (!empty($queryParts['having'])) {
-            $sqlParts['having'] = ' HAVING ' . implode(' AND ', $queryParts['having']);
+            $sqlParts['having'] = ' HAVING ' . implode("\n  ", $queryParts['having']);
         }
         if (!empty($queryParts['orderBy'])) {
             $sqlParts['orderBy'] = ' ORDER BY ' . implode(', ', $queryParts['orderBy']);
         }
         if ($queryParts['forUpdate'] === true) {
-            $sqlParts['forUpdate'] = 'FOR UPDATE ';
+            $sqlParts['forUpdate'] = 'FOR UPDATE';
         }
         return $sqlParts;
     }

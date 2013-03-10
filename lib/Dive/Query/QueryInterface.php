@@ -216,7 +216,7 @@ interface QueryInterface
     public function addGroupBy($expr, $params = array());
     // </editor-fold>
 
-    // <editor-fold desc="having by part">
+    // <editor-fold desc="having part">
     /**
      * Sets having part for query
      *
@@ -224,17 +224,27 @@ interface QueryInterface
      * @param  array|string $params
      * @return $this
      */
-    public function havingBy($expr, $params = array());
+    public function having($expr, $params = array());
 
 
     /**
-     * Adds having part for query
+     * Adds having part connected with logical AND for query
      *
      * @param  string       $expr
      * @param  array|string $params
      * @return $this
      */
-    public function addHavingBy($expr, $params = array());
+    public function andHaving($expr, $params = array());
+
+
+    /**
+     * Adds having part connected with logical OR for query
+     *
+     * @param  string       $expr
+     * @param  array|string $params
+     * @return $this
+     */
+    public function orHaving($expr, $params = array());
     // </editor-fold>
 
     // <editor-fold desc="order by part">

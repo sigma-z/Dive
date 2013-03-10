@@ -282,15 +282,8 @@ class Query implements QueryInterface, QueryHydrationInterface
     {
         $joinDef = $this->parser->parseLeftJoin($leftJoin, $this);
         $parentAlias = $joinDef['parent'];
-        if (!isset($this->queryComponents[$parentAlias])) {
-            throw new QueryException("Missing parent alias '$parentAlias' in query!");
-        }
         if ($addDefinition) {
             $joinDef = array_merge($joinDef, $addDefinition);
-        }
-        $alias = $joinDef['alias'];
-        if (isset($this->queryComponents[$alias])) {
-            throw new QueryException("Duplicate alias '$alias' in query!");
         }
         $parentTableName = $this->queryComponents[$parentAlias]['table'];
         $parentTable = $this->rm->getTable($parentTableName);
@@ -303,7 +296,8 @@ class Query implements QueryInterface, QueryHydrationInterface
 
     protected function getLeftJoinByDefinition(array $joinDef)
     {
-        $quote = $this->rm->getConnection()->getIdentifierQuote();
+        $conn = $this->rm->getConnection();
+        $quote = $conn->getIdentifierQuote();
         if (!isset($joinDef['onClause'])) {
             $parentAlias = $joinDef['parent'];
             $alias = $joinDef['alias'];
@@ -319,7 +313,9 @@ class Query implements QueryInterface, QueryHydrationInterface
         else {
             $onClause = $joinDef['onClause'];
         }
-        return $quote . $joinDef['table'] . $quote . ' ' . $onClause;
+        return $conn->quoteIdentifier($joinDef['table'])
+            . ' ' . $conn->quoteIdentifier($joinDef['alias'])
+            . ' ON ' . $onClause;
     }
 
 
@@ -528,7 +524,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function havingBy($expr, $params = array())
+    public function having($expr, $params = array())
     {
         $this->setQueryPart('having', $expr, $params);
         return $this;
@@ -536,14 +532,34 @@ class Query implements QueryInterface, QueryHydrationInterface
 
 
     /**
-     * Adds having part for query
+     * Adds having part connected with logical AND for query
      *
      * @param  string       $expr
      * @param  array|string $params
      * @return $this
      */
-    public function addHavingBy($expr, $params = array())
+    public function andHaving($expr, $params = array())
     {
+        if (!empty($this->queryParts['having'])) {
+            $expr = ' AND ' . $expr;
+        }
+        $this->addQueryPart('having', $expr, $params);
+        return $this;
+    }
+
+
+    /**
+     * Adds having part connected with logical OR for query
+     *
+     * @param  string       $expr
+     * @param  array|string $params
+     * @return $this
+     */
+    public function orHaving($expr, $params = array())
+    {
+        if (!empty($this->queryParts['having'])) {
+            $expr = ' OR ' . $expr;
+        }
         $this->addQueryPart('having', $expr, $params);
         return $this;
     }
@@ -872,7 +888,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function removeQueryPart($part)
     {
-        $default = in_array($part, 'forUpdate', 'distinct') ? false : array();
+        $default = in_array($part, array('forUpdate', 'distinct')) ? false : array();
         $this->queryParts[$part] = $default;
         unset($this->params[$part]);
         return $this;

@@ -30,3 +30,12 @@ Features
  * Event handling
  * Query building
  * Query result hydration
+
+Development milestones
+---
+### Milestone Query building (in progress)
+### Milestone Query result hydration (in progress)
+### Milestone intelligent Relation/Reference management using repositories as registers
+### Milestone UnitOfWork for saving / deleting object graphs
+### First alpha release
+

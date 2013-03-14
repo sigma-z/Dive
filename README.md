@@ -45,6 +45,7 @@ Development milestones
  * fetch as array
  * fetch as single scalar
  * fetch as scalars
+ * error handling
 
 ### Milestone intelligent Relation/Reference management using repositories as registers
  * repositories that hold already loading records
@@ -52,6 +53,7 @@ Development milestones
 
 ### Milestone UnitOfWork for saving / deleting object graphs
  * change set processing by object graph and corresponding relations
+ * database type validation
  * abstraction of foreign key constraints by Dive
 
 ### First alpha release

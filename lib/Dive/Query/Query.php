@@ -450,11 +450,11 @@ class Query implements QueryInterface, QueryHydrationInterface
     /**
      * Adds query where part
      *
-     * @param string $expr
-     * @param array  $params
-     * @param string $logicalGlue
+     * @param string        $expr
+     * @param array|string  $params
+     * @param string        $logicalGlue
      */
-    protected function addWherePart($expr, array $params, $logicalGlue = 'AND')
+    protected function addWherePart($expr, $params, $logicalGlue = 'AND')
     {
         if (empty($this->queryParts['where'])) {
             $this->setQueryPart('where', $expr, $params);

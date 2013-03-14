@@ -264,6 +264,9 @@ class Connection
         else {
             $stmt = $this->dbh->query($sql);
         }
+        if ($stmt === false) {
+            $this->throwErrorAsException($sql, $params);
+        }
 //        if ($this->sqlLogger) {
 //            $this->sqlLogger->stopQuery();
 //        }
@@ -532,6 +535,19 @@ class Connection
         if (count($identifierFields) != count($identifier)) {
             throw new \InvalidArgumentException(
                 'Identifier does not match table identifier (' . implode(', ', $identifierFields) . ')'
+            );
+        }
+    }
+
+
+    public function throwErrorAsException($sql, array $params)
+    {
+        $error = $this->dbh->errorInfo();
+        if (is_array($error) && $error[0] !== '00000') {
+            throw new ConnectionException(
+                $error[0] . ' ' . $error[2]
+                . "\nGiven sql: $sql"
+                . "\nGiven params: " . print_r($params, true)
             );
         }
     }

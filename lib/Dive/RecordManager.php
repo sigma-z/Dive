@@ -270,6 +270,12 @@ class RecordManager
 
             case self::FETCH_RECORD:
                 return new Hydrator\RecordHydrator($this);
+
+            case self::FETCH_ARRAY:
+                return new Hydrator\ArrayHydrator($this);
+
+            case self::FETCH_SINGLE_ARRAY:
+                return new Hydrator\SingleArrayHydrator($this);
         }
 
         throw new Exception("Hydrator '$name' is not defined!");

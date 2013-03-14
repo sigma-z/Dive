@@ -21,7 +21,7 @@ class QueryTest extends DatasetTestCase
 {
 
     /**
-     * @dataProvider provideGetSql
+     * @dataProvider provideSqlParts
      */
     public function testGetSql($operations = array(), $expected)
     {
@@ -32,6 +32,9 @@ class QueryTest extends DatasetTestCase
             $args = $operation[1];
             call_user_func_array(array($query, $method), $args);
         }
+        if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
+            $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
+        }
         $actual = $query->getSql();
         // removing identifier quotations
         $actual = str_replace($rm->getConnection()->getIdentifierQuote(), '', $actual);
@@ -40,7 +43,7 @@ class QueryTest extends DatasetTestCase
     }
 
 
-    public function provideGetSql()
+    public function provideSqlParts()
     {
         $testCases = array();
 
@@ -81,47 +84,47 @@ class QueryTest extends DatasetTestCase
         // where tests
         $testCases[] = array(
             'operations' => array(
-                array('where', array('id = ?'))
+                array('where', array('id = ?', 1))
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?'
         );
         $testCases[] = array(
             'operations' => array(
-                array('andWhere', array('username = ?')),
+                array('andWhere', array('username = ?', 'Joe')),
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username = ?'
         );
         $testCases[] = array(
             'operations' => array(
-                array('orWhere', array('username = ?')),
+                array('orWhere', array('username = ?', 'Joe')),
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username = ?'
         );
         $testCases[] = array(
             'operations' => array(
-                array('andWhere', array('username = ?')),
-                array('where', array('id = ?'))
+                array('andWhere', array('username = ?', 'Joe')),
+                array('where', array('id = ?', 1))
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?'
         );
         $testCases[] = array(
             'operations' => array(
-                array('orWhere', array('username = ?')),
-                array('where', array('id = ?'))
+                array('orWhere', array('username = ?', 'Joe')),
+                array('where', array('id = ?', 1))
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?'
         );
         $testCases[] = array(
             'operations' => array(
-                array('where', array('id = ?')),
-                array('andWhere', array('username = ?')),
-                array('orWhere', array('username = ?'))
+                array('where', array('id = ?', 1)),
+                array('andWhere', array('username = ?', 'Joe')),
+                array('orWhere', array('username = ?', 'Joe'))
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ? AND username = ? OR username = ?'
         );
         $testCases[] = array(
             'operations' => array(
-                array('where', array('id = ?')),
+                array('where', array('id = ?', 1)),
                 array('whereIn', array('username', array('John', 'Doe'))),
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?)'
@@ -129,7 +132,7 @@ class QueryTest extends DatasetTestCase
         $testCases[] = array(
             'operations' => array(
                 array('whereIn', array('username', array('John', 'Doe'))),
-                array('where', array('id = ?')),
+                array('where', array('id = ?', 1)),
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?'
         );
@@ -269,44 +272,61 @@ class QueryTest extends DatasetTestCase
         // having
         $testCases[] = array(
             'operations' => array(
+                array('groupBy', array('username')),
                 array('having', array('count(u.id) > 1'))
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u HAVING count(u.id) > 1'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u'
+                . ' GROUP BY username'
+                . ' HAVING count(u.id) > 1'
         );
         $testCases[] = array(
             'operations' => array(
+                array('groupBy', array('username')),
                 array('andHaving', array('length(u.username) > 5')),
                 array('having', array('count(u.id) > 1'))
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u HAVING count(u.id) > 1'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u'
+                . ' GROUP BY username'
+                . ' HAVING count(u.id) > 1'
         );
         $testCases[] = array(
             'operations' => array(
+                array('groupBy', array('username')),
                 array('andHaving', array('length(u.username) > 5'))
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u HAVING length(u.username) > 5'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u'
+                . ' GROUP BY username'
+                . ' HAVING length(u.username) > 5'
         );
         $testCases[] = array(
             'operations' => array(
+                array('groupBy', array('username')),
                 array('orHaving', array('length(u.username) = 4'))
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u HAVING length(u.username) = 4'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u'
+                . ' GROUP BY username'
+                . ' HAVING length(u.username) = 4'
         );
         $testCases[] = array(
             'operations' => array(
+                array('groupBy', array('username')),
                 array('orHaving', array('length(u.username) = 4')),
                 array('having', array('count(u.id) > 1'))
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u HAVING count(u.id) > 1'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u'
+                . ' GROUP BY username '
+                . ' HAVING count(u.id) > 1'
         );
         $testCases[] = array(
             'operations' => array(
+                array('groupBy', array('username')),
                 array('having', array('count(u.id) > 1')),
                 array('andHaving', array('length(u.username) > 5')),
                 array('orHaving', array('length(u.username) = 4'))
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u '
-                . 'HAVING count(u.id) > 1 AND length(u.username) > 5 OR length(u.username) = 4'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u'
+                . ' GROUP BY username'
+                . ' HAVING count(u.id) > 1 AND length(u.username) > 5 OR length(u.username) = 4'
         );
         //-- having
 
@@ -447,6 +467,35 @@ class QueryTest extends DatasetTestCase
         );
 
         return $testCases;
+    }
+
+
+    /**
+     * @dataProvider provideSqlPartsDatabaseAware
+     */
+    public function testFetchArray($database, array $operations)
+    {
+        // prepare
+        $rm = self::createRecordManager($database);
+        $query = $rm->createQuery('user', 'u');
+        foreach ($operations as $operation) {
+            $method = $operation[0];
+            $args = $operation[1];
+            call_user_func_array(array($query, $method), $args);
+        }
+        if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
+            $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
+        }
+        $result = $query->fetchArray();
+        $this->assertInternalType('array', $result, 'Expected query result to be an array!');
+        $this->assertEmpty($result, 'Expected query result to be empty!');
+    }
+
+
+    public function provideSqlPartsDatabaseAware()
+    {
+        $testCases = $this->provideSqlParts();
+        return $this->getDatabaseAwareTestCases($testCases);
     }
 
 

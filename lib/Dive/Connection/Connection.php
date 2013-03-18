@@ -330,7 +330,7 @@ class Connection
     /**
      * quotes value or expression for use in sql
      *
-     * @param  string|\Dive\Expression $value
+     * @param  string|Expression $value
      * @return string
      */
     public function quote($value)
@@ -409,7 +409,7 @@ class Connection
             if ($table->hasField($fieldName)) {
                 $columns[] = $this->quoteIdentifier($fieldName);
                 if ($value instanceof Expression) {
-                    /** @var \Dive\Expression $value */
+                    /** @var Expression $value */
                     $values[] = $value->getSql();
                 }
                 else {
@@ -440,58 +440,58 @@ class Connection
     }
 
 
-//    /**
-//     * updates row
-//     *
-//     * @param Table $table
-//     * @param array $fields
-//     * @param string|array $identifier
-//     * @return bool|int
-//     * @throws \InvalidArgumentException
-//     */
-//    public function update(Table $table, array $fields, $identifier)
-//    {
-//        if (empty($fields)) {
-//            return false;
-//        }
-//
-//        if (!is_array($identifier)) {
-//            $identifier = array($identifier);
-//        }
-//        $this->throwExceptionIfIdentifierDoesNotMatchTableIdentifier($table, $identifier);
-//
-//        $identifierFields = $table->getIdentifier();
-//        if (!is_array($identifierFields)) {
-//            $identifierFields = array($identifierFields);
-//        }
-//        foreach ($identifierFields as &$field) {
-//            $field = $this->quoteIdentifier($field);
-//        }
-//
-//        $set = array();
-//        $params = array();
-//        foreach ($fields as $fieldName => $value) {
-//            if ($table->hasField($fieldName)) {
-//                $column = $this->quoteIdentifier($fieldName);
-//                if ($value instanceof \Dive\Expression) {
-//                    /** @var \Dive\Expression $value */
-//                    $set[] = $column . ' = ' . $value->getSql();
-//                }
-//                else {
-//                    $set[] = $column . ' = ?';
-//                    $params[] = $value;
-//                }
-//            }
-//        }
-//        // build query
-//        $query = 'UPDATE ' . $this->quoteIdentifier($table->getTableName())
-//            . ' SET ' . implode(', ', $set)
-//            . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
-//
-//        $params = array_merge($params, $identifier);
-//
-//        return $this->exec($query, $params);
-//    }
+    /**
+     * updates row
+     *
+     * @param Table $table
+     * @param array $fields
+     * @param string|array $identifier
+     * @return bool|int
+     * @throws \InvalidArgumentException
+     */
+    public function update(Table $table, array $fields, $identifier)
+    {
+        if (empty($fields)) {
+            return false;
+        }
+
+        if (!is_array($identifier)) {
+            $identifier = array($identifier);
+        }
+        $this->throwExceptionIfIdentifierDoesNotMatchTableIdentifier($table, $identifier);
+
+        $identifierFields = $table->getIdentifier();
+        if (!is_array($identifierFields)) {
+            $identifierFields = array($identifierFields);
+        }
+        foreach ($identifierFields as &$field) {
+            $field = $this->quoteIdentifier($field);
+        }
+
+        $set = array();
+        $params = array();
+        foreach ($fields as $fieldName => $value) {
+            if ($table->hasField($fieldName)) {
+                $column = $this->quoteIdentifier($fieldName);
+                if ($value instanceof Expression) {
+                    /** @var Expression $value */
+                    $set[] = $column . ' = ' . $value->getSql();
+                }
+                else {
+                    $set[] = $column . ' = ?';
+                    $params[] = $value;
+                }
+            }
+        }
+        // build query
+        $query = 'UPDATE ' . $this->quoteIdentifier($table->getTableName())
+            . ' SET ' . implode(', ', $set)
+            . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
+
+        $params = array_merge($params, $identifier);
+
+        return $this->exec($query, $params);
+    }
 
 
     /**

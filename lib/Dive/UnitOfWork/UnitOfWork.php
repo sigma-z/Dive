@@ -17,6 +17,7 @@ namespace Dive\UnitOfWork;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
+use Dive\Exception as DiveException;
 
 class UnitOfWork
 {
@@ -71,7 +72,8 @@ class UnitOfWork
      */
     public function saveGraph(Record $record, ChangeSet $changeSet)
     {
-        return false;
+        $changeSet->calculateSave($record);
+        $this->executeChangeSet($changeSet);
     }
 
 
@@ -80,7 +82,87 @@ class UnitOfWork
      */
     public function deleteGraph(Record $record, ChangeSet $changeSet)
     {
-        return false;
+        $changeSet->calculateDelete($record);
+        $this->executeChangeSet($changeSet);
     }
+
+
+    private function executeChangeSet(ChangeSet $changeSet)
+    {
+        $conn = $this->rm->getConnection();
+        try {
+            $conn->beginTransaction();
+            foreach ($changeSet->getScheduledForInsert() as $recordInsert) {
+                $this->doInsert($recordInsert);
+            }
+            foreach ($changeSet->getScheduledForUpdate() as $recordUpdate) {
+                $this->doUpdate($recordUpdate);
+            }
+            foreach ($changeSet->getScheduledForDelete() as $recordDelete) {
+                $this->doDelete($recordDelete);
+            }
+            $conn->connect();
+        }
+        catch (DiveException $e) {
+            $conn->rollBack();
+            throw $e;
+        }
+    }
+
+
+    private function doInsert(Record $record)
+    {
+        $table = $record->getTable();
+        $pkFields = array();
+        $data = array();
+        foreach ($table->getFields() as $fieldName => $fieldDef) {
+            if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
+                $pkFields[] = $fieldName;
+            }
+            $data[$fieldName] = $record->get($fieldName);
+        }
+        $conn = $table->getConnection();
+        $conn->insert($table, $data);
+
+        // only one primary key field
+        if (!isset($pkFields[1])) {
+            $id = $conn->getLastInsertId();
+            $record->assignIdentifier($id);
+        }
+    }
+
+
+    private function doDelete(Record $record)
+    {
+        $table = $record->getTable();
+        $identifier = array();
+        foreach ($table->getFields() as $fieldName => $fieldDef) {
+            if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
+                $identifier[$fieldName] = $record->get($fieldName);
+            }
+        }
+        $conn = $table->getConnection();
+        $conn->delete($table, $identifier);
+    }
+
+
+    private function doUpdate(Record $record)
+    {
+        $table = $record->getTable();
+        $identifier = array();
+        $modifiedFields = array();
+        foreach ($table->getFields() as $fieldName => $fieldDef) {
+            if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
+                $identifier[$fieldName] = $record->get($fieldName);
+            }
+            if ($record->isFieldModified($fieldName)) {
+                $modifiedFields[$fieldName] = $record->get($fieldName);
+            }
+        }
+
+        $conn = $table->getConnection();
+        $conn->update($table, $modifiedFields, $identifier);
+    }
+
 
 }

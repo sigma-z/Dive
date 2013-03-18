@@ -31,6 +31,8 @@
 namespace Dive;
 
 
+use Dive\Record\RecordException;
+
 class Record
 {
 
@@ -194,6 +196,26 @@ class Record
     }
 
 
+    public function assignIdentifier($identifier)
+    {
+        $identifierFields = $this->_table->getIdentifierAsArray();
+        if (!is_array($identifier)) {
+            $identifier = array($identifier);
+        }
+        if (count($identifier) != count($identifierFields)) {
+            throw new RecordException(
+                "Identifier '" . implode('-', $identifier) .  "' does not match table identifier!"
+            );
+        }
+
+        foreach ($identifier as $fieldName => $id) {
+            $this->_data[$fieldName] = $id;
+        }
+        $this->_modifiedFields = array();
+        $this->_exists = true;
+    }
+
+
     public function get($name)
     {
         return $this->__get($name);
@@ -307,6 +329,16 @@ class Record
 
 
     /**
+     * @param  string $fieldName
+     * @return bool
+     */
+    public function isFieldModified($fieldName)
+    {
+        return in_array($fieldName, $this->_modifiedFields);
+    }
+
+
+    /**
      * @return array
      */
     public function getModifiedFields()
@@ -321,7 +353,7 @@ class Record
     public function save()
     {
         $rm = $this->_table->getRecordManager();
-        return $rm->saveRecord($this);
+        $rm->saveRecord($this);
     }
 
 
@@ -331,7 +363,8 @@ class Record
     public function delete()
     {
         $rm = $this->_table->getRecordManager();
-        return $rm->saveDelete($this);
+        $rm->deleteRecord($this);
+        $this->_exists = false;
     }
 
 }

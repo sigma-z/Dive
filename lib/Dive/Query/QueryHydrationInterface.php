@@ -60,7 +60,7 @@ interface QueryHydrationInterface
     /**
      * Fetches the query result as record instance
      *
-     * @return \Dive\Record
+     * @return \Dive\Record|bool   Returns false, if result is empty
      */
     public function fetchOneAsObject();
 
@@ -76,7 +76,7 @@ interface QueryHydrationInterface
     /**
      * Fetches the query result as single array
      *
-     * @return array
+     * @return array|bool   Returns false, if result is empty
      */
     public function fetchOneAsArray();
 
@@ -84,7 +84,7 @@ interface QueryHydrationInterface
     /**
      * Fetches the query result as single scalar
      *
-     * @return string
+     * @return string|bool   Returns false, if result is empty
      */
     public function fetchSingleScalar();
 

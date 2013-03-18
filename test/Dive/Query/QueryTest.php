@@ -314,7 +314,7 @@ class QueryTest extends DatasetTestCase
                 array('having', array('count(u.id) > 1'))
             ),
             'expected' => 'SELECT u.id, u.username, u.password FROM user u'
-                . ' GROUP BY username '
+                . ' GROUP BY username'
                 . ' HAVING count(u.id) > 1'
         );
         $testCases[] = array(
@@ -523,6 +523,20 @@ class QueryTest extends DatasetTestCase
         $this->assertInstanceOf('\Dive\Record', $record);
         $this->assertEquals('user', $record->getTable()->getTableName());
         $this->assertEquals($id, $record->id);
+    }
+
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testFindByFkOnNonExistingRecord($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $query = $table->createQuery();
+        $query->where('id = ?', 10);
+        $record = $query->fetchOneAsObject();
+        $this->assertFalse($record);
     }
 
 

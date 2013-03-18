@@ -44,7 +44,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Adds mock listener via closure to event dispatcher
      *
-     * @param \Dive\Event\Dispatcher                $eventDispatcher
+     * @param \Dive\Event\Dispatcher $eventDispatcher
      * @param \Dive\Event\Event|\Dive\Event\Event[] $events
      * @param array $expectedEventsCalled
      */

@@ -320,20 +320,6 @@ class Table
     }
 
 
-//    /**
-//     * creates record
-//     *
-//     * @param array $data
-//     * @param bool  $exists
-//     * @return \Dive\Record
-//     */
-//    public function createRecord(array $data = array(), $exists = false)
-//    {
-//        $recordClass = $this->recordClass;
-//        return new $recordClass($this, $data, $exists);
-//    }
-//
-//
 //    public function count()
 //    {
 //        return $this->createQuery()->count();

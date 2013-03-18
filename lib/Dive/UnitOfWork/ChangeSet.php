@@ -79,13 +79,10 @@ class ChangeSet implements ChangeSetInterface
             $this->scheduledForDelete[] = $record;
             return;
         }
-
-        if (!$record->isModified()) {
-            return;
-        }
-
         if ($recordExists) {
-            $this->scheduledForUpdate[] = $record;
+            if (!$record->isModified()) {
+                $this->scheduledForUpdate[] = $record;
+            }
         }
         else {
             $this->scheduledForInsert[] = $record;

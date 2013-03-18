@@ -44,4 +44,15 @@ class TableTest extends DatasetTestCase
         $this->assertEquals($id, $record->id);
     }
 
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testFindByFkOnNonExistingRecord($database)
+    {
+        $rm = self::createRecordManager($database);
+        $record = $rm->getTable('user')->findByPk(10);
+        $this->assertFalse($record);
+    }
+
 }

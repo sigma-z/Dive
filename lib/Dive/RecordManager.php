@@ -201,30 +201,28 @@ class RecordManager
 
 
     /**
-     * @param Record               $record
+     * @param Record $record
      * @param UnitOfWork\ChangeSet $changeSet
-     * @return bool
      */
     public function saveRecord(Record $record, UnitOfWork\ChangeSet $changeSet = null)
     {
         if ($changeSet === null) {
             $changeSet = new UnitOfWork\ChangeSet();
         }
-        return $this->unitOfWork->saveGraph($record, $changeSet);
+        $this->unitOfWork->saveGraph($record, $changeSet);
     }
 
 
     /**
-     * @param Record               $record
+     * @param Record $record
      * @param UnitOfWork\ChangeSet $changeSet
-     * @return bool
      */
     public function deleteRecord(Record $record, UnitOfWork\ChangeSet $changeSet = null)
     {
         if ($changeSet === null) {
             $changeSet = new UnitOfWork\ChangeSet();
         }
-        return $this->unitOfWork->deleteGraph($record, $changeSet);
+        $this->unitOfWork->deleteGraph($record, $changeSet);
     }
 
 

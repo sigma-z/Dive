@@ -16,6 +16,7 @@ namespace Dive\Connection;
 use Dive\Event\Dispatcher;
 use Dive\Event\DispatcherInterface;
 use Dive\Expression;
+use Dive\Logging\SqlLogger;
 use Dive\Platform\PlatformInterface;
 use Dive\Table;
 
@@ -25,8 +26,25 @@ class Connection
 
     const EVENT_PRE_CONNECT     = 'Dive.Connection.preConnect';
     const EVENT_POST_CONNECT    = 'Dive.Connection.postConnect';
+
     const EVENT_PRE_DISCONNECT  = 'Dive.Connection.preDisconnect';
     const EVENT_POST_DISCONNECT = 'Dive.Connection.postDisconnect';
+
+    const EVENT_PRE_QUERY       = 'Dive.Connection.preQuery';
+    const EVENT_POST_QUERY      = 'Dive.Connection.postQuery';
+
+    const EVENT_PRE_EXEC        = 'Dive.Connection.preExec';
+    const EVENT_POST_EXEC       = 'Dive.Connection.postExec';
+
+    const EVENT_PRE_INSERT      = 'Dive.Connection.preInsert';
+    const EVENT_POST_INSERT     = 'Dive.Connection.postInsert';
+
+    const EVENT_PRE_UPDATE      = 'Dive.Connection.preUpdate';
+    const EVENT_POST_UPDATE     = 'Dive.Connection.postUpdate';
+
+    const EVENT_PRE_DELETE      = 'Dive.Connection.preDelete';
+    const EVENT_POST_DELETE     = 'Dive.Connection.postDelete';
+
 
     /**
      * @var \PDO
@@ -64,10 +82,10 @@ class Connection
      * @var string
      */
     protected $encoding = PlatformInterface::ENC_UTF8;
-//    /**
-//     * @var \Dive\Logging\SqlLogger
-//     */
-//    protected $sqlLogger;
+    /**
+     * @var SqlLogger
+     */
+    protected $sqlLogger;
 
 
     /**
@@ -150,7 +168,7 @@ class Connection
 
 
     /**
-     * gets scheme from dsn
+     * Gets scheme from dsn
      *
      * @return string
      */
@@ -161,6 +179,8 @@ class Connection
 
 
     /**
+     * Sets connection encoding
+     *
      * @param string $encoding
      */
     public function setEncoding($encoding)
@@ -169,22 +189,38 @@ class Connection
     }
 
 
+    /**
+     * Gets connection encoding
+     * Note: It's not read from database connection!
+     *
+     * @return string
+     */
     public function getEncoding()
     {
         return $this->encoding;
     }
 
 
-//    public function setSqlLogger(\Dive\Logging\SqlLogger $sqlLogger)
-//    {
-//        $this->sqlLogger = $sqlLogger;
-//    }
-//
-//
-//    public function getSqlLogger()
-//    {
-//        return $this->sqlLogger;
-//    }
+    /**
+     * Sets sql logger
+     *
+     * @param SqlLogger $sqlLogger
+     */
+    public function setSqlLogger(SqlLogger $sqlLogger)
+    {
+        $this->sqlLogger = $sqlLogger;
+    }
+
+
+    /**
+     * Gets sql logger
+     *
+     * @return SqlLogger
+     */
+    public function getSqlLogger()
+    {
+        return $this->sqlLogger;
+    }
 
 
     public function connect()
@@ -212,10 +248,19 @@ class Connection
     }
 
 
-    protected function dispatchEvent($eventName)
+    protected function dispatchEvent($eventName, $sql = '', array $params = array())
     {
         if ($this->eventDispatcher) {
-            $connectEvent = new ConnectionEvent($this);
+            $connectEvent = new ConnectionEvent($this, $sql, $params);
+            $this->eventDispatcher->dispatch($eventName, $connectEvent);
+        }
+    }
+
+
+    protected function dispatchDmlEvent($eventName, Table $table, array $fields = array(), array $identifier = array())
+    {
+        if ($this->eventDispatcher) {
+            $connectEvent = new ConnectionDmlEvent($this, $table, $fields, $identifier);
             $this->eventDispatcher->dispatch($eventName, $connectEvent);
         }
     }
@@ -266,16 +311,17 @@ class Connection
 
     // TODO unittest
     /**
-     * @param string $sql
-     * @param array $params
+     * @param  string $sql
+     * @param  array  $params
      * @return \PDOStatement
      */
     public function getStatement($sql, $params = array())
     {
         $this->connect();
-//        if ($this->sqlLogger) {
-//            $this->sqlLogger->startQuery($sql, $params);
-//        }
+
+        $this->dispatchEvent(self::EVENT_PRE_QUERY, $sql, $params);
+        $this->startSqlLogger($sql, $params);
+
         if (!empty($params)) {
             $stmt = $this->prepare($sql);
             $stmt->execute($params);
@@ -283,12 +329,13 @@ class Connection
         else {
             $stmt = $this->dbh->query($sql);
         }
+
+        $this->stopSqlLogger();
+        $this->dispatchEvent(self::EVENT_POST_QUERY, $sql, $params);
+
         if ($stmt === false) {
             $this->throwErrorAsException($sql, $params);
         }
-//        if ($this->sqlLogger) {
-//            $this->sqlLogger->stopQuery();
-//        }
         return $stmt;
     }
 
@@ -308,15 +355,8 @@ class Connection
     // TODO unittest!
     public function query($sql, array $params = array(), $pdoFetchMode = \PDO::FETCH_ASSOC)
     {
-        $this->connect();
-//        if ($this->sqlLogger) {
-//            $this->sqlLogger->startQuery($sql, $params);
-//        }
         $stmt = $this->getStatement($sql, $params);
         $return = $stmt->fetchAll($pdoFetchMode);
-//        if ($this->sqlLogger) {
-//            $this->sqlLogger->stopQuery();
-//        }
         return $return;
     }
 
@@ -325,9 +365,10 @@ class Connection
     public function exec($sql, array $params = array())
     {
         $this->connect();
-//        if ($this->sqlLogger) {
-//            $this->sqlLogger->startQuery($sql, $params);
-//        }
+
+        $this->dispatchEvent(self::EVENT_PRE_EXEC, $sql, $params);
+        $this->startSqlLogger($sql, $params);
+
         if (!empty($params)) {
             $stmt = $this->prepare($sql);
             $stmt->execute($params);
@@ -336,13 +377,36 @@ class Connection
         else {
             $return = $this->dbh->exec($sql);
         }
+
+        $this->stopSqlLogger();
+        $this->dispatchEvent(self::EVENT_POST_EXEC, $sql, $params);
+
         if ($return === false) {
-            throw new ConnectionException("Sql execution failed: \"$sql\"! Reason: " . print_r($this->dbh->errorInfo(), true));
+            throw new ConnectionException(
+                "Sql execution failed: \"$sql\"! Reason: " . print_r($this->dbh->errorInfo(), true)
+            );
         }
-//        if ($this->sqlLogger) {
-//            $this->sqlLogger->stopQuery();
-//        }
         return $return;
+    }
+
+
+    /**
+     * @param string $sql
+     * @param array  $params
+     */
+    protected function startSqlLogger($sql, array $params)
+    {
+        if ($this->sqlLogger) {
+            $this->sqlLogger->startQuery($sql, $params);
+        }
+    }
+
+
+    protected function stopSqlLogger()
+    {
+        if ($this->sqlLogger) {
+            $this->sqlLogger->stopQuery();
+        }
     }
 
 
@@ -424,6 +488,8 @@ class Connection
         $columns = array();
         $values = array();
         $params = array();
+        $identifierFields = $table->getIdentifierAsArray();
+        $identifier = array();
         foreach ($fields as $fieldName => $value) {
             if ($table->hasField($fieldName)) {
                 $columns[] = $this->quoteIdentifier($fieldName);
@@ -435,6 +501,9 @@ class Connection
                     $values[] = '?';
                     $params[] = $value;
                 }
+                if ($value !== null && in_array($identifier, $identifierFields)) {
+                    $identifier[$fieldName] = $value;
+                }
             }
         }
         // build query
@@ -442,7 +511,17 @@ class Connection
             . ' (' . implode(', ', $columns) . ')'
             . ' VALUES (' . implode(', ', $values) . ')';
 
-        return $this->exec($query, $params);
+        if (count($identifier) !== count($identifierFields)) {
+            $identifier = array();
+        }
+
+        $this->dispatchDmlEvent(self::EVENT_PRE_INSERT, $table, $fields, $identifier);
+        $affectedRows = $this->exec($query, $params);
+        if (empty($identifier) && count($identifierFields) == 1) {
+            $identifier[$identifierFields[0]] = $this->getLastInsertId($table->getTableName());
+        }
+        $this->dispatchDmlEvent(self::EVENT_POST_INSERT, $table, $fields, $identifier);
+        return $affectedRows;
     }
 
 
@@ -510,7 +589,10 @@ class Connection
 
         $params = array_merge($params, $identifier);
 
-        return $this->exec($query, $params);
+        $this->dispatchDmlEvent(self::EVENT_PRE_UPDATE, $table, $fields, $identifier);
+        $affectedRows = $this->exec($query, $params);
+        $this->dispatchDmlEvent(self::EVENT_POST_UPDATE, $table, $fields, $identifier);
+        return $affectedRows;
     }
 
 
@@ -542,7 +624,10 @@ class Connection
         $query = 'DELETE FROM ' . $this->quoteIdentifier($table->getTableName())
             . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
 
-        return $this->exec($query, $identifier);
+        $this->dispatchDmlEvent(self::EVENT_PRE_UPDATE, $table, array(), $identifier);
+        $affectedRows = $this->exec($query, $identifier);
+        $this->dispatchDmlEvent(self::EVENT_POST_UPDATE, $table, array(), $identifier);
+        return $affectedRows;
     }
 
 

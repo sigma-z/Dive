@@ -50,14 +50,6 @@ interface QueryHydrationInterface
 
 
     /**
-     * Fetches the query result as array
-     *
-     * @return array
-     */
-    public function fetchArray();
-
-
-    /**
      * Fetches the query result as record collection
      *
      * @return \Dive\Collection\RecordCollection
@@ -71,6 +63,14 @@ interface QueryHydrationInterface
      * @return \Dive\Record
      */
     public function fetchOneAsObject();
+
+
+    /**
+     * Fetches the query result as array
+     *
+     * @return array
+     */
+    public function fetchArray();
 
 
     /**

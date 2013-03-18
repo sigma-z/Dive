@@ -1,5 +1,5 @@
 <?php
-/*
+ /*
  * This file is part of the Dive ORM framework.
  * (c) Steffen Zeidler <sigma_z@sigma-scripts.de>
  *
@@ -7,24 +7,18 @@
  * file that was distributed with this source code.
  */
 /**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 11.02.13
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 14.03.13
  */
+
 
 namespace Dive\Hydrator;
 
 use Dive\Table;
 
 
-interface HydratorInterface
+class ArrayHydrator extends AbstractHydrator
 {
-
-    /**
-     * Sets PDO statement
-     *
-     * @param \PDOStatement $stmt
-     */
-    public function setStatement(\PDOStatement $stmt);
 
     /**
      * Gets statement result
@@ -32,6 +26,9 @@ interface HydratorInterface
      * @param  \Dive\Table|null $table
      * @return mixed
      */
-    public function getResult(Table $table = null);
+    public function getResult(Table $table = null)
+    {
+        return $this->statement->fetchAll(\PDO::FETCH_ASSOC);
+    }
 
 }

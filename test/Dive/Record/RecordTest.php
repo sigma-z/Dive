@@ -34,7 +34,7 @@ class RecordTest extends \Dive\TestSuite\TestCase
     {
         parent::setUp();
 
-        $this->rm = self::getDefaultRecordManager();
+        $this->rm = self::createDefaultRecordManager();
         $this->table = $this->rm->getTable('user');
     }
 

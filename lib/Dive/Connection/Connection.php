@@ -10,7 +10,10 @@
 namespace Dive\Connection;
 
 use Dive\Event\Dispatcher;
+use Dive\Expression;
 use Dive\Platform\PlatformInterface;
+use Dive\Table;
+
 //use Dive\Table;
 
 /**
@@ -224,6 +227,24 @@ class Connection
     }
 
 
+    public function beginTransaction()
+    {
+        $this->getDbh()->beginTransaction();
+    }
+
+
+    public function commit()
+    {
+        $this->getDbh()->commit();
+    }
+
+
+    public function rollBack()
+    {
+        $this->getDbh()->rollBack();
+    }
+
+
     // TODO unittest
     /**
      * @param string $sql
@@ -242,6 +263,9 @@ class Connection
         }
         else {
             $stmt = $this->dbh->query($sql);
+        }
+        if ($stmt === false) {
+            $this->throwErrorAsException($sql, $params);
         }
 //        if ($this->sqlLogger) {
 //            $this->sqlLogger->stopQuery();
@@ -368,53 +392,54 @@ class Connection
     }
 
 
-//    /**
-//     * insert row
-//     *
-//     * @param Table $table
-//     * @param array $fields
-//     * @return int
-//     */
-//    public function insert(Table $table, array $fields)
-//    {
-//        $columns = array();
-//        $values = array();
-//        $params = array();
-//        foreach ($fields as $fieldName => $value) {
-//            if ($table->hasField($fieldName)) {
-//                $columns[] = $this->quoteIdentifier($fieldName);
-//                if ($value instanceof \Dive\Expression) {
-//                    /** @var \Dive\Expression $value */
-//                    $values[] = $value->getSql();
-//                }
-//                else {
-//                    $values[] = '?';
-//                    $params[] = $value;
-//                }
-//            }
-//        }
-//        // build query
-//        $query = 'INSERT INTO ' . $this->quoteIdentifier($table->getTableName())
-//            . ' (' . implode(', ', $columns) . ')'
-//            . ' VALUES (' . implode(', ', $values) . ')';
-//
-//        return $this->exec($query, $params);
-//    }
-//
-//
-//    /**
-//     * TODO database management systems have different support to get the last inserted id
-//     * gets last inserted id
-//     *
-//     * @param  string $tableName
-//     * @return string
-//     */
-//    public function getLastInsertId($tableName = null)
-//    {
-//        return $this->dbh->lastInsertId($tableName);
-//    }
-//
-//
+    /**
+     * Insert row
+     * TODO unit test it!
+     *
+     * @param Table $table
+     * @param array $fields
+     * @return int
+     */
+    public function insert(Table $table, array $fields)
+    {
+        $columns = array();
+        $values = array();
+        $params = array();
+        foreach ($fields as $fieldName => $value) {
+            if ($table->hasField($fieldName)) {
+                $columns[] = $this->quoteIdentifier($fieldName);
+                if ($value instanceof Expression) {
+                    /** @var \Dive\Expression $value */
+                    $values[] = $value->getSql();
+                }
+                else {
+                    $values[] = '?';
+                    $params[] = $value;
+                }
+            }
+        }
+        // build query
+        $query = 'INSERT INTO ' . $this->quoteIdentifier($table->getTableName())
+            . ' (' . implode(', ', $columns) . ')'
+            . ' VALUES (' . implode(', ', $values) . ')';
+
+        return $this->exec($query, $params);
+    }
+
+
+    /**
+     * TODO database management systems have different support to get the last inserted id
+     * gets last inserted id
+     *
+     * @param  string $tableName
+     * @return string
+     */
+    public function getLastInsertId($tableName = null)
+    {
+        return $this->dbh->lastInsertId($tableName);
+    }
+
+
 //    /**
 //     * updates row
 //     *
@@ -467,50 +492,64 @@ class Connection
 //
 //        return $this->exec($query, $params);
 //    }
-//
-//
-//    /**
-//     * delete row
-//     *
-//     * @param  Table         $table
-//     * @param  string|array  $identifier
-//     * @return int           affected rows
-//     * @throws \InvalidArgumentException
-//     */
-//    public function delete(Table $table, $identifier)
-//    {
-//        if (!is_array($identifier)) {
-//            $identifier = array($identifier);
-//        }
-//        $this->throwExceptionIfIdentifierDoesNotMatchTableIdentifier($table, $identifier);
-//
-//        $identifierFields = $table->getIdentifier();
-//        if (!is_array($identifierFields)) {
-//            $identifierFields = array($identifierFields);
-//        }
-//        foreach ($identifierFields as &$field) {
-//            $field = $this->quoteIdentifier($field);
-//        }
-//
-//        // build query
-//        $query = 'DELETE FROM ' . $this->quoteIdentifier($table->getTableName())
-//            . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
-//
-//        return $this->exec($query, $identifier);
-//    }
-//
-//
-//    private static function throwExceptionIfIdentifierDoesNotMatchTableIdentifier(Table $table, array $identifier)
-//    {
-//        $identifierFields = $table->getIdentifier();
-//        if (!is_array($identifierFields)) {
-//            $identifierFields = array($identifierFields);
-//        }
-//        if (count($identifierFields) != count($identifier)) {
-//            throw new \InvalidArgumentException(
-//                'Identifier does not match table identifier (' . implode(', ', $identifierFields) . ')'
-//            );
-//        }
-//    }
+
+
+    /**
+     * delete row
+     * TODO unit test it!
+     *
+     * @param  Table         $table
+     * @param  string|array  $identifier
+     * @return int           affected rows
+     * @throws \InvalidArgumentException
+     */
+    public function delete(Table $table, $identifier)
+    {
+        if (!is_array($identifier)) {
+            $identifier = array($identifier);
+        }
+        $this->throwExceptionIfIdentifierDoesNotMatchTableIdentifier($table, $identifier);
+
+        $identifierFields = $table->getIdentifier();
+        if (!is_array($identifierFields)) {
+            $identifierFields = array($identifierFields);
+        }
+        foreach ($identifierFields as &$field) {
+            $field = $this->quoteIdentifier($field);
+        }
+
+        // build query
+        $query = 'DELETE FROM ' . $this->quoteIdentifier($table->getTableName())
+            . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
+
+        return $this->exec($query, $identifier);
+    }
+
+
+    private static function throwExceptionIfIdentifierDoesNotMatchTableIdentifier(Table $table, array $identifier)
+    {
+        $identifierFields = $table->getIdentifier();
+        if (!is_array($identifierFields)) {
+            $identifierFields = array($identifierFields);
+        }
+        if (count($identifierFields) != count($identifier)) {
+            throw new \InvalidArgumentException(
+                'Identifier does not match table identifier (' . implode(', ', $identifierFields) . ')'
+            );
+        }
+    }
+
+
+    public function throwErrorAsException($sql, array $params)
+    {
+        $error = $this->dbh->errorInfo();
+        if (is_array($error) && $error[0] !== '00000') {
+            throw new ConnectionException(
+                $error[0] . ' ' . $error[2]
+                . "\nGiven sql: $sql"
+                . "\nGiven params: " . print_r($params, true)
+            );
+        }
+    }
 
 }

@@ -188,6 +188,19 @@ class RecordManager
 
 
     /**
+     * Creates query for given table name
+     *
+     * @param  string $tableName
+     * @param  string $alias
+     * @return Query\Query
+     */
+    public function createQuery($tableName, $alias = 'a')
+    {
+        return $this->getTable($tableName)->createQuery($alias);
+    }
+
+
+    /**
      * @param Record               $record
      * @param UnitOfWork\ChangeSet $changeSet
      * @return bool
@@ -257,9 +270,28 @@ class RecordManager
 
             case self::FETCH_RECORD:
                 return new Hydrator\RecordHydrator($this);
+
+            case self::FETCH_ARRAY:
+                return new Hydrator\ArrayHydrator($this);
+
+            case self::FETCH_SINGLE_ARRAY:
+                return new Hydrator\SingleArrayHydrator($this);
         }
 
         throw new Exception("Hydrator '$name' is not defined!");
+    }
+
+
+    /**
+     * Gets record
+     *
+     * @param Table $table
+     * @param array $data
+     * @return Record
+     */
+    public function getRecord(Table $table, array $data)
+    {
+        return $this->unitOfWork->getRecord($table, $data);
     }
 
 }

@@ -16,7 +16,7 @@ namespace Dive\Hydrator;
 use Dive\Table;
 
 
-class RecordHydrator extends Hydrator
+class RecordHydrator extends AbstractHydrator
 {
 
     /**
@@ -32,6 +32,7 @@ class RecordHydrator extends Hydrator
         }
 
         $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
+        $this->statement->closeCursor();
         if ($row === false) {
             return false;
         }
@@ -48,7 +49,7 @@ class RecordHydrator extends Hydrator
      */
     protected function hydrateRecord(Table $table, array $row)
     {
-        $record = $this->recordManager->getRecord($table, $row, true);
+        $record = $this->recordManager->getRecord($table, $row);
 //        $id = $record->getIdentifierAsString();
 //        foreach ($referencingRelations as $relation) {
 //            $referencingField = $relation->getReferencingField();
@@ -62,16 +63,4 @@ class RecordHydrator extends Hydrator
 //        }
         return $record;
     }
-
-
-    /**
-     * @param  \Dive\Table $table
-     * @throws HydratorException
-     */
-    public static function throwMissingTableException($table = null)
-    {
-        $argumentType = is_object($table) ? get_class($table) : gettype($table);
-        throw new HydratorException("Hydrator needs table instance! You gave me: " . $argumentType);
-    }
-
 }

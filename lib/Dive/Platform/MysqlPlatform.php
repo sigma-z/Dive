@@ -27,6 +27,14 @@ class MysqlPlatform extends AbstractPlatform
      */
     protected $identifierQuote = '`';
 
+    /**
+     * @var array
+     */
+    protected $supportedEncodings = array(
+        self::ENC_UTF8 => 'utf8',
+        self::ENC_LATIN1 => 'latin1'
+    );
+
 
     /**
      * constructor
@@ -138,6 +146,19 @@ class MysqlPlatform extends AbstractPlatform
     public function getEnableForeignKeyChecksSql()
     {
         return 'SET FOREIGN_KEY_CHECKS=1';
+    }
+
+
+    /**
+     * Gets set connection encoding sql statement
+     *
+     * @param  string $encoding
+     * @return string
+     */
+    public function getSetConnectionEncodingSql($encoding)
+    {
+        $encoding = $this->getEncodingSqlName($encoding);
+        return "SET NAMES '$encoding'";
     }
 
 

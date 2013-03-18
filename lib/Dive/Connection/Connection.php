@@ -6,20 +6,19 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Dive\Connection;
-
-use Dive\Event\Dispatcher;
-use Dive\Expression;
-use Dive\Platform\PlatformInterface;
-use Dive\Table;
-
-//use Dive\Table;
-
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.10.12
  */
+
+namespace Dive\Connection;
+
+use Dive\Event\Dispatcher;
+use Dive\Event\DispatcherInterface;
+use Dive\Expression;
+use Dive\Platform\PlatformInterface;
+use Dive\Table;
+
 
 class Connection
 {
@@ -58,9 +57,13 @@ class Connection
      */
     protected $dsn;
     /**
-     * @var \Dive\Event\Dispatcher
+     * @var \Dive\Event\DispatcherInterface|\Dive\Event\Dispatcher
      */
     protected $eventDispatcher;
+    /**
+     * @var string
+     */
+    protected $encoding = PlatformInterface::ENC_UTF8;
 //    /**
 //     * @var \Dive\Logging\SqlLogger
 //     */
@@ -73,14 +76,14 @@ class Connection
      * @param   string                  $dsn
      * @param   string                  $user
      * @param   string                  $password
-     * @param   \Dive\Event\Dispatcher  $eventDispatcher
+     * @param   \Dive\Event\DispatcherInterface|\Dive\Event\Dispatcher $eventDispatcher
      */
     public function __construct(
         Driver\DriverInterface $driver,
         $dsn,
         $user = '',
         $password = '',
-        Dispatcher $eventDispatcher = null
+        DispatcherInterface $eventDispatcher = null
     ) {
         $this->driver   = $driver;
         $this->platform = $driver->getPlatform();
@@ -135,7 +138,7 @@ class Connection
     /**
      * gets event dispatcher
      *
-     * @return \Dive\Event\Dispatcher
+     * @return \Dive\Event\Dispatcher|\Dive\Event\DispatcherInterface
      */
     public function getEventDispatcher()
     {
@@ -157,6 +160,20 @@ class Connection
     }
 
 
+    /**
+     * @param string $encoding
+     */
+    public function setEncoding($encoding)
+    {
+        $this->encoding = $encoding;
+    }
+
+
+    public function getEncoding()
+    {
+        return $this->encoding;
+    }
+
 
 //    public function setSqlLogger(\Dive\Logging\SqlLogger $sqlLogger)
 //    {
@@ -175,6 +192,8 @@ class Connection
         if (!$this->isConnected()) {
             $this->dispatchEvent(self::EVENT_PRE_CONNECT);
             $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
+            $encodingSql = $this->platform->getSetConnectionEncodingSql($this->encoding);
+            $this->dbh->exec($encodingSql);
             $this->dispatchEvent(self::EVENT_POST_CONNECT);
         }
     }
@@ -441,7 +460,8 @@ class Connection
 
 
     /**
-     * updates row
+     * Updates row
+     * TODO unit test it!
      *
      * @param Table $table
      * @param array $fields

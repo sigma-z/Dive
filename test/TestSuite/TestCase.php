@@ -92,6 +92,25 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
+     * Gets database for given scheme
+     *
+     * @param  string $givenScheme
+     * @return array|bool
+     */
+    public static function getDatabaseForScheme($givenScheme)
+    {
+        $databases = self::getDatabases();
+        foreach ($databases as $database) {
+            $scheme = self::getSchemeFromDsn($database['dsn']);
+            if ($scheme === $givenScheme) {
+                return $database;
+            }
+        }
+        return false;
+    }
+
+
+    /**
      * Gets default record manager
      *
      * @return \Dive\RecordManager

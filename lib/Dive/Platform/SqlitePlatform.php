@@ -20,6 +20,13 @@ class SqlitePlatform extends AbstractPlatform
 
     const SET_DEFAULT = 'SET DEFAULT';
 
+    /**
+     * @var array
+     */
+    protected $supportedEncodings = array(
+        self::ENC_UTF8 => 'utf-8'
+    );
+
 
     /**
      * constructor
@@ -179,6 +186,19 @@ class SqlitePlatform extends AbstractPlatform
     public function getEnableForeignKeyChecksSql()
     {
         return 'PRAGMA foreign_keys = ON';
+    }
+
+
+    /**
+     * Gets set connection encoding sql statement
+     *
+     * @param  string $encoding
+     * @return string
+     */
+    public function getSetConnectionEncodingSql($encoding)
+    {
+        $encoding = $this->getEncodingSqlName($encoding);
+        return "PRAGMA encoding = \"$encoding\"";
     }
 
 

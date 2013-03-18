@@ -10,12 +10,13 @@
 namespace Dive\Test\Connection;
 
 use Dive\Connection\Connection;
+use Dive\TestSuite\TestCase;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 31.10.12
  */
-class ConnectionTest extends \Dive\TestSuite\TestCase
+class ConnectionTest extends TestCase
 {
 
     /**
@@ -28,7 +29,7 @@ class ConnectionTest extends \Dive\TestSuite\TestCase
     {
         /** @var \Dive\Connection\Driver\DriverInterface $driver */
         $driver = $this->getMockForAbstractClass('\Dive\Connection\Driver\DriverInterface');
-        $conn = new \Dive\Connection\Connection($driver, $dsn);
+        $conn = new Connection($driver, $dsn);
         $this->assertEquals($expected, $conn->getScheme());
     }
 

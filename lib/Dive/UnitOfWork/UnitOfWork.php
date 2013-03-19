@@ -101,7 +101,7 @@ class UnitOfWork
             foreach ($changeSet->getScheduledForDelete() as $recordDelete) {
                 $this->doDelete($recordDelete);
             }
-            $conn->connect();
+            $conn->commit();
         }
         catch (DiveException $e) {
             $conn->rollBack();

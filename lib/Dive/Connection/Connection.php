@@ -260,7 +260,7 @@ class Connection
     protected function dispatchRowEvent($eventName, Table $table, array $fields = array(), array $identifier = array())
     {
         if ($this->eventDispatcher) {
-            $connectEvent = new ConnectionRowEvent($this, $table, $fields, $identifier);
+            $connectEvent = new ConnectionRowChangeEvent($this, $table, $fields, $identifier);
             $this->eventDispatcher->dispatch($eventName, $connectEvent);
         }
     }

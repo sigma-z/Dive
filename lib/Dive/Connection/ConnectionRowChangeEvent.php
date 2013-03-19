@@ -18,7 +18,7 @@ use Dive\Event\Event;
 use Dive\Table;
 
 
-class ConnectionRowEvent extends Event
+class ConnectionRowChangeEvent extends Event
 {
     /**
      * @var Connection

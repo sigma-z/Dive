@@ -283,13 +283,14 @@ class RecordManager
     /**
      * Gets record
      *
-     * @param Table $table
-     * @param array $data
+     * @param  Table $table
+     * @param  array $data
+     * @param  bool  $exists
      * @return Record
      */
-    public function getRecord(Table $table, array $data)
+    public function getRecord(Table $table, array $data, $exists = false)
     {
-        return $this->unitOfWork->getRecord($table, $data);
+        return $this->unitOfWork->getRecord($table, $data, $exists);
     }
 
 }

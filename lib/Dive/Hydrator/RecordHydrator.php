@@ -43,13 +43,13 @@ class RecordHydrator extends AbstractHydrator
     /**
      * hydrates record
      *
-     * @param   \Dive\Table               $table
-     * @param   array                       $row
+     * @param   \Dive\Table $table
+     * @param   array       $row
      * @return  \Dive\Record
      */
     protected function hydrateRecord(Table $table, array $row)
     {
-        $record = $this->recordManager->getRecord($table, $row);
+        $record = $this->recordManager->getRecord($table, $row, true);
 //        $id = $record->getIdentifierAsString();
 //        foreach ($referencingRelations as $relation) {
 //            $referencingField = $relation->getReferencingField();

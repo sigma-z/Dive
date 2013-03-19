@@ -368,7 +368,7 @@ class Record
     }
 
 
-    public function toArray()
+    public function toArray($deep = true)
     {
         return $this->_data;
     }

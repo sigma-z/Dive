@@ -13,13 +13,28 @@
 
 namespace Dive\Test\Query;
 
+use Dive\Collection\RecordCollection;
 use Dive\Query\Query;
+use Dive\Record;
+use Dive\RecordManager;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
 
 
 class QueryTest extends TestCase
 {
+
+    private static $usersData = array(
+        array(
+            'username' => 'John Doe',
+            'password' => 'my secret'
+        ),
+        array(
+            'username' => 'Johanna Stuart',
+            'password' => 'johanna secret'
+        )
+    );
+
 
     /**
      * @dataProvider provideSqlParts
@@ -500,90 +515,119 @@ class QueryTest extends TestCase
     }
 
 
-    /**
-     * @dataProvider provideDatabaseAwareTestCases
-     */
-    public function testFetchOneAsObject($database)
+    private function saveUserRecords(RecordManager $rm)
     {
-        // prepare
-        $rm = self::createRecordManager($database);
         $table = $rm->getTable('user');
-        $data = array(
-            'username' => 'John Doe',
-            'password' => 'my secret'
-        );
-        $id = self::insertDataset($table, $data);
-
-        // execute unit
-        $query = $table->createQuery();
-        $query->where('id = ?', $id);
-        $record = $query->fetchOneAsObject();
-
-        // assert
-        $this->assertInstanceOf('\Dive\Record', $record);
-        $this->assertEquals('user', $record->getTable()->getTableName());
-        $this->assertEquals($id, $record->id);
+        $userIds = array();
+        foreach (self::$usersData as &$userData) {
+            $userIds[] = self::insertDataset($table, $userData);
+        }
+        return $userIds;
     }
 
 
     /**
-     * @dataProvider provideDatabaseAwareTestCases
+     * @dataProvider provideExecute
      */
-    public function testFetchOneAsArray($database)
+    public function testExecute(array $database, $fetchMode, $method, $expected)
     {
-        // prepare
-        $rm = self::createRecordManager($database);
-        $table = $rm->getTable('user');
-        $data = array(
-            'username' => 'John Doe',
-            'password' => 'my secret'
-        );
-        $id = self::insertDataset($table, $data);
-
-        // execute unit
-        $query = $table->createQuery();
-        $query->where('id = ?', $id);
-        $result = $query->fetchOneAsArray();
-
-        // assert
-        $this->assertInternalType('array', $result);
-        $expectedData = array('id' => $id) + $data;
-        $this->assertEquals($expectedData, $result);
-    }
-
-
-    /**
-     * @dataProvider provideDatabaseAwareTestCases
-     */
-    public function testFetchScalars($database)
-    {
-        // prepare
-        $rm = self::createRecordManager($database);
-        $table = $rm->getTable('user');
-        $usersData = array(
-            array(
-                'username' => 'John Doe',
-                'password' => 'my secret'
-            ),
-            array(
-                'username' => 'Johanna Stuart',
-                'password' => 'johanna secret'
-            )
-        );
-        $expectedData = array();
-        foreach ($usersData as $userData) {
-            $id = self::insertDataset($table, $userData);
-            $expectedData[] = $id;
+        if ($fetchMode == RecordManager::FETCH_RECORD_COLLECTION) {
+            $this->markTestSkipped('Fetching record collection has to be implemented!');
         }
 
-        // execute unit
-        $query = $table->createQuery();
-        $query->select('id')->orderBy('id');
-        $result = $query->fetchScalars();
+        $recordFetchModes = array(RecordManager::FETCH_RECORD, RecordManager::FETCH_RECORD_COLLECTION);
+        $isRecordFetchMode = in_array($fetchMode, $recordFetchModes);
 
-        // assert
-        $this->assertInternalType('array', $result);
-        $this->assertEquals($expectedData, $result);
+        // prepare
+        $rm = self::createRecordManager($database);
+        $userIds = $this->saveUserRecords($rm);
+
+        $table = $rm->getTable('user');
+        $query = $table->createQuery();
+        if ($isRecordFetchMode) {
+            $query->select('id, username, password');
+            if (RecordManager::FETCH_RECORD) {
+                $expected['id'] = $userIds[0];
+            }
+            else {
+                foreach ($userIds as $id) {
+                    $expected[$id]['id'] = $id;
+                }
+            }
+        }
+        else {
+            $query->select('username, password');
+        }
+        $this->assertTrue(method_exists($query, $method));
+        $executedResult = $query->execute($fetchMode);
+        $methodResult = call_user_func(array($query, $method));
+
+        $this->assertQueryExecute($executedResult, $expected);
+        $this->assertQueryExecute($methodResult, $expected);
+    }
+
+
+    /**
+     * @param RecordCollection|Record|array|string|bool $result
+     * @param array|string                              $expected
+     */
+    private function assertQueryExecute($result, $expected)
+    {
+        if (is_object($result)) {
+            $this->assertTrue(method_exists($result, 'toArray'));
+            $this->assertEquals($expected, $result->toArray());
+        }
+        else {
+            $this->assertEquals($expected, $result);
+        }
+    }
+
+
+    public function provideExecute()
+    {
+        $testCases = array();
+
+        $testCases[] = array(
+            'fetchMode' => RecordManager::FETCH_ARRAY,
+            'method' => 'fetchArray',
+            'expected' => self::$usersData
+        );
+
+        $testCases[] = array(
+            'fetchMode' => RecordManager::FETCH_SINGLE_ARRAY,
+            'method' => 'fetchOneAsArray',
+            'expected' => self::$usersData[0]
+        );
+
+        $testCases[] = array(
+            'fetchMode' => RecordManager::FETCH_SINGLE_SCALAR,
+            'method' => 'fetchSingleScalar',
+            'expected' => self::$usersData[0]['username']
+        );
+
+        $expected = array();
+        foreach (self::$usersData as $userData) {
+            $expected[] = $userData['username'];
+        }
+        $testCases[] = array(
+            'fetchMode' => RecordManager::FETCH_SCALARS,
+            'method' => 'fetchScalars',
+            'expected' => $expected
+        );
+
+        $testCases[] = array(
+            'fetchMode' => RecordManager::FETCH_RECORD,
+            'method' => 'fetchOneAsObject',
+            'expected' => self::$usersData[0]
+        );
+
+        $testCases[] = array(
+            'fetchMode' => RecordManager::FETCH_RECORD_COLLECTION,
+            'method' => 'fetchObjects',
+            'expected' => self::$usersData
+        );
+
+        return self::getDatabaseAwareTestCases($testCases);
     }
 
 

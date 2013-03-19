@@ -257,10 +257,10 @@ class Connection
     }
 
 
-    protected function dispatchDmlEvent($eventName, Table $table, array $fields = array(), array $identifier = array())
+    protected function dispatchRowEvent($eventName, Table $table, array $fields = array(), array $identifier = array())
     {
         if ($this->eventDispatcher) {
-            $connectEvent = new ConnectionDmlEvent($this, $table, $fields, $identifier);
+            $connectEvent = new ConnectionRowEvent($this, $table, $fields, $identifier);
             $this->eventDispatcher->dispatch($eventName, $connectEvent);
         }
     }
@@ -521,12 +521,12 @@ class Connection
             $identifier = array();
         }
 
-        $this->dispatchDmlEvent(self::EVENT_PRE_INSERT, $table, $fields, $identifier);
+        $this->dispatchRowEvent(self::EVENT_PRE_INSERT, $table, $fields, $identifier);
         $affectedRows = $this->exec($query, $params);
         if (empty($identifier) && count($identifierFields) == 1) {
             $identifier[$identifierFields[0]] = $this->getLastInsertId($table->getTableName());
         }
-        $this->dispatchDmlEvent(self::EVENT_POST_INSERT, $table, $fields, $identifier);
+        $this->dispatchRowEvent(self::EVENT_POST_INSERT, $table, $fields, $identifier);
         return $affectedRows;
     }
 
@@ -595,9 +595,9 @@ class Connection
 
         $params = array_merge($params, $identifier);
 
-        $this->dispatchDmlEvent(self::EVENT_PRE_UPDATE, $table, $fields, $identifier);
+        $this->dispatchRowEvent(self::EVENT_PRE_UPDATE, $table, $fields, $identifier);
         $affectedRows = $this->exec($query, $params);
-        $this->dispatchDmlEvent(self::EVENT_POST_UPDATE, $table, $fields, $identifier);
+        $this->dispatchRowEvent(self::EVENT_POST_UPDATE, $table, $fields, $identifier);
         return $affectedRows;
     }
 
@@ -630,9 +630,9 @@ class Connection
         $query = 'DELETE FROM ' . $this->quoteIdentifier($table->getTableName())
             . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
 
-        $this->dispatchDmlEvent(self::EVENT_PRE_UPDATE, $table, array(), $identifier);
+        $this->dispatchRowEvent(self::EVENT_PRE_DELETE, $table, array(), $identifier);
         $affectedRows = $this->exec($query, $identifier);
-        $this->dispatchDmlEvent(self::EVENT_POST_UPDATE, $table, array(), $identifier);
+        $this->dispatchRowEvent(self::EVENT_POST_DELETE, $table, array(), $identifier);
         return $affectedRows;
     }
 

@@ -309,7 +309,6 @@ class Connection
     }
 
 
-    // TODO unittest
     /**
      * @param  string $sql
      * @param  array  $params
@@ -352,7 +351,7 @@ class Connection
     }
 
 
-    // TODO unittest!
+    // TODO unittest? same like getStatement? should we really test "fetchAll"?
     public function query($sql, array $params = array(), $pdoFetchMode = \PDO::FETCH_ASSOC)
     {
         $stmt = $this->getStatement($sql, $params);

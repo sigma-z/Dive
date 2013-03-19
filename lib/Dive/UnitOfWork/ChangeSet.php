@@ -80,7 +80,7 @@ class ChangeSet implements ChangeSetInterface
             return;
         }
         if ($recordExists) {
-            if (!$record->isModified()) {
+            if ($record->isModified()) {
                 $this->scheduledForUpdate[] = $record;
             }
         }

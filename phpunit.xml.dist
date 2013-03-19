@@ -5,6 +5,8 @@
          convertNoticesToExceptions="true"
          convertWarningsToExceptions="true"
          syntaxCheck="false"
+         backupGlobals="false"
+         backupStaticAttributes="false"
 >
     <testsuites>
         <testsuite name="DiveSuite">

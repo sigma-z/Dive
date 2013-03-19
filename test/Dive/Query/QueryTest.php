@@ -15,9 +15,10 @@ namespace Dive\Test\Query;
 
 use Dive\Query\Query;
 use Dive\Table;
-use Dive\TestSuite\DatasetTestCase;
+use Dive\TestSuite\TestCase;
 
-class QueryTest extends DatasetTestCase
+
+class QueryTest extends TestCase
 {
 
     /**

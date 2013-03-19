@@ -3,6 +3,7 @@
 namespace Dive\TestSuite;
 
 use Dive\Connection\Connection;
+use Dive\Connection\ConnectionRowChangeEvent;
 use Dive\Event\Dispatcher;
 use Dive\Event\Event;
 use Dive\RecordManager;
@@ -24,6 +25,42 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @var \Dive\Schema\Schema
      */
     private static $schema = null;
+    /**
+     * @var DatasetRegistry
+     */
+    private static $datasetRegistryTestCase = null;
+    /**
+     * @var DatasetRegistry
+     */
+    private static $datasetRegistryTestClass = null;
+
+
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+        self::$datasetRegistryTestClass = new DatasetRegistry();
+    }
+
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+        self::removeDatasets(self::$datasetRegistryTestClass);
+    }
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+        self::$datasetRegistryTestCase = new DatasetRegistry();
+    }
+
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+        self::removeDatasets(self::$datasetRegistryTestCase);
+    }
 
 
     /**
@@ -184,7 +221,15 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $scheme = self::getSchemeFromDsn($database['dsn']);
         /** @var \Dive\Connection\Driver\DriverInterface $driver */
         $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
-        return new Connection($driver, $database['dsn'], $database['user'], $database['password']);
+        $conn = new Connection($driver, $database['dsn'], $database['user'], $database['password']);
+        $eventDispatcher = $conn->getEventDispatcher();
+        $datasetRegistry = self::$datasetRegistryTestCase;
+        $callOnEvent = function(ConnectionRowChangeEvent $event) use ($datasetRegistry) {
+            $identifier = $event->getIdentifier();
+            $datasetRegistry->add($event->getTable(), $identifier);
+        };
+        $eventDispatcher->addListener(Connection::EVENT_POST_INSERT, $callOnEvent);
+        return $conn;
     }
 
 
@@ -289,6 +334,39 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $testCasesWithDatabases[] = array('database' => $database);
         }
         return $testCasesWithDatabases;
+    }
+
+
+    /**
+     * Inserts new data record to database
+     *
+     * @param  \Dive\Table      $table
+     * @param  array            $data
+     * @return string
+     */
+    protected static function insertDataset(Table $table, array $data)
+    {
+        $conn = $table->getConnection();
+        $affectedRows = $conn->insert($table, $data);
+        return $affectedRows == 1 ? $conn->getLastInsertId() : false;
+    }
+
+
+    /**
+     * Removes datasets from registry
+     *
+     * @param DatasetRegistry $registry
+     */
+    protected static function removeDatasets(DatasetRegistry $registry)
+    {
+        $tables = $registry->getTables();
+        foreach ($tables as $table) {
+            $datasetIds = $registry->getByTable($table);
+            $conn = $table->getConnection();
+            foreach ($datasetIds as $id) {
+                $conn->delete($table, $id);
+            }
+        }
     }
 
 }

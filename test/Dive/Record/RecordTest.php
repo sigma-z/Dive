@@ -6,6 +6,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 30.01.13
+ */
 
 namespace Dive\Test\Table;
 
@@ -14,10 +18,7 @@ use Dive\RecordManager;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
 
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 30.01.13
- */
+
 class RecordTest extends TestCase
 {
 
@@ -233,8 +234,6 @@ class RecordTest extends TestCase
      */
     public function testSave(array $database)
     {
-        $this->markTestIncomplete('Test must clean up its created records in tearDown()!');
-
         $rm = $this->createRecordManager($database);
         $table = $rm->getTable('user');
         $data = array('username' => 'Joe', 'password' => 'secret password');

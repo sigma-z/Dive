@@ -15,10 +15,10 @@ namespace Dive\Test\Table;
 
 
 use Dive\Table;
-use Dive\TestSuite\DatasetTestCase;
+use Dive\TestSuite\TestCase;
 
 
-class TableTest extends DatasetTestCase
+class TableTest extends TestCase
 {
 
     /**
@@ -34,6 +34,7 @@ class TableTest extends DatasetTestCase
             'password' => 'my secret'
         );
         $id = self::insertDataset($table, $data);
+        $this->assertTrue($id !== false);
 
         // execute unit
         $record = $table->findByPk($id);

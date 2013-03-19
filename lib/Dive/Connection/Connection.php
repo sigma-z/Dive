@@ -251,8 +251,8 @@ class Connection
     protected function dispatchEvent($eventName, $sql = '', array $params = array())
     {
         if ($this->eventDispatcher) {
-            $connectEvent = new ConnectionEvent($this, $sql, $params);
-            $this->eventDispatcher->dispatch($eventName, $connectEvent);
+            $event = new ConnectionEvent($this, $sql, $params);
+            $this->eventDispatcher->dispatch($eventName, $event);
         }
     }
 
@@ -260,8 +260,8 @@ class Connection
     protected function dispatchRowEvent($eventName, Table $table, array $fields = array(), array $identifier = array())
     {
         if ($this->eventDispatcher) {
-            $connectEvent = new ConnectionRowChangeEvent($this, $table, $fields, $identifier);
-            $this->eventDispatcher->dispatch($eventName, $connectEvent);
+            $rowChangeEvent = new ConnectionRowChangeEvent($this, $table, $fields, $identifier);
+            $this->eventDispatcher->dispatch($eventName, $rowChangeEvent);
         }
     }
 
@@ -497,17 +497,18 @@ class Connection
         $identifierFields = $table->getIdentifierAsArray();
         $identifier = array();
         foreach ($fields as $fieldName => $value) {
-            if ($table->hasField($fieldName)) {
-                $columns[] = $this->quoteIdentifier($fieldName);
-                if ($value instanceof Expression) {
-                    /** @var Expression $value */
-                    $values[] = $value->getSql();
-                }
-                else {
-                    $values[] = '?';
-                    $params[] = $value;
-                }
-                if ($value !== null && in_array($identifier, $identifierFields)) {
+            if (!$table->hasField($fieldName)) {
+                continue;
+            }
+            $columns[] = $this->quoteIdentifier($fieldName);
+            if ($value instanceof Expression) {
+                /** @var Expression $value */
+                $values[] = $value->getSql();
+            }
+            else if ($value !== null) {
+                $values[] = '?';
+                $params[] = $value;
+                if (in_array($identifier, $identifierFields)) {
                     $identifier[$fieldName] = $value;
                 }
             }
@@ -631,7 +632,7 @@ class Connection
             . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
 
         $this->dispatchRowEvent(self::EVENT_PRE_DELETE, $table, array(), $identifier);
-        $affectedRows = $this->exec($query, $identifier);
+        $affectedRows = $this->exec($query, array_values($identifier));
         $this->dispatchRowEvent(self::EVENT_POST_DELETE, $table, array(), $identifier);
         return $affectedRows;
     }

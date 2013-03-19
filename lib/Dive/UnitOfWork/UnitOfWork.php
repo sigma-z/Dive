@@ -13,11 +13,11 @@
 
 namespace Dive\UnitOfWork;
 
-
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
 use Dive\Exception as DiveException;
+
 
 class UnitOfWork
 {

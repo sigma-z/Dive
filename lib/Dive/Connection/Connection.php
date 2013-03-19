@@ -594,7 +594,7 @@ class Connection
             . ' SET ' . implode(', ', $set)
             . ' WHERE ' . implode(' = ? AND ', $identifierFields) . ' = ?';
 
-        $params = array_merge($params, $identifier);
+        $params = array_merge($params, array_values($identifier));
 
         $this->dispatchRowEvent(self::EVENT_PRE_UPDATE, $table, $fields, $identifier);
         $affectedRows = $this->exec($query, $params);

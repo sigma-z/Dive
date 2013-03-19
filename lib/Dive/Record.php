@@ -334,7 +334,7 @@ class Record
      */
     public function isFieldModified($fieldName)
     {
-        return in_array($fieldName, $this->_modifiedFields);
+        return array_key_exists($fieldName, $this->_modifiedFields);
     }
 
 

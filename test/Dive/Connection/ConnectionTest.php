@@ -10,12 +10,13 @@
 namespace Dive\Test\Connection;
 
 use Dive\Connection\Connection;
+use Dive\TestSuite\TestCase;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 31.10.12
  */
-class ConnectionTest extends \Dive\TestSuite\TestCase
+class ConnectionTest extends TestCase
 {
 
     /**
@@ -28,7 +29,7 @@ class ConnectionTest extends \Dive\TestSuite\TestCase
     {
         /** @var \Dive\Connection\Driver\DriverInterface $driver */
         $driver = $this->getMockForAbstractClass('\Dive\Connection\Driver\DriverInterface');
-        $conn = new \Dive\Connection\Connection($driver, $dsn);
+        $conn = new Connection($driver, $dsn);
         $this->assertEquals($expected, $conn->getScheme());
     }
 
@@ -122,4 +123,62 @@ class ConnectionTest extends \Dive\TestSuite\TestCase
         return $this->getDatabaseAwareTestCases();
     }
 
+
+    // TODO!
+    /**
+     * @dataProvider provideGetStatement
+     * @param $database
+     * @param $sql
+     * @param $params
+     */
+    public function testGetStatement($database, $sql, $params)
+    {
+        $conn = $this->createDatabaseConnection($database);
+
+        $stmt = $conn->getStatement($sql, $params);
+        $this->assertInstanceOf('\PDOStatement', $stmt);
+    }
+
+
+    public function provideGetStatement()
+    {
+        $testCases = array();
+
+        $databases = $this->getDatabaseAwareTestCases();
+        foreach ($databases as $database) {
+            $sql = 'SELECT ?;';
+            $params = array(1);
+            $testCases[] = array($database, $sql, $params);
+        }
+
+        return $testCases;
+    }
+
+
+    // TODO!
+    public function testQuery()
+    {
+        $this->markTestIncomplete();
+    }
+
+
+    // TODO!
+    public function testExec()
+    {
+        $this->markTestIncomplete();
+    }
+
+
+    // TODO!
+    public function testInsert()
+    {
+        $this->markTestIncomplete();
+    }
+
+
+    // TODO!
+    public function testDelete()
+    {
+        $this->markTestIncomplete();
+    }
 }

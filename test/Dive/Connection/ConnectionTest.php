@@ -159,7 +159,7 @@ class ConnectionTest extends TestCase
 
         $this->assertEquals($stmt->fetchAll(), $stmt2->fetchAll());
 
-        $this->assertEquals(2, count($conn->getSqlLogger()->getQueries()));
+        $this->assertEquals(2, $conn->getSqlLogger()->count());
 
         $this->assertEquals(array_merge($events, $events), $expectedEventsCalled);
     }

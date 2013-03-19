@@ -200,7 +200,7 @@ class Record
     {
         $identifierFields = $this->_table->getIdentifierAsArray();
         if (!is_array($identifier)) {
-            $identifier = array($identifier);
+            $identifier = array($identifierFields[0] => $identifier);
         }
         if (count($identifier) != count($identifierFields)) {
             throw new RecordException(
@@ -365,6 +365,12 @@ class Record
         $rm = $this->_table->getRecordManager();
         $rm->deleteRecord($this);
         $this->_exists = false;
+    }
+
+
+    public function toArray()
+    {
+        return $this->_data;
     }
 
 }

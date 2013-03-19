@@ -530,6 +530,33 @@ class QueryTest extends TestCase
     /**
      * @dataProvider provideDatabaseAwareTestCases
      */
+    public function testFetchOneAsArray($database)
+    {
+        // prepare
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $data = array(
+            'username' => 'John Doe',
+            'password' => 'my secret'
+        );
+        $id = self::insertDataset($table, $data);
+
+        // execute unit
+        /** @var $query Query */
+        $query = $table->createQuery()
+            ->where('id = ?', $id);
+        $result = $query->fetchOneAsArray();
+
+        // assert
+        $this->assertInternalType('array', $result);
+        $expectedData = array('id' => $id) + $data;
+        $this->assertEquals($expectedData, $result);
+    }
+
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
     public function testFindByFkOnNonExistingRecord($database)
     {
         $rm = self::createRecordManager($database);

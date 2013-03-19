@@ -33,7 +33,7 @@ class SqlLogger
     /**
      * @var int
      */
-    private $current = 0;
+    private $current = -1;
     /**
      * @var string
      */
@@ -69,7 +69,7 @@ class SqlLogger
     public function dumpQuery($pos)
     {
         $queryData = $this->queries[$pos];
-        echo "SQL [$this->current]\n";
+        echo "SQL [$pos]\n";
         echo $queryData['sql'] . "\n";
         echo "Params:\n";
         var_dump($queryData['params']);
@@ -105,6 +105,12 @@ class SqlLogger
     public function enabled()
     {
         return $this->enabled;
+    }
+
+
+    public function count()
+    {
+        return $this->current + 1;
     }
 
 }

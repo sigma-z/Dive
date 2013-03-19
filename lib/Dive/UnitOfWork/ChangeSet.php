@@ -75,8 +75,10 @@ class ChangeSet implements ChangeSetInterface
     private function processGraph(Record $record)
     {
         $recordExists = $record->exists();
-        if ($recordExists && $this->isDelete()) {
-            $this->scheduledForDelete[] = $record;
+        if ($this->isDelete()) {
+            if ($recordExists) {
+                $this->scheduledForDelete[] = $record;
+            }
             return;
         }
         if ($recordExists) {

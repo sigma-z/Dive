@@ -13,6 +13,7 @@
 
 namespace Dive\Test\Table;
 
+use Dive\Logging\SqlLogger;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
@@ -229,18 +230,86 @@ class RecordTest extends TestCase
     }
 
 
+    private function createUserRecord(RecordManager $rm)
+    {
+        $table = $rm->getTable('user');
+        $data = array('username' => 'Joe', 'password' => 'secret password');
+        return $table->createRecord($data);
+    }
+
+
     /**
      * @dataProvider provideDatabaseAwareTestCases
      */
-    public function testSave(array $database)
+    public function testSaveNewRecord(array $database)
     {
         $rm = $this->createRecordManager($database);
+        $user = $this->createUserRecord($rm);
+        $user->save();
+
+        $this->assertTrue($user->exists());
+
         $table = $rm->getTable('user');
-        $data = array('username' => 'Joe', 'password' => 'secret password');
-        $record = $table->createRecord($data);
-        $record->save();
-        $this->assertTrue($record->exists());
+        $query = $table->createQuery();
+        $query->select('id')
+            ->where('id = ?', $user->id)
+            ->limit(1);
+        $this->assertEquals($user->id, $query->fetchSingleScalar());
     }
 
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testSaveExistingRecord(array $database)
+    {
+        $rm = $this->createRecordManager($database);
+        $user = $this->createUserRecord($rm);
+        $user->save();
+
+        $user->username = 'John Doe';
+        $user->password = md5('my secret!');
+        $user->save();
+
+        $table = $rm->getTable('user');
+        $query = $table->createQuery();
+        $query->where('id = ?', $user->id);
+        $this->assertEquals($user->toArray(), $query->fetchOneAsArray());
+    }
+
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testDeleteNewRecord(array $database)
+    {
+        $rm = $this->createRecordManager($database);
+        $user = $this->createUserRecord($rm);
+
+        $logger = new SqlLogger();
+        $rm->getConnection()->setSqlLogger($logger);
+        $user->delete();
+        $this->assertFalse($user->exists());
+        $this->assertEquals(0, $logger->count());
+    }
+
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testDeleteExistingRecord(array $database)
+    {
+        $rm = $this->createRecordManager($database);
+        $user = $this->createUserRecord($rm);
+        $user->save();
+        $user->delete();
+
+        $table = $rm->getTable('user');
+        $query = $table->createQuery();
+        $query->select('id')
+            ->where('id = ?', $user->id)
+            ->limit(1);
+        $this->assertFalse($query->fetchSingleScalar());
+    }
 
 }

@@ -30,6 +30,9 @@ interface PlatformInterface
     const NO_ACTION     = 'NO ACTION';
     const RESTRICT      = 'RESTRICT';
 
+    const ENC_UTF8      = 'UTF8';
+    const ENC_LATIN1    = 'LATIN1';
+
 
     /**
      * Gets string quote character
@@ -70,6 +73,16 @@ interface PlatformInterface
      * @return  string
      */
     public function quoteIdentifiersSeparated(array $fields, $separator = ',');
+
+
+    /**
+     * Gets set connection encoding sql statement
+     *
+     * @param  string $encoding
+     * @return string
+     */
+    public function getSetConnectionEncodingSql($encoding);
+
 
     // <editor-fold desc="TABLE OPERATION">
     /**

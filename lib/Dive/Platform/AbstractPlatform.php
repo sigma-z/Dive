@@ -52,6 +52,11 @@ abstract class AbstractPlatform implements PlatformInterface
         self::RESTRICT      => self::RESTRICT,
         self::NO_ACTION     => self::NO_ACTION
     );
+    /**
+     * array of supported encodings
+     * @var array
+     */
+    protected $supportedEncodings = array();
 
 
     /**
@@ -543,6 +548,33 @@ abstract class AbstractPlatform implements PlatformInterface
             throw new PlatformException("Foreign key constraint type '$fkConstraintType' is not supported!");
         }
         return $this->foreignKeyConstraintTypes[$fkConstraintType];
+    }
+
+
+    /**
+     * Gets encoding sql name
+     *
+     * @param  string $encoding
+     * @return mixed
+     */
+    public function getEncodingSqlName($encoding)
+    {
+        if (!isset($this->supportedEncodings[$encoding])) {
+            $this->throwUnsupportedEncodingException($encoding);
+        }
+        return $this->supportedEncodings[$encoding];
+    }
+
+
+    /**
+     * Throws unsupported encoding exception
+     *
+     * @param  string $encoding
+     * @throws PlatformException
+     */
+    protected function throwUnsupportedEncodingException($encoding)
+    {
+        throw new PlatformException("Encoding '$encoding' is not supported for this platform!");
     }
 
 }

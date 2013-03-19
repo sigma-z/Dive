@@ -6,38 +6,78 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Dive\Connection;
-
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.10.12
  */
 
-class ConnectionEvent extends \Dive\Event\Event
+namespace Dive\Connection;
+
+use Dive\Event\Event;
+
+
+class ConnectionEvent extends Event
 {
 
     /**
-     * @var \Dive\Connection\Connection
+     * @var Connection
      */
-    private $connection;
+    private $connection = null;
+    /**
+     * @var string
+     */
+    private $sql = '';
+    /**
+     * @var array
+     */
+    private $params = array();
 
 
     /**
-     * @param \Dive\Connection\Connection $connection
+     * constructor
+     *
+     * @param Connection $connection
+     * @param string     $sql
+     * @param array      $params
      */
-    public function __construct(\Dive\Connection\Connection $connection)
+    public function __construct(Connection $connection, $sql = '', array $params = array())
     {
         $this->connection = $connection;
+        $this->sql = $sql;
+        $this->params = $params;
     }
 
 
     /**
-     * @return \Dive\Connection\Connection
+     * Gets connection
+     *
+     * @return Connection
      */
     public function getConnection()
     {
         return $this->connection;
+    }
+
+
+    /**
+     * Gets sql statement
+     *
+     * @return string
+     */
+    public function getStatement()
+    {
+        return $this->sql;
+    }
+
+
+    /**
+     * Gets sql statement params
+     *
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->params;
     }
 
 }

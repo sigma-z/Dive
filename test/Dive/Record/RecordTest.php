@@ -12,12 +12,13 @@ namespace Dive\Test\Table;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
+use Dive\TestSuite\TestCase;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.01.13
  */
-class RecordTest extends \Dive\TestSuite\TestCase
+class RecordTest extends TestCase
 {
 
     /**
@@ -225,5 +226,22 @@ class RecordTest extends \Dive\TestSuite\TestCase
         $record->set('username', 'David');
         $this->assertFalse($record->isModified());
     }
+
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testSave(array $database)
+    {
+        $this->markTestIncomplete('Test must clean up its created records in tearDown()!');
+
+        $rm = $this->createRecordManager($database);
+        $table = $rm->getTable('user');
+        $data = array('username' => 'Joe', 'password' => 'secret password');
+        $record = $table->createRecord($data);
+        $record->save();
+        $this->assertTrue($record->exists());
+    }
+
 
 }

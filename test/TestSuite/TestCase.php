@@ -44,7 +44,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Adds mock listener via closure to event dispatcher
      *
-     * @param \Dive\Event\Dispatcher                $eventDispatcher
+     * @param \Dive\Event\Dispatcher $eventDispatcher
      * @param \Dive\Event\Event|\Dive\Event\Event[] $events
      * @param array $expectedEventsCalled
      */
@@ -88,6 +88,25 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
         }
         return self::$databases;
+    }
+
+
+    /**
+     * Gets database for given scheme
+     *
+     * @param  string $givenScheme
+     * @return array|bool
+     */
+    public static function getDatabaseForScheme($givenScheme)
+    {
+        $databases = self::getDatabases();
+        foreach ($databases as $database) {
+            $scheme = self::getSchemeFromDsn($database['dsn']);
+            if ($scheme === $givenScheme) {
+                return $database;
+            }
+        }
+        return false;
     }
 
 

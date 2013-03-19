@@ -343,11 +343,18 @@ class Connection
      * prepares an sql statement
      *
      * @param  string $sql
+     * @throws ConnectionException
      * @return \PDOStatement
      */
     protected function prepare($sql)
     {
-        return $this->dbh->prepare($sql);
+        $stmt = $this->dbh->prepare($sql);
+        if ($stmt === false) {
+            throw new ConnectionException(
+                "Sql execution failed: \"$sql\"! Reason: " . print_r($this->dbh->errorInfo(), true)
+            );
+        }
+        return $stmt;
     }
 
 

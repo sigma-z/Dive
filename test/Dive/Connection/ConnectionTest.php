@@ -269,9 +269,14 @@ class ConnectionTest extends TestCase
         }
         else if ('query' === $type) {
             $testCases[] = array(
-                'SELECT ?;',    // $sql
+                'SELECT 1 WHERE ?;',    // $sql
                 array(1),       // $params
-                'SELECT 1;'     // $sqlWithoutParams
+                'SELECT 1 WHERE 1'     // $sqlWithoutParams
+            );
+            $testCases[] = array(
+                'SELECT ? AS id;',    // $sql
+                array(1),       // $params
+                'SELECT 1 AS id'     // $sqlWithoutParams
             );
         }
 

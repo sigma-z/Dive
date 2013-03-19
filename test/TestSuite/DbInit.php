@@ -70,8 +70,6 @@ class DbInit
             $sql = $platform->getCreateViewSql($viewName, $sqlStatement);
             $this->conn->exec($sql);
         }
-
-        $this->conn->disconnect();
     }
 
 }

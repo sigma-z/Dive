@@ -505,10 +505,10 @@ class Connection
                 /** @var Expression $value */
                 $values[] = $value->getSql();
             }
-            else if ($value !== null) {
+            else {
                 $values[] = '?';
                 $params[] = $value;
-                if (in_array($identifier, $identifierFields)) {
+                if ($value !== null && in_array($identifier, $identifierFields)) {
                     $identifier[$fieldName] = $value;
                 }
             }

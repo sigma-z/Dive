@@ -515,9 +515,8 @@ class QueryTest extends TestCase
         $id = self::insertDataset($table, $data);
 
         // execute unit
-        /** @var $query Query */
-        $query = $table->createQuery()
-            ->where('id = ?', $id);
+        $query = $table->createQuery();
+        $query->where('id = ?', $id);
         $record = $query->fetchOneAsObject();
 
         // assert
@@ -542,14 +541,48 @@ class QueryTest extends TestCase
         $id = self::insertDataset($table, $data);
 
         // execute unit
-        /** @var $query Query */
-        $query = $table->createQuery()
-            ->where('id = ?', $id);
+        $query = $table->createQuery();
+        $query->where('id = ?', $id);
         $result = $query->fetchOneAsArray();
 
         // assert
         $this->assertInternalType('array', $result);
         $expectedData = array('id' => $id) + $data;
+        $this->assertEquals($expectedData, $result);
+    }
+
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testFetchScalars($database)
+    {
+        // prepare
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $usersData = array(
+            array(
+                'username' => 'John Doe',
+                'password' => 'my secret'
+            ),
+            array(
+                'username' => 'Johanna Stuart',
+                'password' => 'johanna secret'
+            )
+        );
+        $expectedData = array();
+        foreach ($usersData as $userData) {
+            $id = self::insertDataset($table, $userData);
+            $expectedData[] = $id;
+        }
+
+        // execute unit
+        $query = $table->createQuery();
+        $query->select('id')->orderBy('id');
+        $result = $query->fetchScalars();
+
+        // assert
+        $this->assertInternalType('array', $result);
         $this->assertEquals($expectedData, $result);
     }
 

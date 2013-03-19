@@ -16,20 +16,18 @@ namespace Dive\Hydrator;
 use Dive\Table;
 
 
-class SingleScalarHydrator extends AbstractHydrator
+class ScalarHydrator extends AbstractHydrator
 {
 
     /**
      * Gets statement result
      *
      * @param  \Dive\Table|null $table
-     * @return string
+     * @return mixed
      */
     public function getResult(Table $table = null)
     {
-        $result = $this->statement->fetchColumn();
-        $this->statement->closeCursor();
-        return $result;
+        return $this->statement->fetchAll(\PDO::FETCH_COLUMN);
     }
 
 }

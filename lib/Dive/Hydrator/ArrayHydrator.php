@@ -24,7 +24,7 @@ class ArrayHydrator extends AbstractHydrator
      * Gets statement result
      *
      * @param  \Dive\Table|null $table
-     * @return mixed
+     * @return array
      */
     public function getResult(Table $table = null)
     {

@@ -275,6 +275,9 @@ class RecordManager
             case self::FETCH_SINGLE_ARRAY:
                 return new Hydrator\SingleArrayHydrator($this);
 
+            case self::FETCH_SCALARS:
+                return new Hydrator\ScalarHydrator($this);
+
             case self::FETCH_SINGLE_SCALAR:
                 return new Hydrator\SingleScalarHydrator($this);
         }

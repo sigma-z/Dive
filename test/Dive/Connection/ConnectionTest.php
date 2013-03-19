@@ -167,8 +167,8 @@ class ConnectionTest extends TestCase
 
     public function provideGetStatement()
     {
-        $dbTestCases = $this->getDatabaseAwareTestCases();
-        $sqlTestCases = $this->getSqlTestCases('query');
+        $dbTestCases    = $this->getDatabaseAwareTestCases();
+        $sqlTestCases   = $this->getSqlTestCases('query');
 
         return $this->combineTestCases($dbTestCases, $sqlTestCases);
     }
@@ -211,25 +211,29 @@ class ConnectionTest extends TestCase
 
     public function provideExec()
     {
-        $dbTestCases = $this->getDatabaseAwareTestCases();
-        $sqlTestCases = $this->getSqlTestCases('exec');
+        $dbTestCases    = $this->getDatabaseAwareTestCases();
+        $sqlTestCases   = $this->getSqlTestCases('exec');
 
         return $this->combineTestCases($dbTestCases, $sqlTestCases);
     }
 
 
-    // TODO: extend and modify by type 'query' or 'exec'
+    /**
+     * returns array of testCases with array($sql, $params, $sqlWithoutParams)
+     * @param   string  $type
+     * @return  array
+     */
     private function getSqlTestCases($type)
     {
         $testCases = array();
 
         // independent sql's
         // TODO: this query returns different values on exec()! Why?
-        $testCases[] = array(
-            'SELECT ?;',    // $sql
-            array(1),       // $params
-            'SELECT 1;'     // $sqlWithoutParams
-        );
+//        $testCases[] = array(
+//            'SELECT ?;',    // $sql
+//            array(1),       // $params
+//            'SELECT 1;'     // $sqlWithoutParams
+//        );
 
         if ('exec' === $type) {
             // insert a user
@@ -263,19 +267,28 @@ class ConnectionTest extends TestCase
                 "DELETE FROM user WHERE username = 'test2';"
             );
         }
-//        else if ('query' === $type) {
-//            $testCases[] = array(
-//                'SELECT ?;',    // $sql
-//                array(1),       // $params
-//                'SELECT 1;'     // $sqlWithoutParams
-//            );
-//        }
+        else if ('query' === $type) {
+            $testCases[] = array(
+                'SELECT ?;',    // $sql
+                array(1),       // $params
+                'SELECT 1;'     // $sqlWithoutParams
+            );
+        }
 
         return $testCases;
     }
 
 
     // TODO: helper function - move to parent?
+    /**
+     * iterates through both test-case arrays and combines with each-to-each
+     * @example input:  [['a'],['b']]    and    [['1'],['2']]
+     *          output: [['a','1'],['a','2'],['b','1'],['b','2']]
+     *
+     * @param array $testCases1
+     * @param array $testCases2
+     * @return array
+     */
     protected static function combineTestCases(array $testCases1, array $testCases2)
     {
         $testCases = array();

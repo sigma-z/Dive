@@ -531,37 +531,37 @@ class QueryTest extends TestCase
      */
     public function testExecute(array $database, $fetchMode, $method, $expected)
     {
-        if ($fetchMode == RecordManager::FETCH_RECORD_COLLECTION) {
-            $this->markTestSkipped('Fetching record collection has to be implemented!');
-        }
-
-        $recordFetchModes = array(RecordManager::FETCH_RECORD, RecordManager::FETCH_RECORD_COLLECTION);
-        $isRecordFetchMode = in_array($fetchMode, $recordFetchModes);
-
         // prepare
         $rm = self::createRecordManager($database);
         $userIds = $this->saveUserRecords($rm);
 
+        $recordFetchModes = array(RecordManager::FETCH_RECORD, RecordManager::FETCH_RECORD_COLLECTION);
+        $isRecordFetchMode = in_array($fetchMode, $recordFetchModes);
+
         $table = $rm->getTable('user');
         $query = $table->createQuery();
         if ($isRecordFetchMode) {
-            $query->select('id, username, password');
-            if (RecordManager::FETCH_RECORD) {
+            if ($fetchMode == RecordManager::FETCH_RECORD) {
                 $expected['id'] = $userIds[0];
             }
             else {
-                foreach ($userIds as $id) {
-                    $expected[$id]['id'] = $id;
+                $expectedTmp = $expected;
+                $expected = array();
+                foreach ($userIds as $index => $id) {
+                    $expected[$id] = array('id' => $id) + $expectedTmp[$index];
                 }
             }
         }
         else {
             $query->select('username, password');
         }
+
+        // execute unit
         $this->assertTrue(method_exists($query, $method));
         $executedResult = $query->execute($fetchMode);
         $methodResult = call_user_func(array($query, $method));
 
+        // assert
         $this->assertQueryExecute($executedResult, $expected);
         $this->assertQueryExecute($methodResult, $expected);
     }

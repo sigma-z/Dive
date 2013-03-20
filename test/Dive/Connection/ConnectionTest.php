@@ -308,10 +308,46 @@ class ConnectionTest extends TestCase
     }
 
 
-    // TODO!
-    public function testInsert()
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param $database
+     */
+    public function testInsert($database)
     {
-        $this->markTestIncomplete();
+        // prepare
+        $rm = self::createRecordManager($database);
+        $conn = $rm->getConnection();
+
+        $tableNames = array('user'); // $rm->getSchema()->getTableNames(); // <<<--- use when foreign keys are supported
+        foreach ($tableNames as $tableName) {
+            $table = $rm->getTable($tableName);
+
+            $minimalData = array();
+            $minimalWithoutAutoIncrementData = array();
+            $maximalData = array();
+            $maximalWithNotExistingKeyData = array();
+            foreach ($table->getFields() as $fieldName => $fieldDefinition) {
+                if (!isset($fieldDefinition['nullable']) || $fieldDefinition['nullable'] !== true) {
+                    $minimalData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
+
+                    if (!isset($fieldDefinition['autoIncrement']) || $fieldDefinition['autoIncrement'] !== true) {
+                        $minimalWithoutAutoIncrementData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
+                    }
+                }
+
+                $maximalData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
+
+                $maximalWithNotExistingKeyData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
+                $maximalWithNotExistingKeyData[$fieldName . '_notExisting'] = $this->getRandomFieldValue($fieldDefinition);
+            }
+
+            $msg = "insert into $tableName with data ";
+            $this->assertEquals(1, $conn->insert($table, $minimalData), $msg . json_encode($minimalData));
+            $this->assertEquals(1, $conn->insert($table, $minimalWithoutAutoIncrementData), $msg . json_encode($minimalWithoutAutoIncrementData));
+            $this->assertEquals(1, $conn->insert($table, $maximalData), $msg . json_encode($maximalData));
+            $this->assertEquals(1, $conn->insert($table, $maximalWithNotExistingKeyData), $msg . json_encode($maximalWithNotExistingKeyData));
+        }
+
     }
 
 
@@ -326,6 +362,22 @@ class ConnectionTest extends TestCase
     public function testDelete()
     {
         $this->markTestIncomplete();
+    }
+
+
+    /**
+     * @param array $fieldDefinition
+     * @return mixed
+     */
+    private function getRandomFieldValue(array $fieldDefinition)
+    {
+        switch ($fieldDefinition['type']) {
+            case 'integer':
+                return mt_rand(0, 100000000);
+        }
+
+        $i = 0;
+        return (string)mt_rand(0, 100000000);
     }
 
 }

@@ -11,7 +11,10 @@ namespace Dive\Test\Connection;
 
 use Dive\Connection\Connection;
 use Dive\Logging\SqlLogger;
+use Dive\RecordManager;
+use Dive\Relation\Relation;
 use Dive\TestSuite\TestCase;
+use Dive\Util\RandomRecordDataGenerator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -314,70 +317,89 @@ class ConnectionTest extends TestCase
      */
     public function testInsert($database)
     {
+        $randomGenerator = $this->getRandomRecordDataGenerator();
+        $insertTypes = $randomGenerator->getTypes();
+
         // prepare
         $rm = self::createRecordManager($database);
         $conn = $rm->getConnection();
 
-        $tableNames = array('user'); // $rm->getSchema()->getTableNames(); // <<<--- use when foreign keys are supported
+        $tableNames = $rm->getSchema()->getTableNames(); // <<<--- use when foreign keys are supported
         foreach ($tableNames as $tableName) {
             $table = $rm->getTable($tableName);
-
-            $minimalData = array();
-            $minimalWithoutAutoIncrementData = array();
-            $maximalData = array();
-            $maximalWithNotExistingKeyData = array();
-            foreach ($table->getFields() as $fieldName => $fieldDefinition) {
-                if (!isset($fieldDefinition['nullable']) || $fieldDefinition['nullable'] !== true) {
-                    $minimalData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
-
-                    if (!isset($fieldDefinition['autoIncrement']) || $fieldDefinition['autoIncrement'] !== true) {
-                        $minimalWithoutAutoIncrementData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
-                    }
-                }
-
-                $maximalData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
-
-                $maximalWithNotExistingKeyData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
-                $maximalWithNotExistingKeyData[$fieldName . '_notExisting'] = $this->getRandomFieldValue($fieldDefinition);
+            $owningRelations = $table->getOwningRelations();
+            /** @var $localRelationFields Relation[] */
+            $localRelationFields = array();
+            foreach ($owningRelations as $relation) {
+                $localRelationFields[$relation->getOwnerField()] = $relation;
             }
 
-            $msg = "insert into $tableName with data ";
-            $this->assertEquals(1, $conn->insert($table, $minimalData), $msg . json_encode($minimalData));
-            $this->assertEquals(1, $conn->insert($table, $minimalWithoutAutoIncrementData), $msg . json_encode($minimalWithoutAutoIncrementData));
-            $this->assertEquals(1, $conn->insert($table, $maximalData), $msg . json_encode($maximalData));
-            $this->assertEquals(1, $conn->insert($table, $maximalWithNotExistingKeyData), $msg . json_encode($maximalWithNotExistingKeyData));
+            $fields = $table->getFields();
+            foreach ($insertTypes as $type) {
+                $data = array();
+                foreach ($localRelationFields as $fieldName => $relation) {
+                    if ($randomGenerator->matchType($fields[$fieldName], $type)) {
+                        $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
+                    }
+                }
+                $data = $randomGenerator->getRandomRecordData($fields, $data, $type);
+                $rowCount = $conn->insert($table, $data);
+                $msg = "insert into $tableName with data: ";
+                $this->assertEquals(1, $rowCount, $msg . print_r($data, true));
+            }
         }
-
     }
 
 
     // TODO!
-    public function testUpdate()
-    {
-        $this->markTestIncomplete();
-    }
-
-
-    // TODO!
-    public function testDelete()
-    {
-        $this->markTestIncomplete();
-    }
-
-
     /**
-     * @param array $fieldDefinition
-     * @return mixed
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param $database
      */
-    private function getRandomFieldValue(array $fieldDefinition)
+    public function testUpdate($database)
     {
-        switch ($fieldDefinition['type']) {
-            case 'integer':
-                return mt_rand(0, 100000000);
+        $this->markTestIncomplete();
+    }
+
+
+    // TODO!
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param $database
+     */
+    public function testDelete($database)
+    {
+        $this->markTestIncomplete();
+    }
+
+
+    // TODO: helper - move to parent? move to record-data-generator?
+    protected function insertRequiredLocalRelationGraph(RecordManager $rm, Relation $relation)
+    {
+        $randomGenerator    = $this->getRandomRecordDataGenerator();
+        $conn               = $rm->getConnection();
+
+        $refTableName       = $relation->getReferencedTable();
+        $refTable           = $rm->getTable($refTableName);
+        $refFields          = $refTable->getFields();
+
+        $data = array();
+        // recursion: walk through all local relations that are required and handle this by calling this method with
+        //  next relation
+        $owningRelations = $refTable->getOwningRelations();
+        foreach ($owningRelations as $owningRelation) {
+            // field to fill
+            $ownerField = $owningRelation->getOwnerField();
+            // check if field is required (default of matchType) and insert required related data
+            if ($randomGenerator->matchType($refFields[$ownerField])) {
+                $data[$ownerField] = $this->insertRequiredLocalRelationGraph($rm, $owningRelation);
+            }
         }
 
-        $i = 0;
-        return (string)mt_rand(0, 100000000);
+        // insert a record and return its id
+        $data = $randomGenerator->getRandomRecordData($refFields, $data);
+        $conn->insert($refTable, $data);
+        return $conn->getLastInsertId($refTableName);
     }
 
 }

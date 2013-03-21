@@ -9,6 +9,7 @@ use Dive\Event\Event;
 use Dive\RecordManager;
 use Dive\Schema\Schema;
 use Dive\Table;
+use Dive\Util\RandomRecordDataGenerator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -33,6 +34,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @var DatasetRegistry
      */
     private static $datasetRegistryTestClass = null;
+    /**
+     * @var RandomRecordDataGenerator
+     */
+    protected $randomRecordDataGenerator = null;
 
 
     public static function setUpBeforeClass()
@@ -144,6 +149,18 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
         }
         return false;
+    }
+
+
+    /**
+     * @return RandomRecordDataGenerator
+     */
+    public function getRandomRecordDataGenerator()
+    {
+        if (null === $this->randomRecordDataGenerator) {
+            $this->randomRecordDataGenerator = new RandomRecordDataGenerator();
+        }
+        return $this->randomRecordDataGenerator;
     }
 
 

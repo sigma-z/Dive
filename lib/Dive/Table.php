@@ -41,10 +41,18 @@ class Table
      * @var array associative (keys: field names, values: array with field structure)
      */
     protected $fields = array();
-//    /**
-//     * @var \Dive\Relation\Relation[]
-//     */
-//    protected $relations = array();
+    /**
+     * @var \Dive\Relation\Relation[]
+     */
+    protected $relations = array();
+    /**
+     * @var \Dive\Relation\Relation[]
+     */
+    protected $owningRelations = null;
+    /**
+     * @var \Dive\Relation\Relation[]
+     */
+    protected $referencedRelations = null;
     /**
      * @var array
      */
@@ -282,6 +290,42 @@ class Table
     public function getRelations()
     {
         return $this->relations;
+    }
+
+
+    /**
+     * @return \Dive\Relation\Relation[]
+     */
+    public function getOwningRelations()
+    {
+        if (null === $this->owningRelations) {
+            $this->owningRelations = array();
+            $tableName = $this->getTableName();
+            foreach ($this->relations as $name => $relation) {
+                if ($tableName === $relation->getOwnerTable()) {
+                    $this->owningRelations[$name] = $relation;
+                }
+            }
+        }
+        return $this->owningRelations;
+    }
+
+
+    /**
+     * @return \Dive\Relation\Relation[]
+     */
+    public function getReferencedRelations()
+    {
+        if (null === $this->referencedRelations) {
+            $this->referencedRelations = array();
+            $tableName = $this->getTableName();
+            foreach ($this->relations as $name => $relation) {
+                if ($tableName === $relation->getReferencedTable()) {
+                    $this->referencedRelations[$name] = $relation;
+                }
+            }
+        }
+        return $this->referencedRelations;
     }
 
 

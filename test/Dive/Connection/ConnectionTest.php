@@ -324,7 +324,8 @@ class ConnectionTest extends TestCase
         $rm = self::createRecordManager($database);
         $conn = $rm->getConnection();
 
-        $tableNames = $rm->getSchema()->getTableNames(); // <<<--- use when foreign keys are supported
+        $testFullSchema = false; // <<<--- use true when foreign keys are supported
+        $tableNames = $testFullSchema ? $rm->getSchema()->getTableNames() : array('author');
         foreach ($tableNames as $tableName) {
             $table = $rm->getTable($tableName);
             $owningRelations = $table->getOwningRelations();

@@ -101,6 +101,8 @@ class RandomRecordDataGenerator
     public function getRandomFieldValue(array $fieldDefinition)
     {
         switch ($fieldDefinition['type']) {
+            case 'datetime':
+                return date('Y-m-d h:s:i');
             // TODO: create float/int really from supported interval with supported decimals
             case 'float':
             case 'integer':

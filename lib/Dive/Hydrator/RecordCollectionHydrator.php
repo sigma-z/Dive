@@ -35,7 +35,8 @@ class RecordCollectionHydrator extends RecordHydrator
         $collection = new RecordCollection($table);
         while (($row = $this->statement->fetch(\PDO::FETCH_ASSOC))) {
             $record = $this->hydrateRecord($table, $row);
-            $record->setResultCollection($collection);
+            // TODO record needs to know the collection its belongs to
+            //$record->setResultCollection($collection);
             $id = $record->getIdentifierAsString();
             $collection[$id] = $record;
         }

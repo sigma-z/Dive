@@ -10,12 +10,12 @@
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.01.13
  *
- * TODO
+ * TODO!!!!!
  * Should we keep the identifier values in a special array??
  * What should happen with the record references, if identifier values had been changed??
  * When should a record be marked as modified??
  *   case: new record - no data changed                         -> not modified
- *   case: new record - data changed                            -> if data differs from defaults, than it's modified
+ *   case: new record - data changed                            -> if data differs from defaults, than it's modified    // different from implementation
  *   case: record exists, not/partial loaded - no data changed  -> not modified
  *   case: record exists, not/partial loaded - data changed     -> if loaded data, has been changed, than it's modified
  *   case: record exists, fully loaded - no data changed        -> not modified
@@ -85,7 +85,7 @@ class Record
         $this->setData($data);
         //$this->fromArray($data);
         // TODO It violates law of demeter and does work in the constructor! Does anyone have an idea, how to do better?
-        //$table->getRepository()->add($this);
+        $table->getRepository()->add($this);
     }
 
 

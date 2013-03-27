@@ -12,6 +12,7 @@ namespace Dive;
 use Dive\Connection\Connection;
 use Dive\Query\Query;
 use Dive\RecordManager;
+use Dive\Table\Repository;
 use Dive\Table\TableException;
 
 /**
@@ -41,37 +42,42 @@ class Table
      * @var array associative (keys: field names, values: array with field structure)
      */
     protected $fields = array();
-//    /**
-//     * @var \Dive\Relation\Relation[]
-//     */
-//    protected $relations = array();
+    /**
+     * @var \Dive\Relation\Relation[]
+     */
+    protected $relations = array();
     /**
      * @var array
      */
     protected $indexes = array();
-//    /**
-//     * @var \Dive\Table\Repository
-//     * keys: oid
-//     */
-//    private $repository;
+    /**
+     * @var Repository
+     */
+    private $repository;
 
 
     /**
-     * @param RecordManager $recordManager
-     * @param string    $tableName
-     * @param string    $recordClass
-     * @param array     $fields
-     * @param array     $relations
-     * @param array     $indexes
+     * TODO should repository be a obligated argument, given by the record manager?
+     *
+     * constructor
+     *
+     * @param RecordManager    $recordManager
+     * @param string           $tableName
+     * @param string           $recordClass
+     * @param array            $fields
+     * @param array            $relations
+     * @param array            $indexes
+     * @param Table\Repository $repository
      */
     public function __construct(
-            RecordManager $recordManager,
-            $tableName,
-            $recordClass,
-            array $fields,
-            array $relations = array(),
-            array $indexes = array()
-        )
+        RecordManager $recordManager,
+        $tableName,
+        $recordClass,
+        array $fields,
+        array $relations = array(),
+        array $indexes = array(),
+        Repository $repository = null
+    )
     {
         $this->recordManager = $recordManager;
         $this->tableName = $tableName;
@@ -84,9 +90,19 @@ class Table
         }
         $this->relations = $relations;
         $this->indexes = $indexes;
+
+        if (null === $repository) {
+            $repository = new Repository($this);
+        }
+        $this->repository = $repository;
     }
 
 
+    /**
+     * Gets record manager
+     *
+     * @return RecordManager
+     */
     public function getRecordManager()
     {
         return $this->recordManager;
@@ -94,6 +110,8 @@ class Table
 
 
     /**
+     * Gets table name
+     *
      * @return string
      */
     public function getTableName()
@@ -103,7 +121,7 @@ class Table
 
 
     /**
-     * creates record
+     * Creates record
      *
      * @param  array $data
      * @param  bool  $exists
@@ -116,6 +134,11 @@ class Table
     }
 
 
+    /**
+     * Gets record class
+     *
+     * @return string
+     */
     public function getRecordClass()
     {
         return $this->recordClass;
@@ -123,6 +146,8 @@ class Table
 
 
     /**
+     * Gets connection belonging to the table
+     *
      * @return Connection
      */
     public function getConnection()
@@ -132,6 +157,8 @@ class Table
 
 
     /**
+     * Gets fields (keys: field names, values: field definition as array)
+     *
      * @return array
      */
     public function getFields()
@@ -140,6 +167,11 @@ class Table
     }
 
 
+    /**
+     * Gets field names
+     *
+     * @return array
+     */
     public function getFieldNames()
     {
         return array_keys($this->fields);
@@ -147,7 +179,7 @@ class Table
 
 
     /**
-     * gets default value for field
+     * Gets default value for field
      *
      * @param  string $name field name
      * @return mixed
@@ -161,12 +193,24 @@ class Table
     }
 
 
+    /**
+     * Gets index
+     *
+     * @param  string $name
+     * @return array
+     *   keys: type<string>, fields<array>
+     */
     public function getIndex($name)
     {
         return isset($this->indexes[$name]) ? $this->indexes[$name] : null;
     }
 
 
+    /**
+     * Gets indexes (keys: index names, values: index definition as array)
+     *
+     * @return array
+     */
     public function getIndexes()
     {
         return $this->indexes;
@@ -188,22 +232,73 @@ class Table
     }
 
 
-//    public function setRepository(\Dive\Table\Repository $repository)
-//    {
-//        $this->repository = $repository;
-//    }
-//
-//
-//    public function getRepository()
-//    {
-//        if (null === $this->repository) {
-//            $this->repository = new \Dive\Table\Repository();
-//        }
-//        return $this->repository;
-//    }
+    /**
+     * Sets table repository
+     *
+     * @param Repository $repository
+     */
+    public function setRepository(Repository $repository)
+    {
+        $this->repository = $repository;
+    }
 
 
     /**
+     * Gets table repository
+     *
+     * @return Repository
+     */
+    public function getRepository()
+    {
+        return $this->repository;
+    }
+
+
+    /**
+     * Returns true, if repository contains record
+     *
+     * @param  string $id
+     * @return bool
+     */
+    public function isInRepository($id)
+    {
+        return $this->repository->hasByInternalId($id);
+    }
+
+
+    /**
+     * Gets record from repository
+     *
+     * @param  string $id
+     * @return bool|Record
+     */
+    public function getFromRepository($id)
+    {
+        return $this->repository->getByInternalId($id);
+    }
+
+
+    private function clearRelationReferences()
+    {
+        foreach ($this->relations as $relation) {
+            $relation->clearReferences();
+        }
+    }
+
+
+    /**
+     * Clears repository
+     */
+    public function clearRepository()
+    {
+        $this->clearRelationReferences();
+        $this->repository->clear();
+    }
+
+
+    /**
+     * Gets identifier as array, if it is a composite primary key, otherwise as string
+     *
      * @return array|string
      */
     public function getIdentifier()
@@ -213,6 +308,8 @@ class Table
 
 
     /**
+     * Gets identifier as array
+     *
      * @return array
      */
     public function getIdentifierAsArray()
@@ -222,6 +319,8 @@ class Table
 
 
     /**
+     * Returns true, if given field name is (part of) the primary key
+     *
      * @param  string $name
      * @return bool
      */
@@ -232,7 +331,9 @@ class Table
 
 
     /**
-     * @param string $name
+     * Gets field definition
+     *
+     * @param  string $name
      * @return array
      * @throws TableException
      */
@@ -244,6 +345,8 @@ class Table
 
 
     /**
+     * Returns true, if table defines a field for the given name
+     *
      * @param string $name
      * @return bool
      */
@@ -254,7 +357,9 @@ class Table
 
 
     /**
-     * @param string $name
+     * Returns true, if field is not nullable
+     *
+     * @param  string $name
      * @return bool
      * @throws TableException
      */
@@ -265,7 +370,9 @@ class Table
 
 
     /**
-     * @param string $name
+     * Returns true, if field is nullable
+     *
+     * @param  string $name
      * @return bool
      * @throws TableException
      */
@@ -277,6 +384,8 @@ class Table
 
 
     /**
+     * Gets table relations
+     *
      * @return \Dive\Relation\Relation[]
      */
     public function getRelations()
@@ -286,7 +395,9 @@ class Table
 
 
     /**
-     * @param string $name
+     * Returns true, if table has a relation for the given relation name
+     *
+     * @param  string $name
      * @return bool
      */
     public function hasRelation($name)
@@ -296,7 +407,9 @@ class Table
 
 
     /**
-     * @param string $name
+     * Gets relation for given relation name
+     *
+     * @param  string $name
      * @return \Dive\Relation\Relation
      * @throws TableException
      */
@@ -308,6 +421,8 @@ class Table
 
 
     /**
+     * Creates query with this table in from clause
+     *
      * @param  string $alias
      * @return Query
      */
@@ -323,21 +438,6 @@ class Table
 //    public function count()
 //    {
 //        return $this->createQuery()->count();
-//    }
-//
-//
-//    private function clearRelationReferences()
-//    {
-//        foreach ($this->relations as $relation) {
-//            $relation->clearReferences();
-//        }
-//    }
-//
-//
-//    public function clearRepository()
-//    {
-//        $this->clearRelationReferences();
-//        $this->getRepository()->clear();
 //    }
 
 

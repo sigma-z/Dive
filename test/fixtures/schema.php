@@ -106,6 +106,9 @@ return array(
                 'text' => array(
                     'type'      => 'string',
                     'length'    => 2000
+                ),
+                'changed_on' => array(
+                    'type'      => 'datetime'
                 )
             )
         ),

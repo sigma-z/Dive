@@ -170,13 +170,12 @@ class Repository
 
 
     /**
-     * TODO find a better name!
      * Updates identity map on record insert/update or removes identity map entry on record delete
-     * Refreshes record id in repository
+     * Refreshes record identity in repository
      *
      * @param Record $record
      */
-    public function refresh(Record $record)
+    public function refreshIdentity(Record $record)
     {
         $oid = $record->getOid();
         if (!$this->has($oid)) {

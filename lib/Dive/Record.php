@@ -31,6 +31,7 @@
 namespace Dive;
 
 
+use Dive\Collection\RecordCollection;
 use Dive\Record\RecordException;
 
 class Record
@@ -59,10 +60,10 @@ class Record
      * @var array
      */
     protected $_modifiedFields = array();
-//    /**
-//     * @var \Dive\Collection\RecordCollection
-//     */
-//    protected $_resultCollection;
+    /**
+     * @var RecordCollection
+     */
+    protected $_resultCollection;
     /**
      * @var bool
      */
@@ -365,6 +366,12 @@ class Record
         $rm = $this->_table->getRecordManager();
         $rm->deleteRecord($this);
         $this->_exists = false;
+    }
+
+
+    public function setResultCollection(RecordCollection $resultCollection)
+    {
+        $this->_resultCollection = $resultCollection;
     }
 
 

@@ -27,9 +27,11 @@ class Repository
     protected $table = null;
     /**
      * @var \Dive\Record[]
+     * keys: oid
      */
     protected $records = array();
     /**
+     * mapping of record identifiers of existing records to their oid
      * @var array
      * keys: identifiers
      * values: oid's
@@ -168,7 +170,8 @@ class Repository
 
 
     /**
-     * TODO explain method
+     * TODO find a better name!
+     * Updates identity map on record insert/update or removes identity map entry on record delete
      * Refreshes record id in repository
      *
      * @param Record $record

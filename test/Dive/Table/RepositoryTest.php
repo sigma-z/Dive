@@ -35,6 +35,8 @@ class RepositoryTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         // table instance is always the same
         $this->table = self::createDefaultRecordManager()->getTable('user');
         // repository instance is always the same, too, and therefore is must be cleared in setUp()
@@ -52,13 +54,59 @@ class RepositoryTest extends TestCase
     }
 
 
-    public function testRemove()
+    /**
+     * @dataProvider provideExistingFlag
+     */
+    public function testRemove($exist)
     {
-        $record = $this->table->createRecord();
+        $record = $this->table->createRecord(array('id' => 7, 'username' => 'Bart'), $exist);
+        $isInRepository = $this->repository->has($record->getOid());
+        $this->assertTrue($isInRepository);
+
         $this->repository->remove($record);
         $actual = $this->repository->has($record->getOid());
-
         $this->assertFalse($actual);
+    }
+
+
+    /**
+     * @dataProvider provideExistingFlag
+     */
+    public function testGetByOid($exist)
+    {
+        $record = $this->table->createRecord(array('id' => 7, 'username' => 'Bart'), $exist);
+        $oid = $record->getOid();
+        $isInRepository = $this->repository->has($oid);
+        $this->assertTrue($isInRepository);
+        $this->assertEquals($record, $this->repository->getByOid($oid));
+    }
+
+
+    /**
+     * @dataProvider provideExistingFlag
+     */
+    public function testGetByInternalId($exist)
+    {
+        $record = $this->table->createRecord(array('id' => 7, 'username' => 'Bart'), $exist);
+        $id = $record->getInternalIdentifier();
+        $isInRepository = $this->repository->hasByInternalId($id);
+        $this->assertTrue($isInRepository);
+        $this->assertEquals($record, $this->repository->getByInternalId($id));
+    }
+
+
+    public function provideExistingFlag()
+    {
+        return array(
+            array(false),   // new record
+            array(true)     // existing record
+        );
+    }
+
+
+    public function testGetByInternalIdNotFound()
+    {
+        $this->assertFalse($this->repository->getByInternalId(7));
     }
 
 

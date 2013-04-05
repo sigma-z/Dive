@@ -56,4 +56,42 @@ class TableTest extends TestCase
         $this->assertFalse($record);
     }
 
+
+    /**
+     * @dataProvider provideGetRelations
+     */
+    public function testGetRelations($tableName, $expectedOwning, $expectedReferenced)
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable($tableName);
+        $relations = $table->getRelations();
+        $actualOwning = array();
+        $actualReferenced = array();
+        foreach ($relations as $name => $relation) {
+            if ($relation->isOwningSide($name)) {
+                $actualOwning[] = $name;
+            }
+            else {
+                $actualReferenced[] = $name;
+            }
+        }
+
+        $this->assertEquals($expectedOwning, $actualOwning);
+        $this->assertEquals($expectedReferenced, $actualReferenced);
+    }
+
+
+    public function provideGetRelations()
+    {
+        $testCases = array();
+
+        $testCases[] = array(
+            'tableName' => 'article2tag',
+            'owning' => array('Article', 'Tag'),
+            'referenced' => array()
+        );
+
+        return $testCases;
+    }
+
 }

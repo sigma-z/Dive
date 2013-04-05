@@ -58,22 +58,6 @@ class Schema
     public function __construct(array $definition)
     {
         $this->definition = $definition;
-
-//        if (!empty($definition['tables'])) {
-//            foreach ($definition['tables'] as $name => $tableDefinition) {
-//                $this->addTableByDefinition($name, $tableDefinition);
-//            }
-//        }
-        if (!empty($definition['views'])) {
-            foreach ($definition['views'] as $name => $viewDefinition) {
-                $this->addViewByDefinition($name, $viewDefinition);
-            }
-        }
-        if (!empty($definition['relations'])) {
-            foreach ($definition['relations'] as $name => $relation) {
-                $this->addRelation($name, $relation);
-            }
-        }
     }
 
 
@@ -84,17 +68,28 @@ class Schema
                 $this->initTable($name, $tableDefinition);
             }
         }
-//        if (!empty($definition['views'])) {
-//            foreach ($definition['views'] as $name => $viewDefinition) {
-//                $this->initView($name, $viewDefinition);
-//            }
-//            $this->viewSchemes = $definition['views'];
-//        }
-//        if (!empty($definition['relations'])) {
-//            foreach ($definition['relations'] as $name => $relation) {
-//                $this->initTableRelation($name, $relation);
-//            }
-//        }
+        if (!empty($this->definition['views'])) {
+            foreach ($this->definition['views'] as $name => $viewDefinition) {
+                $this->initView($name, $viewDefinition);
+            }
+        }
+        if (!empty($this->definition['relations'])) {
+            foreach ($this->definition['relations'] as $name => $relation) {
+                if (!isset($relation['owningTable'])) {
+                    throw new SchemaException("Relation '$name' definition missing key 'owningTable'!");
+                }
+                if (!isset($relation['refTable'])) {
+                    throw new SchemaException("Relation '$name' definition missing key 'refTable'!");
+                }
+
+                if (!$this->hasReferencedTableRelation($relation['owningTable'], $name)) {
+                    $this->addOwningTableRelation($name, $relation);
+                }
+                if (!$this->hasReferencedTableRelation($relation['refTable'], $name)) {
+                    $this->addReferencedTableRelation($name, $relation);
+                }
+            }
+        }
     }
 
 
@@ -110,12 +105,29 @@ class Schema
     }
 
 
-    private function initTableRelation($tableName)
+    private function initView($viewName)
+    {
+        if (!isset($this->viewSchemes[$viewName])) {
+            if (!isset($this->definition['views'][$viewName])) {
+                throw new SchemaException("View $viewName is not defined in schema!");
+            }
+            $definition = $this->definition['views'][$viewName];
+            $this->addViewByDefinition($viewName, $definition);
+        }
+    }
+
+
+    private function initTableRelations($tableName)
     {
         if (!isset($this->relations[$tableName])) {
-//
-//            $definition = $this->definition['relations'][$relationName];
-//            $this->addRelation($relationName, $definition);
+            foreach ($this->definition['relations'] as $relationName => $definition) {
+                if ($definition['owningTable'] == $tableName) {
+                    $this->addOwningTableRelation($relationName, $definition);
+                }
+                if ($definition['refTable'] == $tableName) {
+                    $this->addReferencedTableRelation($relationName, $definition);
+                }
+            }
         }
     }
 
@@ -189,6 +201,32 @@ class Schema
 
 
     /**
+     * Returns true, if table has owning relation
+     *
+     * @param  string $tableName
+     * @param  string $relationName
+     * @return bool
+     */
+    private function hasOwningTableRelation($tableName, $relationName)
+    {
+        return isset($this->relations[$tableName]['owning'][$relationName]);
+    }
+
+
+    /**
+     * Returns true, if table has referenced relation
+     *
+     * @param  string $tableName
+     * @param  string $relationName
+     * @return bool
+     */
+    private function hasReferencedTableRelation($tableName, $relationName)
+    {
+        return isset($this->relations[$tableName]['referenced'][$relationName]);
+    }
+
+
+    /**
      * Adds owning table relation
      *
      * @param   string   $name
@@ -198,10 +236,10 @@ class Schema
     private function addOwningTableRelation($name, array $relation)
     {
         $tableName = $relation['owningTable'];
-        if (isset($this->relations[$tableName]['owning'][$name])) {
+        if ($this->hasOwningTableRelation($tableName, $name)) {
             $relationAlias = $relation['owningAlias'];
             throw new SchemaException(
-                "Referencing relation '$relationAlias' already defined for '$tableName'!"
+                "Owning relation '$relationAlias' already defined for '$tableName'!"
             );
         }
         else {
@@ -220,7 +258,7 @@ class Schema
     private function addReferencedTableRelation($name, array $relation)
     {
         $tableName = $relation['refTable'];
-        if (isset($this->relations[$tableName]['referenced'][$name])) {
+        if ($this->hasReferencedTableRelation($tableName, $name)) {
             $relationAlias = $relation['refAlias'];
             throw new SchemaException(
                 "Referenced relation '$relationAlias' already defined for '$tableName'!"
@@ -324,7 +362,7 @@ class Schema
     {
         $tablesNames = array_keys($this->tableSchemes);
         if (!empty($this->definition['tables'])) {
-            $tablesNames = array_merge($tablesNames, array_keys($this->definition['tables']));
+            $tablesNames = array_unique(array_merge($tablesNames, array_keys($this->definition['tables'])));
         }
         return $tablesNames;
     }
@@ -441,6 +479,18 @@ class Schema
     }
 
 
+    public function dump($tableName)
+    {
+        echo 'dump ' . $tableName . "\n";
+        if (isset($this->tableSchemes[$tableName])) {
+            var_dump($this->tableSchemes[$tableName]);
+        }
+        if (isset($this->relations[$tableName])) {
+            var_dump($this->relations[$tableName]);
+        }
+    }
+
+
     /**
      * Gets table relations
      *
@@ -449,7 +499,7 @@ class Schema
      */
     public function getTableRelations($tableName)
     {
-        $this->initTableRelation($tableName);
+        $this->initTableRelations($tableName);
         if (!isset($this->relations[$tableName]['owning'])) {
             $this->relations[$tableName]['owning'] = array();
         }
@@ -465,7 +515,8 @@ class Schema
      *
      * @param  string $tableName
      * @param  string $relationFieldName
-     * @param  array  $relation
+     * @param  array $relation
+     * @throws SchemaException
      * @return $this
      */
     public function addTableRelation($tableName, $relationFieldName, array $relation)
@@ -473,6 +524,11 @@ class Schema
         $relation['owningTable'] = $tableName;
         $relation['owningField'] = $relationFieldName;
         $name = $tableName . '.' . $relationFieldName;
+        if (!empty($this->definition['relations'][$name])) {
+            throw new SchemaException(
+                "Relation on table '$tableName' on field '$relationFieldName' already defined by schema!"
+            );
+        }
         $this->addRelation($name, $relation);
         return $this;
     }
@@ -486,7 +542,7 @@ class Schema
      */
     public function hasView($name)
     {
-        return isset($this->viewSchemes[$name]);
+        return isset($this->viewSchemes[$name]) || isset($this->definition['views'][$name]);
     }
 
 
@@ -558,39 +614,45 @@ class Schema
      */
     public function getViewNames()
     {
-        return array_keys($this->viewSchemes);
+        $viewNames = array_keys($this->viewSchemes);
+        if (!empty($this->definition['views'])) {
+            $viewNames = array_unique(array_merge($viewNames, array_keys($this->definition['views'])));
+        }
+        return $viewNames;
     }
 
 
     /**
      * Gets table fields
      *
-     * @param  string $name
+     * @param  string $viewName
      * @return array
      * @throws SchemaException
      */
-    public function getViewFields($name)
+    public function getViewFields($viewName)
     {
-        if (empty($this->viewSchemes[$name]['fields'])) {
-            throw new SchemaException("Missing fields for view '$name'!");
+        $this->initView($viewName);
+        if (empty($this->viewSchemes[$viewName]['fields'])) {
+            throw new SchemaException("Missing fields for view '$viewName'!");
         }
-        return $this->viewSchemes[$name]['fields'];
+        return $this->viewSchemes[$viewName]['fields'];
     }
 
 
     /**
      * Gets view statement
      *
-     * @param  string $name
+     * @param  string $viewName
      * @return string
      * @throws SchemaException
      */
-    public function getViewStatement($name)
+    public function getViewStatement($viewName)
     {
-        if (empty($this->viewSchemes[$name]['sqlStatement'])) {
-            throw new SchemaException("Missing sql statement for view '$name'!");
+        $this->initView($viewName);
+        if (empty($this->viewSchemes[$viewName]['sqlStatement'])) {
+            throw new SchemaException("Missing sql statement for view '$viewName'!");
         }
-        return $this->viewSchemes[$name]['sqlStatement'];
+        return $this->viewSchemes[$viewName]['sqlStatement'];
     }
 
 
@@ -658,7 +720,11 @@ class Schema
     {
         $this->initSchema();
 
-        $schemaDefinition = array();
+        $schemaDefinition = array(
+            'tables' => array(),
+            'views' => array(),
+            'relations' => array()
+        );
         if (!empty($this->tableSchemes)) {
             $schemaDefinition['tables'] = $this->tableSchemes;
         }

@@ -139,9 +139,9 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @dataProvider provideGetTablesRelations
+     * @dataProvider provideGetTableRelations
      */
-    public function testGetTablesRelations($table, $expected)
+    public function testGetTableRelations($table, $expected)
     {
         $tableRelations = $this->schema->getTableRelations($table);
         $actual = array(
@@ -154,7 +154,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function provideGetTablesRelations()
+    public function provideGetTableRelations()
     {
         $testCases = array();
 
@@ -316,6 +316,19 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     public function testAddTableIndexThrowsInvalidIndexException()
     {
         $this->schema->addTableIndex('user', 'UQ_username_password', array());
+    }
+
+
+    public function testToArray()
+    {
+        $tableNames = array_keys($this->schemaDefinition['tables']);
+        $viewNames = array_keys($this->schemaDefinition['views']);
+        $relationNames = array_keys($this->schemaDefinition['relations']);
+
+        $actual = $this->schema->toArray();
+        $this->assertEquals($tableNames, array_keys($actual['tables']));
+        $this->assertEquals($viewNames, array_keys($actual['views']));
+        $this->assertEquals($relationNames, array_keys($actual['relations']));
     }
 
 }

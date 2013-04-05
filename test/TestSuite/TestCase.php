@@ -24,9 +24,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     private static $databases = array();
     /**
-     * @var \Dive\Schema\Schema
+     * @var array
      */
-    private static $schema = null;
+    private static $schemaDefinition = null;
     /**
      * @var DatasetRegistry
      */
@@ -76,11 +76,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     public static function getSchema()
     {
-        if (!self::$schema) {
-            $schemaDefinition = include FIXTURE_DIR . '/schema.php';
-            self::$schema = new Schema($schemaDefinition);
+        if (self::$schemaDefinition === null) {
+            self::$schemaDefinition = include FIXTURE_DIR . '/schema.php';
         }
-        return self::$schema;
+        return new Schema(self::$schemaDefinition);
     }
 
 

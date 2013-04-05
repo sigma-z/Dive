@@ -55,11 +55,75 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function testGetTableClassWithoutAutoload()
+    /**
+     * @dataProvider provideGetTableClassWithoutAutoload
+     */
+    public function testGetTableClassWithoutAutoload(
+        $tableBaseClass, $recordBaseClass, $recordClass, $expectedRecordClass, $expectedTableClass
+    )
     {
-        $this->schema->setRecordClass('user', '\Dive\Test\Record');
+        if ($tableBaseClass) {
+            $this->schema->setTableBaseClass($tableBaseClass);
+        }
+        if ($recordBaseClass) {
+            $this->schema->setRecordBaseClass($recordBaseClass);
+        }
+        if ($recordClass) {
+            $this->schema->setRecordClass('user', $recordClass);
+        }
+        $recordClass = $this->schema->getRecordClass('user');
+        $this->assertEquals($expectedRecordClass, $recordClass);
         $tableClass = $this->schema->getTableClass('user', false);
-        $this->assertEquals('\Dive\Test\RecordTable', $tableClass);
+        $this->assertEquals($expectedTableClass, $tableClass);
+    }
+
+
+    public function provideGetTableClassWithoutAutoload()
+    {
+        return array(
+            array(
+                null,
+                null,
+                null,
+                '\Dive\Record',
+                '\Dive\Table'
+            ),
+            array(
+                null,
+                '\Dive\Test\BaseRecord',
+                null,
+                '\Dive\Test\BaseRecord',
+                '\Dive\Table'
+            ),
+            array(
+                '\Dive\Test\BaseTable',
+                null,
+                null,
+                '\Dive\Record',
+                '\Dive\Test\BaseTable'
+            ),
+            array(
+                null,
+                '\Dive\Test\BaseRecord',
+                '\Dive\Test\Record',
+                '\Dive\Test\Record',
+                '\Dive\Test\RecordTable'
+            ),
+            array(
+                '\MyTableClass',
+                '\MyRecordClass',
+                null,
+                '\MyRecordClass',
+                '\MyTableClass'
+            ),
+            array(
+                '\MyTableClass',
+                '\MyBaseRecordClass',
+                '\MyRecordClass',
+                '\MyRecordClass',
+                '\MyRecordClassTable'
+            ),
+        );
     }
 
 

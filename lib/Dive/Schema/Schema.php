@@ -20,8 +20,9 @@ use Dive\Platform\PlatformInterface;
 class Schema
 {
 
-
-
+    /**
+     * @var array
+     */
     private $definition = array();
     /**
      * @var string
@@ -95,38 +96,41 @@ class Schema
 
     private function initTable($tableName)
     {
-        if (!isset($this->tableSchemes[$tableName])) {
-            if (!isset($this->definition['tables'][$tableName])) {
-                throw new SchemaException("Table $tableName is not defined in schema!");
-            }
-            $definition = $this->definition['tables'][$tableName];
-            $this->addTableByDefinition($tableName, $definition);
+        if (isset($this->tableSchemes[$tableName])) {
+            return;
         }
+        if (!isset($this->definition['tables'][$tableName])) {
+            throw new SchemaException("Table $tableName is not defined in schema!");
+        }
+        $definition = $this->definition['tables'][$tableName];
+        $this->addTableByDefinition($tableName, $definition);
     }
 
 
     private function initView($viewName)
     {
-        if (!isset($this->viewSchemes[$viewName])) {
-            if (!isset($this->definition['views'][$viewName])) {
-                throw new SchemaException("View $viewName is not defined in schema!");
-            }
-            $definition = $this->definition['views'][$viewName];
-            $this->addViewByDefinition($viewName, $definition);
+        if (isset($this->viewSchemes[$viewName])) {
+            return;
         }
+        if (!isset($this->definition['views'][$viewName])) {
+            throw new SchemaException("View $viewName is not defined in schema!");
+        }
+        $definition = $this->definition['views'][$viewName];
+        $this->addViewByDefinition($viewName, $definition);
     }
 
 
     private function initTableRelations($tableName)
     {
-        if (!isset($this->relations[$tableName])) {
-            foreach ($this->definition['relations'] as $relationName => $definition) {
-                if ($definition['owningTable'] == $tableName) {
-                    $this->addOwningTableRelation($relationName, $definition);
-                }
-                if ($definition['refTable'] == $tableName) {
-                    $this->addReferencedTableRelation($relationName, $definition);
-                }
+        if (isset($this->relations[$tableName])) {
+            return;
+        }
+        foreach ($this->definition['relations'] as $relationName => $definition) {
+            if ($definition['owningTable'] == $tableName) {
+                $this->addOwningTableRelation($relationName, $definition);
+            }
+            if ($definition['refTable'] == $tableName) {
+                $this->addReferencedTableRelation($relationName, $definition);
             }
         }
     }
@@ -410,13 +414,13 @@ class Schema
     {
         $this->initTable($name);
         $recordClass = $this->getRecordClass($name);
-        if ($recordClass == $this->recordBaseClass) {
-            $tableClass = $this->tableBaseClass;
+        if ($recordClass == $this->getRecordBaseClass()) {
+            $tableClass = $this->getTableBaseClass();
         }
         else {
             $tableClass = $recordClass . 'Table';
             if ($autoLoad && !class_exists($tableClass)) {
-                $tableClass = $this->tableBaseClass;
+                $tableClass = $this->getTableBaseClass();
             }
         }
         return $tableClass;
@@ -476,18 +480,6 @@ class Schema
             $this->tableSchemes[$tableName]['indexes'][$indexName] = $definition;
         }
         return $this;
-    }
-
-
-    public function dump($tableName)
-    {
-        echo 'dump ' . $tableName . "\n";
-        if (isset($this->tableSchemes[$tableName])) {
-            var_dump($this->tableSchemes[$tableName]);
-        }
-        if (isset($this->relations[$tableName])) {
-            var_dump($this->relations[$tableName]);
-        }
     }
 
 

@@ -16,13 +16,14 @@ namespace Dive\Test\Schema;
 
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
+use Dive\Schema\Schema;
 use Dive\Schema\SchemaException;
 
 class SchemaTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @var \Dive\Schema\Schema
+     * @var Schema
      */
     private $schema;
     /**
@@ -34,7 +35,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->schemaDefinition = include FIXTURE_DIR . '/schema.php';
-        $this->schema = new \Dive\Schema\Schema($this->schemaDefinition);
+        $this->schema = new Schema($this->schemaDefinition);
+        $this->schema->setValidationEnabled(true);
     }
 
 

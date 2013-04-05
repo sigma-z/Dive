@@ -7,8 +7,10 @@ use Dive\Connection\ConnectionRowChangeEvent;
 use Dive\Event\Dispatcher;
 use Dive\Event\Event;
 use Dive\RecordManager;
+use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\Table;
+use Dive\Util\RandomRecordDataGenerator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -33,6 +35,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @var DatasetRegistry
      */
     private static $datasetRegistryTestClass = null;
+    /**
+     * @var RandomRecordDataGenerator
+     */
+    protected $randomRecordDataGenerator = null;
 
 
     public static function setUpBeforeClass()
@@ -144,6 +150,18 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
         }
         return false;
+    }
+
+
+    /**
+     * @return RandomRecordDataGenerator
+     */
+    public function getRandomRecordDataGenerator()
+    {
+        if (null === $this->randomRecordDataGenerator) {
+            $this->randomRecordDataGenerator = new RandomRecordDataGenerator();
+        }
+        return $this->randomRecordDataGenerator;
     }
 
 
@@ -338,6 +356,23 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
+     * @param bool $testFullSchema = true
+     * @return array
+     */
+    public static function provideTableNameTestCases($testFullSchema = true)
+    {
+        $schema = self::getSchema();
+        $tableNames = $testFullSchema ? $schema->getTableNames() : array('author'); // TODO: workaround until all cleanups working...
+        $tableNameTestCases = array();
+        foreach ($tableNames as $tableName) {
+            $tableNameTestCases[] = array($tableName);
+        }
+
+        return $tableNameTestCases;
+    }
+
+
+    /**
      * Inserts new data record to database
      *
      * @param  \Dive\Table      $table
@@ -367,6 +402,65 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
                 $conn->delete($table, $id);
             }
         }
+    }
+
+
+    // TODO: helper - move to record-data-generator?
+    /**
+     * @param RecordManager $rm
+     * @param Relation      $relation
+     * @return string
+     */
+    protected function insertRequiredLocalRelationGraph(RecordManager $rm, Relation $relation)
+    {
+        $randomGenerator    = $this->getRandomRecordDataGenerator();
+        $conn               = $rm->getConnection();
+
+        $refTableName       = $relation->getReferencedTable();
+        $refTable           = $rm->getTable($refTableName);
+        $refFields          = $refTable->getFields();
+
+        $data = array();
+        // recursion: walk through all local relations that are required and handle this by calling this method with
+        //  next relation
+        $owningRelations = $refTable->getOwningRelations();
+        foreach ($owningRelations as $owningRelation) {
+            // field to fill
+            $ownerField = $owningRelation->getOwnerField();
+            // check if field is required (default of matchType) and insert required related data
+            if ($randomGenerator->matchType($refFields[$ownerField])) {
+                $data[$ownerField] = $this->insertRequiredLocalRelationGraph($rm, $owningRelation);
+            }
+        }
+
+        // insert a record and return its id
+        $data = $randomGenerator->getRandomRecordData($refFields, $data);
+        $conn->insert($refTable, $data);
+        return $conn->getLastInsertId($refTableName);
+    }
+
+
+    // TODO: helper function - right place?
+    /**
+     * iterates through both test-case arrays and combines with each-to-each
+     * @example input:  [['a'],['b']]    and    [['1'],['2']]
+     *          output: [['a','1'],['a','2'],['b','1'],['b','2']]
+     *
+     * @param array $testCases1
+     * @param array $testCases2
+     * @return array
+     */
+    protected static function combineTestCases(array $testCases1, array $testCases2)
+    {
+        $testCases = array();
+
+        foreach ($testCases1 as $case1) {
+            foreach ($testCases2 as $case2) {
+                $testCases[] = array_merge($case1, $case2);
+            }
+        }
+
+        return $testCases;
     }
 
 }

@@ -14,6 +14,7 @@ namespace Dive\Test\Schema;
  * Date: 01.11.12
  */
 
+use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\SchemaException;
 
@@ -127,7 +128,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         $uniqueConstraints = $this->schema->getTableIndexes('tag');
         $expected = array(
             'UNIQUE' => array(
-                'type' => \Dive\Platform\PlatformInterface::UNIQUE,
+                'type' => PlatformInterface::UNIQUE,
                 'fields' => array('name')
             )
         );

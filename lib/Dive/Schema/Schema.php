@@ -6,18 +6,23 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Dive\Schema;
-
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 01.11.12
  */
+/**
+ * TODO valid switch => default: false
+ */
+namespace Dive\Schema;
+
 use Dive\Platform\PlatformInterface;
 
 class Schema
 {
 
+
+
+    private $definition = array();
     /**
      * @var string
      */
@@ -48,21 +53,65 @@ class Schema
      */
     public function __construct(array $definition)
     {
-        if (!empty($definition['tables'])) {
-            foreach ($definition['tables'] as $name => $tableDefinition) {
-                $this->addTableByDefinition($name, $tableDefinition);
-            }
-        }
+        $this->definition = $definition;
+
+//        if (!empty($definition['tables'])) {
+//            foreach ($definition['tables'] as $name => $tableDefinition) {
+//                $this->addTableByDefinition($name, $tableDefinition);
+//            }
+//        }
         if (!empty($definition['views'])) {
             foreach ($definition['views'] as $name => $viewDefinition) {
                 $this->addViewByDefinition($name, $viewDefinition);
             }
-            $this->viewSchemes = $definition['views'];
         }
         if (!empty($definition['relations'])) {
             foreach ($definition['relations'] as $name => $relation) {
                 $this->addRelation($name, $relation);
             }
+        }
+    }
+
+
+    private function initSchema()
+    {
+        if (!empty($this->definition['tables'])) {
+            foreach ($this->definition['tables'] as $name => $tableDefinition) {
+                $this->initTable($name, $tableDefinition);
+            }
+        }
+//        if (!empty($definition['views'])) {
+//            foreach ($definition['views'] as $name => $viewDefinition) {
+//                $this->initView($name, $viewDefinition);
+//            }
+//            $this->viewSchemes = $definition['views'];
+//        }
+//        if (!empty($definition['relations'])) {
+//            foreach ($definition['relations'] as $name => $relation) {
+//                $this->initTableRelation($name, $relation);
+//            }
+//        }
+    }
+
+
+    private function initTable($tableName)
+    {
+        if (!isset($this->tableSchemes[$tableName])) {
+            if (!isset($this->definition['tables'][$tableName])) {
+                throw new SchemaException("Table $tableName is not defined in schema!");
+            }
+            $definition = $this->definition['tables'][$tableName];
+            $this->addTableByDefinition($tableName, $definition);
+        }
+    }
+
+
+    private function initTableRelation($tableName)
+    {
+        if (!isset($this->relations[$tableName])) {
+//
+//            $definition = $this->definition['relations'][$relationName];
+//            $this->addRelation($relationName, $definition);
         }
     }
 
@@ -176,7 +225,7 @@ class Schema
      */
     public function hasTable($name)
     {
-        return isset($this->tableSchemes[$name]);
+        return isset($this->tableSchemes[$name]) || isset($this->definition['tables'][$name]);
     }
 
 
@@ -249,7 +298,11 @@ class Schema
      */
     public function getTableNames()
     {
-        return array_keys($this->tableSchemes);
+        $tablesNames = array_keys($this->tableSchemes);
+        if (!empty($this->definition['tables'])) {
+            $tablesNames = array_merge($tablesNames, array_keys($this->definition['tables']));
+        }
+        return $tablesNames;
     }
 
 
@@ -261,6 +314,7 @@ class Schema
      */
     public function getRecordClass($name)
     {
+        $this->initTable($name);
         if (empty($this->tableSchemes[$name]['recordClass'])) {
             return $this->recordBaseClass;
         }
@@ -277,6 +331,7 @@ class Schema
      */
     public function setRecordClass($name, $recordClass)
     {
+        $this->initTable($name);
         $this->tableSchemes[$name]['recordClass'] = $recordClass;
         return $this;
     }
@@ -291,6 +346,7 @@ class Schema
      */
     public function getTableClass($name, $autoLoad = false)
     {
+        $this->initTable($name);
         $recordClass = $this->getRecordClass($name);
         if ($recordClass == $this->recordBaseClass) {
             $tableClass = $this->tableBaseClass;
@@ -314,6 +370,7 @@ class Schema
      */
     public function getTableFields($name)
     {
+        $this->initTable($name);
         if (empty($this->tableSchemes[$name]['fields'])) {
             throw new SchemaException("Missing fields for table '$name'!");
         }
@@ -329,6 +386,7 @@ class Schema
      */
     public function getTableIndexes($name)
     {
+        $this->initTable($name);
         if (!empty($this->tableSchemes[$name]['indexes'])) {
             return $this->tableSchemes[$name]['indexes'];
         }
@@ -347,6 +405,7 @@ class Schema
      */
     public function addTableIndex($tableName, $indexName, $fields, $type = PlatformInterface::UNIQUE)
     {
+        $this->initTable($tableName);
         $definition = array(
             'type' => $type,
             'fields' => is_array($fields) ? $fields : array($fields)
@@ -361,18 +420,19 @@ class Schema
     /**
      * Gets table relations
      *
-     * @param  string $name
+     * @param  string $tableName
      * @return array
      */
-    public function getTableRelations($name)
+    public function getTableRelations($tableName)
     {
-        if (!isset($this->relations[$name]['owning'])) {
-            $this->relations[$name]['owning'] = array();
+        $this->initTableRelation($tableName);
+        if (!isset($this->relations[$tableName]['owning'])) {
+            $this->relations[$tableName]['owning'] = array();
         }
-        if (!isset($this->relations[$name]['referenced'])) {
-            $this->relations[$name]['referenced'] = array();
+        if (!isset($this->relations[$tableName]['referenced'])) {
+            $this->relations[$tableName]['referenced'] = array();
         }
-        return $this->relations[$name];
+        return $this->relations[$tableName];
     }
 
 
@@ -438,7 +498,7 @@ class Schema
     public function addViewByDefinition($name, array $definition)
     {
         $fields         = isset($definition['fields'])          ? $definition['fields']         : array();
-        $sqlStatement   = isset($definition['sqlStatement'])    ? $definition['sqlStatement']   : array();
+        $sqlStatement   = isset($definition['sqlStatement'])    ? $definition['sqlStatement']   : '';
         $this->addView($name, $fields, $sqlStatement);
         return $this;
     }
@@ -567,6 +627,8 @@ class Schema
      */
     public function toArray()
     {
+        $this->initSchema();
+
         $schemaDefinition = array();
         if (!empty($this->tableSchemes)) {
             $schemaDefinition['tables'] = $this->tableSchemes;

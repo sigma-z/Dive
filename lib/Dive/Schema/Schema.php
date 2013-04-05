@@ -39,6 +39,10 @@ class Schema
      * @var array keys: table names, values relations as array
      */
     protected $relations = array();
+    /**
+     * @var bool
+     */
+    protected $validationEnabled = false;
 
 
     /**
@@ -75,8 +79,10 @@ class Schema
      */
     private function addRelation($name, array $relation)
     {
-        $this->addOwningTableRelation($name, $relation);
-        $this->addReferencedTableRelation($name, $relation);
+        if (!$this->validationEnabled || $this->validateRelation($relation)) {
+            $this->addOwningTableRelation($name, $relation);
+            $this->addReferencedTableRelation($name, $relation);
+        }
     }
 
 
@@ -121,6 +127,15 @@ class Schema
     public function getTableBaseClass()
     {
         return $this->tableBaseClass;
+    }
+
+
+    /**
+     * @param boolean $validationEnabled
+     */
+    public function setValidationEnabled($validationEnabled = true)
+    {
+        $this->validationEnabled = $validationEnabled === true;
     }
 
 
@@ -193,6 +208,15 @@ class Schema
     {
         if (empty($fields)) {
             throw new SchemaException("Missing fields for table '$name'!");
+        }
+
+        if ($this->validationEnabled) {
+            foreach ($fields as $fieldName => $definition) {
+                $this->validateField($fieldName, $definition);
+            }
+            foreach ($indexes as $indexName => $definition) {
+                $this->validateIndex($indexName, $definition);
+            }
         }
 
         $this->tableSchemes[$name] = array();
@@ -417,6 +441,11 @@ class Schema
      */
     public function addView($name, array $fields, $sqlStatement)
     {
+        if ($this->validationEnabled) {
+            foreach ($fields as $fieldName => $definition) {
+                $this->validateField($fieldName, $definition);
+            }
+        }
         if (empty($sqlStatement)) {
             throw new SchemaException("Sql statement for view '$name' is empty!");
         }

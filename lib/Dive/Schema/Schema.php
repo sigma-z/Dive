@@ -75,10 +75,8 @@ class Schema
      */
     private function addRelation($name, array $relation)
     {
-        if ($this->validateRelation($relation)) {
-            $this->addOwningTableRelation($name, $relation);
-            $this->addReferencedTableRelation($name, $relation);
-        }
+        $this->addOwningTableRelation($name, $relation);
+        $this->addReferencedTableRelation($name, $relation);
     }
 
 
@@ -195,12 +193,6 @@ class Schema
     {
         if (empty($fields)) {
             throw new SchemaException("Missing fields for table '$name'!");
-        }
-        foreach ($fields as $fieldName => $definition) {
-            $this->validateField($fieldName, $definition);
-        }
-        foreach ($indexes as $indexName => $definition) {
-            $this->validateIndex($indexName, $definition);
         }
 
         $this->tableSchemes[$name] = array();
@@ -425,9 +417,6 @@ class Schema
      */
     public function addView($name, array $fields, $sqlStatement)
     {
-        foreach ($fields as $fieldName => $definition) {
-            $this->validateField($fieldName, $definition);
-        }
         if (empty($sqlStatement)) {
             throw new SchemaException("Sql statement for view '$name' is empty!");
         }
@@ -526,7 +515,7 @@ class Schema
      */
     protected function validateField($fieldName, array $definition)
     {
-        if (!is_array($definition) || !isset($definition['type'])) {
+        if (!isset($definition['type'])) {
             throw new SchemaException("Definition of schema field '$fieldName' must be an array and define type!");
         }
         return true;
@@ -543,7 +532,7 @@ class Schema
      */
     protected function validateIndex($indexName, array $definition)
     {
-        if (!is_array($definition) || empty($definition['fields']) || !isset($definition['type'])) {
+        if (empty($definition['fields']) || !isset($definition['type'])) {
             throw new SchemaException(
                 "Definition of schema index '$indexName' must be an array and define fields and type!"
             );

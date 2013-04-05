@@ -13,6 +13,7 @@ use Dive\Connection\Connection;
 use Dive\Logging\SqlLogger;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
+use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
 use Dive\Util\RandomRecordDataGenerator;
 
@@ -291,120 +292,156 @@ class ConnectionTest extends TestCase
     }
 
 
-    // TODO: helper function - move to parent?
     /**
-     * iterates through both test-case arrays and combines with each-to-each
-     * @example input:  [['a'],['b']]    and    [['1'],['2']]
-     *          output: [['a','1'],['a','2'],['b','1'],['b','2']]
-     *
-     * @param array $testCases1
-     * @param array $testCases2
-     * @return array
+     * @dataProvider provideInsertUpdateDeleteDatabaseAware
+     * @param array $database
+     * @param string $tableName
      */
-    protected static function combineTestCases(array $testCases1, array $testCases2)
+    public function testInsert(array $database, $tableName)
     {
-        $testCases = array();
-
-        foreach ($testCases1 as $case1) {
-            foreach ($testCases2 as $case2) {
-                $testCases[] = array_merge($case1, $case2);
-            }
-        }
-
-        return $testCases;
-    }
-
-
-    /**
-     * @dataProvider provideDatabaseAwareTestCases
-     * @param $database
-     */
-    public function testInsert($database)
-    {
+        $rm = self::createRecordManager($database);
         $randomGenerator = $this->getRandomRecordDataGenerator();
         $insertTypes = $randomGenerator->getTypes();
-
-        // prepare
-        $rm = self::createRecordManager($database);
         $conn = $rm->getConnection();
 
-        $testFullSchema = false; // <<<--- use true when foreign keys are supported
-        $tableNames = $testFullSchema ? $rm->getSchema()->getTableNames() : array('author');
-        foreach ($tableNames as $tableName) {
-            $table = $rm->getTable($tableName);
-            $owningRelations = $table->getOwningRelations();
-            /** @var $localRelationFields Relation[] */
-            $localRelationFields = array();
-            foreach ($owningRelations as $relation) {
-                $localRelationFields[$relation->getOwnerField()] = $relation;
-            }
+        $table = $rm->getTable($tableName);
+        $owningRelations = $table->getOwningRelations();
+        /** @var $localRelationFields Relation[] */
+        $localRelationFields = array();
+        foreach ($owningRelations as $relation) {
+            $localRelationFields[$relation->getOwnerField()] = $relation;
+        }
 
-            $fields = $table->getFields();
-            foreach ($insertTypes as $type) {
-                $data = array();
-                foreach ($localRelationFields as $fieldName => $relation) {
-                    if ($randomGenerator->matchType($fields[$fieldName], $type)) {
-                        $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
-                    }
+        $fields = $table->getFields();
+        foreach ($insertTypes as $type) {
+            $data = array();
+            foreach ($localRelationFields as $fieldName => $relation) {
+                if ($randomGenerator->matchType($fields[$fieldName], $type)) {
+                    $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
                 }
-                $data = $randomGenerator->getRandomRecordData($fields, $data, $type);
-                $rowCount = $conn->insert($table, $data);
-                $msg = "insert into $tableName with data: ";
-                $this->assertEquals(1, $rowCount, $msg . print_r($data, true));
             }
+            $data = $randomGenerator->getRandomRecordData($fields, $data, $type);
+            $rowCount = $conn->insert($table, $data);
+            $id = $conn->getLastInsertId($tableName);
+            $msg = "insert into $tableName with data: ";
+            $this->assertEquals(1, $rowCount, $msg . print_r($data, true));
+
+            // compare same data
+            $record = $table->findByPk($id);
+            $recordData = $record->getData();
+            if (!isset($data['id'])) {
+                unset($recordData['id']);
+            }
+            else {
+                $recordData['id'] = $record->getIdentifier();
+            }
+            $recordData = array_filter($recordData);
+            $this->assertEquals($data, $recordData);
         }
     }
 
 
-    // TODO!
     /**
-     * @dataProvider provideDatabaseAwareTestCases
-     * @param $database
+     * @dataProvider provideInsertUpdateDeleteDatabaseAware
+     * @param array $database
+     * @param string $tableName
      */
-    public function testUpdate($database)
+    public function testUpdate(array $database, $tableName)
     {
-        $this->markTestIncomplete();
-    }
+        $rm = self::createRecordManager($database);
+        $randomGenerator = $this->getRandomRecordDataGenerator();
+        $conn = $rm->getConnection();
 
+        $table = $rm->getTable($tableName);
+        $fields = $table->getFields();
+        $owningRelations = $table->getOwningRelations();
+        /** @var $localRelationFields Relation[] */
+        $localRelationFields = array();
+        foreach ($owningRelations as $relation) {
+            $localRelationFields[$relation->getOwnerField()] = $relation;
+        }
 
-    // TODO!
-    /**
-     * @dataProvider provideDatabaseAwareTestCases
-     * @param $database
-     */
-    public function testDelete($database)
-    {
-        $this->markTestIncomplete();
-    }
-
-
-    // TODO: helper - move to parent? move to record-data-generator?
-    protected function insertRequiredLocalRelationGraph(RecordManager $rm, Relation $relation)
-    {
-        $randomGenerator    = $this->getRandomRecordDataGenerator();
-        $conn               = $rm->getConnection();
-
-        $refTableName       = $relation->getReferencedTable();
-        $refTable           = $rm->getTable($refTableName);
-        $refFields          = $refTable->getFields();
-
+        // build a minimal record and insert - tested by testInsert.
         $data = array();
-        // recursion: walk through all local relations that are required and handle this by calling this method with
-        //  next relation
-        $owningRelations = $refTable->getOwningRelations();
-        foreach ($owningRelations as $owningRelation) {
-            // field to fill
-            $ownerField = $owningRelation->getOwnerField();
-            // check if field is required (default of matchType) and insert required related data
-            if ($randomGenerator->matchType($refFields[$ownerField])) {
-                $data[$ownerField] = $this->insertRequiredLocalRelationGraph($rm, $owningRelation);
+        foreach ($localRelationFields as $fieldName => $relation) {
+            if ($randomGenerator->matchType($fields[$fieldName], $randomGenerator::REQUIRED)) {
+                $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
             }
         }
+        $data = $randomGenerator->getRequiredRandomRecordData($fields, $data);
+        $conn->insert($table, $data);
+        $id = $conn->getLastInsertId($tableName);
 
-        // insert a record and return its id
-        $data = $randomGenerator->getRandomRecordData($refFields, $data);
-        $conn->insert($refTable, $data);
-        return $conn->getLastInsertId($refTableName);
+        // update record
+        $data = array();
+        foreach ($localRelationFields as $fieldName => $relation) {
+            $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
+        }
+        $data = $randomGenerator->getMaximalRandomRecordDataWithoutAutoIncrementFields($fields, $data);
+
+        $updatedRowCount = $conn->update($table, $data, $id);
+
+        $this->assertEquals(1, $updatedRowCount);
+        $record = $table->findByPk($id);
+        $recordData = $record->getData();
+        if (!isset($data['id'])) {
+            unset($recordData['id']);
+        }
+        else {
+            $recordData['id'] = $record->getIdentifier();
+        }
+        $recordData = array_filter($recordData);
+        $this->assertEquals($data, $recordData);
     }
 
+
+    /**
+     * @dataProvider provideInsertUpdateDeleteDatabaseAware
+     * @param array $database
+     * @param string $tableName
+     */
+    public function testDelete(array $database, $tableName)
+    {
+        $rm = self::createRecordManager($database);
+
+        $randomGenerator = $this->getRandomRecordDataGenerator();
+        $conn = $rm->getConnection();
+
+        $table = $rm->getTable($tableName);
+        $fields = $table->getFields();
+        $owningRelations = $table->getOwningRelations();
+        /** @var $localRelationFields Relation[] */
+        $localRelationFields = array();
+        foreach ($owningRelations as $relation) {
+            $localRelationFields[$relation->getOwnerField()] = $relation;
+        }
+
+        // build a minimal record and insert - tested by testInsert.
+        $data = array();
+        foreach ($localRelationFields as $fieldName => $relation) {
+            if ($randomGenerator->matchType($fields[$fieldName], $randomGenerator::REQUIRED)) {
+                $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
+            }
+        }
+        $data = $randomGenerator->getRequiredRandomRecordData($fields, $data);
+        $conn->insert($table, $data);
+        $id = $conn->getLastInsertId($tableName);
+
+        $deletedRows = $conn->delete($table, $id);
+
+        $this->assertEquals(1, $deletedRows);
+        $record = $table->findByPk($id);
+        $this->assertFalse($record);
+    }
+
+
+    /**
+     * @return array
+     */
+    public function provideInsertUpdateDeleteDatabaseAware()
+    {
+        $databases = $this->provideDatabaseAwareTestCases();
+        $tableNameTestCases = $this->provideTableNameTestCases(false); // TODO: workaround until all cleanups working...
+        return self::combineTestCases($databases, $tableNameTestCases);
+    }
 }

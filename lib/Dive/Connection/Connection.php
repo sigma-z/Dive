@@ -547,7 +547,6 @@ class Connection
 
     /**
      * Updates row
-     * TODO unit test it!
      *
      * @param Table $table
      * @param array $fields
@@ -605,7 +604,6 @@ class Connection
 
     /**
      * delete row
-     * TODO unit test it!
      *
      * @param  Table         $table
      * @param  string|array  $identifier

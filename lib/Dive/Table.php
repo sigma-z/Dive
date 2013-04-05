@@ -403,7 +403,6 @@ class Table
 
 
     /**
-<<<<<<< HEAD
      * @return \Dive\Relation\Relation[]
      */
     public function getOwningRelations()
@@ -440,12 +439,9 @@ class Table
 
 
     /**
-     * @param string $name
-=======
      * Returns true, if table has a relation for the given relation name
      *
      * @param  string $name
->>>>>>> master
      * @return bool
      */
     public function hasRelation($name)

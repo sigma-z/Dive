@@ -196,7 +196,7 @@ return array(
             'refAlias' => 'Article',
             'refField' => 'id',
             'refTable' => 'author',
-            'type' => '1-n',
+            'type' => '1-m',
             'onUpdate' => 'CASCADE'
         ),
         'author.user_id' => array(
@@ -217,7 +217,7 @@ return array(
             'refAlias' => 'Comment',
             'refField' => 'id',
             'refTable' => 'user',
-            'type' => '1-n',
+            'type' => '1-m',
             'onUpdate' => 'CASCADE'
         ),
         'comment.article_id' => array(
@@ -227,7 +227,7 @@ return array(
             'refAlias' => 'Comment',
             'refField' => 'id',
             'refTable' => 'article',
-            'type' => '1-n',
+            'type' => '1-m',
             'onUpdate' => 'CASCADE',
             'onDelete' => 'CASCADE'
         ),
@@ -238,7 +238,7 @@ return array(
             'refAlias' => 'Article2tagHasMany',
             'refField' => 'id',
             'refTable' => 'article',
-            'type' => '1-n',
+            'type' => '1-m',
             'onUpdate' => 'CASCADE',
             'onDelete' => 'CASCADE'
         ),
@@ -249,7 +249,7 @@ return array(
             'refAlias' => 'Article2tagHasMany',
             'refField' => 'id',
             'refTable' => 'tag',
-            'type' => '1-n',
+            'type' => '1-m',
             'onUpdate' => 'CASCADE',
             'onDelete' => 'CASCADE'
         )

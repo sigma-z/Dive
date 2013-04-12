@@ -15,7 +15,7 @@ use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
-use Dive\Util\RandomRecordDataGenerator;
+use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>

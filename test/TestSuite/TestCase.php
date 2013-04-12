@@ -10,7 +10,7 @@ use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\Table;
-use Dive\Util\RandomRecordDataGenerator;
+use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -36,9 +36,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     private static $datasetRegistryTestClass = null;
     /**
-     * @var RandomRecordDataGenerator
+     * @var FieldValuesGenerator
      */
     protected $randomRecordDataGenerator = null;
+    /**
+     * @var Connection[]
+     */
+    private static $connectionCache = array();
 
 
     public static function setUpBeforeClass()
@@ -66,6 +70,11 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         parent::tearDown();
         self::removeDatasets(self::$datasetRegistryTestCase);
+
+        foreach (self::$connectionCache as $conn) {
+            $conn->disconnect();
+        }
+        self::$connectionCache = array();
     }
 
 
@@ -153,12 +162,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @return RandomRecordDataGenerator
+     * @return FieldValuesGenerator
      */
     public function getRandomRecordDataGenerator()
     {
         if (null === $this->randomRecordDataGenerator) {
-            $this->randomRecordDataGenerator = new RandomRecordDataGenerator();
+            $this->randomRecordDataGenerator = new FieldValuesGenerator();
         }
         return $this->randomRecordDataGenerator;
     }
@@ -240,12 +249,15 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
         $conn = new Connection($driver, $database['dsn'], $database['user'], $database['password']);
         $eventDispatcher = $conn->getEventDispatcher();
-        $datasetRegistry = self::$datasetRegistryTestCase;
+        $datasetRegistry = self::$datasetRegistryTestCase
+            ? self::$datasetRegistryTestCase
+            : self::$datasetRegistryTestClass;
         $callOnEvent = function(ConnectionRowChangeEvent $event) use ($datasetRegistry) {
             $identifier = $event->getIdentifier();
             $datasetRegistry->add($event->getTable(), $identifier);
         };
         $eventDispatcher->addListener(Connection::EVENT_POST_INSERT, $callOnEvent);
+        self::$connectionCache[] = $conn;
         return $conn;
     }
 

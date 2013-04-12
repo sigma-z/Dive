@@ -45,16 +45,17 @@ class UnitOfWork
      */
     public function getRecord(Table $table, array $data, $exists = false)
     {
-        $identifierFields = $table->getIdentifierAsArray();
-        $identifier = array();
-        foreach ($identifierFields as $fieldName) {
-            if (!array_key_exists($fieldName, $data)) {
-                var_dump($data);
-                throw new \UnexpectedValueException("Identifier field '$fieldName'' is not set!");
-            }
-            $identifier[] = $data[$fieldName];
-        }
-        $id = implode('-', $identifier);
+        // TODO id?
+//        $identifierFields = $table->getIdentifierAsArray();
+//        $identifier = array();
+//        foreach ($identifierFields as $fieldName) {
+//            if (!array_key_exists($fieldName, $data)) {
+//                var_dump($data);
+//                throw new \UnexpectedValueException("Identifier field '$fieldName'' is not set!");
+//            }
+//            $identifier[] = $data[$fieldName];
+//        }
+//        $id = implode('-', $identifier);
 
         // TODO implement repository handling!!
 //        if ($table->isInRepository($id)) {

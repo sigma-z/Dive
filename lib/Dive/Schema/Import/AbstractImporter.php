@@ -78,7 +78,7 @@ abstract class AbstractImporter implements ImporterInterface
 
 
     /**
-     * gets connection
+     * Gets connection
      *
      * @return \Dive\Connection\Connection
      */
@@ -89,7 +89,7 @@ abstract class AbstractImporter implements ImporterInterface
 
 
     /**
-     * imports schema definition
+     * Imports schema definition
      *
      * @param  array $schemaDefinition schema definition, that will be updated through schema import
      * @return array
@@ -116,7 +116,7 @@ abstract class AbstractImporter implements ImporterInterface
 
 
     /**
-     * imports tables schema
+     * Imports tables schema
      */
     protected function importTables()
     {

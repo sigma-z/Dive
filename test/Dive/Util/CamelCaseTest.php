@@ -6,13 +6,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Dive\Test\Util;
-
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 31.10.12
  */
+namespace Dive\Test\Util;
+
+use Dive\Util\CamelCase;
 
 class CamelCaseTest extends \PHPUnit_Framework_TestCase
 {
@@ -25,7 +25,7 @@ class CamelCaseTest extends \PHPUnit_Framework_TestCase
      */
     public function testToCamelCase($string, $expected)
     {
-        $actual = \Dive\Util\CamelCase::toCamelCase($string);
+        $actual = CamelCase::toCamelCase($string);
         $this->assertEquals($expected, $actual);
     }
 
@@ -41,6 +41,9 @@ class CamelCaseTest extends \PHPUnit_Framework_TestCase
         $testCases[] = array('hello-a-b-c-world', 'HelloABCWorld');
         $testCases[] = array('HELLO-A-B-C-World', 'HelloABCWorld');
         $testCases[] = array('HELLO-ABC-World', 'HelloAbcWorld');
+        $testCases[] = array('HELLO_ABC_World', 'HelloAbcWorld');
+        $testCases[] = array('Hello_Abc_World', 'HelloAbcWorld');
+        $testCases[] = array('Hello_123_World', 'Hello123World');
 
         return $testCases;
     }
@@ -55,7 +58,7 @@ class CamelCaseTest extends \PHPUnit_Framework_TestCase
      */
     public function testToLowerCaseSeparateWith($string, $separator, $expected)
     {
-        $actual = \Dive\Util\CamelCase::toLowerCaseSeparateWith($string, $separator);
+        $actual = CamelCase::toLowerCaseSeparateWith($string, $separator);
         $this->assertEquals($expected, $actual);
     }
 

@@ -45,25 +45,14 @@ class UnitOfWork
      */
     public function getRecord(Table $table, array $data, $exists = false)
     {
-        // TODO id?
-//        $identifierFields = $table->getIdentifierAsArray();
-//        $identifier = array();
-//        foreach ($identifierFields as $fieldName) {
-//            if (!array_key_exists($fieldName, $data)) {
-//                var_dump($data);
-//                throw new \UnexpectedValueException("Identifier field '$fieldName'' is not set!");
-//            }
-//            $identifier[] = $data[$fieldName];
-//        }
-//        $id = implode('-', $identifier);
-
+        $id = $this->getIdentifierFromData($table, $data);
         // TODO implement repository handling!!
-//        if ($table->isInRepository($id)) {
-//            $record = $table->getFromRepository($id);
-//        }
-//        else {
+        if ($id !== false && $table->isInRepository($id)) {
+            $record = $table->getFromRepository($id);
+        }
+        else {
             $record = $table->createRecord($data, $exists);
-//        }
+        }
         return $record;
     }
 
@@ -166,4 +155,23 @@ class UnitOfWork
     }
 
 
+    /**
+     * Gets identifier as string, but returns false, if identifier could not be determined
+     *
+     * @param  Table $table
+     * @param  array $data
+     * @return bool|string
+     */
+    private function getIdentifierFromData(Table $table, array $data)
+    {
+        $identifierFields = $table->getIdentifierAsArray();
+        $identifier = array();
+        foreach ($identifierFields as $fieldName) {
+            if (!isset($data[$fieldName])) {
+                return false;
+            }
+            $identifier[] = $data[$fieldName];
+        }
+        return implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
+    }
 }

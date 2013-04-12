@@ -508,7 +508,7 @@ class Connection
             else {
                 $values[] = '?';
                 $params[] = $value;
-                if ($value !== null && in_array($identifier, $identifierFields)) {
+                if ($value !== null && in_array($fieldName, $identifierFields)) {
                     $identifier[$fieldName] = $value;
                 }
             }
@@ -644,7 +644,8 @@ class Connection
         }
         if (count($identifierFields) != count($identifier)) {
             throw new \InvalidArgumentException(
-                'Identifier does not match table identifier (' . implode(', ', $identifierFields) . ')'
+                "Identifier '" . implode(',', $identifier) . "'"
+                    . ' does not match table identifier (' . implode(', ', $identifierFields) . ')'
             );
         }
     }

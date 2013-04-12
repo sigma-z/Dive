@@ -80,7 +80,7 @@ class RecordTest extends TestCase
             'article_id' => 2
         );
         $record = $table->createRecord($data);
-        $this->assertEquals('2-11', $record->getIdentifierAsString());
+        $this->assertEquals('2' . Record::COMPOSITE_ID_SEPARATOR . '11', $record->getIdentifierAsString());
     }
 
 

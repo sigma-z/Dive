@@ -13,6 +13,8 @@ namespace Dive\Relation;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.10.12
  */
+use Dive\Collection\RecordCollection;
+use Dive\Record;
 use Dive\RecordManager;
 
 class Relation
@@ -65,6 +67,10 @@ class Relation
      * @var array
      */
     protected $references = array();
+    /**
+     * @var RecordCollection[]
+     */
+    private $relatedCollections = array();
 
 
     /**
@@ -307,7 +313,182 @@ class Relation
 
 
     /**
-     * sets reference for a referenced id
+     * possible return values are:
+     *   false:  relations is not loaded, yet
+     *   null:   not related
+     *   array:  to many relation
+     *   string: to one relation
+     * @param  Record $record
+     * @param  string $relationAlias
+     * @return bool|null|array|string
+     */
+    public function getRecordReferencedIdentifiers(Record $record, $relationAlias)
+    {
+        $id = $record->getInternalIdentifier();
+        $isOwningSide = $this->isOwningSide($relationAlias);
+        if (!$isOwningSide && !array_key_exists($id, $this->references)) {
+            return false;
+        }
+
+        if ($isOwningSide) {
+            return $record->getOwnerFieldInternalIdentifier($this->ownerField);
+        }
+        return $this->references[$id];
+    }
+
+
+    /**
+     * Loads references (via result collection from record)
+     *
+     * @param Record $record
+     * @param string $relationName
+     */
+    public function loadReferences(Record $record, $relationName)
+    {
+        $recordCollection = $record->getResultCollection();
+        if (!$recordCollection) {
+            return;
+        }
+
+        $query = $this->getReferenceQuery($record, $relationName, $recordCollection->getIdentifiers());
+        /** @var \Dive\Record[] $relatedCollection */
+        $relatedCollection = $query->execute(RecordManager::FETCH_RECORD_COLLECTION);
+
+        if ($this->isOwningSide($relationName)) {
+            $referencingCollection = $recordCollection;
+            $referencedCollection = $relatedCollection;
+        }
+        else {
+            $referencedCollection = $recordCollection;
+            $referencingCollection = $relatedCollection;
+        }
+
+        foreach ($referencingCollection as $record) {
+            $referencingField = $this->ownerField;
+            $referencingId = $record->get($referencingField);
+            $this->addReference($referencingId, $record->getInternalIdentifier());
+        }
+
+        foreach ($referencedCollection as $record) {
+            $id = $record->getInternalIdentifier();
+            if (!array_key_exists($id, $this->references)) {
+                $this->references[$id] = $this->isOneToMany() ? array() : null;
+            }
+        }
+    }
+
+
+    /**
+     * Gets query for loading related records
+     *
+     * @param  Record $record
+     * @param  string $relationName
+     * @param  array  $identifiers
+     * @return \Dive\Query\Query
+     */
+    private function getReferenceQuery(Record $record, $relationName, array $identifiers)
+    {
+        $rm = $record->getTable()->getRecordManager();
+        $relatedTable = $this->getJoinTable($rm, $relationName);
+
+        $query = $relatedTable->createQuery('a');
+        $query->distinct();
+        if ($this->isOwningSide($relationName)) {
+            $query
+                ->leftJoin("a.$this->refAlias b")
+                ->whereIn("b.$this->refField", $identifiers);
+        }
+        else {
+            $query->whereIn("a.$this->ownerField", $identifiers);
+            if ($this->isOneToMany() && $this->orderBy) {
+                if (false !== ($pos = strpos($this->orderBy, '.'))) {
+                    list($orderByRelationAlias, $orderByField) = explode('.', $this->orderBy);
+                    $query
+                        ->leftJoin("a.$orderByRelationAlias b")
+                        ->orderBy("b.$orderByField");
+                }
+                else if ($relatedTable->hasField($this->orderBy)) {
+                    $query->orderBy("a.$this->orderBy");
+                }
+            }
+        }
+
+        return $query;
+    }
+
+
+    /**
+     * @param   Record $record
+     * @param   string $relationName
+     * @return  null|RecordCollection|Record[]|Record
+     */
+    public function getReferenceFor(Record $record, $relationName)
+    {
+        $relatedIds = $this->getRecordReferencedIdentifiers($record, $relationName);
+        // is a NULL-reference
+        if (null === $relatedIds) {
+            return null;
+        }
+
+        $rm = $record->getTable()->getRecordManager();
+        $relatedTable = $this->getJoinTable($rm, $relationName);
+        if (!$this->isOwningSide($relationName) && $this->isOneToMany()) {
+            $oid = $record->getOid();
+            if (isset($this->relatedCollections[$oid])) {
+                return $this->relatedCollections[$oid];
+            }
+            if (is_array($relatedIds)) {
+                $related = new RecordCollection($relatedTable);
+                $recordsInRepository = true;
+                foreach ($relatedIds as $relatedId) {
+                    if (!$relatedTable->isInRepository($relatedId)) {
+                        $recordsInRepository = false;
+                        break;
+                    }
+                    $relatedRecord = $relatedTable->getFromRepository($relatedId);
+                    $related->add($relatedRecord, $relatedId);
+                }
+                if ($recordsInRepository) {
+                    $this->relatedCollections[$oid] = $related;
+                    return $related;
+                }
+            }
+        }
+        else if (is_string($relatedIds) && $relatedTable->isInRepository($relatedIds)) {
+            return $relatedTable->getFromRepository($relatedIds);
+        }
+
+        return $this->loadReferenceFor($record, $relationName);
+    }
+
+
+    /**
+     * Loads reference for a given record
+     *
+     * @param  Record   $record
+     * @param  string   $relationName
+     * @return Record|Record[]|RecordCollection
+     */
+    private function loadReferenceFor(Record $record, $relationName)
+    {
+        $fetchMode = RecordManager::FETCH_RECORD;
+        if ($this->isOwningSide($relationName)) {
+            $ownerField = $this->ownerField;
+            if (null === $record->get($ownerField)) {
+                return null;
+            }
+        }
+        else if ($this->isOneToMany()) {
+            $fetchMode = RecordManager::FETCH_RECORD_COLLECTION;
+        }
+        $identifier = $record->getIdentifierAsString();
+        $query = $this->getReferenceQuery($record, $relationName, array($identifier));
+        return $query->execute($fetchMode);
+    }
+
+
+    /**
+     * Sets reference for a referenced id
      *
      * @param  string $id
      * @param  array|string $ownerIdentifier

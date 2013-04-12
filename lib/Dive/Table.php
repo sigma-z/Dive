@@ -465,6 +465,31 @@ class Table
 
 
     /**
+     * gets reference for given record
+     *
+     * @param  Record $record
+     * @param  string $relationName
+     * @return null|Record|\Dive\Collection\RecordCollection
+     */
+    public function getReferenceFor(Record $record, $relationName)
+    {
+        $relation = $this->getRelation($relationName);
+
+        $identifiers = $relation->getRecordReferencedIdentifiers($record, $relationName);
+        if ($relation->isOwningSide($relationName)) {
+            $relatedTable = $this->recordManager->getTable($relation->getReferencedTable());
+            if (!$relatedTable->getRepository()->hasByInternalId($identifiers)) {
+                $identifiers = false;
+            }
+        }
+        if ($identifiers === false) {
+            $relation->loadReferences($record, $relationName);
+        }
+        return $relation->getReferenceFor($record, $relationName);
+    }
+
+
+    /**
      * Creates query with this table in from clause
      *
      * @param  string $alias

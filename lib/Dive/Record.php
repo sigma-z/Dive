@@ -38,6 +38,7 @@ class Record
 {
 
     const NEW_RECORD_ID_MARK = "\1";
+    const COMPOSITE_ID_SEPARATOR = '|';
 
 
     /**
@@ -71,7 +72,7 @@ class Record
     /**
      * @var array
      */
-    private $_internalReferenceMap = array();
+    private $ownerFieldInternalIdentifiers = array();
 
 
     /**
@@ -172,7 +173,7 @@ class Record
     {
         $identifier = $this->getIdentifier();
         if (is_array($identifier)) {
-            $identifier = implode('-', $identifier);
+            $identifier = implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
         }
         return $identifier;
     }
@@ -205,7 +206,9 @@ class Record
         }
         if (count($identifier) != count($identifierFields)) {
             throw new RecordException(
-                "Identifier '" . implode('-', $identifier) .  "' does not match table identifier!"
+                "Identifier '"
+                    . implode(self::COMPOSITE_ID_SEPARATOR, $identifier)
+                    .  "' does not match table identifier!"
             );
         }
 
@@ -248,9 +251,9 @@ class Record
             return $this->_table->getFieldDefaultValue($name);
         }
 
-//        if ($this->_table->hasRelation($name)) {
-//            return $this->_table->getReferenceFor($this, $name);
-//        }
+        if ($this->_table->hasRelation($name)) {
+            return $this->_table->getReferenceFor($this, $name);
+        }
 
         return null;
     }
@@ -283,6 +286,22 @@ class Record
 //        if ($this->_table->hasRelation($name)) {
 //            $this->_table->setReferenceFor($this, $name, $value);
 //        }
+    }
+
+
+    /**
+     * Gets internal identifier for field which defines a foreign key relation
+     *
+     * @param  string $field
+     * @return string|null
+     */
+    public function getOwnerFieldInternalIdentifier($field)
+    {
+        $referencedId = $this->get($field);
+        if (null === $referencedId && isset($this->ownerFieldInternalIdentifiers[$field])) {
+            return $this->ownerFieldInternalIdentifiers[$field];
+        }
+        return $referencedId;
     }
 
 
@@ -369,9 +388,21 @@ class Record
     }
 
 
+    /**
+     * @param RecordCollection $resultCollection
+     */
     public function setResultCollection(RecordCollection $resultCollection)
     {
         $this->_resultCollection = $resultCollection;
+    }
+
+
+    /**
+     * @return RecordCollection
+     */
+    public function getResultCollection()
+    {
+        return $this->_resultCollection;
     }
 
 

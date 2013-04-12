@@ -13,6 +13,7 @@
 
 namespace Dive\Record;
 
+use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 use Dive\Util\FieldValuesGenerator;
 use Dive\Record\Generator\RecordGenerator;
@@ -20,11 +21,29 @@ use Dive\Record\Generator\RecordGenerator;
 class RelationLoadingTest extends TestCase
 {
 
+    /**
+     * @var RecordManager
+     */
+    private static $rm = null;
+    /**
+     * @var array
+     */
+    private static $tableRows = array();
+
+
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
 
         self::createTestData();
+    }
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        self::$rm->clearTables();
     }
 
 
@@ -65,8 +84,8 @@ class RelationLoadingTest extends TestCase
      */
     private static function createTestData()
     {
-        $users = array('JohnD', 'JamieTK', 'AdamE', 'BartS', 'CelineH');
-        $authors = array(
+        self::$tableRows['user'] = array('JohnD', 'JamieTK', 'AdamE', 'BartS', 'CelineH');
+        self::$tableRows['author'] = array(
             'John Doe' => array(
                 'firstname' => 'John',
                 'lastname' => 'Doe',
@@ -78,8 +97,8 @@ class RelationLoadingTest extends TestCase
                 'User' => 'JamieTK'
             ),
         );
-        $tags = array('News', 'Release Notes', 'Feature', 'Documentation');
-        $articles = array(
+        self::$tableRows['tag'] = array('News', 'Release Notes', 'Feature', 'Documentation');
+        self::$tableRows['article'] = array(
             array(
                 'title' => 'Hello world sample',
                 'Author' => 'John Doe',
@@ -135,21 +154,39 @@ class RelationLoadingTest extends TestCase
                 )
             ),
         );
+        $tableMapFields = array('user' => 'username', 'tag' => 'name');
 
-        $rm = self::createDefaultRecordManager();
+        self::$rm = self::createDefaultRecordManager();
         $fvGenerator = new FieldValuesGenerator();
-        $recordGenerator = new RecordGenerator($rm, $fvGenerator);
-        $recordGenerator->setTableRows('user', $users, 'username');
-        $recordGenerator->setTableRows('author', $authors);
-        $recordGenerator->setTableRows('tag', $tags, 'name');
-        $recordGenerator->setTableRows('article', $articles);
+        $recordGenerator = new RecordGenerator(self::$rm, $fvGenerator);
+        foreach (self::$tableRows as $tableName => $tableRows) {
+            $mapField = isset($tableMapFields[$tableName]) ? $tableMapFields[$tableName] : null;
+            $recordGenerator->setTableRows($tableName, $tableRows, $mapField);
+        }
         $recordGenerator->generate();
     }
 
 
-    public function test()
+    public function testLoadingUsersArticle()
     {
-        $this->markTestIncomplete();
+        $expectedArticles = array(
+            'JohnD' => 2,
+            'JamieTK' => 1
+        );
+        $userTable = self::$rm->getTable('user');
+        $users = $userTable->createQuery('u')->execute();
+        $this->assertEquals(5, $users->count());
+
+        foreach ($users as $user) {
+            if (isset($expectedArticles[$user->username])) {
+                $expected = $expectedArticles[$user->username];
+                $author = $user->Author;
+                $this->assertInstanceOf('\Dive\Record', $author);
+                /** @var \Dive\Collection\RecordCollection $articleColl */
+                $articleColl = $author->Article;
+                $this->assertEquals($expected, $articleColl->count());
+            }
+        }
     }
 
 }

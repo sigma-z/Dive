@@ -14,7 +14,7 @@
 namespace Dive\Collection;
 
 
-abstract class Collection implements CollectionInterface
+class Collection implements CollectionInterface
 {
 
     /**

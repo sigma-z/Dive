@@ -6,13 +6,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
-namespace Dive\Relation;
-
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.10.12
  */
+
+namespace Dive\Relation;
+
 use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\RecordManager;
@@ -145,6 +145,8 @@ class Relation
 
 
     /**
+     * Gets order by for relation
+     *
      * @return string
      */
     public function getOrderBy()
@@ -172,18 +174,20 @@ class Relation
 
 
     /**
-     * checks if alias refers to the owning side
+     * Returns true, if relation name refers to the owning side
      *
-     * @param  string $alias
+     * @param  string $relationName
      * @return bool
      */
-    public function isOwningSide($alias)
+    public function isOwningSide($relationName)
     {
-        return $alias === $this->ownerAlias;
+        return $relationName === $this->ownerAlias;
     }
 
 
     /**
+     * Gets referencing owning relation name
+     *
      * @return string
      */
     public function getOwnerAlias()
@@ -193,6 +197,8 @@ class Relation
 
 
     /**
+     * Gets reference owning table name
+     *
      * @return string
      */
     public function getOwnerTable()
@@ -258,12 +264,12 @@ class Relation
     /**
      * Gets join table name
      *
-     * @param   string $alias
+     * @param   string $relationName
      * @return  string
      */
-    public function getJoinTableName($alias)
+    public function getJoinTableName($relationName)
     {
-        if ($alias === $this->ownerAlias) {
+        if ($relationName === $this->ownerAlias) {
             return $this->refTable;
         }
         return $this->ownerTable;
@@ -274,12 +280,12 @@ class Relation
      * Gets join table
      *
      * @param  \Dive\RecordManager  $rm
-     * @param  string               $alias
+     * @param  string               $relationName
      * @return \Dive\Table
      */
-    public function getJoinTable(RecordManager $rm, $alias)
+    public function getJoinTable(RecordManager $rm, $relationName)
     {
-        $joinTableName = $this->getJoinTableName($alias);
+        $joinTableName = $this->getJoinTableName($relationName);
         return $rm->getTable($joinTableName);
     }
 
@@ -313,11 +319,8 @@ class Relation
 
 
     /**
-     * possible return values are:
-     *   false:  relations is not loaded, yet
-     *   null:   not related
-     *   array:  to many relation
-     *   string: to one relation
+     * Gets record referenced identifiers
+     *
      * @param  Record $record
      * @param  string $relationAlias
      * @return bool|null|array|string
@@ -508,7 +511,7 @@ class Relation
      * @param  string $id
      * @param  array|string $ownerIdentifier
      * @throws \InvalidArgumentException
-     * @return Relation
+     * @return $this
      */
     public function setReference($id, $ownerIdentifier)
     {
@@ -531,11 +534,11 @@ class Relation
 
 
     /**
-     * adds referencing id for a referenced id
+     * Adds owning id for a referenced id
      *
-     * @param string $id
-     * @param string $ownerIdentifier
-     * @return Relation
+     * @param  string $id
+     * @param  string $ownerIdentifier
+     * @return $this
      */
     public function addReference($id, $ownerIdentifier)
     {
@@ -545,11 +548,11 @@ class Relation
 
 
     /**
-     * merges references for a referenced id
+     * Merges references for a referenced id
      *
      * @param  string   $id
      * @param  array    $ownerIdentifier
-     * @return Relation
+     * @return $this
      */
     public function mergeReference($id, array $ownerIdentifier)
     {
@@ -561,10 +564,10 @@ class Relation
 
 
     /**
-     * unset reference
+     * Unset reference
      *
      * @param  string $id
-     * @return Relation
+     * @return $this
      */
     public function unsetReference($id)
     {
@@ -575,9 +578,13 @@ class Relation
 
 
     /**
-     * gets references
+     * Gets references
      *
-     * @return array keys: referenced ids, values: array of referencing ids
+     * @return array
+     *   keys:   owning ids,
+     *   values:
+     *      one-to-many: referencing ids as array
+     *      one-to-one:  referencing id as string
      */
     public function getReferences()
     {
@@ -586,7 +593,7 @@ class Relation
 
 
     /**
-     * clear references
+     * Clears references
      */
     public function clearReferences()
     {

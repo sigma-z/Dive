@@ -321,6 +321,10 @@ class Relation
      * @param  Record $record
      * @param  string $relationAlias
      * @return bool|null|array|string
+     *   false:  reference has not been loaded, yet
+     *   null:   null-reference / not related
+     *   array:  one-to-many related ids
+     *   string: referenced id
      */
     public function getRecordReferencedIdentifiers(Record $record, $relationAlias)
     {
@@ -331,9 +335,21 @@ class Relation
         }
 
         if ($isOwningSide) {
-            return $record->getOwnerFieldInternalIdentifier($this->ownerField);
+            $refId = $record->get($this->ownerField);
+            if ($refId === null) {
+                if (isset($this->references[$id])) {
+                    $refId = $this->references[$id];
+                }
+                else {
+                    return false;
+                }
+            }
+            return $refId;
         }
-        return $this->references[$id];
+        if ($this->isOneToMany()) {
+            return $this->references[$id];
+        }
+        return $this->references[$id][0];
     }
 
 
@@ -351,7 +367,7 @@ class Relation
         }
 
         $query = $this->getReferenceQuery($record, $relationName, $recordCollection->getIdentifiers());
-        /** @var \Dive\Record[] $relatedCollection */
+        /** @var \Dive\Record[]|\Dive\Collection\RecordCollection $relatedCollection */
         $relatedCollection = $query->execute(RecordManager::FETCH_RECORD_COLLECTION);
 
         if ($this->isOwningSide($relationName)) {
@@ -364,9 +380,8 @@ class Relation
         }
 
         foreach ($referencingCollection as $record) {
-            $referencingField = $this->ownerField;
-            $referencingId = $record->get($referencingField);
-            $this->addReference($referencingId, $record->getInternalIdentifier());
+            $refId = $record->get($this->ownerField);
+            $this->addReference($refId, $record->getInternalIdentifier());
         }
 
         foreach ($referencedCollection as $record) {

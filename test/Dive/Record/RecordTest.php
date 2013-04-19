@@ -13,7 +13,7 @@
 
 namespace Dive\Test\Table;
 
-use Dive\Logging\SqlLogger;
+use Dive\Log\SqlLogger;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;

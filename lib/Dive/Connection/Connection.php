@@ -16,7 +16,7 @@ namespace Dive\Connection;
 use Dive\Event\Dispatcher;
 use Dive\Event\DispatcherInterface;
 use Dive\Expression;
-use Dive\Logging\SqlLogger;
+use Dive\Log\SqlLogger;
 use Dive\Platform\PlatformInterface;
 use Dive\Table;
 

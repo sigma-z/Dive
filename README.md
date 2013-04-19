@@ -32,7 +32,6 @@ Features
  * Event handling
  * Query building
  * Query result hydration
-=======
 
 Development milestones
 ---

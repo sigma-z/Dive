@@ -13,6 +13,7 @@
 
 namespace Dive\Record;
 
+use Dive\Log\SqlLogger;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 use Dive\Util\FieldValuesGenerator;
@@ -47,6 +48,61 @@ class RelationLoadingTest extends TestCase
     }
 
 
+    public function testLoadingUserArticles()
+    {
+        $expectedArticles = array(
+            'JohnD' => 2,
+            'JamieTK' => 1
+        );
+        $userTable = self::$rm->getTable('user');
+        $users = $userTable->createQuery('u')->execute();
+        $this->assertEquals(5, $users->count());
+
+        foreach ($users as $user) {
+            if (isset($expectedArticles[$user->username])) {
+                $expected = $expectedArticles[$user->username];
+                $author = $user->Author;
+                $this->assertInstanceOf('\Dive\Record', $author);
+                /** @var \Dive\Collection\RecordCollection $articleColl */
+                $articleColl = $author->Article;
+                $this->assertInstanceOf('\Dive\Collection\RecordCollection', $articleColl);
+                $this->assertEquals($expected, $articleColl->count());
+            }
+        }
+    }
+
+
+    public function testNumberOfQueriesForLoadingUserArticles()
+    {
+        $sqlLogger = new SqlLogger();
+        //$sqlLogger->setEchoOutput(true);
+        self::$rm->getConnection()->setSqlLogger($sqlLogger);
+
+        $userTable = self::$rm->getTable('user');
+        /** @var \Dive\Collection\RecordCollection|\Dive\Record[] $users */
+        $users = $userTable->createQuery('u')
+            ->leftJoin('u.Author au')
+            ->where('au.id IS NOT NULL')
+            ->execute();
+        $this->assertEquals(count(self::$tableRows['author']), $users->count());
+
+        /** @var \Dive\Record $user */
+        $iterator = $users->getIterator();
+        $user = $iterator->current();
+        $coll = $user->getResultCollection();
+        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $coll);
+
+        foreach ($users as $user) {
+            if (($author = $user->Author)) {
+                $author->Article;
+            }
+        }
+
+        $sqlLogger->setEchoOutput(false);
+        $this->assertEquals(3, $sqlLogger->count());
+    }
+
+
     /**
      * creates test data
      * Users
@@ -59,6 +115,7 @@ class RelationLoadingTest extends TestCase
      * Author
      *  - John Doe      (JohnD)
      *  - Jamie T. Kirk (JamieTK)
+     *  - Bart Simpson  (BartS)
      *
      * Tags
      *  - News
@@ -95,6 +152,11 @@ class RelationLoadingTest extends TestCase
                 'firstname' => 'Jamie T',
                 'lastname' => 'Kirk',
                 'User' => 'JamieTK'
+            ),
+            'Bart Simpson' => array(
+                'firstname' => 'Bart',
+                'lastname' => 'Simpson',
+                'User' => 'BartS'
             ),
         );
         self::$tableRows['tag'] = array('News', 'Release Notes', 'Feature', 'Documentation');
@@ -164,29 +226,6 @@ class RelationLoadingTest extends TestCase
             $recordGenerator->setTableRows($tableName, $tableRows, $mapField);
         }
         $recordGenerator->generate();
-    }
-
-
-    public function testLoadingUsersArticle()
-    {
-        $expectedArticles = array(
-            'JohnD' => 2,
-            'JamieTK' => 1
-        );
-        $userTable = self::$rm->getTable('user');
-        $users = $userTable->createQuery('u')->execute();
-        $this->assertEquals(5, $users->count());
-
-        foreach ($users as $user) {
-            if (isset($expectedArticles[$user->username])) {
-                $expected = $expectedArticles[$user->username];
-                $author = $user->Author;
-                $this->assertInstanceOf('\Dive\Record', $author);
-                /** @var \Dive\Collection\RecordCollection $articleColl */
-                $articleColl = $author->Article;
-                $this->assertEquals($expected, $articleColl->count());
-            }
-        }
     }
 
 }

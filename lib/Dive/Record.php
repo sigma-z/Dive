@@ -69,10 +69,6 @@ class Record
      * @var bool
      */
     protected $_exists = false;
-    /**
-     * @var array
-     */
-    private $ownerFieldInternalIdentifiers = array();
 
 
     /**
@@ -286,22 +282,6 @@ class Record
 //        if ($this->_table->hasRelation($name)) {
 //            $this->_table->setReferenceFor($this, $name, $value);
 //        }
-    }
-
-
-    /**
-     * Gets internal identifier for field which defines a foreign key relation
-     *
-     * @param  string $field
-     * @return string|null
-     */
-    public function getOwnerFieldInternalIdentifier($field)
-    {
-        $referencedId = $this->get($field);
-        if (null === $referencedId && isset($this->ownerFieldInternalIdentifiers[$field])) {
-            return $this->ownerFieldInternalIdentifiers[$field];
-        }
-        return $referencedId;
     }
 
 

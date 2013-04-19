@@ -10,7 +10,7 @@
 namespace Dive\Test\Connection;
 
 use Dive\Connection\Connection;
-use Dive\Logging\SqlLogger;
+use Dive\Log\SqlLogger;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;

@@ -12,7 +12,7 @@
  */
 
 
-namespace Dive\Logging;
+namespace Dive\Log;
 
 
 class SqlLogger

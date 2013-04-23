@@ -25,7 +25,7 @@ class Table
     /**
      * @var RecordManager
      */
-    protected $recordManager;
+    protected $rm;
     /**
      * @var string
      */
@@ -87,7 +87,7 @@ class Table
         Repository $repository = null
     )
     {
-        $this->recordManager = $recordManager;
+        $this->rm = $recordManager;
         $this->tableName = $tableName;
         $this->recordClass = $recordClass;
         $this->fields = $fields;
@@ -113,7 +113,7 @@ class Table
      */
     public function getRecordManager()
     {
-        return $this->recordManager;
+        return $this->rm;
     }
 
 
@@ -160,7 +160,7 @@ class Table
      */
     public function getConnection()
     {
-        return $this->recordManager->getConnection();
+        return $this->rm->getConnection();
     }
 
 
@@ -465,7 +465,7 @@ class Table
 
 
     /**
-     * gets reference for given record
+     * Gets reference for given record
      *
      * @param  Record $record
      * @param  string $relationName
@@ -475,17 +475,28 @@ class Table
     {
         $relation = $this->getRelation($relationName);
 
-        $identifiers = $relation->getRecordReferencedIdentifiers($record, $relationName);
         if ($relation->isOwningSide($relationName)) {
-            $relatedTable = $this->recordManager->getTable($relation->getReferencedTable());
-            if (!$relatedTable->getRepository()->hasByInternalId($identifiers)) {
-                $identifiers = false;
+            $refRecord = $relation->getReferencedRecord($record);
+            if ($refRecord) {
+                return $refRecord;
             }
         }
-        if ($identifiers === false) {
-            $relation->loadReferences($record, $relationName);
-        }
+
         return $relation->getReferenceFor($record, $relationName);
+    }
+
+
+    /**
+     * Sets reference for given record
+     *
+     * @param Record                                        $record
+     * @param string                                        $relationName
+     * @param null|Record|\Dive\Collection\RecordCollection $reference
+     */
+    public function setReferenceFor(Record $record, $relationName, $reference)
+    {
+        $relation = $this->getRelation($relationName);
+        $relation->setReferenceFor($record, $relationName, $reference);
     }
 
 
@@ -498,7 +509,7 @@ class Table
     public function createQuery($alias = 'a')
     {
         $from = $this->getTableName() . ' ' . $alias;
-        $query = new Query($this->recordManager);
+        $query = new Query($this->rm);
         $query->from($from);
         return $query;
     }

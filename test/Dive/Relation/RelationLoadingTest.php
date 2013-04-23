@@ -11,7 +11,7 @@
  * @created 05.04.13
  */
 
-namespace Dive\Record;
+namespace Dive\Test\Relation;
 
 use Dive\Log\SqlLogger;
 use Dive\RecordManager;

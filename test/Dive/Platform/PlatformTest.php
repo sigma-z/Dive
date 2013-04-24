@@ -185,7 +185,7 @@ class PlatformTest extends TestCase
 
 
     /**
-     * @expectedException PlatformException
+     * @expectedException \Dive\Platform\PlatformException
      */
     public function testGetMysqlEnumColumnDefinitionThrowsExceptionOnMissingValues()
     {

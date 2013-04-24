@@ -586,7 +586,7 @@ class MigrationTest extends TestCase
                         . '"email" varchar(255) NOT NULL,' . "\n"
                         . '"user_id" unsigned bigint(10) NOT NULL,' . "\n"
                         . '"editor_id" unsigned bigint(10),' . "\n"
-                        . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE CASCADE ON UPDATE CASCADE'
+                        . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE CASCADE ON UPDATE CASCADE' . "\n"
                         . ")",
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UQ_user_id" ON "author" ("user_id")',

@@ -584,11 +584,13 @@ class MigrationTest extends TestCase
                         . '"firstname" varchar(64),' . "\n"
                         . '"lastname" varchar(64) NOT NULL,' . "\n"
                         . '"email" varchar(255) NOT NULL,' . "\n"
-                        . '"user_id" unsigned bigint(10) NOT NULL' . "\n"
+                        . '"user_id" unsigned bigint(10) NOT NULL,' . "\n"
+                        . '"editor_id" unsigned bigint(10),' . "\n"
+                        . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE CASCADE ON UPDATE CASCADE'
                         . ")",
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UQ_user_id" ON "author" ("user_id")',
-                    'INSERT INTO "author" ("id", "firstname", "lastname", "email", "user_id") SELECT "id", "firstname", "lastname", "email", "user_id" FROM "author_backup"',
+                    'INSERT INTO "author" ("id", "firstname", "lastname", "email", "user_id", "editor_id") SELECT "id", "firstname", "lastname", "email", "user_id", "editor_id" FROM "author_backup"',
                     'DROP TABLE "author_backup"'
                 ),
                 'mysql' => array(
@@ -616,11 +618,13 @@ class MigrationTest extends TestCase
                         . '"lastname" varchar(64) NOT NULL,' . "\n"
                         . '"email" varchar(255) NOT NULL,' . "\n"
                         . '"user_id" unsigned bigint(10) NOT NULL,' . "\n"
-                        . 'CONSTRAINT "author_fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT' . "\n"
+                        . '"editor_id" unsigned bigint(10),' . "\n"
+                        . 'CONSTRAINT "author_fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,' . "\n"
+                        . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE CASCADE ON UPDATE CASCADE' . "\n"
                         . ")",
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UQ_user_id" ON "author" ("user_id")',
-                    'INSERT INTO "author" ("id", "firstname", "lastname", "email", "user_id") SELECT "id", "firstname", "lastname", "email", "user_id" FROM "author_backup"',
+                    'INSERT INTO "author" ("id", "firstname", "lastname", "email", "user_id", "editor_id") SELECT "id", "firstname", "lastname", "email", "user_id", "editor_id" FROM "author_backup"',
                     'DROP TABLE "author_backup"'
                 ),
                 'mysql' => array(
@@ -647,10 +651,12 @@ class MigrationTest extends TestCase
                         . '"id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,' . "\n"
                         . '"firstname" varchar(64),' . "\n"
                         . '"lastname" varchar(64) NOT NULL,' . "\n"
-                        . '"email" varchar(255) NOT NULL' . "\n"
+                        . '"email" varchar(255) NOT NULL,' . "\n"
+                        . '"editor_id" unsigned bigint(10),' . "\n"
+                        . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE CASCADE ON UPDATE CASCADE' . "\n"
                         . ")",
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
-                    'INSERT INTO "author" ("id", "firstname", "lastname", "email") SELECT "id", "firstname", "lastname", "email" FROM "author_backup"',
+                    'INSERT INTO "author" ("id", "firstname", "lastname", "email", "editor_id") SELECT "id", "firstname", "lastname", "email", "editor_id" FROM "author_backup"',
                     'DROP TABLE "author_backup"'
                 ),
                 'mysql' => array(

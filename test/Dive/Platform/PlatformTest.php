@@ -13,6 +13,9 @@
 
 namespace Dive\TestSuite\Platform;
 
+use Dive\Exception;
+use Dive\Platform\PlatformException;
+use Dive\Platform\PlatformInterface;
 use Dive\TestSuite\TestCase;
 
 
@@ -23,7 +26,7 @@ class PlatformTest extends TestCase
      * gets platform for given scheme
      *
      * @param  string $scheme
-     * @return \Dive\Platform\AbstractPlatform|bool
+     * @return PlatformInterface|bool
      */
     private function createPlatform($scheme)
     {
@@ -123,7 +126,7 @@ class PlatformTest extends TestCase
                                 . "\"lastname\" varchar(64) NOT NULL,\n"
                                 . "\"email\" varchar(255) NOT NULL,\n"
                                 . "\"user_id\" unsigned bigint(10) NOT NULL,\n"
-                                . "\"editor_id\" unsigned bigint(10) NOT NULL,\n"
+                                . "\"editor_id\" unsigned bigint(10),\n"
                                 . "CONSTRAINT \"author_fk_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"user\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE,\n"
                                 . "CONSTRAINT \"author_fk_editor_id\" FOREIGN KEY (\"editor_id\") REFERENCES \"author\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE\n"
                                 . ")",
@@ -182,7 +185,7 @@ class PlatformTest extends TestCase
 
 
     /**
-     * @expectedException \Dive\Platform\PlatformException
+     * @expectedException PlatformException
      */
     public function testGetMysqlEnumColumnDefinitionThrowsExceptionOnMissingValues()
     {
@@ -359,7 +362,7 @@ class PlatformTest extends TestCase
         }
 
         $expected = $expectedArray[$scheme];
-        if ($expected instanceof \Dive\Exception) {
+        if ($expected instanceof Exception) {
             $this->setExpectedException(get_class($expected));
         }
         $platform = $this->createPlatform($scheme);
@@ -371,7 +374,7 @@ class PlatformTest extends TestCase
     public function provideChangeColumnSql()
     {
         $testCases = array();
-        $platformException = new \Dive\Platform\PlatformException();
+        $platformException = new PlatformException();
 
         // adding column after id
         $testCases[] = array(
@@ -414,7 +417,7 @@ class PlatformTest extends TestCase
         }
 
         $expected = $expectedArray[$scheme];
-        if ($expected instanceof \Dive\Exception) {
+        if ($expected instanceof Exception) {
             $this->setExpectedException(get_class($expected));
         }
         $platform = $this->createPlatform($scheme);
@@ -426,7 +429,7 @@ class PlatformTest extends TestCase
     public function provideDropColumnSql()
     {
         $testCases = array();
-        $platformException = new \Dive\Platform\PlatformException();
+        $platformException = new PlatformException();
 
         // adding column after id
         $testCases[] = array(
@@ -474,7 +477,7 @@ class PlatformTest extends TestCase
         $testCases[] = array(
             'indexName' => 'UQ_username',
             'fields' => 'username',
-            'indexType' => \Dive\Platform\AbstractPlatform::UNIQUE,
+            'indexType' => PlatformInterface::UNIQUE,
             array(
                 'sqlite' => 'CREATE UNIQUE INDEX IF NOT EXISTS "user_UQ_username" ON "user" ("username")',
                 'mysql' => 'CREATE UNIQUE INDEX IF NOT EXISTS `UQ_username` ON `user` (`username`)'
@@ -483,7 +486,7 @@ class PlatformTest extends TestCase
         $testCases[] = array(
             'indexName' => 'IX_username',
             'fields' => 'username',
-            'indexType' => \Dive\Platform\AbstractPlatform::INDEX,
+            'indexType' => PlatformInterface::INDEX,
             array(
                 'sqlite' => 'CREATE INDEX IF NOT EXISTS "user_IX_username" ON "user" ("username")',
                 'mysql' => 'CREATE INDEX IF NOT EXISTS `IX_username` ON `user` (`username`)'
@@ -492,7 +495,7 @@ class PlatformTest extends TestCase
         $testCases[] = array(
             'indexName' => 'IX_username',
             'fields' => array('username', 'password'),
-            'indexType' => \Dive\Platform\AbstractPlatform::INDEX,
+            'indexType' => PlatformInterface::INDEX,
             array(
                 'sqlite' => 'CREATE INDEX IF NOT EXISTS "user_IX_username" ON "user" ("username", "password")',
                 'mysql' => 'CREATE INDEX IF NOT EXISTS `IX_username` ON `user` (`username`, `password`)'
@@ -552,7 +555,7 @@ class PlatformTest extends TestCase
         }
 
         $expected = $expectedArray[$scheme];
-        if ($expected instanceof \Dive\Exception) {
+        if ($expected instanceof Exception) {
             $this->setExpectedException(get_class($expected));
         }
         $platform = $this->createPlatform($scheme);
@@ -564,7 +567,7 @@ class PlatformTest extends TestCase
     public function provideGetAddForeignKeySql()
     {
         $testCases = array();
-        $platformException = new \Dive\Platform\PlatformException();
+        $platformException = new PlatformException();
 
         $testCases[] = array(
             'tableName' => 'user',
@@ -599,8 +602,8 @@ class PlatformTest extends TestCase
             'definition' => array(
                 'refTable' => 'user',
                 'refField' => 'id',
-                'onDelete' => \Dive\Platform\PlatformInterface::SET_NULL,
-                'onUpdate' => \Dive\Platform\PlatformInterface::CASCADE
+                'onDelete' => PlatformInterface::SET_NULL,
+                'onUpdate' => PlatformInterface::CASCADE
             ),
             'expected' => array(
                 'sqlite' => $platformException,
@@ -623,7 +626,7 @@ class PlatformTest extends TestCase
         }
 
         $expected = $expectedArray[$scheme];
-        if ($expected instanceof \Dive\Exception) {
+        if ($expected instanceof Exception) {
             $this->setExpectedException(get_class($expected));
         }
         $platform = $this->createPlatform($scheme);
@@ -635,7 +638,7 @@ class PlatformTest extends TestCase
     public function provideDropForeignKeySql()
     {
         $testCases = array();
-        $platformException = new \Dive\Platform\PlatformException();
+        $platformException = new PlatformException();
 
         $testCases[] = array(
             'tableName' => 'user',

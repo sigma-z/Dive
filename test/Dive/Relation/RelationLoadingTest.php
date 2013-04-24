@@ -62,7 +62,8 @@ class RelationLoadingTest extends TestCase
             if (isset($expectedArticles[$user->username])) {
                 $expected = $expectedArticles[$user->username];
                 $author = $user->Author;
-                $this->assertInstanceOf('\Dive\Record', $author);
+                $message = "Expected an author record for user '" . $user->username . "'!";
+                $this->assertInstanceOf('\Dive\Record', $author, $message);
                 /** @var \Dive\Collection\RecordCollection $articleColl */
                 $articleColl = $author->Article;
                 $this->assertInstanceOf('\Dive\Collection\RecordCollection', $articleColl);

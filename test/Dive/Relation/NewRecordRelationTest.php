@@ -22,11 +22,28 @@ use Dive\Util\FieldValuesGenerator;
 class NewRecordRelationTest extends TestCase
 {
 
+    /**
+     * @var RecordManager
+     */
+    private $rm = null;
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->rm = self::createDefaultRecordManager();
+    }
+
+
+    protected function tearDown()
+    {
+        parent::tearDown();
+        $this->rm->clearTables();
+    }
+
+
     public function testOneToOneOwningReferenceOnExistingRecord()
     {
-        $this->markTestIncomplete();
-
-
         $user = $this->createUser();
         $user->save();
         $author = $this->createAuthor($user);
@@ -38,9 +55,6 @@ class NewRecordRelationTest extends TestCase
 
     public function testOneToOneOwningReferenceOnNewRecord()
     {
-        $this->markTestIncomplete();
-
-
         $user = $this->createUser();
         $author = $this->createAuthor($user);
         $user->Author = $author;
@@ -51,8 +65,7 @@ class NewRecordRelationTest extends TestCase
 
     private function createUser($username = 'UserOne')
     {
-        $rm = self::createDefaultRecordManager();
-        $table = $rm->getTable('user');
+        $table = $this->rm->getTable('user');
         $user = $table->createRecord(array('username' => $username, 'password' => 'my-secret'));
         return $user;
     }
@@ -60,8 +73,7 @@ class NewRecordRelationTest extends TestCase
 
     private function createAuthor(Record $user)
     {
-        $rm = self::createDefaultRecordManager();
-        $table = $rm->getTable('author');
+        $table = $this->rm->getTable('author');
         $author = $table->createRecord(array('firstname' => $user->username, 'lastname' => $user->username));
         return $author;
     }

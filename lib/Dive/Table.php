@@ -129,6 +129,15 @@ class Table
 
 
     /**
+     * toString
+     */
+    public function __toString()
+    {
+        return get_class($this) . ' ' . $this->getTableName();
+    }
+
+
+    /**
      * Creates record
      *
      * @param  array $data
@@ -474,14 +483,12 @@ class Table
     public function getReferenceFor(Record $record, $relationName)
     {
         $relation = $this->getRelation($relationName);
-
         if ($relation->isOwningSide($relationName)) {
             $refRecord = $relation->getReferencedRecord($record);
             if ($refRecord) {
                 return $refRecord;
             }
         }
-
         return $relation->getReferenceFor($record, $relationName);
     }
 

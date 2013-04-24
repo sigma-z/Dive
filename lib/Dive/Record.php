@@ -234,7 +234,7 @@ class Record
 
     /**
      * @param  string $name
-     * @return mixed
+     * @return \Dive\Collection\RecordCollection|\Dive\Record|null
      */
     public function __get($name)
     {
@@ -258,8 +258,8 @@ class Record
     /**
      * TODO how to handle boolean fields?
      *
-     * @param string $name
-     * @param mixed  $value
+     * @param string                                                $name
+     * @param \Dive\Collection\RecordCollection|\Dive\Record|null   $value
      */
     public function __set($name, $value)
     {
@@ -279,9 +279,9 @@ class Record
             }
         }
 
-//        if ($this->_table->hasRelation($name)) {
-//            $this->_table->setReferenceFor($this, $name, $value);
-//        }
+        if ($this->_table->hasRelation($name)) {
+            $this->_table->setReferenceFor($this, $name, $value);
+        }
     }
 
 
@@ -344,6 +344,21 @@ class Record
     public function getModifiedFields()
     {
         return $this->_modifiedFields;
+    }
+
+
+    /**
+     * Gets modified field value
+     *
+     * @param  string $fieldName
+     * @return bool
+     */
+    public function getModifiedFieldValue($fieldName)
+    {
+        if ($this->isFieldModified($fieldName)) {
+            return $this->_modifiedFields[$fieldName];
+        }
+        return false;
     }
 
 

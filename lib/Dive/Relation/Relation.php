@@ -77,7 +77,7 @@ class Relation
      * keys:   oid (record with foreign key field)
      * values: oid (referenced not-yet-persisted record)
      */
-    private $ownerFieldReferences = array();
+    private $ownerFieldOidMapping = array();
 
 
     /**
@@ -346,10 +346,7 @@ class Relation
         else if (!array_key_exists($id, $this->references)) {
             return false;
         }
-        if ($this->isOneToMany()) {
-            return $this->references[$id];
-        }
-        return $this->references[$id][0];
+        return $this->references[$id];
     }
 
 
@@ -413,16 +410,54 @@ class Relation
 
     /**
      * TODO!!
+     * TODO $reference could be an array of records
      *
      * Sets reference for given record
      *
-     * @param Record                                        $record
-     * @param string                                        $relationName
-     * @param null|Record|\Dive\Collection\RecordCollection $reference
+     * @param  Record                                $record
+     * @param  string                                $relationName
+     * @param  null|RecordCollection|Record[]|Record $reference
+     * @throws RelationException
      */
     public function setReferenceFor(Record $record, $relationName, $reference)
     {
+        $id = $record->getInternalIdentifier();
+        $oid = $record->getOid();
 
+        if ($this->isOwningSide($relationName)) {
+            $this->throwReferenceMustBeRecordOrNullException($relationName, $reference);
+
+            if ($reference && !$reference->exists()) {
+                $this->ownerFieldOidMapping[$oid] = $reference->getOid();
+            }
+            else {
+                unset($this->ownerFieldOidMapping[$oid]);
+            }
+
+            $oldRefId = $record->getModifiedFieldValue($this->ownerField);
+            if ($oldRefId && false !== ($pos = array_search($id, $this->references[$oldRefId]))) {
+                array_splice($this->references[$oldRefId], $pos, 1);
+            }
+            if ($reference !== null) {
+                $refId = $record->get($this->ownerField);
+                // TODO what about new records??
+                if ($refId) {
+                    $this->addReference($refId, $record->getInternalIdentifier());
+                }
+            }
+        }
+        else if ($this->isOneToMany()) {
+            $this->throwReferenceMustBeRecordCollectionException($relationName, $reference);
+            $this->references[$id] = $reference->getIdentifiers();
+            $this->relatedCollections[$oid] = $reference;
+        }
+        else {
+            $this->throwReferenceMustBeRecordOrNullException($relationName, $reference);
+            $this->references[$id] = $reference ? $reference->getInternalIdentifier() : null;
+            if (!$record->exists()) {
+                $this->ownerFieldOidMapping[$reference->getOid()] = $oid;
+            }
+        }
     }
 
 
@@ -521,7 +556,12 @@ class Relation
 
         foreach ($ownerCollection as $refRecord) {
             $refId = $refRecord->get($this->ownerField);
-            $this->addReference($refId, $refRecord->getInternalIdentifier());
+            if ($this->isOneToMany()) {
+                $this->addReference($refId, $refRecord->getInternalIdentifier());
+            }
+            else {
+                $this->setReference($refId, $refRecord->getInternalIdentifier());
+            }
         }
 
         foreach ($referencedCollection as $refRecord) {
@@ -547,8 +587,8 @@ class Relation
         $refRepository = $refTable->getRepository();
         if ($refId === null) {
             $oid = $record->getOid();
-            if (isset($this->ownerFieldReferences[$oid])) {
-                $refOid = $this->ownerFieldReferences[$oid];
+            if (isset($this->ownerFieldOidMapping[$oid])) {
+                $refOid = $this->ownerFieldOidMapping[$oid];
                 $refRecord = $refRepository->getByOid($refOid);
                 return $refRecord;
             }
@@ -558,6 +598,26 @@ class Relation
         }
 
         return null;
+    }
+
+
+    private function throwReferenceMustBeRecordOrNullException($relationName, $reference)
+    {
+        if ($reference !== null && !($reference instanceof Record)) {
+            throw new RelationException(
+                "Reference for relation '$relationName' must be NULL or an instance of \\Dive\\Record!"
+            );
+        }
+    }
+
+
+    private function throwReferenceMustBeRecordCollectionException($relationName, $reference)
+    {
+        if (!($reference instanceof RecordCollection)) {
+            throw new RelationException(
+                "Reference for relation '$relationName' must be an instance of \\Dive\\Collection\\RecordCollection!"
+            );
+        }
     }
 
 
@@ -655,7 +715,7 @@ class Relation
     {
         $this->references = array();
         $this->relatedCollections = array();
-        $this->ownerFieldReferences = array();
+        $this->ownerFieldOidMapping = array();
     }
 
 }

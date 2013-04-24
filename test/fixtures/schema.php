@@ -29,7 +29,14 @@ return array(
                     'length'    => 10,
                     'unsigned'  => true,
                     'foreign'   => 'user.id'
-                )
+                ),
+                'editor_id' => array(
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'nullable'  => true,
+                    'foreign'   => 'author.id'
+                ),
             ),
             'indexes' => array(
                 'UNIQUE' => array(
@@ -207,6 +214,17 @@ return array(
             'refField' => 'id',
             'refTable' => 'user',
             'type' => '1-1',
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'CASCADE'
+        ),
+        'author.editor_id' => array(
+            'owningAlias' => 'Editor',
+            'owningField' => 'editor_id',
+            'owningTable' => 'author',
+            'refAlias' => 'Author',
+            'refField' => 'id',
+            'refTable' => 'author',
+            'type' => '1-m',
             'onUpdate' => 'CASCADE',
             'onDelete' => 'CASCADE'
         ),

@@ -234,7 +234,7 @@ class Record
 
     /**
      * @param  string $name
-     * @return \Dive\Collection\RecordCollection|\Dive\Record|null
+     * @return \Dive\Collection\RecordCollection|\Dive\Record|null|mixed
      */
     public function __get($name)
     {
@@ -258,8 +258,8 @@ class Record
     /**
      * TODO how to handle boolean fields?
      *
-     * @param string                                                $name
-     * @param \Dive\Collection\RecordCollection|\Dive\Record|null   $value
+     * @param string                                                    $name
+     * @param \Dive\Collection\RecordCollection|\Dive\Record|null|mixed $value
      */
     public function __set($name, $value)
     {

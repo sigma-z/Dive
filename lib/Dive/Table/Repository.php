@@ -39,6 +39,14 @@ class Repository
     protected $identityMap = array();
 
 
+    /* DEBUG CODE */
+//    public function dump()
+//    {
+//        echo $this->table . ' ';
+//        var_dump(array_keys($this->records));
+//        var_dump($this->identityMap);
+//    }
+
     /**
      * constructor
      *

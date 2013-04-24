@@ -434,12 +434,19 @@ class Relation
             }
 
             $oldRefId = $record->getModifiedFieldValue($this->ownerField);
-            if ($oldRefId && false !== ($pos = array_search($id, $this->references[$oldRefId]))) {
-                array_splice($this->references[$oldRefId], $pos, 1);
+            if ($this->isOneToMany()) {
+                if ($oldRefId && false !== ($pos = array_search($id, $this->references[$oldRefId]))) {
+                    array_splice($this->references[$oldRefId], $pos, 1);
+                }
             }
             if ($reference !== null) {
                 $refId = $reference->getInternalIdentifier();
-                $this->addReference($refId, $record->getInternalIdentifier());
+                if ($this->isOneToMany()) {
+                    $this->addReference($refId, $id);
+                }
+                else {
+                    $this->setReference($refId, $id);
+                }
             }
         }
         else if ($this->isOneToMany()) {
@@ -573,27 +580,71 @@ class Relation
      * Gets referenced record (for owner field)
      *
      * @param  Record $record
+     * @param  string $relationName
+     * @throws RelationException
      * @return Record|null
      */
-    public function getReferencedRecord(Record $record)
+    public function getReferencedRecord(Record $record, $relationName)
+    {
+        if ($this->isOwningSide($relationName)) {
+            return $this->getOwningSideRecord($record);
+        }
+        if ($this->isOneToOne()) {
+            return $this->getReferencedSideRecord($record);
+        }
+        throw new RelationException("Relation '$relationName' does not expected a record as reference!");
+    }
+
+
+    private function getOwningSideRecord(Record $record)
     {
         $refId = $record->get($this->ownerField);
-        $rm = $record->getTable()->getRecordManager();
-        $refTable = $rm->getTable($this->refTable);
-        $refRepository = $refTable->getRepository();
         if ($refId === null) {
             $oid = $record->getOid();
             if (isset($this->ownerFieldOidMapping[$oid])) {
                 $refOid = $this->ownerFieldOidMapping[$oid];
-                $refRecord = $refRepository->getByOid($refOid);
-                return $refRecord;
+                $refRepository = $this->getRefRepository($record, $this->ownerAlias);
+                return $refRepository->getByOid($refOid);
             }
         }
         else {
+            $refRepository = $this->getRefRepository($record, $this->ownerAlias);
             return $refRepository->getByInternalId($refId);
         }
-
         return null;
+    }
+
+
+    private function getReferencedSideRecord(Record $record)
+    {
+        if ($this->isOneToMany()) {
+            throw new RelationException("Relation '$this->refAlias' does not expected a record as reference!");
+        }
+        $id = $record->getInternalIdentifier();
+        if (isset($this->references[$id])) {
+            $refId = $this->references[$id];
+            if ($refId) {
+                $refRepository = $this->getRefRepository($record, $this->refAlias);
+                return $refRepository->getByInternalId($refId);
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * Get relation referenced repository
+     *
+     * @param  Record $record
+     * @param  string $relationName
+     * @return \Dive\Table\Repository
+     */
+    private function getRefRepository(Record $record, $relationName)
+    {
+        $rm = $record->getTable()->getRecordManager();
+        $tableName = $this->isOwningSide($relationName) ? $this->refTable : $this->ownerTable;
+        $refTable = $rm->getTable($tableName);
+        return $refTable->getRepository();
     }
 
 

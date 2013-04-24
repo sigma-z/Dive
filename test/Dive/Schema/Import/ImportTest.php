@@ -184,6 +184,15 @@ class ImportTest extends TestCase
                         'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
                         'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
                         'type' => Relation::ONE_TO_ONE
+                    ),
+                    'author.editor_id' => array(
+                        'owningTable' => 'author',
+                        'owningField' => 'editor_id',
+                        'refTable' => 'author',
+                        'refField' => 'id',
+                        'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'type' => Relation::ONE_TO_MANY
                     )
                 ),
                 'mysql' => array(
@@ -195,6 +204,15 @@ class ImportTest extends TestCase
                         'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
                         'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
                         'type' => Relation::ONE_TO_ONE
+                    ),
+                    'author.editor_id' => array(
+                        'owningTable' => 'author',
+                        'owningField' => 'editor_id',
+                        'refTable' => 'author',
+                        'refField' => 'id',
+                        'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'type' => Relation::ONE_TO_MANY
                     )
                 )
             )

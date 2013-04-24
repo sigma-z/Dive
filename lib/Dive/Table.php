@@ -295,6 +295,12 @@ class Table
     }
 
 
+    public function refreshRecordIdentityInRepository(Record $record)
+    {
+        $this->getRepository()->refreshIdentity($record);
+    }
+
+
     private function clearRelationReferences()
     {
         foreach ($this->relations as $relation) {
@@ -483,8 +489,8 @@ class Table
     public function getReferenceFor(Record $record, $relationName)
     {
         $relation = $this->getRelation($relationName);
-        if ($relation->isOwningSide($relationName)) {
-            $refRecord = $relation->getReferencedRecord($record);
+        if ($relation->isOneToOne() || $relation->isOwningSide($relationName)) {
+            $refRecord = $relation->getReferencedRecord($record, $relationName);
             if ($refRecord) {
                 return $refRecord;
             }

@@ -118,6 +118,7 @@ class UnitOfWork
         if (!isset($pkFields[1])) {
             $id = $conn->getLastInsertId();
             $record->assignIdentifier($id);
+            $table->refreshRecordIdentityInRepository($record);
         }
     }
 

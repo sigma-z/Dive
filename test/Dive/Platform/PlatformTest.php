@@ -123,7 +123,9 @@ class PlatformTest extends TestCase
                                 . "\"lastname\" varchar(64) NOT NULL,\n"
                                 . "\"email\" varchar(255) NOT NULL,\n"
                                 . "\"user_id\" unsigned bigint(10) NOT NULL,\n"
-                                . "CONSTRAINT \"author_fk_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"user\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE\n"
+                                . "\"editor_id\" unsigned bigint(10) NOT NULL,\n"
+                                . "CONSTRAINT \"author_fk_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"user\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE,\n"
+                                . "CONSTRAINT \"author_fk_editor_id\" FOREIGN KEY (\"editor_id\") REFERENCES \"author\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE\n"
                                 . ")",
                     'mysql' => "CREATE TABLE IF NOT EXISTS `author` (\n"
                                 . "`id` bigint(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
@@ -131,10 +133,12 @@ class PlatformTest extends TestCase
                                 . "`lastname` varchar(64) NOT NULL,\n"
                                 . "`email` varchar(255) NOT NULL,\n"
                                 . "`user_id` bigint(10) UNSIGNED NOT NULL,\n"
+                                . "`editor_id` bigint(10) UNSIGNED,\n"
                                 . "PRIMARY KEY(`id`),\n"
                                 . "UNIQUE INDEX `UNIQUE` (`firstname`, `lastname`),\n"
                                 . "UNIQUE INDEX `UQ_user_id` (`user_id`),\n"
-                                . "CONSTRAINT `author_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE\n"
+                                . "CONSTRAINT `author_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,\n"
+                                . "CONSTRAINT `author_fk_editor_id` FOREIGN KEY (`editor_id`) REFERENCES `author` (`id`) ON DELETE CASCADE ON UPDATE CASCADE\n"
                                 . ")"
                 )
             )

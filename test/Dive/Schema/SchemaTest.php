@@ -225,8 +225,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         $testCases[] = array(
             'table' => 'author',
             'expected' => array(
-                'owning' => array('author.user_id'),
-                'referenced' => array('article.author_id')
+                'owning' => array('author.editor_id', 'author.user_id'),
+                'referenced' => array('article.author_id', 'author.editor_id')
             )
         );
         $testCases[] = array(

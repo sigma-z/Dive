@@ -223,7 +223,7 @@ class QueryTest extends TestCase
             'operations' => array(
                 array('from', array('author a'))
             ),
-            'expected' => 'SELECT a.id, a.firstname, a.lastname, a.email, a.user_id FROM author a'
+            'expected' => 'SELECT a.id, a.firstname, a.lastname, a.email, a.user_id, a.editor_id FROM author a'
         );
         $testCases[] = array(
             'operations' => array(

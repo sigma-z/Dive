@@ -50,6 +50,7 @@ class NewRecordRelationTest extends TestCase
         $user->Author = $author;
 
         $this->assertEquals($author, $user->Author);
+        $this->assertEquals($user, $user->Author->User);
     }
 
 
@@ -60,6 +61,7 @@ class NewRecordRelationTest extends TestCase
         $user->Author = $author;
 
         $this->assertEquals($author, $user->Author);
+        $this->assertEquals($user, $user->Author->User);
     }
 
 

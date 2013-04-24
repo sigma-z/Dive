@@ -409,7 +409,6 @@ class Relation
 
 
     /**
-     * TODO!!
      * TODO $reference could be an array of records
      *
      * Sets reference for given record
@@ -439,11 +438,8 @@ class Relation
                 array_splice($this->references[$oldRefId], $pos, 1);
             }
             if ($reference !== null) {
-                $refId = $record->get($this->ownerField);
-                // TODO what about new records??
-                if ($refId) {
-                    $this->addReference($refId, $record->getInternalIdentifier());
-                }
+                $refId = $reference->getInternalIdentifier();
+                $this->addReference($refId, $record->getInternalIdentifier());
             }
         }
         else if ($this->isOneToMany()) {
@@ -454,7 +450,7 @@ class Relation
         else {
             $this->throwReferenceMustBeRecordOrNullException($relationName, $reference);
             $this->references[$id] = $reference ? $reference->getInternalIdentifier() : null;
-            if (!$record->exists()) {
+            if ($reference && !$reference->exists()) {
                 $this->ownerFieldOidMapping[$reference->getOid()] = $oid;
             }
         }

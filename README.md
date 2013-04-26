@@ -48,6 +48,11 @@ Development milestones
  * fetch as single scalar
  * fetch as scalars
 
+### Event/Listener handling
+ * connections (done)
+ * for queries
+ * for records (save/update/insert/delete/validation)
+
 ### ErrorHandling
  * for connections
  * for statement executions

@@ -48,10 +48,12 @@ class Table
     protected $relations = array();
     /**
      * @var \Dive\Relation\Relation[]
+     * indexed by owner field
      */
     protected $owningRelations = null;
     /**
      * @var \Dive\Relation\Relation[]
+     * indexed by relation name
      */
     protected $referencedRelations = null;
     /**
@@ -420,14 +422,13 @@ class Table
     /**
      * @return \Dive\Relation\Relation[]
      */
-    public function getOwningRelations()
+    public function getOwningRelationsIndexedByOwnerField()
     {
         if (null === $this->owningRelations) {
             $this->owningRelations = array();
-            $tableName = $this->getTableName();
             foreach ($this->relations as $name => $relation) {
-                if ($tableName === $relation->getOwnerTable()) {
-                    $this->owningRelations[$name] = $relation;
+                if ($relation->isOwningSide($name)) {
+                    $this->owningRelations[$relation->getOwnerField()] = $relation;
                 }
             }
         }
@@ -442,9 +443,8 @@ class Table
     {
         if (null === $this->referencedRelations) {
             $this->referencedRelations = array();
-            $tableName = $this->getTableName();
             foreach ($this->relations as $name => $relation) {
-                if ($tableName === $relation->getReferencedTable()) {
+                if (!$relation->isOwningSide($name)) {
                     $this->referencedRelations[$name] = $relation;
                 }
             }

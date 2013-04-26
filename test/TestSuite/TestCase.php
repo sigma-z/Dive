@@ -434,10 +434,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $data = array();
         // recursion: walk through all local relations that are required and handle this by calling this method with
         //  next relation
-        $owningRelations = $refTable->getOwningRelations();
-        foreach ($owningRelations as $owningRelation) {
-            // field to fill
-            $ownerField = $owningRelation->getOwnerField();
+        $owningRelations = $refTable->getOwningRelationsIndexedByOwnerField();
+        foreach ($owningRelations as $ownerField => $owningRelation) {
             // check if field is required (default of matchType) and insert required related data
             if ($randomGenerator->matchType($refFields[$ownerField])) {
                 $data[$ownerField] = $this->insertRequiredLocalRelationGraph($rm, $owningRelation);

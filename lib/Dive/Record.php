@@ -234,7 +234,7 @@ class Record
 
     /**
      * @param  string $name
-     * @return \Dive\Collection\RecordCollection|\Dive\Record|null|mixed
+     * @return \Dive\Collection\RecordCollection|Record|null|mixed|string
      */
     public function __get($name)
     {
@@ -258,8 +258,8 @@ class Record
     /**
      * TODO how to handle boolean fields?
      *
-     * @param string                                                    $name
-     * @param \Dive\Collection\RecordCollection|\Dive\Record|null|mixed $value
+     * @param string                                                      $name
+     * @param \Dive\Collection\RecordCollection|Record|null|mixed|string  $value
      */
     public function __set($name, $value)
     {
@@ -277,6 +277,16 @@ class Record
                 }
                 $this->_data[$name] = $value;
             }
+
+            //$this->_table->
+//            if ($this->_table->hasFieldOwningRelation($name)) {
+//                //$this->_table->set
+//            }
+//            $owningRelations = $this->_table->getOwningRelationsIndexedByOwnerField();
+//            if (isset($owningRelations[$name])) {
+//
+//                //$owningRelations[$name]->setReferenceFor();
+//            }
         }
 
         if ($this->_table->hasRelation($name)) {

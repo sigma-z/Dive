@@ -305,17 +305,12 @@ class ConnectionTest extends TestCase
         $conn = $rm->getConnection();
 
         $table = $rm->getTable($tableName);
-        $owningRelations = $table->getOwningRelations();
-        /** @var $localRelationFields Relation[] */
-        $localRelationFields = array();
-        foreach ($owningRelations as $relation) {
-            $localRelationFields[$relation->getOwnerField()] = $relation;
-        }
+        $owningRelations = $table->getOwningRelationsIndexedByOwnerField();
 
         $fields = $table->getFields();
         foreach ($insertTypes as $type) {
             $data = array();
-            foreach ($localRelationFields as $fieldName => $relation) {
+            foreach ($owningRelations as $fieldName => $relation) {
                 if ($randomGenerator->matchType($fields[$fieldName], $type)) {
                     $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
                 }
@@ -354,16 +349,11 @@ class ConnectionTest extends TestCase
 
         $table = $rm->getTable($tableName);
         $fields = $table->getFields();
-        $owningRelations = $table->getOwningRelations();
-        /** @var $localRelationFields Relation[] */
-        $localRelationFields = array();
-        foreach ($owningRelations as $relation) {
-            $localRelationFields[$relation->getOwnerField()] = $relation;
-        }
+        $owningRelations = $table->getOwningRelationsIndexedByOwnerField();
 
         // build a minimal record and insert - tested by testInsert.
         $data = array();
-        foreach ($localRelationFields as $fieldName => $relation) {
+        foreach ($owningRelations as $fieldName => $relation) {
             if ($randomGenerator->matchType($fields[$fieldName], $randomGenerator::REQUIRED)) {
                 $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
             }
@@ -374,7 +364,7 @@ class ConnectionTest extends TestCase
 
         // update record
         $data = array();
-        foreach ($localRelationFields as $fieldName => $relation) {
+        foreach ($owningRelations as $fieldName => $relation) {
             $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
         }
         $data = $randomGenerator->getMaximalRandomRecordDataWithoutAutoIncrementFields($fields, $data);
@@ -409,16 +399,11 @@ class ConnectionTest extends TestCase
 
         $table = $rm->getTable($tableName);
         $fields = $table->getFields();
-        $owningRelations = $table->getOwningRelations();
-        /** @var $localRelationFields Relation[] */
-        $localRelationFields = array();
-        foreach ($owningRelations as $relation) {
-            $localRelationFields[$relation->getOwnerField()] = $relation;
-        }
+        $owningRelations = $table->getOwningRelationsIndexedByOwnerField();
 
         // build a minimal record and insert - tested by testInsert.
         $data = array();
-        foreach ($localRelationFields as $fieldName => $relation) {
+        foreach ($owningRelations as $fieldName => $relation) {
             if ($randomGenerator->matchType($fields[$fieldName], $randomGenerator::REQUIRED)) {
                 $data[$fieldName] = $this->insertRequiredLocalRelationGraph($rm, $relation);
             }

@@ -69,6 +69,7 @@ class Relation
     protected $references = array();
     /**
      * @var RecordCollection[]
+     * keys:  oid
      */
     private $relatedCollections = array();
     /**
@@ -441,6 +442,10 @@ class Relation
             }
             if ($reference !== null) {
                 $refId = $reference->getInternalIdentifier();
+                if ($reference->exists()) {
+                    $record->set($this->ownerField, $refId);
+                }
+
                 if ($this->isOneToMany()) {
                     $this->addReference($refId, $id);
                 }
@@ -457,8 +462,13 @@ class Relation
         else {
             $this->throwReferenceMustBeRecordOrNullException($relationName, $reference);
             $this->references[$id] = $reference ? $reference->getInternalIdentifier() : null;
-            if ($reference && !$reference->exists()) {
-                $this->ownerFieldOidMapping[$reference->getOid()] = $oid;
+            if ($reference) {
+                if (!$reference->exists()) {
+                    $this->ownerFieldOidMapping[$reference->getOid()] = $oid;
+                }
+                if ($record->exists()) {
+                    $reference->set($this->ownerField, $id);
+                }
             }
         }
     }
@@ -648,6 +658,75 @@ class Relation
     }
 
 
+    /**
+     * @param Record $record
+     * @param string $newId
+     * @param string $oldId
+     */
+    public function updateOwningReferenceFor(Record $record, $newId, $oldId)
+    {
+        if ($newId != $oldId) {
+            // remove old reference
+            $this->removeOwningReferenceForeignKey($record, $oldId);
+            // setting new reference
+            $this->setOwningReferenceByForeignKey($record, $newId);
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $oldId
+     */
+    private function removeOwningReferenceForeignKey(Record $record, $oldId)
+    {
+        if ($oldId === null || !isset($this->references[$oldId])) {
+            return;
+        }
+        if ($this->isOneToMany()) {
+            $id = $record->getInternalIdentifier();
+            $pos = array_search($id, $this->references[$oldId]);
+            if ($pos !== false) {
+                unset($this->references[$oldId][$pos]);
+            }
+            $refRepository = $this->getRefRepository($record, $this->ownerAlias);
+            $oldRefRecord = $refRepository->getByInternalId($oldId);
+            if ($oldRefRecord) {
+                $oid = $oldRefRecord->getOid();
+                if (isset($this->relatedCollections[$oid])) {
+                    $this->relatedCollections[$oid]->remove($id);
+                }
+            }
+        }
+        else {
+            $this->references[$oldId] = null;
+        }
+    }
+
+
+    private function setOwningReferenceByForeignKey(Record $record, $newId)
+    {
+        if ($newId === null) {
+            return;
+        }
+        $id = $record->getInternalIdentifier();
+        if ($this->isOneToMany()) {
+            $refRepository = $this->getRefRepository($record, $this->ownerAlias);
+            $newRefRecord = $refRepository->getByInternalId($newId);
+            if ($newRefRecord) {
+                $oid = $newRefRecord->getOid();
+                if (isset($this->relatedCollections[$oid])) {
+                    $this->relatedCollections[$oid]->add($record);
+                }
+            }
+            $this->addReference($newId, $id);
+        }
+        else {
+            $this->setReference($newId, $id);
+        }
+    }
+
+
     private function throwReferenceMustBeRecordOrNullException($relationName, $reference)
     {
         if ($reference !== null && !($reference instanceof Record)) {
@@ -701,11 +780,14 @@ class Relation
      *
      * @param  string $id
      * @param  string $ownerIdentifier
+     * @param  bool   $checkExistence
      * @return $this
      */
-    public function addReference($id, $ownerIdentifier)
+    public function addReference($id, $ownerIdentifier, $checkExistence = true)
     {
-        $this->references[$id][] = $ownerIdentifier;
+        if (!$checkExistence || !isset($this->references[$id]) || !in_array($ownerIdentifier, $this->references[$id])) {
+            $this->references[$id][] = $ownerIdentifier;
+        }
         return $this;
     }
 

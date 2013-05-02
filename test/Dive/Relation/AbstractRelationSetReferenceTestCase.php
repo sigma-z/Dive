@@ -47,11 +47,11 @@ class AbstractRelationSetReferenceTestCase extends TestCase
     }
 
 
-    protected function createAuthor($lastname, $firstname = null)
+    protected function createAuthor($lastname)
     {
         $table = $this->rm->getTable('author');
         $authorData = array(
-            'firstname' => $firstname,
+            'firstname' => $lastname,
             'lastname' => $lastname,
             'email' => 'mail@' . $lastname . '.local'
         );

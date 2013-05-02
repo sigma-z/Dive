@@ -116,7 +116,7 @@ class UnitOfWork
 
         // only one primary key field
         if (!isset($pkFields[1])) {
-            $id = $conn->getLastInsertId();
+            $id = $conn->getLastInsertId($record->getTable()->getTableName());
             $record->assignIdentifier($id);
             $table->refreshRecordIdentityInRepository($record);
         }

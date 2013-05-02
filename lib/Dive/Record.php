@@ -278,19 +278,22 @@ class Record
                 $this->_data[$name] = $value;
             }
 
-            //$this->_table->
-//            if ($this->_table->hasFieldOwningRelation($name)) {
-//                //$this->_table->set
-//            }
-//            $owningRelations = $this->_table->getOwningRelationsIndexedByOwnerField();
-//            if (isset($owningRelations[$name])) {
-//
-//                //$owningRelations[$name]->setReferenceFor();
-//            }
+            $this->handleOwningFieldRelation($name);
         }
 
         if ($this->_table->hasRelation($name)) {
             $this->_table->setReferenceFor($this, $name, $value);
+        }
+    }
+
+
+    private function handleOwningFieldRelation($fieldName)
+    {
+        $owningRelations = $this->_table->getOwningRelationsIndexedByOwnerField();
+        if (isset($owningRelations[$fieldName])) {
+            $oldValue = $this->getModifiedFieldValue($fieldName);
+            $newValue = $this->_data[$fieldName];
+            $owningRelations[$fieldName]->updateOwningReferenceFor($this, $newValue, $oldValue);
         }
     }
 

@@ -95,8 +95,7 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
         }
         $author = $this->createAuthor('AuthorOne');
         if ($userExists) {
-            // reference must be set, to save the author record
-            $author->user_id = $user->id;
+            $author->user_id = $user->id;   // TODO foreign key should be set through Record::save()
         }
         if ($authorExists) {
             $author->save();

@@ -77,6 +77,40 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
     }
 
 
+    public function testOneToOneReferencedSideNullReference()
+    {
+        $user = $this->createUser('UserOne');
+        $this->assertNull($user->Author, 'Expected reference $user->Author to be NULL!');
+
+        $author = $this->createAuthor('AuthorOne');
+        $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
+        $user->Author = $author;
+        $this->assertEquals($author, $user->Author, 'Expected reference $user->Author to be the Author record!');
+        $this->assertEquals($user, $author->User, 'Expected reference $author->User to be the User record!');
+
+        $user->Author = null;
+        $this->assertNull($user->Author, 'Expected reference $user->Author to be NULL!');
+        $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
+    }
+
+
+    public function testOneToOneOwningSideNullReference()
+    {
+        $user = $this->createUser('UserOne');
+        $this->assertNull($user->Author, 'Expected reference $user->Author to be NULL!');
+
+        $author = $this->createAuthor('AuthorOne');
+        $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
+        $author->User = $user;
+        $this->assertEquals($user, $author->User, 'Expected reference $author->User to be the User record!');
+        $this->assertEquals($author, $user->Author, 'Expected reference $user->Author to be the Author record!');
+
+        $author->User = null;
+        $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
+        $this->assertNull($user->Author, 'Expected reference $user->Author to be NULL!');
+    }
+
+
     private function createUserAndAuthor($userExists, $authorExists)
     {
         $user = $this->createUser('UserOne');

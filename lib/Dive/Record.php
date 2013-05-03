@@ -293,7 +293,7 @@ class Record
         if (isset($owningRelations[$fieldName])) {
             $oldValue = $this->getModifiedFieldValue($fieldName);
             $newValue = $this->_data[$fieldName];
-            $owningRelations[$fieldName]->updateOwningReferenceFor($this, $newValue, $oldValue);
+            $owningRelations[$fieldName]->updateOwningReferenceByForeignKey($this, $newValue, $oldValue);
         }
     }
 

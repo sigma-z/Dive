@@ -6,15 +6,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Dive\Test\Collection;
+
+use Dive\Collection\RecordCollection;
+use Dive\TestSuite\TestCase;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 11.02.13
  */
-
-namespace Dive\Test\Collection;
-
-
-class RecordCollectionTest extends \Dive\TestSuite\TestCase
+class RecordCollectionTest extends TestCase
 {
 
     /**
@@ -22,7 +24,7 @@ class RecordCollectionTest extends \Dive\TestSuite\TestCase
      */
     private $rm;
     /**
-     * @var \Dive\Collection\RecordCollection
+     * @var RecordCollection
      */
     private $userColl;
 
@@ -33,7 +35,7 @@ class RecordCollectionTest extends \Dive\TestSuite\TestCase
 
         $this->rm = self::createDefaultRecordManager();
         $table = $this->rm->getTable('user');
-        $coll = new \Dive\Collection\RecordCollection($table);
+        $coll = new RecordCollection($table);
         $this->userColl = $coll;
     }
 
@@ -56,8 +58,9 @@ class RecordCollectionTest extends \Dive\TestSuite\TestCase
     /**
      * @expectedException \Dive\Collection\CollectionException
      */
-    public function testAddWrongTypeWillThrowException()
+    public function testAddWrongTypeThrowsException()
     {
+        /** @noinspection PhpParamsInspection */
         $this->userColl->add(array());
     }
 
@@ -85,7 +88,6 @@ class RecordCollectionTest extends \Dive\TestSuite\TestCase
     public function testGetIdentifiers()
     {
         $user = $this->addRecordToCollection();
-        $id = $user->getInternalIdentifier();
         $expected = array($user->getInternalIdentifier());
         $actual = $this->userColl->getIdentifiers();
         $this->assertEquals($expected, $actual);
@@ -97,6 +99,16 @@ class RecordCollectionTest extends \Dive\TestSuite\TestCase
         $table = $this->userColl->getTable();
         $user = $table->createRecord();
         $this->userColl->add($user);
+        $this->assertTrue($this->userColl->has($user->getInternalIdentifier()));
+    }
+
+
+    public function testAddRecordViaMagicMethod()
+    {
+        $table = $this->userColl->getTable();
+        $user = $table->createRecord();
+        $this->userColl[] = $user;
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->assertTrue($this->userColl->has($user->getInternalIdentifier()));
     }
 

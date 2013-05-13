@@ -82,6 +82,25 @@ class RecordCollection extends Collection
 
 
     /**
+     * offsetSet() for handling null-value for $offset
+     *
+     * @overridden
+     *
+     * @param  string       $offset
+     * @param  \Dive\Record $value
+     */
+    public function offsetSet($offset, $value)
+    {
+        if ($offset === null) {
+            $this->add($value);
+        }
+        else {
+            parent::offsetSet($offset, $value);
+        }
+    }
+
+
+    /**
      * removes item for the given $id
      *
      * @param  string $id

@@ -6,11 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 24.04.13
- * TODO test set null reference!
- */
 
 namespace Dive\Test\Relation;
 
@@ -18,7 +13,11 @@ require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
 
 use Dive\Collection\RecordCollection;
 
-
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 24.04.13
+ * TODO test set null reference!
+ */
 class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
 {
 

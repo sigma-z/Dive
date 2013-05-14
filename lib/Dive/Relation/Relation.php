@@ -439,21 +439,6 @@ class Relation
         else {
             $this->throwReferenceMustBeRecordOrNullException($relationName, $reference);
             $this->updateOwningReference($reference, $record);
-//            if ($reference) {
-//            }
-//            // setting NULL-reference (referenced side)
-//            else {
-//                if (isset($this->references[$id])) {
-//                    $refId = $this->references[$id];
-//                    $refRepository = $this->getRefRepository($record, $relationName);
-//                    $refRecord = $refRepository->getByInternalId($refId);
-//                    if ($refRecord) {
-//                        $refOid = $refRecord->getOid();
-//                        unset($this->ownerFieldOidMapping[$refOid]);
-//                    }
-//                }
-//                $this->references[$id] = null;
-//            }
         }
     }
 
@@ -667,15 +652,32 @@ class Relation
     {
         if ($referencedRecord) {
             $refId = $referencedRecord->getInternalIdentifier();
-            if (isset($this->references[$refId])) {
-                $oldOwningId = $this->references[$refId];
+            $oldOwningId = false;
+            if ($owningRecord) {
+                $oldOwningId = $owningRecord->getModifiedFieldValue($this->ownerField);
+            }
+            if ($oldOwningId === false) {
+                $oldOwningId = array_search($referencedRecord->getOid(), $this->ownerFieldOidMapping);
+                if ($oldOwningId !== false) {
+                    $oldOwningId = Record::NEW_RECORD_ID_MARK . $oldOwningId;
+                }
+            }
+            if ($oldOwningId) {
                 $refRepository = $this->getRefRepository($referencedRecord, $this->refAlias);
                 $refRecord = $refRepository->getByInternalId($oldOwningId);
                 if ($refRecord) {
                     unset($this->ownerFieldOidMapping[$refRecord->getOid()]);
                 }
             }
-            $this->references[$refId] = null;
+            if ($this->isOneToOne()) {
+                $this->references[$refId] = null;
+            }
+            else if ($oldOwningId) {
+                $pos = array_search($oldOwningId, $this->references[$refId]);
+                if ($pos) {
+                    array_splice($this->references[$refId], $pos, 1);
+                }
+            }
         }
 
         if ($owningRecord === null) {

@@ -37,7 +37,7 @@ use Dive\Record\RecordException;
 class Record
 {
 
-    const NEW_RECORD_ID_MARK = "\1";
+    const NEW_RECORD_ID_MARK = "_";
     const COMPOSITE_ID_SEPARATOR = '|';
 
 

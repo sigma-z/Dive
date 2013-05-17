@@ -228,6 +228,7 @@ class Connection
         if (!$this->isConnected()) {
             $this->dispatchEvent(self::EVENT_PRE_CONNECT);
             $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
+            $this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $encodingSql = $this->platform->getSetConnectionEncodingSql($this->encoding);
             $this->dbh->exec($encodingSql);
             $this->dispatchEvent(self::EVENT_POST_CONNECT);

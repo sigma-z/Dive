@@ -97,6 +97,15 @@ class Record
 
 
     /**
+     * @return RecordManager
+     */
+    public function getRecordManager()
+    {
+        return $this->_table->getRecordManager();
+    }
+
+
+    /**
      * checks, if record exists or not
      *
      * @return bool
@@ -181,6 +190,12 @@ class Record
     }
 
 
+    public function getIntId()
+    {
+        return $this->getInternalIdentifier();
+    }
+
+
     public function getInternalIdentifier()
     {
         $id = '';
@@ -223,16 +238,6 @@ class Record
 
 
     /**
-     * @param string $name
-     * @param mixed $value
-     */
-    public function set($name, $value)
-    {
-        $this->__set($name, $value);
-    }
-
-
-    /**
      * @param  string $name
      * @return \Dive\Collection\RecordCollection|Record|null|mixed|string
      */
@@ -252,6 +257,16 @@ class Record
         }
 
         return null;
+    }
+
+
+    /**
+     * @param string                                                     $name
+     * @param \Dive\Collection\RecordCollection|Record|null|mixed|string $value
+     */
+    public function set($name, $value)
+    {
+        $this->__set($name, $value);
     }
 
 

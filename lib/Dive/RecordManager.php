@@ -97,6 +97,17 @@ class RecordManager
     }
 
 
+    /**
+     * @param  string $name
+     * @return Table\Repository
+     */
+    public function getTableRepository($name)
+    {
+        $table = $this->getTable($name);
+        return $table->getRepository();
+    }
+
+
     public function clearTables()
     {
         foreach ($this->tables as $table) {

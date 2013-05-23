@@ -713,7 +713,7 @@ class Relation
         // get old referenced id from owning record
         $oldRefId = $this->getOldReferencedId($owningRecord);
         // unset field oid mapping for old owner record, if exists
-        if (!$oldRefId && $referencedRecord) {
+        if (!$oldRefId && $referencedRecord && $this->isOneToOne()) {
             $oldOwingOid = array_search($referencedRecord->getOid(), $this->ownerFieldOidMapping);
             if ($oldOwingOid) {
                 unset($this->ownerFieldOidMapping[$oldOwingOid]);
@@ -784,6 +784,100 @@ class Relation
         else {
             $this->setReference($newId, $id);
         }
+    }
+
+
+    public function unlinkReference(Record $record, $relationName)
+    {
+        if ($this->isOwningSide($relationName)) {
+            $this->unlinkOwningSide($record);
+        }
+        else {
+            $this->unlinkReferencedSide($record);
+        }
+    }
+
+
+    /**
+     * @internal
+     * @param Record $owningRecord
+     */
+    private function unlinkOwningSide(Record $owningRecord)
+    {
+        $owningOid = $owningRecord->getOid();
+        $refId = $owningRecord->get($this->ownerField);
+        if (!$refId && isset($this->ownerFieldOidMapping[$owningOid])) {
+            $refId = Record::NEW_RECORD_ID_MARK . $this->ownerFieldOidMapping[$owningOid];
+        }
+        if (!$refId) {
+            return;
+        }
+
+        unset($this->ownerFieldOidMapping[$owningOid]);
+
+        if ($this->isOneToMany()) {
+            $owningId = $owningRecord->getInternalIdentifier();
+            $pos = array_search($owningId, $this->references[$refId]);
+            if ($pos !== false) {
+                array_splice($this->references[$refId], $pos, 1);
+                $rm = $owningRecord->getRecordManager();
+                $refRepository = $rm->getTableRepository($this->refTable);
+                $refRecord = $refRepository->getByInternalId($refId);
+                // TODO exception, because of that inconsistent state?
+                if ($refRecord) {
+                    $refOid = $refRecord->getOid();
+                    if (isset($this->relatedCollections[$refOid])) {
+                        $this->relatedCollections[$refOid]->remove($owningId);
+                    }
+                }
+            }
+        }
+        else {
+            $this->references[$refId] = null;
+        }
+    }
+
+
+    /**
+     * @internal
+     * @param Record $referencedRecord
+     */
+    private function unlinkReferencedSide(Record $referencedRecord)
+    {
+        $refOid = $referencedRecord->getOid();
+        $refId = $referencedRecord->getInternalIdentifier();
+
+        /** @var Record[] $owningRecords */
+        $owningRecords = array();
+        if (isset($this->relatedCollections[$refOid])) {
+            $owningRecords = $this->relatedCollections[$refOid];
+        }
+        else if (!empty($this->references[$refId])) {
+            $owningIds = (array)$this->references[$refId];
+            $rm = $referencedRecord->getRecordManager();
+            $owningRepository = $rm->getTableRepository($this->ownerTable);
+            foreach ($owningIds as $owningId) {
+                $owningRecord = $owningRepository->getByInternalId($owningId);
+                // TODO exception, because of that inconsistent state?
+                if ($owningRecord) {
+                    $owningRecords[] = $owningRecord;
+                }
+            }
+        }
+
+        foreach ($owningRecords as $owningRecord) {
+            $owningOid = $owningRecord->getOid();
+            unset($this->ownerFieldOidMapping[$owningOid]);
+            $owningRecord->set($this->ownerField, null, false);
+        }
+
+        $this->references[$refId] = $this->isOneToOne() ? null : array();
+    }
+
+
+    public function getOwningFieldMapping()
+    {
+        return $this->ownerFieldOidMapping;
     }
 
 

@@ -15,12 +15,13 @@
 namespace Dive\Test\Relation;
 
 require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
-
+use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\TestSuite\TestCase;
 
 class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
 {
+
 
     public function testUnlinkOwningSideOneToOne()
     {
@@ -36,7 +37,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         $this->assertEquals($expectedReferences, $references);
 
         // perform test
-        $relation->unlinkReference($author, 'User');
+        $author->User = null;
 
         // assert unlink of reference
         $this->assertNull($user->Author);
@@ -60,7 +61,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         $this->assertEquals($expectedReferences, $references);
 
         // perform test
-        $relation->unlinkReference($user, 'Author');
+        $user->Author = null;
 
         // assert unlink of reference
         $this->assertNull($user->Author);
@@ -88,7 +89,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         $this->assertEquals($expectedReferences, $references);
 
         // perform test
-        $relation->unlinkReference($authorOne, 'Editor');
+        $authorOne->Editor = null;
 
         // assert unlink of reference
         $this->assertNull($authorOne->Editor);
@@ -101,15 +102,14 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
 
     public function testUnlinkReferencedSideOneToMany()
     {
-        $this->markTestIncomplete('Incomplete, because of missing reference setting through RecordCollection!');
-
         $authorOne = $this->createAuthor('Author One');
         $authorTwo = $this->createAuthor('Author Two');
         $editor = $this->createAuthor('Editor');
 
         $editor->Author[] = $authorOne;
         $editor->Author[] = $authorTwo;
-        $relation = $authorOne->getTable()->getRelation('Editor');
+        $table = $authorOne->getTable();
+        $relation = $table->getRelation('Editor');
 
         // assert test data setup was correct
         $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author);
@@ -120,7 +120,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         $this->assertEquals($expectedReferences, $references);
 
         // perform test
-        $relation->unlinkReference($editor, 'Author');
+        $editor->Author = new RecordCollection($table);
 
         // assert unlink of reference
         $this->assertNull($authorOne->Editor);

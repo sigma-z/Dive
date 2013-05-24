@@ -21,13 +21,7 @@ use Dive\Collection\RecordCollection;
 class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetReferenceTestCase
 {
 
-    public function testOneToManyReferencedSideNullReference()
-    {
-        $this->markTestIncomplete();
-    }
-
-
-    public function testOneToManyOwningSideNullReference()
+    public function testRecordCollectionAdd()
     {
         $editor = $this->createAuthor('Editor');
         $authorOne = $this->createAuthor('AuthorOne');
@@ -39,20 +33,54 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
 
         $editor->Author[] = $authorOne;
         $editor->Author[] = $authorTwo;
-
         $this->assertEquals(2, $editor->Author->count());
 
-        $this->markTestIncomplete('Keep record collection up-to-date by setting the owning side to NULL-Reference');
-        $authorOne->Editor = null;
-        $authorTwo->Editor = null;
-
-        $this->assertEquals(0, $editor->Author->count());
+        $references = $editor->getTable()->getRelation('Author')->getReferences();
+        $expectedReferences = array(
+            $editor->getInternalIdentifier() => array(
+                $authorOne->getInternalIdentifier(),
+                $authorTwo->getInternalIdentifier()
+            )
+        );
+        $this->assertEquals($expectedReferences, $references);
     }
 
 
-    public function testOneToManyReferencedSide()
+    public function testRecordCollectionRemove()
     {
         $this->markTestIncomplete();
+
+        $editor = $this->createAuthor('Editor');
+        $authorOne = $this->createAuthor('AuthorOne');
+        $authorTwo = $this->createAuthor('AuthorTwo');
+
+        $editor->Author[] = $authorOne;
+        $editor->Author[] = $authorTwo;
+
+        $editor->Author->remove($authorOne->getInternalIdentifier());
+
+        $references = $editor->getTable()->getRelation('Author')->getReferences();
+        $expectedReferences = array($editor->getInternalIdentifier() => array($authorTwo->getInternalIdentifier()));
+        $this->assertEquals($expectedReferences, $references);
+    }
+
+
+    public function testOneToManyOwningSideNullReference()
+    {
+        $editor = $this->createAuthor('Editor');
+        $authorOne = $this->createAuthor('AuthorOne');
+        $authorTwo = $this->createAuthor('AuthorTwo');
+
+        $editor->Author[] = $authorOne;
+        $editor->Author[] = $authorTwo;
+        $authorOne->Editor = null;
+        $authorTwo->Editor = null;
+
+        $references = $editor->getTable()->getRelation('Author')->getReferences();
+        $expectedReferences = array($editor->getInternalIdentifier() => array());
+        $this->assertEquals($expectedReferences, $references);
+
+        $this->assertEquals(0, $editor->Author->count());
     }
 
 
@@ -72,8 +100,20 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
 
         $authorTwo->Editor = $editor;
 
-        $this->markTestIncomplete('Keep record collection up-to-date by setting the owning side reference');
         $this->assertEquals(2, $editor->Author->count());
     }
+
+
+    public function testOneToManyReferencedSideNullReference()
+    {
+        $this->markTestIncomplete();
+    }
+
+
+    public function testOneToManyReferencedSide()
+    {
+        $this->markTestIncomplete();
+    }
+
 
 }

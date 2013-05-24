@@ -6,16 +6,19 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 30.10.12
- */
 
 namespace Dive\Relation;
 
 use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\RecordManager;
+
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 30.10.12
+ *
+ * TODO refactor class by moving methods to ReferenceUpdater and ReferenceLoader??
+ */
 
 class Relation
 {
@@ -26,19 +29,19 @@ class Relation
     /**
      * @var string
      */
-    protected $ownerField;
+    protected $ownerField = '';
     /**
      * @var string
      */
-    protected $ownerTable;
+    protected $ownerTable = '';
     /**
      * @var string
      */
-    protected $ownerAlias;
+    protected $ownerAlias = '';
     /**
      * @var string
      */
-    protected $refField;
+    protected $refField =  '';
     /**
      * @var string
      */
@@ -432,6 +435,7 @@ class Relation
         // one-to-many (referenced side)
         else if ($this->isOneToMany()) {
             $this->throwReferenceMustBeRecordCollectionException($relationName, $reference);
+            // TODO handle overwrite of old collection!!
             $this->references[$id] = $reference->getIdentifiers();
             $this->relatedCollections[$oid] = $reference;
         }
@@ -487,7 +491,7 @@ class Relation
         if (is_array($refIds)) {
             $rm = $record->getTable()->getRecordManager();
             $refTable = $this->getJoinTable($rm, $relationName);
-            $collection = new RecordCollection($refTable);
+            $collection = new RecordCollection($refTable, $record, $this);
             $recordsInRepository = true;
             foreach ($refIds as $refId) {
                 if (!$refTable->isInRepository($refId)) {
@@ -655,45 +659,26 @@ class Relation
     }
 
 
-    private function getOldReferencedId(Record $owningRecord = null)
+    private function getOldReferencedId(Record $owningRecord)
     {
-        $oldRefId = false;
-        if ($owningRecord) {
-            $oid = $owningRecord->getOid();
-            $oldRefId = $owningRecord->getModifiedFieldValue($this->ownerField);
-            if (!$oldRefId && isset($this->ownerFieldOidMapping[$oid])) {
-                $oldRefId = Record::NEW_RECORD_ID_MARK . $this->ownerFieldOidMapping[$oid];
-            }
+        $oid = $owningRecord->getOid();
+        $oldRefId = $owningRecord->getModifiedFieldValue($this->ownerField);
+        if (!$oldRefId && isset($this->ownerFieldOidMapping[$oid])) {
+            $oldRefId = Record::NEW_RECORD_ID_MARK . $this->ownerFieldOidMapping[$oid];
         }
         return $oldRefId;
     }
 
 
-    private function updateReference($oldRefId, Record $owningRecord = null, Record $referencedRecord = null)
+    private function updateReference($owningId, Record $referencedRecord)
     {
-        // old owning record looses reference (therefore set to NULL)
-        if ($this->isOneToOne() && $oldRefId) {
-            $this->setReference($oldRefId, null);
+        $refId = $referencedRecord->getInternalIdentifier();
+        // add new referenced record id
+        if ($this->isOneToOne()) {
+            $this->setReference($refId, $owningId);
         }
-
-        $owningId = $owningRecord ? $owningRecord->getInternalIdentifier() : null;
-        if ($referencedRecord) {
-            $refId = $referencedRecord->getInternalIdentifier();
-            if ($this->isOneToMany() && $oldRefId != $owningId) {
-                // remove old referenced record id
-                if ($oldRefId) {
-                    $pos = array_search($oldRefId, $this->references[$refId]);
-                    if ($pos) {
-                        array_splice($this->references[$refId], $pos, 1);
-                    }
-                }
-                // add new referenced record id
-                $this->addReference($refId, $owningId);
-            }
-
-            if ($this->isOneToOne()) {
-                $this->setReference($refId, $owningId);
-            }
+        else if ($owningId) {
+            $this->addReference($refId, $owningId);
         }
     }
 
@@ -704,33 +689,83 @@ class Relation
      * @param Record $owningRecord
      * @param Record $referencedRecord
      */
-    private function updateRecordReference(Record $owningRecord = null, Record $referencedRecord = null)
+    public function updateRecordReference(Record $owningRecord = null, Record $referencedRecord = null)
     {
         if ($owningRecord === null && $referencedRecord === null) {
             return;
         }
 
         // get old referenced id from owning record
-        $oldRefId = $this->getOldReferencedId($owningRecord);
-        // unset field oid mapping for old owner record, if exists
-        if (!$oldRefId && $referencedRecord && $this->isOneToOne()) {
-            $oldOwingOid = array_search($referencedRecord->getOid(), $this->ownerFieldOidMapping);
-            if ($oldOwingOid) {
-                unset($this->ownerFieldOidMapping[$oldOwingOid]);
+        $oldRefId = false;
+        if ($owningRecord) {
+            $oldRefId = $this->getOldReferencedId($owningRecord);
+            unset($this->ownerFieldOidMapping[$owningRecord->getOid()]);
+        }
+
+        if ($referencedRecord && $this->isOneToOne()) {
+            // unset field oid mapping for old owner record, if exists
+            $oldOwningOid = array_search($referencedRecord->getOid(), $this->ownerFieldOidMapping);
+            if ($oldOwningOid) {
+                unset($this->ownerFieldOidMapping[$oldOwningOid]);
             }
         }
 
+        $refId = $referencedRecord ? $referencedRecord->getInternalIdentifier() : null;
         if ($owningRecord) {
             // set field reference id, if referenced record exists in database
             if (!$referencedRecord || $referencedRecord->exists()) {
-                $refId = $referencedRecord ? $referencedRecord->getInternalIdentifier() : null;
-                $owningRecord->set($this->ownerField, $refId);
+                $owningRecord->set($this->ownerField, $refId, false);
             }
             $this->updateOwningFieldOidMapping($owningRecord, $referencedRecord);
         }
 
-        // updates references by removing old reference and setting new reference
-        $this->updateReference($oldRefId, $owningRecord, $referencedRecord);
+        // unlink old reference
+        if ($oldRefId) {
+            $this->_unlinkReference($oldRefId, $owningRecord);
+        }
+        // link new reference
+        if ($referencedRecord) {
+            $owningId = $owningRecord ? $owningRecord->getInternalIdentifier() : null;
+            // add new referenced record id
+            if ($this->isOneToOne()) {
+                $this->setReference($refId, $owningId);
+            }
+            else if ($owningId) {
+                $this->addReference($refId, $owningId);
+                $refOid = $referencedRecord->getOid();
+                if (isset($this->relatedCollections[$refOid])) {
+                    $this->relatedCollections[$refOid]->add($owningRecord, null, false);
+                }
+            }
+        }
+    }
+
+
+    private function _unlinkReference($oldRefId, Record $owningRecord = null)
+    {
+        // old owning record looses reference (therefore set to NULL)
+        if ($this->isOneToOne()) {
+            $this->setReference($oldRefId, null);
+        }
+        else if ($owningRecord) {
+            $owningId = $owningRecord->getInternalIdentifier();
+            if ($this->references[$oldRefId]) {
+                $pos = array_search($owningId, $this->references[$oldRefId]);
+                if ($pos !== false) {
+                    array_splice($this->references[$oldRefId], $pos, 1);
+                }
+            }
+
+            $rm = $owningRecord->getRecordManager();
+            $refRepository = $rm->getTableRepository($this->refTable);
+            $oldRefRecord = $refRepository->getByInternalId($oldRefId);
+            if ($oldRefRecord) {
+                $oldRefOid = $oldRefRecord->getOid();
+                if (isset($this->relatedCollections[$oldRefOid])) {
+                    $this->relatedCollections[$oldRefOid]->remove($owningId);
+                }
+            }
+        }
     }
 
 
@@ -826,7 +861,7 @@ class Relation
                 // TODO exception, because of that inconsistent state?
                 if ($refRecord) {
                     $refOid = $refRecord->getOid();
-                    if (isset($this->relatedCollections[$refOid])) {
+                    if (isset($this->relatedCollections[$refOid]) && $this->relatedCollections[$refOid]->has($owningId)) {
                         $this->relatedCollections[$refOid]->remove($owningId);
                     }
                 }

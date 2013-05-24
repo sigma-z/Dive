@@ -6,12 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 11.02.13
- *
- * @property \Dive\Record[] $items
- */
 
 namespace Dive\Collection;
 
@@ -19,14 +13,19 @@ use Dive\Relation\Relation;
 use Dive\Record;
 use Dive\Table;
 
-
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 11.02.13
+ *
+ * @property \Dive\Record[] $items
+ */
 class RecordCollection extends Collection
 {
 
     /**
      * @var Table
      */
-    protected $table;
+    protected $table = null;
     /**
      * @var array
      */
@@ -36,17 +35,25 @@ class RecordCollection extends Collection
      */
     protected $toBeInserted = array();
     /**
+     * @var \Dive\Record
+     */
+    private $refRecord = null;
+    /**
      * @var \Dive\Relation\Relation
      */
-    private $relation;
+    private $relation = null;
 
 
     /**
-     * @param \Dive\Table $table
+     * @param \Dive\Table             $table
+     * @param \Dive\Record            $record
+     * @param \Dive\Relation\Relation $relation
      */
-    public function __construct(Table $table)
+    public function __construct(Table $table, Record $record = null, Relation $relation = null)
     {
         $this->table = $table;
+        $this->refRecord = $record;
+        $this->relation = $relation;
     }
 
 
@@ -65,7 +72,7 @@ class RecordCollection extends Collection
      * @throws CollectionException
      * @return $this
      */
-    public function add($item, $id = null)
+    public function add($item, $id = null, $updateRecordReference = true)
     {
         $this->throwExceptionIfRecordDoesNotMatchTable($item);
 
@@ -73,10 +80,12 @@ class RecordCollection extends Collection
             $id = $item->getInternalIdentifier();
         }
         // TODO throw exception record already added??
-        if ($this->offsetExists($id)) {
-            // throw new CollectionException('..');
+        $has = $this->has($id);
+        parent::offsetSet($id, $item);
+
+        if (!$has && $updateRecordReference && $this->refRecord && $this->relation) {
+            $this->relation->updateRecordReference($item, $this->refRecord);
         }
-        $this->offsetSet($id, $item);
         return $this;
     }
 
@@ -91,12 +100,7 @@ class RecordCollection extends Collection
      */
     public function offsetSet($offset, $value)
     {
-        if ($offset === null) {
-            $this->add($value);
-        }
-        else {
-            parent::offsetSet($offset, $value);
-        }
+        $this->add($value, $offset);
     }
 
 
@@ -108,10 +112,15 @@ class RecordCollection extends Collection
      */
     public function remove($id)
     {
+        $removed = false;
         if ($this->has($id)) {
             $this->toBeDeleted[] = $id;
+            $removed = parent::remove($id);
+            if ($this->refRecord && $this->relation) {
+                $this->relation->updateRecordReference(null, $this->refRecord);
+            }
         }
-        return parent::remove($id);
+        return $removed;
     }
 
 
@@ -145,12 +154,6 @@ class RecordCollection extends Collection
             $data[$id] = $record->toArray($deep);
         }
         return $data;
-    }
-
-
-    public function setRelation(Relation $relation)
-    {
-        $this->relation = $relation;
     }
 
 

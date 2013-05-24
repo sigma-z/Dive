@@ -231,17 +231,11 @@ class Record
     }
 
 
-    public function get($name)
-    {
-        return $this->__get($name);
-    }
-
-
     /**
      * @param  string $name
      * @return \Dive\Collection\RecordCollection|Record|null|mixed|string
      */
-    public function __get($name)
+    public function get($name)
     {
         $this->_table->throwExceptionIfFieldOrRelationNotExists($name);
 
@@ -261,22 +255,21 @@ class Record
 
 
     /**
-     * @param string                                                     $name
-     * @param \Dive\Collection\RecordCollection|Record|null|mixed|string $value
+     * @param  string $name
+     * @return \Dive\Collection\RecordCollection|Record|null|mixed|string
      */
-    public function set($name, $value)
+    public function __get($name)
     {
-        $this->__set($name, $value);
+        return $this->get($name);
     }
 
 
     /**
-     * TODO how to handle boolean fields?
-     *
-     * @param string                                                      $name
-     * @param \Dive\Collection\RecordCollection|Record|null|mixed|string  $value
+     * @param string                                                     $name
+     * @param \Dive\Collection\RecordCollection|Record|null|mixed|string $value
+     * @param bool                                                       $updateOwningSideReference
      */
-    public function __set($name, $value)
+    public function set($name, $value, $updateOwningSideReference = true)
     {
         $this->_table->throwExceptionIfFieldOrRelationNotExists($name);
 
@@ -299,6 +292,18 @@ class Record
         if ($this->_table->hasRelation($name)) {
             $this->_table->setReferenceFor($this, $name, $value);
         }
+    }
+
+
+    /**
+     * TODO how to handle boolean fields?
+     *
+     * @param string                                                      $name
+     * @param \Dive\Collection\RecordCollection|Record|null|mixed|string  $value
+     */
+    public function __set($name, $value)
+    {
+        $this->set($name, $value);
     }
 
 

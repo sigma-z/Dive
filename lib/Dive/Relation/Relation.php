@@ -557,11 +557,12 @@ class Relation
 
         foreach ($ownerCollection as $refRecord) {
             $refId = $refRecord->get($this->ownerField);
+            $ownerId = $refRecord->getInternalIdentifier();
             if ($this->isOneToMany()) {
-                $this->addReference($refId, $refRecord->getInternalIdentifier());
+                $this->addReference($refId, $ownerId);
             }
             else {
-                $this->setReference($refId, $refRecord->getInternalIdentifier());
+                $this->setReference($refId, $ownerId);
             }
         }
 
@@ -621,10 +622,8 @@ class Relation
         $id = $record->getInternalIdentifier();
         if (isset($this->references[$id])) {
             $refId = $this->references[$id];
-            if ($refId) {
-                $refRepository = $this->getRefRepository($record, $this->refAlias);
-                return $refRepository->getByInternalId($refId);
-            }
+            $refRepository = $this->getRefRepository($record, $this->refAlias);
+            return $refRepository->getByInternalId($refId);
         }
         return null;
     }
@@ -808,9 +807,10 @@ class Relation
             $refRepository = $this->getRefRepository($record, $this->ownerAlias);
             $newRefRecord = $refRepository->getByInternalId($newId);
             if ($newRefRecord) {
-                $oid = $newRefRecord->getOid();
-                if (isset($this->relatedCollections[$oid])) {
-                    $this->relatedCollections[$oid]->add($record);
+                $relatedCollection = $this->getRelatedCollection($newRefRecord);
+                // TODO exception, or if not set create one??
+                if ($relatedCollection) {
+                    $relatedCollection->add($record);
                 }
             }
             $this->addReference($newId, $id);
@@ -896,36 +896,6 @@ class Relation
         if (!$checkExistence || !isset($this->references[$id]) || !in_array($ownerIdentifier, $this->references[$id])) {
             $this->references[$id][] = $ownerIdentifier;
         }
-        return $this;
-    }
-
-
-    /**
-     * Merges references for a referenced id
-     *
-     * @param  string   $id
-     * @param  array    $ownerIdentifier
-     * @return $this
-     */
-    public function mergeReference($id, array $ownerIdentifier)
-    {
-        if (isset($this->references[$id]) && is_array($this->references[$id])) {
-            $ownerIdentifier = array_merge($this->references[$id], $ownerIdentifier);
-        }
-        return $this->setReference($id, $ownerIdentifier);
-    }
-
-
-    /**
-     * Unset reference
-     *
-     * @param  string $id
-     * @return $this
-     */
-    public function unsetReference($id)
-    {
-        unset($this->references[$id]);
-//        unset($this->relatedCollections[$id]);
         return $this;
     }
 

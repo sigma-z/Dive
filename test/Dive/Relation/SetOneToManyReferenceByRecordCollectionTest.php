@@ -48,8 +48,6 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
 
     public function testRecordCollectionRemove()
     {
-        $this->markTestIncomplete();
-
         $editor = $this->createAuthor('Editor');
         $authorOne = $this->createAuthor('AuthorOne');
         $authorTwo = $this->createAuthor('AuthorTwo');
@@ -57,9 +55,11 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
         $editor->Author[] = $authorOne;
         $editor->Author[] = $authorTwo;
 
+        $editor->getRecordManager()->debug = true;
         $editor->Author->remove($authorOne->getInternalIdentifier());
 
-        $references = $editor->getTable()->getRelation('Author')->getReferences();
+        $relation = $editor->getTable()->getRelation('Author');
+        $references = $relation->getReferences();
         $expectedReferences = array($editor->getInternalIdentifier() => array($authorTwo->getInternalIdentifier()));
         $this->assertEquals($expectedReferences, $references);
     }

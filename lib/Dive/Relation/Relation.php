@@ -724,7 +724,6 @@ class Relation
         $oldRefId = false;
         if ($owningRecord) {
             $oldRefId = $this->getOldReferencedId($owningRecord);
-            unset($this->ownerFieldOidMapping[$owningRecord->getOid()]);
         }
 
         if ($referencedRecord && $this->isOneToOne()) {

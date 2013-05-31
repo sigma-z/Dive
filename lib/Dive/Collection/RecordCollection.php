@@ -115,9 +115,10 @@ class RecordCollection extends Collection
         $removed = false;
         if ($this->has($id)) {
             $this->toBeDeleted[] = $id;
+            $recordToBeRemoved = $this->get($id);
             $removed = parent::remove($id);
             if ($this->refRecord && $this->relation) {
-                $this->relation->updateRecordReference(null, $this->refRecord);
+                $this->relation->updateRecordReference($recordToBeRemoved, null);
             }
         }
         return $removed;

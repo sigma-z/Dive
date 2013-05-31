@@ -134,7 +134,7 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
         $authorOne = $authors[$authorOneId];
         $authorTwo = $authors[$authorTwoId];
 
-        // loading references for 'User'
+        // loading references for 'User' (for the the other author records, too)
         $authorOne->User;
 
         $references = $relation->getReferences();
@@ -156,6 +156,52 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
         $this->assertNull($authorTwo->get($relation->getOwnerField()));
     }
 
+
+    /**
+     * @TODO refactor after UnitOfWork has been implemented for saving references
+     */
+    public function testOneToOneReferencingSideSetForExistingRecords()
+    {
+        $userTable = $this->rm->getTable('user');
+        $authorTable = $this->rm->getTable('author');
+        $userOneId = self::insertDataset($userTable, array('username' => 'userOne', 'password' => 'my-secret'));
+        $userTwoId = self::insertDataset($userTable, array('username' => 'userTwo', 'password' => 'my-secret'));
+        $authorOneData = array('lastname' => 'authorOne', 'email' => '', 'user_id' => $userOneId);
+        $authorTwoData = array('lastname' => 'authorTwo', 'email' => '', 'user_id' => $userTwoId);
+        $authorOneId = self::insertDataset($authorTable, $authorOneData);
+        $authorTwoId = self::insertDataset($authorTable, $authorTwoData);
+
+        $relation = $authorTable->getRelation('User');
+        $references = $relation->getReferences();
+        $this->assertEmpty($references);
+
+        /** @var Record[] $users */
+        $users = $userTable->createQuery()->fetchObjects();
+        $userOne = $users[$userOneId];
+        $userTwo = $users[$userTwoId];
+
+        // loading references for 'Author' (for the whole collection)
+        $authorOne = $userOne->Author;
+        $authorTwo = $userTwo->Author;
+
+        $references = $relation->getReferences();
+        $expectedReferences = array(
+            $userOneId => $authorOneId,
+            $userTwoId => $authorTwoId
+        );
+        $this->assertEquals($expectedReferences, $references);
+
+        $userOne->Author = $userTwo->Author;
+
+        $references = $relation->getReferences();
+        $expectedReferences = array(
+            $userOneId => $authorTwoId,
+            $userTwoId => null
+        );
+        $this->assertEquals($expectedReferences, $references);
+        $this->assertEquals($authorTwo->get($relation->getOwnerField()), $userOneId);
+        $this->assertNull($authorOne->get($relation->getOwnerField()));
+    }
 
 
     private function createUserAndAuthor($userExists, $authorExists)

@@ -180,6 +180,75 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
     }
 
 
+    public function testOneToManyOwningSideSetForExistingRecords()
+    {
+        $editorOne = $this->createAuthorWithUser('EditorOne');
+        $editorTwo = $this->createAuthorWithUser('EditorTwo');
+        $editorTwoId = $editorTwo->id;
+
+        $authorOne = $this->createAuthorWithUser('One');
+        $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $authorOne->save();
+        $authorOneId = $authorOne->id;
+
+        $authorTwo = $this->createAuthorWithUser('Two');
+        $authorTwo->editor_id = $editorTwo->id; // TODO should be done through UnitOfWork
+        $authorTwo->save();
+
+        $this->rm->clearTables();
+
+        $authorTable = $this->rm->getTable('author');
+        $authors = $authorTable->createQuery()->fetchObjects();
+        $authorOne = $authors[$authorOneId];
+        $authorOne->Editor = $editorTwo;
+
+        $this->assertEquals($authorOne->editor_id, $editorTwoId);
+    }
+
+
+    public function testOneToManyReferencedSideSetForExistingRecords()
+    {
+        $editorOne = $this->createAuthorWithUser('EditorOne');
+        $editorOneId = $editorOne->id;
+        $editorTwo = $this->createAuthorWithUser('EditorTwo');
+        $editorTwoId = $editorTwo->id;
+
+        $authorOne = $this->createAuthorWithUser('One');
+        $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $authorOne->save();
+
+        $authorTwo = $this->createAuthorWithUser('Two');
+        $authorTwo->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $authorTwo->save();
+
+        $this->rm->clearTables();
+
+        $authorTable = $this->rm->getTable('author');
+        $authors = $authorTable->createQuery()->fetchObjects();
+        $editorOne = $authors[$editorOneId];
+        $editorTwo = $authors[$editorTwoId];
+
+        $editorOne->Author[] = $editorTwo;
+
+        $this->assertEquals($editorTwo->editor_id, $editorOneId);
+    }
+
+
+    /**
+     * @param  string $name
+     * @return \Dive\Record
+     */
+    private function createAuthorWithUser($name)
+    {
+        $user = $this->createUser('User' . $name);
+        $user->save();
+        $author  = $this->createAuthor('Author' . $name);
+        $author->user_id = $user->id;// TODO should be done through UnitOfWork
+        $author->save();
+        return $author;
+    }
+
+
     private function createAuthorEditorUsers($authorExists, $editorExists)
     {
         $user = $this->createUser('UserOne');

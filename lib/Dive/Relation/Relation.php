@@ -586,16 +586,16 @@ class Relation
     public function getReferencedRecord(Record $record, $relationName)
     {
         if ($this->isOwningSide($relationName)) {
-            return $this->getOwningSideRecord($record);
+            return $this->getRecordForOwningSide($record);
         }
         if ($this->isOneToOne()) {
-            return $this->getReferencedSideRecord($record);
+            return $this->getRecordForReferencedSide($record);
         }
         throw new RelationException("Relation '$relationName' does not expected a record as reference!");
     }
 
 
-    private function getOwningSideRecord(Record $record)
+    private function getRecordForOwningSide(Record $record)
     {
         $refId = $record->get($this->ownerField);
         if ($refId === null) {
@@ -614,7 +614,7 @@ class Relation
     }
 
 
-    private function getReferencedSideRecord(Record $record)
+    private function getRecordForReferencedSide(Record $record)
     {
         if ($this->isOneToMany()) {
             throw new RelationException("Relation '$this->refAlias' does not expected a record as reference!");

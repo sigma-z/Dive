@@ -463,6 +463,36 @@ class Relation
     }
 
 
+    /**
+     * Checks, if record has loaded references, or not
+     *
+     * @param  Record $record
+     * @param  string $relationName
+     * @return bool
+     */
+    public function hasReferenceFor(Record $record, $relationName)
+    {
+        if (!$this->isOwningSide($relationName) && $this->isOneToMany()) {
+            $reference = $this->getRelatedCollection($record);
+            if ($reference) {
+                return true;
+            }
+        }
+        else {
+            $refId = $this->getRecordReferencedIdentifiers($record, $relationName);
+            if (!$refId) {
+                return false;
+            }
+            $rm = $record->getTable()->getRecordManager();
+            $refTable = $this->getJoinTable($rm, $relationName);
+            if (is_string($refId) && $refTable->isInRepository($refId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     private function getRecordRelatedByReferences(Record $record, $relationName)
     {
         // is reference expected as collection

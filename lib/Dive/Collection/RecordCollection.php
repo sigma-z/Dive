@@ -72,7 +72,7 @@ class RecordCollection extends Collection
      * @throws CollectionException
      * @return $this
      */
-    public function add($item, $id = null, $updateRecordReference = true)
+    public function add($item, $id = null)
     {
         $this->throwExceptionIfRecordDoesNotMatchTable($item);
 
@@ -83,7 +83,7 @@ class RecordCollection extends Collection
         $has = $this->has($id);
         parent::offsetSet($id, $item);
 
-        if (!$has && $updateRecordReference && $this->refRecord && $this->relation) {
+        if (!$has && $this->refRecord && $this->relation) {
             $this->relation->updateRecordReference($item, $this->refRecord);
         }
         return $this;

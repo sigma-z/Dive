@@ -755,7 +755,7 @@ class Relation
                 $relatedCollection = $this->getRelatedCollection($referencedRecord);
                 // TODO exception, or if not set create one??
                 if ($relatedCollection) {
-                    $relatedCollection->add($owningRecord, null, false);
+                    $relatedCollection->add($owningRecord, null);
                 }
             }
         }

@@ -12,7 +12,7 @@ namespace Dive\Test\Relation;
 require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
 
 use Dive\Collection\RecordCollection;
-
+use Dive\Record;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -21,25 +21,44 @@ use Dive\Collection\RecordCollection;
 class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetReferenceTestCase
 {
 
+    /**
+     * @var Record
+     */
+    private $editor = null;
+    /**
+     * @var Record
+     */
+    private $authorOne = null;
+    /**
+     * @var Record
+     */
+    private $authorTwo = null;
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->editor = $this->createAuthor('Editor');
+        $this->authorOne = $this->createAuthor('AuthorOne');
+        $this->authorTwo = $this->createAuthor('AuthorTwo');
+    }
+
+
     public function testRecordCollectionAdd()
     {
-        $editor = $this->createAuthor('Editor');
-        $authorOne = $this->createAuthor('AuthorOne');
-        $authorTwo = $this->createAuthor('AuthorTwo');
-
         $message = 'Relation should be an instance of RecordCollection';
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author, $message);
-        $this->assertEquals(0, $editor->Author->count());
+        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $this->editor->Author, $message);
+        $this->assertEquals(0, $this->editor->Author->count());
 
-        $editor->Author[] = $authorOne;
-        $editor->Author[] = $authorTwo;
-        $this->assertEquals(2, $editor->Author->count());
+        $this->editor->Author[] = $this->authorOne;
+        $this->editor->Author[] = $this->authorTwo;
+        $this->assertEquals(2, $this->editor->Author->count());
 
-        $references = $editor->getTable()->getRelation('Author')->getReferences();
+        $references = $this->editor->getTable()->getRelation('Author')->getReferences();
         $expectedReferences = array(
-            $editor->getInternalIdentifier() => array(
-                $authorOne->getInternalIdentifier(),
-                $authorTwo->getInternalIdentifier()
+            $this->editor->getIntId() => array(
+                $this->authorOne->getIntId(),
+                $this->authorTwo->getIntId()
             )
         );
         $this->assertEquals($expectedReferences, $references);
@@ -48,72 +67,99 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
 
     public function testRecordCollectionRemove()
     {
-        $editor = $this->createAuthor('Editor');
-        $authorOne = $this->createAuthor('AuthorOne');
-        $authorTwo = $this->createAuthor('AuthorTwo');
+        $this->editor->Author[] = $this->authorOne;
+        $this->editor->Author[] = $this->authorTwo;
 
-        $editor->Author[] = $authorOne;
-        $editor->Author[] = $authorTwo;
+        $this->editor->Author->remove($this->authorOne->getIntId());
 
-        $editor->getRecordManager()->debug = true;
-        $editor->Author->remove($authorOne->getInternalIdentifier());
-
-        $relation = $editor->getTable()->getRelation('Author');
+        $relation = $this->editor->getTable()->getRelation('Author');
         $references = $relation->getReferences();
-        $expectedReferences = array($editor->getInternalIdentifier() => array($authorTwo->getInternalIdentifier()));
+        $expectedReferences = array(
+            $this->editor->getIntId() => array($this->authorTwo->getIntId())
+        );
         $this->assertEquals($expectedReferences, $references);
     }
 
 
     public function testOneToManyOwningSideNullReference()
     {
-        $editor = $this->createAuthor('Editor');
-        $authorOne = $this->createAuthor('AuthorOne');
-        $authorTwo = $this->createAuthor('AuthorTwo');
+        $this->editor->Author[] = $this->authorOne;
+        $this->editor->Author[] = $this->authorTwo;
 
-        $editor->Author[] = $authorOne;
-        $editor->Author[] = $authorTwo;
-        $authorOne->Editor = null;
-        $authorTwo->Editor = null;
+        $this->assertEquals(2, $this->editor->Author->count());
 
-        $references = $editor->getTable()->getRelation('Author')->getReferences();
-        $expectedReferences = array($editor->getInternalIdentifier() => array());
+        $this->authorOne->Editor = null;
+        $this->authorTwo->Editor = null;
+
+        $references = $this->editor->getTable()->getRelation('Author')->getReferences();
+        $expectedReferences = array($this->editor->getIntId() => array());
         $this->assertEquals($expectedReferences, $references);
 
-        $this->assertEquals(0, $editor->Author->count());
+        $this->assertEquals(0, $this->editor->Author->count());
     }
 
 
     public function testOneToManyOwningSide()
     {
-        $editor = $this->createAuthor('Editor');
-        $authorOne = $this->createAuthor('AuthorOne');
-        $authorTwo = $this->createAuthor('AuthorTwo');
-
         $message = 'Relation should be an instance of RecordCollection';
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author, $message);
-        $this->assertEquals(0, $editor->Author->count());
+        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $this->editor->Author, $message);
+        $this->assertEquals(0, $this->editor->Author->count());
 
-        $editor->Author[] = $authorOne;
+        $this->editor->Author[] = $this->authorOne;
+        $this->assertEquals(1, $this->editor->Author->count());
 
-        $this->assertEquals(1, $editor->Author->count());
-
-        $authorTwo->Editor = $editor;
-
-        $this->assertEquals(2, $editor->Author->count());
+        $this->authorTwo->Editor = $this->editor;
+        $this->assertEquals(2, $this->editor->Author->count());
     }
 
 
-    public function testOneToManyReferencedSideNullReference()
+    /**
+     * @expectedException \Dive\Relation\RelationException
+     */
+    public function testOneToManyReferencedSideNullReferenceThrowsException()
     {
-        $this->markTestIncomplete();
+        $this->editor->Author[] = $this->authorOne;
+        $this->editor->Author[] = $this->authorTwo;
+        $this->editor->Author = null;
     }
 
 
-    public function testOneToManyReferencedSide()
+    public function testOneToManySetByRecordCollection()
     {
-        $this->markTestIncomplete();
+        $authorTable = $this->rm->getTable('author');
+
+        $this->assertEquals(0, $this->editor->Author->count());
+
+        $collection = new RecordCollection($authorTable);
+        $collection[] = $this->authorOne;
+        $collection[] = $this->authorTwo;
+        $this->editor->Author = $collection;
+
+        $references = $authorTable->getRelation('Author')->getReferences();
+        $expectedReferences = array(
+            $this->editor->getIntId() => array(
+                $this->authorOne->getIntId(),
+                $this->authorTwo->getIntId()
+            )
+        );
+
+        $this->assertEquals($expectedReferences, $references);
+        $this->assertEquals(2, $this->editor->Author->count());
     }
 
+
+    public function testOneToManySetEmptyByRecordCollection()
+    {
+        $authorTable = $this->rm->getTable('author');
+        $this->editor->Author[] = $this->authorOne;
+        $this->editor->Author[] = $this->authorTwo;
+        $this->editor->Author = new RecordCollection($authorTable);
+
+        $references = $authorTable->getRelation('Author')->getReferences();
+        $expectedReferences = array($this->editor->getIntId() => array());
+
+        $this->assertEquals($expectedReferences, $references);
+        $this->assertEquals(0, $this->editor->Author->count());
+    }
 
 }

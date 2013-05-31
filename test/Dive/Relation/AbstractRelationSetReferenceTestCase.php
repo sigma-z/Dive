@@ -22,7 +22,7 @@ class AbstractRelationSetReferenceTestCase extends TestCase
     /**
      * @var RecordManager
      */
-    private $rm = null;
+    protected $rm = null;
 
 
     protected function setUp()

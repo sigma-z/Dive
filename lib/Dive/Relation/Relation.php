@@ -441,7 +441,7 @@ class Relation
                 foreach ($relatedCollection as $owningRecord) {
                     $owningOid = $owningRecord->getOid();
                     unset($this->ownerFieldOidMapping[$owningOid]);
-                    $owningRecord->set($this->ownerField, null, false);
+                    $owningRecord->set($this->ownerField, null);
                 }
             }
 
@@ -732,7 +732,7 @@ class Relation
             $repositoryOwningSide = $this->getRefRepository($referencedRecord, $this->refAlias);
             if ($repositoryOwningSide->hasByInternalId($oldOwningId)) {
                 $oldOwningRecord = $repositoryOwningSide->getByInternalId($oldOwningId);
-                $oldOwningRecord->set($this->getOwnerField(), null, false);
+                $oldOwningRecord->set($this->getOwnerField(), null);
                 unset($this->ownerFieldOidMapping[$oldOwningRecord->getOid()]);
             }
         }
@@ -740,7 +740,7 @@ class Relation
         if ($owningRecord) {
             // set field reference id, if referenced record exists in database
             if (!$referencedRecord || $referencedRecord->exists()) {
-                $owningRecord->set($this->ownerField, $refId, false);
+                $owningRecord->set($this->ownerField, $refId);
             }
             $this->updateOwningFieldOidMapping($owningRecord, $referencedRecord);
         }

@@ -267,9 +267,8 @@ class Record
     /**
      * @param string                                                     $name
      * @param \Dive\Collection\RecordCollection|Record|null|mixed|string $value
-     * @param bool                                                       $updateOwningSideReference
      */
-    public function set($name, $value, $updateOwningSideReference = true)
+    public function set($name, $value)
     {
         $this->_table->throwExceptionIfFieldOrRelationNotExists($name);
 

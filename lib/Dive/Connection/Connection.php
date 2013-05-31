@@ -368,6 +368,14 @@ class Connection
     }
 
 
+    public function queryOne($sql, array $params = array(), $pdoFetchMode = \PDO::FETCH_ASSOC)
+    {
+        $stmt = $this->getStatement($sql, $params);
+        $return = $stmt->fetch($pdoFetchMode);
+        return $return;
+    }
+
+
     // TODO unittest!
     public function exec($sql, array $params = array())
     {

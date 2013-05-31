@@ -111,6 +111,53 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
     }
 
 
+    /**
+     * @TODO refactor after UnitOfWork has been implemented for saving references
+     */
+    public function testOneToOneOwningSideSetForExistingRecords()
+    {
+        $userTable = $this->rm->getTable('user');
+        $authorTable = $this->rm->getTable('author');
+        $userOneId = self::insertDataset($userTable, array('username' => 'userOne', 'password' => 'my-secret'));
+        $userTwoId = self::insertDataset($userTable, array('username' => 'userTwo', 'password' => 'my-secret'));
+        $authorOneData = array('lastname' => 'authorOne', 'email' => '', 'user_id' => $userOneId);
+        $authorTwoData = array('lastname' => 'authorTwo', 'email' => '', 'user_id' => $userTwoId);
+        $authorOneId = self::insertDataset($authorTable, $authorOneData);
+        $authorTwoId = self::insertDataset($authorTable, $authorTwoData);
+
+        $relation = $authorTable->getRelation('User');
+        $references = $relation->getReferences();
+        $this->assertEmpty($references);
+
+        /** @var Record[] $authors */
+        $authors = $authorTable->createQuery()->fetchObjects();
+        $authorOne = $authors[$authorOneId];
+        $authorTwo = $authors[$authorTwoId];
+
+        // loading references for 'User'
+        $authorOne->User;
+
+        $references = $relation->getReferences();
+        $expectedReferences = array(
+            $userOneId => $authorOneId,
+            $userTwoId => $authorTwoId
+        );
+        $this->assertEquals($expectedReferences, $references);
+
+        $authorOne->User = $authorTwo->User;
+
+        $references = $relation->getReferences();
+        $expectedReferences = array(
+            $userOneId => null,
+            $userTwoId => $authorOneId
+        );
+        $this->assertEquals($expectedReferences, $references);
+        $this->assertEquals($authorOne->get($relation->getOwnerField()), $userTwoId);
+        $this->assertNull($authorTwo->get($relation->getOwnerField()));
+    }
+
+
+
     private function createUserAndAuthor($userExists, $authorExists)
     {
         $user = $this->createUser('UserOne');

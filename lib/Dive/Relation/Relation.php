@@ -726,15 +726,17 @@ class Relation
             $oldRefId = $this->getOldReferencedId($owningRecord);
         }
 
-        if ($referencedRecord && $this->isOneToOne()) {
-            // unset field oid mapping for old owner record, if exists
-            $oldOwningOid = array_search($referencedRecord->getOid(), $this->ownerFieldOidMapping);
-            if ($oldOwningOid) {
-                unset($this->ownerFieldOidMapping[$oldOwningOid]);
+        $refId = $referencedRecord ? $referencedRecord->getInternalIdentifier() : null;
+        if ($referencedRecord && $this->isOneToOne() && isset($this->references[$refId])) {
+            $oldOwningId = $this->references[$refId];
+            $repositoryOwningSide = $this->getRefRepository($referencedRecord, $this->refAlias);
+            if ($repositoryOwningSide->hasByInternalId($oldOwningId)) {
+                $oldOwningRecord = $repositoryOwningSide->getByInternalId($oldOwningId);
+                $oldOwningRecord->set($this->getOwnerField(), null, false);
+                unset($this->ownerFieldOidMapping[$oldOwningRecord->getOid()]);
             }
         }
 
-        $refId = $referencedRecord ? $referencedRecord->getInternalIdentifier() : null;
         if ($owningRecord) {
             // set field reference id, if referenced record exists in database
             if (!$referencedRecord || $referencedRecord->exists()) {

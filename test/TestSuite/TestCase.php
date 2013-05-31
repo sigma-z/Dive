@@ -19,6 +19,7 @@ use Dive\Util\FieldValuesGenerator;
 abstract class TestCase extends \PHPUnit_Framework_TestCase
 {
 
+    public static $debug = false;
     /**
      * @var array
      */
@@ -47,7 +48,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
+        self::$debug = false;
+        self::checkTablesAreEmpty();
+
         parent::setUpBeforeClass();
+
+        self::$datasetRegistryTestCase = null;
         self::$datasetRegistryTestClass = new DatasetRegistry();
     }
 
@@ -75,6 +81,24 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $conn->disconnect();
         }
         self::$connectionCache = array();
+    }
+
+
+    protected static function checkTablesAreEmpty()
+    {
+        $databases = self::getDatabases();
+        $schema = self::getSchema();
+        $tableNames = $schema->getTableNames();
+        foreach ($databases as $database) {
+            $conn = self::createDatabaseConnection($database);
+            foreach ($tableNames as $tableName) {
+                $sql = "SELECT COUNT(*) FROM " . $conn->quoteIdentifier($tableName);
+                $count = $conn->queryOne($sql, array(), \PDO::FETCH_COLUMN);
+                if ($count > 0) {
+                    throw new \Exception("Table '$tableName' is supposed to be empty, but has $count rows!");
+                }
+            }
+        }
     }
 
 
@@ -252,8 +276,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $datasetRegistry = self::$datasetRegistryTestCase
             ? self::$datasetRegistryTestCase
             : self::$datasetRegistryTestClass;
-        $callOnEvent = function(ConnectionRowChangeEvent $event) use ($datasetRegistry) {
+        $debug = self::$debug;
+        $callOnEvent = function(ConnectionRowChangeEvent $event) use ($datasetRegistry, $debug) {
             $identifier = $event->getIdentifier();
+            if ($debug) {
+                echo 'add record to registry ' . $event->getTable()->getTableName() . ' ' . implode(',', $identifier) . "\n";
+            }
             $datasetRegistry->add($event->getTable(), $identifier);
         };
         $eventDispatcher->addListener(Connection::EVENT_POST_INSERT, $callOnEvent);
@@ -406,10 +434,22 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     protected static function removeDatasets(DatasetRegistry $registry)
     {
         $tables = $registry->getTables();
+        if (empty($tables)) {
+            return;
+        }
+
+        if (self::$debug) {
+            echo "\ncleaning up data records\n";
+        }
+        /** @var Table[] $tables */
+        $tables = array_reverse($tables);
         foreach ($tables as $table) {
             $datasetIds = $registry->getByTable($table);
             $conn = $table->getConnection();
             foreach ($datasetIds as $id) {
+                if (self::$debug) {
+                    echo 'remove record from registry ' . $table->getTableName() . ' ' . implode(',', $id) . "\n";
+                }
                 $conn->delete($table, $id);
             }
         }

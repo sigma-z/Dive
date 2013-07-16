@@ -490,7 +490,7 @@ class Table
     {
         $relation = $this->getRelation($relationName);
         if ($relation->isOneToOne() || $relation->isOwningSide($relationName)) {
-            $refRecord = $relation->getReferencedRecord($record, $relationName);
+            $refRecord = $relation->getRelatedRecord($record, $relationName);
             if ($refRecord) {
                 return $refRecord;
             }

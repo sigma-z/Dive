@@ -422,14 +422,13 @@ class Relation
         // one-to-many (referenced side)
         else if ($this->isOneToMany()) {
             $this->throwReferenceMustBeRecordCollectionException($relationName, $related);
-            $map = $this->map;
 
             // when exchanging collection, we have to unlink all related records
             $relatedCollection = $this->map->getRelatedCollection($record->getOid());
             if ($relatedCollection && $relatedCollection !== $related) {
                 foreach ($relatedCollection as $owningRecord) {
                     $owningOid = $owningRecord->getOid();
-                    $map->removeFieldMapping($owningOid);
+                    $this->map->removeFieldMapping($owningOid);
                     $owningRecord->set($this->ownerField, null);
                 }
             }
@@ -439,10 +438,10 @@ class Relation
             $this->map->setReference($id, $related->getIdentifiers());
             if (!$record->exists()) {
                 foreach ($related as $relatedRecord) {
-                    $map->setFieldMapping($relatedRecord->getOid(), $oid);
+                    $this->map->setFieldMapping($relatedRecord->getOid(), $oid);
                 }
             }
-            $map->setRelatedCollection($oid, $related);
+            $this->map->setRelatedCollection($oid, $related);
         }
         // one-to-one (referenced side)
         else {
@@ -482,6 +481,12 @@ class Relation
     }
 
 
+    /**
+     * TODO should be moved to ReferenceMap
+     * @param Record $record
+     * @param        $relationName
+     * @return bool|RecordCollection|Record|\Dive\Record[]|null
+     */
     private function getRecordRelatedByReferences(Record $record, $relationName)
     {
         // is reference expected as collection
@@ -513,6 +518,13 @@ class Relation
     }
 
 
+    /**
+     * TODO Should be moved to ReferenceMap
+     *
+     * @param Record $record
+     * @return bool|RecordCollection
+     * @throws RelationException
+     */
     private function createRelatedCollection(Record $record)
     {
         $relationName = $this->refAlias;
@@ -602,7 +614,7 @@ class Relation
      * @throws RelationException
      * @return Record|null
      */
-    public function getReferencedRecord(Record $record, $relationName)
+    public function getRelatedRecord(Record $record, $relationName)
     {
         if ($this->isOwningSide($relationName)) {
             return $this->getRecordForOwningSide($record);
@@ -614,6 +626,12 @@ class Relation
     }
 
 
+    /**
+     * TODO move to ReferenceMap?
+     *
+     * @param Record $record
+     * @return bool|Record|null
+     */
     private function getRecordForOwningSide(Record $record)
     {
         $refId = $record->get($this->ownerField);
@@ -633,6 +651,13 @@ class Relation
     }
 
 
+    /**
+     * TODO move to ReferenceMap?
+     *
+     * @param Record $record
+     * @return bool|Record|null
+     * @throws RelationException
+     */
     private function getRecordForReferencedSide(Record $record)
     {
         if ($this->isOneToMany()) {
@@ -655,7 +680,7 @@ class Relation
      * @param  string $relationName
      * @return \Dive\Table\Repository
      */
-    private function getRefRepository(Record $record, $relationName)
+    public function getRefRepository(Record $record, $relationName)
     {
         $rm = $record->getTable()->getRecordManager();
         $tableName = $this->isOwningSide($relationName) ? $this->refTable : $this->ownerTable;
@@ -673,61 +698,14 @@ class Relation
     {
         if ($newId != $oldId) {
             // remove old reference
-            $this->removeOwningReferenceForeignKey($record, $oldId);
+            $this->map->removeOwningReferenceForeignKey($record, $oldId);
             // setting new reference
-            $this->setOwningReferenceByForeignKey($record, $newId);
-        }
-    }
-
-
-    private function updateOwningFieldOidMapping(Record $owningRecord, Record $referencedRecord = null)
-    {
-        $oid = $owningRecord->getOid();
-        if ($referencedRecord && !$referencedRecord->exists()) {
-            $this->map->setFieldMapping($oid, $referencedRecord->getOid());
-        }
-        else {
-            $this->map->removeFieldMapping($oid);
+            $this->map->setOwningReferenceByForeignKey($record, $newId);
         }
     }
 
 
     /**
-     * TODO to be moved!
-     * @param Record $owningRecord
-     * @return bool|string
-     */
-    private function getOldReferencedId(Record $owningRecord)
-    {
-        $oid = $owningRecord->getOid();
-        $oldRefId = $owningRecord->getModifiedFieldValue($this->ownerField);
-        if (!$oldRefId && $this->map->hasFieldMapping($oid)) {
-            $oldRefId = Record::NEW_RECORD_ID_MARK . $this->map->getFieldMapping($oid);
-        }
-        return $oldRefId;
-    }
-
-
-    /**
-     * TODO to be moved!
-     * @param        $owningId
-     * @param Record $referencedRecord
-     */
-    private function updateReference($owningId, Record $referencedRecord)
-    {
-        $refId = $referencedRecord->getInternalIdentifier();
-        // add new referenced record id
-        if ($this->isOneToOne()) {
-            $this->map->setReference($refId, $owningId);
-        }
-        else if ($owningId) {
-            $this->map->addReference($refId, $owningId);
-        }
-    }
-
-
-    /**
-     * TODO to be moved!
      * Updates record references for given owning record and given referenced record
      *
      * @param Record $owningRecord
@@ -735,117 +713,31 @@ class Relation
      */
     public function updateRecordReference(Record $owningRecord = null, Record $referencedRecord = null)
     {
-        if ($owningRecord === null && $referencedRecord === null) {
-            return;
-        }
-
-        // get old referenced id from owning record
-        $oldRefId = false;
-        if ($owningRecord) {
-            $oldRefId = $this->getOldReferencedId($owningRecord);
-        }
-
-        $refId = $referencedRecord ? $referencedRecord->getInternalIdentifier() : null;
-        if ($referencedRecord && $this->isOneToOne() && $this->map->hasReferenced($refId)) {
-            $oldOwningId = $this->map->getOwning($refId);
-            $repositoryOwningSide = $this->getRefRepository($referencedRecord, $this->refAlias);
-            if ($repositoryOwningSide->hasByInternalId($oldOwningId)) {
-                $oldOwningRecord = $repositoryOwningSide->getByInternalId($oldOwningId);
-                $oldOwningRecord->set($this->getOwnerField(), null);
-                $this->map->removeFieldMapping($oldOwningRecord->getOid());
-            }
-        }
-
-        if ($owningRecord) {
-            // set field reference id, if referenced record exists in database
-            if (!$referencedRecord || $referencedRecord->exists()) {
-                $owningRecord->set($this->ownerField, $refId);
-            }
-            $this->updateOwningFieldOidMapping($owningRecord, $referencedRecord);
-        }
-
-        // unlink old reference
-        if ($oldRefId) {
-            $this->removeOwningReferenceForeignKey($owningRecord, $oldRefId);
-        }
-        // link new reference
-        if ($referencedRecord) {
-            $owningId = $owningRecord ? $owningRecord->getInternalIdentifier() : null;
-            $this->updateReference($owningId, $referencedRecord);
-            if ($owningId) {
-                $relatedCollection = $this->map->getRelatedCollection($referencedRecord->getOid());
-                // TODO exception, or if not set create one??
-                if ($relatedCollection) {
-                    $relatedCollection->add($owningRecord, null);
-                }
-            }
-        }
+        $this->map->updateRecordReference($owningRecord, $referencedRecord);
     }
 
 
     /**
-     * TODO to be moved!
-     * @param Record $record
-     * @param string $oldRefId
+     * Gets references
+     *
+     * @return array
+     *   keys:   owner ids,
+     *   values:
+     *      one-to-many: referencing ids as array
+     *      one-to-one:  referencing id as string
      */
-    private function removeOwningReferenceForeignKey(Record $record, $oldRefId)
+    public function getReferences()
     {
-        if (!$oldRefId || !$this->map->hasReferenced($oldRefId)) {
-            return;
-        }
-        if ($this->isOneToMany()) {
-            $owningId = $record->getInternalIdentifier();
-            if ($this->map->hasReferenced($oldRefId)) {
-                $owningReferences = $this->map->getOwning($oldRefId);
-                $pos = array_search($owningId, $owningReferences);
-                if ($pos !== false) {
-                    array_splice($owningReferences, $pos, 1);
-                    $this->map->setReference($oldRefId, $owningReferences);
-                }
-            }
-
-            $refRepository = $this->getRefRepository($record, $this->ownerAlias);
-            $oldRefRecord = $refRepository->getByInternalId($oldRefId);
-            if ($oldRefRecord) {
-                $relatedCollection = $this->map->getRelatedCollection($oldRefRecord->getOid());
-                // TODO exception, or if not set create one??
-                if ($relatedCollection) {
-                    $relatedCollection->remove($owningId);
-                }
-            }
-        }
-        else {
-            $this->map->setReference($oldRefId, null);
-        }
+        return $this->map->getMapping();
     }
 
 
     /**
-     * @TODO to be moved!
-     * @param Record $record
-     * @param string $newId
+     * Clears references
      */
-    private function setOwningReferenceByForeignKey(Record $record, $newId)
+    public function clearReferences()
     {
-        if ($newId === null) {
-            return;
-        }
-        $id = $record->getInternalIdentifier();
-        if ($this->isOneToMany()) {
-            $refRepository = $this->getRefRepository($record, $this->ownerAlias);
-            $newRefRecord = $refRepository->getByInternalId($newId);
-            if ($newRefRecord) {
-                $relatedCollection = $this->map->getRelatedCollection($newRefRecord->getOid());
-                // TODO exception, or if not set create one??
-                if ($relatedCollection) {
-                    $relatedCollection->add($record);
-                }
-            }
-            $this->map->addReference($newId, $id);
-        }
-        else {
-            $this->map->setReference($newId, $id);
-        }
+        $this->map->clear();
     }
 
 
@@ -880,30 +772,6 @@ class Relation
                 "RecordCollection for relation '$relationName' must be a collection for table '$joinTableName'!"
             );
         }
-    }
-
-
-    /**
-     * Gets references
-     *
-     * @return array
-     *   keys:   owner ids,
-     *   values:
-     *      one-to-many: referencing ids as array
-     *      one-to-one:  referencing id as string
-     */
-    public function getReferences()
-    {
-        return $this->map->getMapping();
-    }
-
-
-    /**
-     * Clears references
-     */
-    public function clearReferences()
-    {
-        $this->map->clear();
     }
 
 }

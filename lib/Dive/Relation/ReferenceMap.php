@@ -125,7 +125,7 @@ class ReferenceMap
      * @param  string $owningOid
      * @return bool
      */
-    public function hasFieldMapping($owningOid)
+    private function hasFieldMapping($owningOid)
     {
         return isset($this->ownerFieldOidMapping[$owningOid]);
     }
@@ -137,7 +137,7 @@ class ReferenceMap
      * @param string $owningOid
      * @param string $referencedOid
      */
-    public function setFieldMapping($owningOid, $referencedOid)
+    private function setFieldMapping($owningOid, $referencedOid)
     {
         $this->ownerFieldOidMapping[$owningOid] = $referencedOid;
     }
@@ -149,7 +149,7 @@ class ReferenceMap
      * @param  string $owningOid
      * @return string
      */
-    public function getFieldMapping($owningOid)
+    private function getFieldMapping($owningOid)
     {
         return $this->ownerFieldOidMapping[$owningOid];
     }
@@ -160,9 +160,27 @@ class ReferenceMap
      *
      * @param string $owningId
      */
-    public function removeFieldMapping($owningId)
+    private function removeFieldMapping($owningId)
     {
         unset($this->ownerFieldOidMapping[$owningId]);
+    }
+
+
+    /**
+     * Updates field mapping for referenced record to an owning record
+     *
+     * @param Record $owningRecord
+     * @param Record $referencedRecord
+     */
+    private function updateFieldMapping(Record $owningRecord, Record $referencedRecord = null)
+    {
+        $oid = $owningRecord->getOid();
+        if ($referencedRecord && !$referencedRecord->exists()) {
+            $this->setFieldMapping($oid, $referencedRecord->getOid());
+        }
+        else {
+            $this->removeFieldMapping($oid);
+        }
     }
 
 
@@ -172,7 +190,7 @@ class ReferenceMap
      * @param string           $referencedOid
      * @param RecordCollection $collection
      */
-    public function setRelatedCollection($referencedOid, RecordCollection $collection)
+    private function setRelatedCollection($referencedOid, RecordCollection $collection)
     {
         $this->relatedCollections[$referencedOid] = $collection;
     }
@@ -314,7 +332,7 @@ class ReferenceMap
         if ($this->relation->isOneToMany()) {
             throw new RelationException("Relation '$refAlias' does not expected a record as reference!");
         }
-        $id = $record->getInternalIdentifier();
+        $id = $record->getIntId();
         if ($this->hasReferenced($id)) {
             $refId = $this->getOwning($id);
             $refRepository = $this->getRefRepository($record, $refAlias);
@@ -363,7 +381,7 @@ class ReferenceMap
             if (!$referencedRecord || $referencedRecord->exists()) {
                 $owningRecord->set($ownerField, $refId);
             }
-            $this->updateOwningFieldOidMapping($owningRecord, $referencedRecord);
+            $this->updateFieldMapping($owningRecord, $referencedRecord);
         }
 
         // unlink old reference
@@ -372,8 +390,8 @@ class ReferenceMap
         }
         // link new reference
         if ($referencedRecord) {
-            $owningId = $owningRecord ? $owningRecord->getInternalIdentifier() : null;
-            $this->updateReference($owningId, $referencedRecord);
+            $owningId = $owningRecord ? $owningRecord->getIntId() : null;
+            $this->assignReference($owningId, $referencedRecord->getIntId());
             if ($owningId) {
                 $relatedCollection = $this->getRelatedCollection($referencedRecord->getOid());
                 // TODO exception, or if not set create one??
@@ -460,11 +478,8 @@ class ReferenceMap
                     $relatedCollection->add($record);
                 }
             }
-            $this->addReference($newId, $id);
         }
-        else {
-            $this->setReference($newId, $id);
-        }
+        $this->assignReference($id, $newId);
     }
 
 
@@ -482,12 +497,7 @@ class ReferenceMap
         foreach ($ownerCollection as $refRecord) {
             $refId = $refRecord->get($ownerField);
             $ownerId = $refRecord->getIntId();
-            if ($isOneToMany) {
-                $this->addReference($refId, $ownerId);
-            }
-            else {
-                $this->setReference($refId, $ownerId);
-            }
+            $this->assignReference($ownerId, $refId);
         }
 
         foreach ($referencedCollection as $refRecord) {
@@ -500,12 +510,13 @@ class ReferenceMap
 
 
     /**
+     * Sets (one-to-one) or adds (one-to-many) a reference
+     *
      * @param string $owningId
-     * @param Record $referencedRecord
+     * @param string $refId
      */
-    private function updateReference($owningId, Record $referencedRecord)
+    private function assignReference($owningId, $refId)
     {
-        $refId = $referencedRecord->getInternalIdentifier();
         // add new referenced record id
         if ($this->relation->isOneToOne()) {
             $this->setReference($refId, $owningId);
@@ -516,18 +527,9 @@ class ReferenceMap
     }
 
 
-    private function updateOwningFieldOidMapping(Record $owningRecord, Record $referencedRecord = null)
-    {
-        $oid = $owningRecord->getOid();
-        if ($referencedRecord && !$referencedRecord->exists()) {
-            $this->setFieldMapping($oid, $referencedRecord->getOid());
-        }
-        else {
-            $this->removeFieldMapping($oid);
-        }
-    }
-
-
+    /**
+     * @return array
+     */
     public function getMapping()
     {
         return $this->references;

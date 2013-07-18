@@ -412,41 +412,20 @@ class Relation
      */
     public function setReferenceFor(Record $record, $relationName, $related)
     {
-        $id = $record->getInternalIdentifier();
-
         // owning side (one-to-one/one-to-many)
         if ($this->isOwningSide($relationName)) {
             $this->throwReferenceMustBeRecordOrNullException($relationName, $related);
-            $this->updateRecordReference($record, $related);
+            $this->map->updateRecordReference($record, $related);
         }
         // one-to-many (referenced side)
         else if ($this->isOneToMany()) {
             $this->throwReferenceMustBeRecordCollectionException($relationName, $related);
-
-            // when exchanging collection, we have to unlink all related records
-            $relatedCollection = $this->map->getRelatedCollection($record->getOid());
-            if ($relatedCollection && $relatedCollection !== $related) {
-                foreach ($relatedCollection as $owningRecord) {
-                    $owningOid = $owningRecord->getOid();
-                    $this->map->removeFieldMapping($owningOid);
-                    $owningRecord->set($this->ownerField, null);
-                }
-            }
-
-            // set references for new related records
-            $oid = $record->getOid();
-            $this->map->setReference($id, $related->getIdentifiers());
-            if (!$record->exists()) {
-                foreach ($related as $relatedRecord) {
-                    $this->map->setFieldMapping($relatedRecord->getOid(), $oid);
-                }
-            }
-            $this->map->setRelatedCollection($oid, $related);
+            $this->map->updateCollectionReference($record, $related);
         }
         // one-to-one (referenced side)
         else {
             $this->throwReferenceMustBeRecordOrNullException($relationName, $related);
-            $this->updateRecordReference($related, $record);
+            $this->map->updateRecordReference($related, $record);
         }
     }
 
@@ -482,9 +461,8 @@ class Relation
 
 
     /**
-     * TODO should be moved to ReferenceMap
-     * @param Record $record
-     * @param        $relationName
+     * @param  Record $record
+     * @param  string $relationName
      * @return bool|RecordCollection|Record|\Dive\Record[]|null
      */
     private function getRecordRelatedByReferences(Record $record, $relationName)
@@ -493,7 +471,7 @@ class Relation
         if (!$this->isOwningSide($relationName) && $this->isOneToMany()) {
             $reference = $this->map->getRelatedCollection($record->getOid());
             if (!$reference) {
-                $reference = $this->createRelatedCollection($record);
+                $reference = $this->map->createRelatedCollection($record);
             }
             if ($reference) {
                 return $reference;
@@ -519,44 +497,6 @@ class Relation
 
 
     /**
-     * TODO Should be moved to ReferenceMap
-     *
-     * @param Record $record
-     * @return bool|RecordCollection
-     * @throws RelationException
-     */
-    private function createRelatedCollection(Record $record)
-    {
-        $relationName = $this->refAlias;
-        if (!$this->isOneToMany()) {
-            throw new RelationException("Reference type for relation '$relationName' must be a collection!");
-        }
-
-        $oid = $record->getOid();
-        $refIds = $this->getRecordReferencedIdentifiers($record, $relationName);
-        if (is_array($refIds)) {
-            $rm = $record->getTable()->getRecordManager();
-            $refTable = $this->getJoinTable($rm, $relationName);
-            $collection = new RecordCollection($refTable, $record, $this);
-            $recordsInRepository = true;
-            foreach ($refIds as $refId) {
-                if (!$refTable->isInRepository($refId)) {
-                    $recordsInRepository = false;
-                    break;
-                }
-                $relatedRecord = $refTable->getFromRepository($refId);
-                $collection->add($relatedRecord, $refId);
-            }
-            if ($recordsInRepository) {
-                $this->map->setRelatedCollection($oid, $collection);
-                return $collection;
-            }
-        }
-        return false;
-    }
-
-
-    /**
      * Loads reference for a given record
      *
      * @param  Record $record
@@ -571,38 +511,16 @@ class Relation
         }
 
         $identifiers = $recordCollection->getIdentifiers();
-
         $query = $this->getReferenceQuery($record, $relationName, $identifiers);
 
         /** @var \Dive\Record[]|\Dive\Collection\RecordCollection $relatedCollection */
         $relatedCollection = $query->execute(RecordManager::FETCH_RECORD_COLLECTION);
+
+        // updates reference map between both collections
         $isOwningSide = $this->isOwningSide($relationName);
-        if ($isOwningSide) {
-            $ownerCollection = $recordCollection;
-            $referencedCollection = $relatedCollection;
-        }
-        else {
-            $referencedCollection = $recordCollection;
-            $ownerCollection = $relatedCollection;
-        }
-
-        foreach ($ownerCollection as $refRecord) {
-            $refId = $refRecord->get($this->ownerField);
-            $ownerId = $refRecord->getIntId();
-            if ($this->isOneToMany()) {
-                $this->map->addReference($refId, $ownerId);
-            }
-            else {
-                $this->map->setReference($refId, $ownerId);
-            }
-        }
-
-        foreach ($referencedCollection as $refRecord) {
-            $id = $refRecord->getIntId();
-            if (!$this->map->hasReferenced($id)) {
-                $this->map->setReference($id, $this->isOneToMany() ? array() : null);
-            }
-        }
+        $ownerCollection      = $isOwningSide ? $recordCollection  : $relatedCollection;
+        $referencedCollection = $isOwningSide ? $relatedCollection : $recordCollection;
+        $this->map->updateOwnerCollectionWithReferencedCollection($ownerCollection, $referencedCollection);
     }
 
 
@@ -617,75 +535,12 @@ class Relation
     public function getRelatedRecord(Record $record, $relationName)
     {
         if ($this->isOwningSide($relationName)) {
-            return $this->getRecordForOwningSide($record);
+            return $this->map->getRecordForOwningSide($record);
         }
         if ($this->isOneToOne()) {
-            return $this->getRecordForReferencedSide($record);
+            return $this->map->getRecordForReferencedSide($record);
         }
         throw new RelationException("Relation '$relationName' does not expected a record as reference!");
-    }
-
-
-    /**
-     * TODO move to ReferenceMap?
-     *
-     * @param Record $record
-     * @return bool|Record|null
-     */
-    private function getRecordForOwningSide(Record $record)
-    {
-        $refId = $record->get($this->ownerField);
-        if ($refId === null) {
-            $oid = $record->getOid();
-            if ($this->map->hasFieldMapping($oid)) {
-                $refOid = $this->map->getFieldMapping($oid);
-                $refRepository = $this->getRefRepository($record, $this->ownerAlias);
-                return $refRepository->getByOid($refOid);
-            }
-        }
-        else {
-            $refRepository = $this->getRefRepository($record, $this->ownerAlias);
-            return $refRepository->getByInternalId($refId);
-        }
-        return null;
-    }
-
-
-    /**
-     * TODO move to ReferenceMap?
-     *
-     * @param Record $record
-     * @return bool|Record|null
-     * @throws RelationException
-     */
-    private function getRecordForReferencedSide(Record $record)
-    {
-        if ($this->isOneToMany()) {
-            throw new RelationException("Relation '$this->refAlias' does not expected a record as reference!");
-        }
-        $id = $record->getInternalIdentifier();
-        if ($this->map->hasReferenced($id)) {
-            $refId = $this->map->getOwning($id);
-            $refRepository = $this->getRefRepository($record, $this->refAlias);
-            return $refRepository->getByInternalId($refId);
-        }
-        return null;
-    }
-
-
-    /**
-     * Get relation referenced repository
-     *
-     * @param  Record $record
-     * @param  string $relationName
-     * @return \Dive\Table\Repository
-     */
-    public function getRefRepository(Record $record, $relationName)
-    {
-        $rm = $record->getTable()->getRecordManager();
-        $tableName = $this->isOwningSide($relationName) ? $this->refTable : $this->ownerTable;
-        $refTable = $rm->getTable($tableName);
-        return $refTable->getRepository();
     }
 
 

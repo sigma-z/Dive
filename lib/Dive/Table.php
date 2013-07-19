@@ -522,7 +522,9 @@ class Table
     public function createQuery($alias = 'a')
     {
         $from = $this->getTableName() . ' ' . $alias;
-        $query = new Query($this->rm);
+        $queryClass = $this->rm->getQueryClass();
+        /** @var Query $query */
+        $query = new $queryClass($this->rm);
         $query->from($from);
         return $query;
     }

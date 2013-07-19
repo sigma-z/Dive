@@ -54,6 +54,10 @@ class RecordManager
      * @var UnitOfWork\UnitOfWork
      */
     private $unitOfWork;
+    /**
+     * @var string
+     */
+    private $queryClass = '\Dive\Query\Query';
 
 
     /**
@@ -195,6 +199,28 @@ class RecordManager
         }
 
         return $this->relations[$name];
+    }
+
+
+    /**
+     * Sets query class
+     *
+     * @param string $queryClass
+     */
+    public function setQueryClass($queryClass)
+    {
+        $this->queryClass = $queryClass;
+    }
+
+
+    /**
+     * Gets query class
+     *
+     * @return string
+     */
+    public function getQueryClass()
+    {
+        return $this->queryClass;
     }
 
 

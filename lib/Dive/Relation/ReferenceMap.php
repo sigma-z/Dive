@@ -247,7 +247,7 @@ class ReferenceMap
 
 
     /**
-     * TODO explain method
+     * Updates record collections of referenced record (record collection is to be exchanged with another)
      *
      * @param Record                    $record
      * @param RecordCollection|Record[] $related
@@ -267,8 +267,7 @@ class ReferenceMap
         }
 
         // set references for new related records
-        $id = $record->getIntId();
-        $this->setReference($id, $related->getIdentifiers());
+        $this->setReference($record->getIntId(), $related->getIdentifiers());
         if (!$record->exists()) {
             foreach ($related as $relatedRecord) {
                 $this->setFieldMapping($relatedRecord->getOid(), $oid);
@@ -441,7 +440,7 @@ class ReferenceMap
 
 
     /**
-     * TODO explain method
+     * Removes owning record from record collection belonging to the referenced record given by it's id
      *
      * @param Record $record
      * @param string $oldRefId
@@ -477,7 +476,7 @@ class ReferenceMap
 
 
     /**
-     * TODO explain method
+     * Sets owning record reference to the referenced record given by it's id
      *
      * @param Record $record
      * @param string $newId

@@ -247,6 +247,8 @@ class ReferenceMap
 
 
     /**
+     * TODO explain method
+     *
      * @param Record                    $record
      * @param RecordCollection|Record[] $related
      */
@@ -343,7 +345,6 @@ class ReferenceMap
 
 
     /**
-     * TODO Refactor method into smaller parts
      * Updates record references for given owning record and given referenced record
      *
      * @param Record $owningRecord
@@ -361,24 +362,16 @@ class ReferenceMap
             $oldRefId = $this->getOldReferencedId($owningRecord);
         }
 
-        $ownerField = $this->relation->getOwnerField();
-        $refId = $referencedRecord ? $referencedRecord->getInternalIdentifier() : null;
-        if ($referencedRecord && $this->relation->isOneToOne() && $this->hasReferenced($refId)) {
-            $oldOwningId = $this->getOwning($refId);
-            $repositoryOwningSide = $this->getRefRepository(
-                $referencedRecord,
-                $this->relation->getReferencedAlias()
-            );
-            if ($repositoryOwningSide->hasByInternalId($oldOwningId)) {
-                $oldOwningRecord = $repositoryOwningSide->getByInternalId($oldOwningId);
-                $oldOwningRecord->set($ownerField, null);
-                $this->removeFieldMapping($oldOwningRecord->getOid());
-            }
+        // unlink the field mapping of the referenced record for the old owning record
+        if ($referencedRecord) {
+            $this->unlinkFieldMappingForOldOwningRecord($referencedRecord);
         }
 
         if ($owningRecord) {
             // set field reference id, if referenced record exists in database
             if (!$referencedRecord || $referencedRecord->exists()) {
+                $ownerField = $this->relation->getOwnerField();
+                $refId = $referencedRecord ? $referencedRecord->getIntId() : null;
                 $owningRecord->set($ownerField, $refId);
             }
             $this->updateFieldMapping($owningRecord, $referencedRecord);
@@ -404,9 +397,36 @@ class ReferenceMap
 
 
     /**
-     * TODO explain method
+     * Unlink the field mapping of the referenced record for the old owning record
      *
-     * @param Record $owningRecord
+     * @param  Record $referencedRecord
+     * @return array
+     */
+    private function unlinkFieldMappingForOldOwningRecord(Record $referencedRecord)
+    {
+        if (!$this->relation->isOneToOne()) {
+            return;
+        }
+
+        $refId = $referencedRecord->getIntId();
+        if (!$this->hasReferenced($refId)) {
+            return;
+        }
+        $oldOwningId = $this->getOwning($refId);
+        $repositoryOwningSide = $this->getRefRepository($referencedRecord, $this->relation->getReferencedAlias());
+        if ($repositoryOwningSide->hasByInternalId($oldOwningId)) {
+            $ownerField = $this->relation->getOwnerField();
+            $oldOwningRecord = $repositoryOwningSide->getByInternalId($oldOwningId);
+            $oldOwningRecord->set($ownerField, null);
+            $this->removeFieldMapping($oldOwningRecord->getOid());
+        }
+    }
+
+
+    /**
+     * Gets id of old referenced record
+     *
+     * @param  Record $owningRecord
      * @return bool|string
      */
     private function getOldReferencedId(Record $owningRecord)
@@ -484,6 +504,8 @@ class ReferenceMap
 
 
     /**
+     * Updates references between owner and referenced record collection
+     *
      * @param RecordCollection|Record[] $ownerCollection
      * @param RecordCollection|Record[] $referencedCollection
      */

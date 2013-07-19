@@ -33,6 +33,7 @@ namespace Dive;
 
 use Dive\Collection\RecordCollection;
 use Dive\Record\RecordException;
+use Dive\Relation\Relation;
 
 class Record
 {
@@ -433,9 +434,122 @@ class Record
     }
 
 
-    public function toArray($deep = true)
+    public function toArray($deep = true, $withMappedFields = false, array &$visited = array())
     {
-        return $this->_data;
+        $data = array();
+        if ($withMappedFields) {
+            $data = $this->_mappedValues;
+        }
+        $data = array_merge($data, $this->_data);
+
+        if ($deep) {
+            $references = $this->getReferencesAsArray($withMappedFields, $visited);
+            $data += $references;
+        }
+
+        return $data;
+    }
+
+
+    public function fromArray(array $data, $deep = true, $mapVirtualFields = false)
+    {
+        $rm = $this->getRecordManager();
+        foreach ($data as $name => $value) {
+            if ($this->_table->hasField($name)) {
+                $this->set($name, $value);
+            }
+            else if ($this->_table->hasRelation($name)) {
+                if ($deep) {
+                    $relation = $this->_table->getRelation($name);
+                    $relatedTable = $relation->getJoinTable($rm, $name);
+                    if ($relation->isOneToMany() && !$relation->isOwningSide($name)) {
+                        $collection = new RecordCollection($relatedTable, $this, $relation);
+                        foreach ($value as $relatedData) {
+                            $relatedRecord = $relatedTable->createRecord();
+                            $relatedRecord->fromArray($relatedData, $deep, $mapVirtualFields);
+                            $collection[] = $relatedRecord;
+                        }
+                        $this->set($name, $collection);
+                    }
+                    else {
+                        $relatedRecord = $relatedTable->createRecord();
+                        $relatedRecord->fromArray($value, $deep, $mapVirtualFields);
+                        $this->set($name, $relatedRecord);
+                    }
+                }
+            }
+            else if ($mapVirtualFields) {
+                $this->mapValue($name, $value);
+            }
+        }
+    }
+
+
+    private function getReferencesAsArray($withMappedFields, array &$visited)
+    {
+        $references = array();
+        $tableName = $this->_table->getTableName();
+        $relations = $this->_table->getRelations();
+        foreach ($relations as $relation) {
+            $ownerTable = $relation->getOwnerTable();
+            if ($tableName == $ownerTable) {
+                $ownerAlias = $relation->getOwnerAlias();
+                $reference = $this->getReferenceAsArray($relation, $ownerAlias, $withMappedFields, $visited);
+                if ($reference !== false) {
+                    $references[$ownerAlias] = $reference;
+                }
+            }
+
+            $refTable = $relation->getReferencedTable();
+            if ($tableName == $refTable) {
+                $refAlias = $relation->getReferencedAlias();
+                $reference = $this->getReferenceAsArray($relation, $refAlias, $withMappedFields, $visited);
+                if ($reference !== false) {
+                    $references[$refAlias] = $reference;
+                }
+            }
+        }
+        return $references;
+    }
+
+
+    private function getReferenceAsArray(Relation $relation, $relationAlias, $withMappedFields, array &$visited)
+    {
+        if ($relation->hasReferenceFor($this, $relationAlias)) {
+            /** @var Record|Record[]|RecordCollection $related */
+            $related = $this->get($relationAlias);
+            if ($relation->isOneToMany() && !$relation->isOwningSide($relationAlias)) {
+                $reference = array();
+                foreach ($related as $relatedRecord) {
+                    if (!$this->visited($relatedRecord, $visited)) {
+                        $visited[] = $relatedRecord->getOid();
+                        $reference[] = $relatedRecord->toArray(true, $withMappedFields, $visited);
+                    }
+                }
+                return $reference;
+            }
+            else {
+                $visited[] = $related->getOid();
+                return $related->toArray(true, $withMappedFields, $visited);
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     *
+     *
+     * @param  Record $relatedRecord
+     * @param  array  $visited
+     * @return bool
+     */
+    private function visited(Record $relatedRecord = null, array $visited = array())
+    {
+        if (!$relatedRecord) {
+            return true;
+        }
+        return in_array($relatedRecord->getOid(), $visited);
     }
 
 }

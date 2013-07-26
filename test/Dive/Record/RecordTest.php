@@ -11,7 +11,7 @@
  * Date: 30.01.13
  */
 
-namespace Dive\Test\Table;
+namespace Dive\Test\Record;
 
 use Dive\Log\SqlLogger;
 use Dive\Record;
@@ -310,115 +310,6 @@ class RecordTest extends TestCase
             ->where('id = ?', $user->id)
             ->limit(1);
         $this->assertFalse($query->fetchSingleScalar());
-    }
-
-
-    /**
-     * @dataProvider provideToFromArray
-     */
-    public function testToArray($tableName, array $data, $deep, $withMappedFields, $expected)
-    {
-        $table = $this->rm->getTable($tableName);
-        $user = $table->createRecord();
-        $user->fromArray($data, $deep, $withMappedFields);
-        $actual = $user->toArray($deep, $withMappedFields);
-        $this->assertEquals($expected, $actual);
-    }
-
-
-    public function provideToFromArray()
-    {
-        $testCases = array();
-
-        $schema = self::getSchema();
-        $authorFields = $schema->getTableFields('author');
-        $authorDefaultFields = array_combine(array_keys($authorFields), array_fill(0, count($authorFields), null));
-        $userData = array(
-            'username' => 'John',
-            'password' => 'secret',
-            'id' => 1234
-        );
-        $userMappedFields = array('column1' => 'foo', 'column2' => 'bar');
-        $authorData = array(
-            'firstname' => 'John',
-            'lastname' => 'Doe',
-            'email' => 'doe@example.com'
-        );
-        $authorMappedFields = array('initials' => 'jdo');
-        $userWithAuthorData = $userData + $userMappedFields + array('Author' => $authorData + $authorMappedFields);
-        $authorExpectedData = array('Author' => array_merge($authorDefaultFields, $authorData) + $authorMappedFields);
-
-        // TEST on user table
-        // test without relations, without mapped fields
-        $testCases[] = array(
-            'user',
-            $userWithAuthorData,
-            false,  // recursive flag
-            false,  // map fields flag
-            $userData
-        );
-        // test with one-to-one relation, with mapped fields
-        $testCases[] = array(
-            'user',
-            $userWithAuthorData,
-            false,  // recursive flag
-            true,   // map fields flag
-            $userData + $userMappedFields
-        );
-        // test with one-to-one relation, without mapped fields
-        $testCases[] = array(
-            'user',
-            $userWithAuthorData,
-            true,   // recursive flag
-            false,  // map fields flag
-            $userData + array('Author' => array_merge($authorDefaultFields, $authorData))
-        );
-        // test with one-to-one relation, with mapped fields
-        $testCases[] = array(
-            'user',
-            $userWithAuthorData,
-            true,   // recursive flag
-            true,   // map fields flag
-            $userData + $userMappedFields + $authorExpectedData
-        );
-
-
-        // TEST on author table
-        // test without relations, without mapped fields
-        $testCases[] = array(
-            'author',
-            $authorData + $authorMappedFields + array('User' => $userData + $userMappedFields),
-            false,  // recursive flag
-            false,  // map fields flag
-            array_merge($authorDefaultFields, $authorData)
-        );
-        // test with one-to-one relation, with mapped fields
-        $testCases[] = array(
-            'author',
-            $authorData + $authorMappedFields + array('User' => $userData + $userMappedFields),
-            false,  // recursive flag
-            true,   // map fields flag
-            array_merge($authorDefaultFields, $authorData) + $authorMappedFields
-        );
-        // test with one-to-one relation, without mapped fields
-        $testCases[] = array(
-            'author',
-            $authorData + $authorMappedFields + array('User' => $userData + $userMappedFields),
-            true,   // recursive flag
-            false,  // map fields flag
-            array_merge($authorDefaultFields, $authorData) + array('User' => $userData)
-        );
-        // test with one-to-one relation, with mapped fields
-        $testCases[] = array(
-            'author',
-            $authorData + $authorMappedFields + array('User' => $userData + $userMappedFields),
-            true,   // recursive flag
-            true,   // map fields flag
-            $authorData + $authorMappedFields + $authorDefaultFields + array('User' => $userData + $userMappedFields),
-        );
-
-        //return array($testCases[count($testCases) - 1]);
-        return $testCases;
     }
 
 }

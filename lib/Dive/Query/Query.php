@@ -781,10 +781,8 @@ class Query implements QueryInterface, QueryHydrationInterface
         if ($this->limit > 0) {
             $sql .= "\n" . ' LIMIT ' . $this->limit;
             if ($this->offset > 0) {
-                $sql .= ', ' . $this->offset;
-                return $sql;
+                $sql .= ' OFFSET ' . $this->offset;
             }
-            return $sql;
         }
         return $sql;
     }

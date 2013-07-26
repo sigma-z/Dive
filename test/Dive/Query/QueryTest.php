@@ -393,13 +393,13 @@ class QueryTest extends TestCase
                 array('limit', array(10)),
                 array('offset', array(5))
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u LIMIT 10, 5'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u LIMIT 10 OFFSET 5'
         );
         $testCases[] = array(
             'operations' => array(
                 array('limitOffset', array(10, 5)),
             ),
-            'expected' => 'SELECT u.id, u.username, u.password FROM user u LIMIT 10, 5'
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u LIMIT 10 OFFSET 5'
         );
         //-- limit/offset
 

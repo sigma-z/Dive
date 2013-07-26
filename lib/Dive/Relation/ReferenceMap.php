@@ -125,7 +125,7 @@ class ReferenceMap
      * @param  string $owningOid
      * @return bool
      */
-    private function hasFieldMapping($owningOid)
+    public function hasFieldMapping($owningOid)
     {
         return isset($this->ownerFieldOidMapping[$owningOid]);
     }

@@ -439,7 +439,13 @@ class Relation
      */
     public function hasReferenceFor(Record $record, $relationName)
     {
-        if (!$this->isOwningSide($relationName) && $this->isOneToMany()) {
+        $isOwningSide = $this->isOwningSide($relationName);
+
+        if ($isOwningSide && $this->map->hasFieldMapping($record->getOid())) {
+            return true;
+        }
+
+        if (!$isOwningSide && $this->isOneToMany()) {
             $reference = $this->map->getRelatedCollection($record->getOid());
             if ($reference) {
                 return true;

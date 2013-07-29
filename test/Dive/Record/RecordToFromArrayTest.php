@@ -179,16 +179,15 @@ class RecordToFromArrayTest extends TestCase
 
 
         $authorInputDataWithEditor = $authorOneFields + $authorOneMappedFields + array(
-            'Editor' => $authorTwoFields + $authorTwoMappedFields
+            'Editor' => array_merge($authorTwoMappedFields, $authorTwoFields)
         );
 
         $editorInputDataWithAuthor = $authorOneFields + $authorOneMappedFields + array(
             'Author' => array(
-                array($authorTwoFields + $authorTwoMappedFields),
-                array($authorThreeFields + $authorThreeMappedFields)
+                array_merge($authorTwoMappedFields, $authorTwoFields),
+                array_merge($authorThreeMappedFields, $authorThreeFields)
             )
         );
-
 
         $testCases = array();
 
@@ -198,21 +197,23 @@ class RecordToFromArrayTest extends TestCase
             $authorInputDataWithEditor,
             false,  // recursive flag
             false,  // map fields flag
-            $authorOneFields + $authorDefaultFields
+            array_merge($authorDefaultFields, $authorOneFields)
         );
         $testCases[] = array(
             'author',
             $authorInputDataWithEditor,
             false,  // recursive flag
             true,   // map fields flag
-            $authorOneFields + $authorDefaultFields + $authorOneMappedFields
+            array_merge($authorDefaultFields, $authorOneFields, $authorOneMappedFields)
         );
         $testCases[] = array(
             'author',
             $authorInputDataWithEditor,
             true,   // recursive flag
             false,  // map fields flag
-            $authorOneFields + $authorDefaultFields + array('Editor' => $authorTwoFields + $authorDefaultFields)
+            $authorOneFields + $authorDefaultFields + array(
+                'Editor' => array_merge($authorDefaultFields, $authorTwoFields)
+            )
         );
         $testCases[] = array(
             'author',
@@ -220,7 +221,7 @@ class RecordToFromArrayTest extends TestCase
             true,   // recursive flag
             true,   // map fields flag
             $authorOneFields + $authorDefaultFields + $authorOneMappedFields + array(
-                'Editor' => $authorTwoFields + $authorDefaultFields + $authorTwoMappedFields
+                'Editor' => array_merge($authorDefaultFields, $authorTwoFields, $authorTwoMappedFields)
             )
         );
 
@@ -237,34 +238,33 @@ class RecordToFromArrayTest extends TestCase
             $editorInputDataWithAuthor,
             false,  // recursive flag
             true,   // map fields flag
-            $authorOneFields + $authorDefaultFields + $authorOneMappedFields
+            array_merge($authorDefaultFields, $authorOneFields, $authorOneMappedFields)
         );
 
-        // TODO FIX IT!!
-//        $testCases[] = array(
-//            'author',
-//            $editorInputDataWithAuthor,
-//            true,   // recursive flag
-//            false,  // map fields flag
-//            $authorOneFields + $authorDefaultFields + array(
-//                'Author' => array(
-//                    array($authorTwoFields, $authorDefaultFields),
-//                    array($authorThreeFields, $authorDefaultFields),
-//                )
-//            )
-//        );
-//        $testCases[] = array(
-//            'author',
-//            $editorInputDataWithAuthor,
-//            true,   // recursive flag
-//            true,   // map fields flag
-//            $authorOneFields + $authorDefaultFields + $authorOneMappedFields + array(
-//                'Author' => array(
-//                    array($authorTwoFields, $authorDefaultFields + $authorTwoMappedFields),
-//                    array($authorThreeFields, $authorDefaultFields + $authorThreeMappedFields),
-//                )
-//            )
-//        );
+        $testCases[] = array(
+            'author',
+            $editorInputDataWithAuthor,
+            true,   // recursive flag
+            false,  // map fields flag
+            $authorOneFields + $authorDefaultFields + array(
+                'Author' => array(
+                    array_merge($authorDefaultFields, $authorTwoFields),
+                    array_merge($authorDefaultFields, $authorThreeFields)
+                )
+            )
+        );
+        $testCases[] = array(
+            'author',
+            $editorInputDataWithAuthor,
+            true,   // recursive flag
+            true,   // map fields flag
+            array_merge($authorDefaultFields, $authorOneFields, $authorOneMappedFields) + array(
+                'Author' => array(
+                    array_merge($authorDefaultFields, $authorTwoFields, $authorTwoMappedFields),
+                    array_merge($authorDefaultFields, $authorThreeFields, $authorThreeMappedFields)
+                )
+            )
+        );
 
         return $testCases;
     }

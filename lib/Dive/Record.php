@@ -513,8 +513,8 @@ class Record
         $relations = $this->_table->getRelations();
         foreach ($relations as $relation) {
             $ownerTable = $relation->getOwnerTable();
-            if ($tableName == $ownerTable) {
-                $ownerAlias = $relation->getOwnerAlias();
+            $ownerAlias = $relation->getOwnerAlias();
+            if ($tableName == $ownerTable && !isset($references[$ownerAlias])) {
                 $reference = $this->getReferenceAsArray($relation, $ownerAlias, $withMappedFields, $visited);
                 if ($reference !== false) {
                     $references[$ownerAlias] = $reference;
@@ -522,10 +522,10 @@ class Record
             }
 
             $refTable = $relation->getReferencedTable();
-            if ($tableName == $refTable) {
-                $refAlias = $relation->getReferencedAlias();
+            $refAlias = $relation->getReferencedAlias();
+            if ($tableName == $refTable && !isset($references[$refAlias])) {
                 $reference = $this->getReferenceAsArray($relation, $refAlias, $withMappedFields, $visited);
-                if ($reference !== false) {
+                if ($reference !== false && !isset($references[$refAlias])) {
                     $references[$refAlias] = $reference;
                 }
             }

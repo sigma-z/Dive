@@ -32,7 +32,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
 
         // assert test data setup was correct
         $this->assertEquals($author, $user->Author);
-        $expectedReferences = array($user->getIntId() => $author->getIntId());
+        $expectedReferences = array($user->getInternalId() => $author->getInternalId());
         $references = $relation->getReferences();
         $this->assertEquals($expectedReferences, $references);
 
@@ -42,7 +42,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         // assert unlink of reference
         $this->assertNull($user->Author);
         $references = $relation->getReferences();
-        $expectedReferences = array($user->getIntId() => null);
+        $expectedReferences = array($user->getInternalId() => null);
         $this->assertEquals($expectedReferences, $references);
     }
 
@@ -56,7 +56,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
 
         // assert test data setup was correct
         $this->assertEquals($user, $author->User);
-        $expectedReferences = array($user->getIntId() => $author->getIntId());
+        $expectedReferences = array($user->getInternalId() => $author->getInternalId());
         $references = $relation->getReferences();
         $this->assertEquals($expectedReferences, $references);
 
@@ -66,7 +66,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         // assert unlink of reference
         $this->assertNull($user->Author);
         $references = $relation->getReferences();
-        $expectedReferences = array($user->getIntId() => null);
+        $expectedReferences = array($user->getInternalId() => null);
         $this->assertEquals($expectedReferences, $references);
     }
 
@@ -84,7 +84,12 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         // assert test data setup was correct
         $this->assertEquals($editor, $authorOne->Editor);
         $this->assertEquals($editor, $authorTwo->Editor);
-        $expectedReferences = array($editor->getIntId() => array($authorOne->getIntId(), $authorTwo->getIntId()));
+        $expectedReferences = array(
+            $editor->getInternalId() => array(
+                $authorOne->getInternalId(),
+                $authorTwo->getInternalId()
+            )
+        );
         $references = $relation->getReferences();
         $this->assertEquals($expectedReferences, $references);
 
@@ -95,7 +100,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         $this->assertNull($authorOne->Editor);
         $this->assertNotNull($authorTwo->Editor);
         $references = $relation->getReferences();
-        $expectedReferences = array($editor->getIntId() => array($authorTwo->getIntId()));
+        $expectedReferences = array($editor->getInternalId() => array($authorTwo->getInternalId()));
         $this->assertEquals($expectedReferences, $references);
     }
 
@@ -113,9 +118,14 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
 
         // assert test data setup was correct
         $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author);
-        $expectedReferences = array($editor->getIntId() => array($authorOne->getIntId(), $authorTwo->getIntId()));
+        $expectedReferences = array(
+            $editor->getInternalId() => array(
+                $authorOne->getInternalId(),
+                $authorTwo->getInternalId()
+            )
+        );
         /** @noinspection PhpUndefinedMethodInspection */
-        $this->assertEquals($expectedReferences[$editor->getIntId()], $editor->Author->getIdentifiers());
+        $this->assertEquals($expectedReferences[$editor->getInternalId()], $editor->Author->getIdentifiers());
         $references = $relation->getReferences();
         $this->assertEquals($expectedReferences, $references);
 
@@ -126,7 +136,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
         $this->assertNull($authorOne->Editor);
         $this->assertNull($authorTwo->Editor);
         $references = $relation->getReferences();
-        $expectedReferences = array($editor->getIntId() => array());
+        $expectedReferences = array($editor->getInternalId() => array());
         $this->assertEquals($expectedReferences, $references);
     }
 

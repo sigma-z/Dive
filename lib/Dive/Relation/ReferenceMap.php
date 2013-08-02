@@ -267,7 +267,7 @@ class ReferenceMap
         }
 
         // set references for new related records
-        $this->setReference($record->getIntId(), $related->getIdentifiers());
+        $this->setReference($record->getInternalId(), $related->getIdentifiers());
         if (!$record->exists()) {
             foreach ($related as $relatedRecord) {
                 $this->setFieldMapping($relatedRecord->getOid(), $oid);
@@ -333,7 +333,7 @@ class ReferenceMap
         if ($this->relation->isOneToMany()) {
             throw new RelationException("Relation '$refAlias' does not expected a record as reference!");
         }
-        $id = $record->getIntId();
+        $id = $record->getInternalId();
         if ($this->hasReferenced($id)) {
             $refId = $this->getOwning($id);
             $refRepository = $this->getRefRepository($record, $refAlias);
@@ -370,7 +370,7 @@ class ReferenceMap
             // set field reference id, if referenced record exists in database
             if (!$referencedRecord || $referencedRecord->exists()) {
                 $ownerField = $this->relation->getOwnerField();
-                $refId = $referencedRecord ? $referencedRecord->getIntId() : null;
+                $refId = $referencedRecord ? $referencedRecord->getInternalId() : null;
                 $owningRecord->set($ownerField, $refId);
             }
             $this->updateFieldMapping($owningRecord, $referencedRecord);
@@ -382,8 +382,8 @@ class ReferenceMap
         }
         // link new reference
         if ($referencedRecord) {
-            $owningId = $owningRecord ? $owningRecord->getIntId() : null;
-            $this->assignReference($owningId, $referencedRecord->getIntId());
+            $owningId = $owningRecord ? $owningRecord->getInternalId() : null;
+            $this->assignReference($owningId, $referencedRecord->getInternalId());
             if ($owningId) {
                 $relatedCollection = $this->getRelatedCollection($referencedRecord->getOid());
                 // TODO exception, or if not set create one??
@@ -407,7 +407,7 @@ class ReferenceMap
             return;
         }
 
-        $refId = $referencedRecord->getIntId();
+        $refId = $referencedRecord->getInternalId();
         if (!$this->hasReferenced($refId)) {
             return;
         }
@@ -451,7 +451,7 @@ class ReferenceMap
             return;
         }
         if ($this->relation->isOneToMany()) {
-            $owningId = $record->getIntId();
+            $owningId = $record->getInternalId();
             if (isset($this->references[$oldRefId])) {
                 $pos = array_search($owningId, $this->references[$oldRefId]);
                 if ($pos !== false) {
@@ -486,7 +486,7 @@ class ReferenceMap
         if (!$newId) {
             return;
         }
-        $id = $record->getInternalIdentifier();
+        $id = $record->getInternalId();
         if ($this->relation->isOneToMany()) {
             $refRepository = $this->getRefRepository($record, $this->relation->getOwnerAlias());
             $newRefRecord = $refRepository->getByInternalId($newId);
@@ -517,12 +517,12 @@ class ReferenceMap
         $isOneToMany = $this->relation->isOneToMany();
         foreach ($ownerCollection as $refRecord) {
             $refId = $refRecord->get($ownerField);
-            $ownerId = $refRecord->getIntId();
+            $ownerId = $refRecord->getInternalId();
             $this->assignReference($ownerId, $refId);
         }
 
         foreach ($referencedCollection as $refRecord) {
-            $id = $refRecord->getIntId();
+            $id = $refRecord->getInternalId();
             if (!$this->hasReferenced($id)) {
                 $this->setReference($id, $isOneToMany ? array() : null);
             }

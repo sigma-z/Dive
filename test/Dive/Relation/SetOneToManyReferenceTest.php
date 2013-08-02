@@ -124,14 +124,14 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
 
         // assertions
         $editorReferences = $author->getTable()->getRelation('Editor')->getReferences();
-        $expectedReferenced = array($editor->getInternalIdentifier() => array($author->getInternalIdentifier()));
+        $expectedReferenced = array($editor->getInternalId() => array($author->getInternalId()));
         $this->assertEquals($expectedReferenced, $editorReferences);
 
         $this->assertEquals($authorCollection, $editor->Author);
 
         $user->Author = $author;
         $userEditor->Author = $editor;
-        $this->assertEquals($user, $userEditor->Author->Author[$author->getInternalIdentifier()]->User);
+        $this->assertEquals($user, $userEditor->Author->Author[$author->getInternalId()]->User);
     }
 
 
@@ -154,7 +154,7 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
 
         // assertions
         $editorReferences = $author->getTable()->getRelation('Editor')->getReferences();
-        $expectedReferenced = array($editor->getInternalIdentifier() => array($author->getInternalIdentifier()));
+        $expectedReferenced = array($editor->getInternalId() => array($author->getInternalId()));
         $this->assertEquals($expectedReferenced, $editorReferences);
 
         $this->assertEquals($editor, $author->Editor);  // fails when args: [true, true]

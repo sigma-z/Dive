@@ -191,13 +191,7 @@ class Record
     }
 
 
-    public function getIntId()
-    {
-        return $this->getInternalIdentifier();
-    }
-
-
-    public function getInternalIdentifier()
+    public function getInternalId()
     {
         $id = '';
         if ($this->exists()) {
@@ -510,7 +504,7 @@ class Record
                         foreach ($value as $relatedData) {
                             $relatedRecord = $relatedTable->createRecord();
                             $relatedRecord->fromArray($relatedData, $deep, $mapVirtualFields);
-                            $collection[$relatedRecord->getIntId()] = $relatedRecord;
+                            $collection[$relatedRecord->getInternalId()] = $relatedRecord;
                         }
                         $this->set($name, $collection);
                     }

@@ -331,7 +331,7 @@ class Relation
      */
     public function getRecordReferencedIdentifiers(Record $record, $relationName)
     {
-        $id = $record->getIntId();
+        $id = $record->getInternalId();
         $isOwningSide = $this->isOwningSide($relationName);
         if ($isOwningSide) {
             return $record->get($this->ownerField);

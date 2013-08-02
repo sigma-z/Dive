@@ -88,7 +88,7 @@ class RepositoryTest extends TestCase
     public function testGetByInternalId($exist)
     {
         $record = $this->table->createRecord(array('id' => 7, 'username' => 'Bart'), $exist);
-        $id = $record->getInternalIdentifier();
+        $id = $record->getInternalId();
         $isInRepository = $this->repository->hasByInternalId($id);
         $this->assertTrue($isInRepository);
         $this->assertEquals($record, $this->repository->getByInternalId($id));

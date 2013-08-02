@@ -43,14 +43,14 @@ class RecordCollectionTest extends TestCase
     public function testAddNewRecord()
     {
         $user = $this->addRecordToCollection();
-        $this->assertTrue($this->userColl->has($user->getInternalIdentifier()));
+        $this->assertTrue($this->userColl->has($user->getInternalId()));
     }
 
 
     public function testAddExistingRecord()
     {
         $user = $this->addRecordToCollection(array('id' => 7, 'username' => 'Bart'), true);
-        $expected = $this->userColl->has($user->getInternalIdentifier());
+        $expected = $this->userColl->has($user->getInternalId());
         $this->assertTrue($expected);
     }
 
@@ -79,7 +79,7 @@ class RecordCollectionTest extends TestCase
     public function testRemoveRecord()
     {
         $user = $this->addRecordToCollection();
-        $id = $user->getInternalIdentifier();
+        $id = $user->getInternalId();
         $this->assertTrue($this->userColl->removeRecord($user));
         $this->assertFalse($this->userColl->has($id));
     }
@@ -88,7 +88,7 @@ class RecordCollectionTest extends TestCase
     public function testGetIdentifiers()
     {
         $user = $this->addRecordToCollection();
-        $expected = array($user->getInternalIdentifier());
+        $expected = array($user->getInternalId());
         $actual = $this->userColl->getIdentifiers();
         $this->assertEquals($expected, $actual);
     }
@@ -99,7 +99,7 @@ class RecordCollectionTest extends TestCase
         $table = $this->userColl->getTable();
         $user = $table->createRecord();
         $this->userColl->add($user);
-        $this->assertTrue($this->userColl->has($user->getInternalIdentifier()));
+        $this->assertTrue($this->userColl->has($user->getInternalId()));
     }
 
 
@@ -109,7 +109,7 @@ class RecordCollectionTest extends TestCase
         $user = $table->createRecord();
         $this->userColl[] = $user;
         /** @noinspection PhpUndefinedMethodInspection */
-        $this->assertTrue($this->userColl->has($user->getInternalIdentifier()));
+        $this->assertTrue($this->userColl->has($user->getInternalId()));
     }
 
 
@@ -117,8 +117,8 @@ class RecordCollectionTest extends TestCase
     {
         $userOne = $this->addRecordToCollection();
         $userTwo = $this->addRecordToCollection(array('id' => 7, 'username' => 'Bart'), true);
-        $expected[$userOne->getInternalIdentifier()] = $userOne->toArray();
-        $expected[$userTwo->getInternalIdentifier()] = $userTwo->toArray();
+        $expected[$userOne->getInternalId()] = $userOne->toArray();
+        $expected[$userTwo->getInternalId()] = $userTwo->toArray();
         $this->assertEquals($expected, $this->userColl->toArray(true));
     }
 

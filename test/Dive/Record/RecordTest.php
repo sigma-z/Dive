@@ -107,14 +107,14 @@ class RecordTest extends TestCase
     public function testGetInternalIdentifierForExistingRecord()
     {
         $record = $this->table->createRecord(array('id' => 1234), true);
-        $this->assertEquals(1234, $record->getInternalIdentifier());
+        $this->assertEquals(1234, $record->getInternalId());
     }
 
 
     public function testGetInternalIdentifierForNewRecord()
     {
         $record = $this->table->createRecord(array('id' => 1234), false);
-        $this->assertEquals(Record::NEW_RECORD_ID_MARK . $record->getOid(), $record->getInternalIdentifier());
+        $this->assertEquals(Record::NEW_RECORD_ID_MARK . $record->getOid(), $record->getInternalId());
     }
 
 

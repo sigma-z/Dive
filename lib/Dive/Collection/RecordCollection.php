@@ -77,7 +77,7 @@ class RecordCollection extends Collection
         $this->throwExceptionIfRecordDoesNotMatchTable($item);
 
         if (null === $id) {
-            $id = $item->getInternalIdentifier();
+            $id = $item->getInternalId();
         }
         // TODO throw exception record already added??
         $has = $this->has($id);
@@ -133,7 +133,7 @@ class RecordCollection extends Collection
      */
     public function removeRecord(Record $record)
     {
-        return $this->remove($record->getInternalIdentifier());
+        return $this->remove($record->getInternalId());
     }
 
 

@@ -20,25 +20,12 @@ class RecordToFromArrayTest extends TestCase
 {
 
     /**
-     * @var RecordManager
-     */
-    private $rm;
-
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->rm = self::createDefaultRecordManager();
-    }
-
-
-    /**
      * @dataProvider provideToFromArray
      */
     public function testToFromArray($tableName, array $data, $deep, $withMappedFields, $expected)
     {
-        $table = $this->rm->getTable($tableName);
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable($tableName);
         $user = $table->createRecord();
         $user->fromArray($data, $deep, $withMappedFields);
         $actual = $user->toArray($deep, $withMappedFields);
@@ -51,7 +38,6 @@ class RecordToFromArrayTest extends TestCase
         $testCases = array();
         $testCases = array_merge($testCases, $this->provideToFromArrayOneToOneTestCases());
         $testCases = array_merge($testCases, $this->provideToFromArrayOneToManyTestCases());
-//        return array($testCases[count($testCases) - 1]);
         return $testCases;
     }
 

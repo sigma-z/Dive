@@ -40,7 +40,7 @@ class ChangeSet implements ChangeSetInterface
     {
         $this->mode = self::SAVE;
         $this->resetScheduled();
-        $this->processGraph($record);
+        $this->processRecord($record);
     }
 
 
@@ -48,7 +48,7 @@ class ChangeSet implements ChangeSetInterface
     {
         $this->mode = self::DELETE;
         $this->resetScheduled();
-        $this->processGraph($record);
+        $this->processRecord($record);
     }
 
 
@@ -72,22 +72,55 @@ class ChangeSet implements ChangeSetInterface
     }
 
 
-    private function processGraph(Record $record)
+    private function processRecord(Record $record, array &$visited = array())
     {
-        $recordExists = $record->exists();
-        if ($this->isDelete()) {
-            if ($recordExists) {
-                $this->scheduledForDelete[] = $record;
-            }
+        $oid = $record->getOid();
+        if (in_array($oid, $visited)) {
             return;
         }
-        if ($recordExists) {
-            if ($record->isModified()) {
-                $this->scheduledForUpdate[] = $record;
+        $visited[] = $oid;
+
+        $relations = $record->getTable()->getRelations();
+        foreach ($relations as $relationName => $relation) {
+            if ($relation->isOwningSide($relationName) && $relation->hasReferenceFor($record, $relationName)) {
+                $related = $record->get($relationName);
+                $this->processRecord($related, $visited);
             }
         }
-        else {
-            $this->scheduledForInsert[] = $record;
+
+        $this->scheduleRecord($record);
+
+        foreach ($relations as $relationName => $relation) {
+            if (!$relation->isOwningSide($relationName) && $relation->hasReferenceFor($record, $relationName)) {
+                $related = $record->get($relationName);
+                if ($relation->isOneToMany()) {
+                    foreach ($related as $relatedRecord) {
+                        $this->processRecord($relatedRecord, $visited);
+                    }
+                }
+                else {
+                    $this->processRecord($related, $visited);
+                }
+            }
+        }
+    }
+
+
+    private function scheduleRecord(Record $record)
+    {
+        $recordExists = $record->exists();
+        if ($this->isSave()) {
+            if ($recordExists) {
+                if ($record->isModified()) {
+                    $this->scheduledForUpdate[] = $record;
+                }
+            }
+            else {
+                $this->scheduledForInsert[] = $record;
+            }
+        }
+        else if ($recordExists) {
+            $this->scheduledForDelete[] = $record;
         }
     }
 

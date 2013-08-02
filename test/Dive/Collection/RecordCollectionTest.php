@@ -115,7 +115,6 @@ class RecordCollectionTest extends TestCase
 
     public function testToArray()
     {
-        $this->markTestIncomplete('Dive\Record::toArray() has to be implemented first!');
         $userOne = $this->addRecordToCollection();
         $userTwo = $this->addRecordToCollection(array('id' => 7, 'username' => 'Bart'), true);
         $expected[$userOne->getInternalIdentifier()] = $userOne->toArray();

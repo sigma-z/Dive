@@ -271,10 +271,15 @@ class RecordTest extends TestCase
         $user->password = md5('my secret!');
         $user->save();
 
+        // removing existing flag from user array
+        $userAsArray = $user->toArray();
+        unset($userAsArray[Record::FROM_ARRAY_EXISTS_KEY]);
+
         $table = $rm->getTable('user');
         $query = $table->createQuery();
         $query->where('id = ?', $user->id);
-        $this->assertEquals($user->toArray(), $query->fetchOneAsArray());
+
+        $this->assertEquals($userAsArray, $query->fetchOneAsArray());
     }
 
 

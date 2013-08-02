@@ -24,6 +24,7 @@ use Dive\TestSuite\TestCase;
 class QueryTest extends TestCase
 {
 
+    /** @var array */
     private static $usersData = array(
         array(
             'username' => 'John Doe',
@@ -39,7 +40,7 @@ class QueryTest extends TestCase
     /**
      * @dataProvider provideSqlParts
      */
-    public function testGetSql($operations = array(), $expected)
+    public function testGetSql($operations, $expected)
     {
         $rm = self::createDefaultRecordManager();
         $query = $rm->createQuery('user', 'u');
@@ -615,16 +616,22 @@ class QueryTest extends TestCase
             'expected' => $expected
         );
 
+        $usersDataWithExistsFlag = array();
+        foreach (self::$usersData as $userData) {
+            $userData[Record::FROM_ARRAY_EXISTS_KEY] = true;
+            $usersDataWithExistsFlag[] = $userData;
+        }
+
         $testCases[] = array(
             'fetchMode' => RecordManager::FETCH_RECORD,
             'method' => 'fetchOneAsObject',
-            'expected' => self::$usersData[0]
+            'expected' => $usersDataWithExistsFlag[0]
         );
 
         $testCases[] = array(
             'fetchMode' => RecordManager::FETCH_RECORD_COLLECTION,
             'method' => 'fetchObjects',
-            'expected' => self::$usersData
+            'expected' => $usersDataWithExistsFlag
         );
 
         return self::getDatabaseAwareTestCases($testCases);

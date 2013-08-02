@@ -238,8 +238,9 @@ class RecordManager
 
 
     /**
-     * @param Record $record
-     * @param UnitOfWork\ChangeSet $changeSet
+     * @param  Record $record
+     * @param  UnitOfWork\ChangeSet $changeSet
+     * @return UnitOfWork\ChangeSet
      */
     public function saveRecord(Record $record, UnitOfWork\ChangeSet $changeSet = null)
     {
@@ -247,12 +248,14 @@ class RecordManager
             $changeSet = new UnitOfWork\ChangeSet();
         }
         $this->unitOfWork->saveGraph($record, $changeSet);
+        return $changeSet;
     }
 
 
     /**
-     * @param Record $record
-     * @param UnitOfWork\ChangeSet $changeSet
+     * @param  Record $record
+     * @param  UnitOfWork\ChangeSet $changeSet
+     * @return UnitOfWork\ChangeSet
      */
     public function deleteRecord(Record $record, UnitOfWork\ChangeSet $changeSet = null)
     {
@@ -260,6 +263,7 @@ class RecordManager
             $changeSet = new UnitOfWork\ChangeSet();
         }
         $this->unitOfWork->deleteGraph($record, $changeSet);
+        return $changeSet;
     }
 
 

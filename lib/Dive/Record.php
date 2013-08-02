@@ -40,7 +40,7 @@ class Record
 
     const NEW_RECORD_ID_MARK = "_";
     const COMPOSITE_ID_SEPARATOR = '|';
-
+    const FROM_ARRAY_EXISTS_KEY = '_exists_';
 
     /**
      * @var array
@@ -401,7 +401,8 @@ class Record
     public function save()
     {
         $rm = $this->_table->getRecordManager();
-        $rm->saveRecord($this);
+        $changeSet = $rm->saveRecord($this);
+        return $changeSet;
     }
 
 
@@ -411,8 +412,9 @@ class Record
     public function delete()
     {
         $rm = $this->_table->getRecordManager();
-        $rm->deleteRecord($this);
+        $changeSet = $rm->deleteRecord($this);
         $this->_exists = false;
+        return $changeSet;
     }
 
 
@@ -434,6 +436,25 @@ class Record
     }
 
 
+    public function refresh()
+    {
+        if (!$this->_exists) {
+            return;
+        }
+
+        $identifier = $this->getIdentifier();
+        $values = $this->_table->findByPk($identifier, RecordManager::FETCH_SINGLE_ARRAY);
+
+        if ($values !== false) {
+            $this->_data = $values;
+            $this->_modifiedFields = array();
+        }
+        else {
+            $this->_exists = false;
+        }
+    }
+
+
     /**
      * @param  bool  $deep
      * @param  bool  $withMappedFields
@@ -442,11 +463,12 @@ class Record
      */
     public function toArray($deep = true, $withMappedFields = false, array &$visited = array())
     {
-        if (in_array($this->getOid(), $visited)) {
+        $oid = $this->getOid();
+        if (in_array($oid, $visited)) {
             return false;
         }
 
-        $visited[] = $this->getOid();
+        $visited[] = $oid;
         $data = array();
         if ($withMappedFields) {
             $data = $this->_mappedValues;
@@ -456,6 +478,10 @@ class Record
         if ($deep) {
             $references = $this->getReferencesAsArray($withMappedFields, $visited);
             $data += $references;
+        }
+
+        if ($this->exists()) {
+            $data[self::FROM_ARRAY_EXISTS_KEY] = true;
         }
 
         return $data;
@@ -469,6 +495,7 @@ class Record
      */
     public function fromArray(array $data, $deep = true, $mapVirtualFields = false)
     {
+        $exists = false;
         $rm = $this->getRecordManager();
         foreach ($data as $name => $value) {
             if ($this->_table->hasField($name)) {
@@ -483,7 +510,7 @@ class Record
                         foreach ($value as $relatedData) {
                             $relatedRecord = $relatedTable->createRecord();
                             $relatedRecord->fromArray($relatedData, $deep, $mapVirtualFields);
-                            $collection[] = $relatedRecord;
+                            $collection[$relatedRecord->getIntId()] = $relatedRecord;
                         }
                         $this->set($name, $collection);
                     }
@@ -494,9 +521,17 @@ class Record
                     }
                 }
             }
+            else if ($name == self::FROM_ARRAY_EXISTS_KEY) {
+                $exists = true;
+            }
             else if ($mapVirtualFields) {
                 $this->mapValue($name, $value);
             }
+        }
+
+        if ($exists) {
+            $this->_exists = true;
+            $this->refresh();
         }
     }
 

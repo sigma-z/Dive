@@ -82,14 +82,14 @@ class UnitOfWork
         $conn = $this->rm->getConnection();
         try {
             $conn->beginTransaction();
+            foreach ($changeSet->getScheduledForDelete() as $recordDelete) {
+                $this->doDelete($recordDelete);
+            }
             foreach ($changeSet->getScheduledForInsert() as $recordInsert) {
                 $this->doInsert($recordInsert);
             }
             foreach ($changeSet->getScheduledForUpdate() as $recordUpdate) {
                 $this->doUpdate($recordUpdate);
-            }
-            foreach ($changeSet->getScheduledForDelete() as $recordDelete) {
-                $this->doDelete($recordDelete);
             }
             $conn->commit();
         }

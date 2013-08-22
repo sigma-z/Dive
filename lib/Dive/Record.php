@@ -214,15 +214,23 @@ class Record
             throw new RecordException(
                 "Identifier '"
                     . implode(self::COMPOSITE_ID_SEPARATOR, $identifier)
-                    .  "' does not match table identifier!"
+                    . "' does not match table identifier!"
             );
         }
 
+        $oldIdentifier = $this->getInternalId();
         foreach ($identifier as $fieldName => $id) {
             $this->_data[$fieldName] = $id;
         }
         $this->_modifiedFields = array();
         $this->_exists = true;
+
+        $relations = $this->_table->getRelations();
+        foreach ($relations as $relationName => $relation) {
+            if (!$relation->isOwningSide($relationName)) {
+                $relation->updateRecordIdentifier($this, $oldIdentifier);
+            }
+        }
     }
 
 

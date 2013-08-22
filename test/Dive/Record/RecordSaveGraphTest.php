@@ -23,8 +23,6 @@ class RecordSaveGraphTest extends TestCase
      */
     public function testSaveGraph($tableName, array $graphData, $expectedOperation)
     {
-        $this->markTestIncomplete();
-
         $rm = self::createDefaultRecordManager();
         $table = $rm->getTable($tableName);
 
@@ -37,6 +35,9 @@ class RecordSaveGraphTest extends TestCase
         $method = 'getScheduledFor' . ucfirst($expectedOperation);
         $affected = call_user_func(array($changeSet, $method));
         $this->assertTrue(in_array($record, $affected, true));
+
+        // TODO generalize assertion for data provider
+        $this->assertEquals($record->User->getIdentifierAsString(), $record->user_id);
     }
 
 

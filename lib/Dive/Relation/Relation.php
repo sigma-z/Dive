@@ -16,8 +16,6 @@ use Dive\RecordManager;
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.10.12
- *
- * TODO refactor class by moving methods to ReferenceUpdater and ReferenceLoader??
  */
 
 class Relation
@@ -575,6 +573,16 @@ class Relation
     public function updateRecordReference(Record $owningRecord = null, Record $referencedRecord = null)
     {
         $this->map->updateRecordReference($owningRecord, $referencedRecord);
+    }
+
+
+    /**
+     * @param Record $referencedRecord
+     * @param string $oldReferencedId
+     */
+    public function updateRecordIdentifier(Record $referencedRecord, $oldReferencedId)
+    {
+        $this->map->updateRecordIdentifier($referencedRecord, $oldReferencedId);
     }
 
 

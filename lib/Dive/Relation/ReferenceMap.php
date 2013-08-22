@@ -395,6 +395,34 @@ class ReferenceMap
     }
 
 
+    public function updateRecordIdentifier(Record $referencedRecord, $oldReferencedId)
+    {
+        $oid = $referencedRecord->getOid();
+        if (isset($this->relatedCollections[$oid][$oldReferencedId])) {
+            // TODO change collection identifier!!
+        }
+        if (isset($this->references[$oldReferencedId])) {
+            if ($this->relation->isOneToMany()) {
+                $owningIds = $this->references[$oldReferencedId];
+            }
+            else {
+                $owningIds = array($this->references[$oldReferencedId]);
+            }
+
+            if (!empty($owningIds)) {
+                $referenceId = $referencedRecord->getIdentifier();
+                $owningRepository = $this->getRefRepository($referencedRecord, $this->relation->getReferencedAlias());
+                foreach ($owningIds as $owningId) {
+                    $owningRecord = $owningRepository->getByInternalId($owningId);
+                    // TODO will probably cause an infinity recursion
+                    $owningRecord->set($this->relation->getOwnerField(), $referenceId);
+                    unset($this->ownerFieldOidMapping[$owningRecord->getOid()]);
+                }
+            }
+        }
+    }
+
+
     /**
      * Unlink the field mapping of the referenced record for the old owning record
      *

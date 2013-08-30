@@ -48,6 +48,19 @@ class Query implements QueryInterface, QueryHydrationInterface
     /**
      * @var array
      */
+    protected $sqlParts = array(
+        'select'    => '',
+        'from'      => '',
+        'where'     => '',
+        'groupBy'   => '',
+        'having'    => '',
+        'orderBy'   => '',
+        'forUpdate' => ''
+    );
+
+    /**
+     * @var array
+     */
     protected $params = array(
         'select'    => array(),
         'from'      => array(),
@@ -642,12 +655,68 @@ class Query implements QueryInterface, QueryHydrationInterface
 
 
     /**
+     * @return Query
+     */
+    public function copy()
+    {
+       return clone $this;
+    }
+
+
+    public function __clone()
+    {
+        $this->isDirty = true;
+        $this->sqlParts = array();
+        $this->sql = '';
+        $this->parser = clone $this->parser;
+    }
+
+
+    /**
+     * TODO solution is NOT nice and NOT fast, use CONCAT for composite primary keys (remind: database portability)
+     */
+    public function countByPk()
+    {
+        $this->parse();
+
+        // build pdo statement
+        $stmt = $this->getConnection()->getStatement($this->sql, $this->getParamsFlattened());
+        $hydrator = $this->rm->getHydrator(RecordManager::FETCH_ARRAY);
+        $hydrator->setStatement($stmt);
+        $result = $hydrator->getResult();
+        return count($result);
+    }
+
+
+    /**
      * @return int
      */
     public function count()
     {
-        // TODO: Implement count() method.
-        return 0;
+        $this->parse();
+
+        $sqlParts = $this->sqlParts;
+        $sqlParts['orderBy'] = '';
+        $params = $this->params;
+        unset($params['orderBy']);
+
+        // no grouping, then just replace select clause
+        if (empty($sqlParts['groupBy'])) {
+            unset($params['select']);
+            $sqlParts['select'] = 'SELECT COUNT(*)';
+            $sql = implode("\n", $sqlParts);
+        }
+        // otherwise use sub query
+        else {
+            $sql = implode("\n", $sqlParts);
+            $sql = 'SELECT COUNT(*) FROM (' . $sql . ') __tmp';
+        }
+
+        // build pdo statement
+        $stmt = $this->getConnection()->getStatement($sql, $this->getParamsFlattened($params));
+        $hydrator = $this->rm->getHydrator(RecordManager::FETCH_SINGLE_SCALAR);
+        $hydrator->setStatement($stmt);
+        return (int)$hydrator->getResult();
     }
 
 
@@ -773,6 +842,8 @@ class Query implements QueryInterface, QueryHydrationInterface
 
 
     /**
+     * TODO what about database portability here?
+     *
      * @param  string $sql
      * @return string
      */
@@ -793,7 +864,8 @@ class Query implements QueryInterface, QueryHydrationInterface
         if (!$this->isDirty) {
             return;
         }
-        $this->sql = $this->parser->parseQuery($this);
+        $this->sqlParts = $this->parser->parseQuery($this);
+        $this->sql = implode("\n", $this->sqlParts);
         $this->isDirty = false;
     }
 
@@ -827,15 +899,18 @@ class Query implements QueryInterface, QueryHydrationInterface
      *
      * @return array
      */
-    public function getParamsFlattened()
+    public function getParamsFlattened($params = null)
     {
-        $params = array();
-        foreach ($this->params as $partParams) {
+        if (null === $params) {
+            $params = $this->params;
+        }
+        $flattenParams = array();
+        foreach ($params as $partParams) {
             if (!empty($partParams)) {
-                $params = array_merge($params, $partParams);
+                $flattenParams = array_merge($flattenParams, $partParams);
             }
         }
-        return $params;
+        return $flattenParams;
     }
 
 

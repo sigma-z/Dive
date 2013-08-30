@@ -43,18 +43,20 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * @var Connection[]
      */
-    private static $connectionCache = array();
+    private static $connectionPoolTestClass = array();
+    /**
+     * @var bool
+     */
+    private static $isTestCase = false;
 
 
     public static function setUpBeforeClass()
     {
         self::$debug = false;
         self::checkTablesAreEmpty();
+        self::$datasetRegistryTestClass = new DatasetRegistry();
 
         parent::setUpBeforeClass();
-
-        self::$datasetRegistryTestCase = null;
-        self::$datasetRegistryTestClass = new DatasetRegistry();
     }
 
 
@@ -62,6 +64,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         parent::tearDownAfterClass();
         self::removeDatasets(self::$datasetRegistryTestClass);
+
+        foreach (self::$connectionPoolTestClass as $conn) {
+            $conn->disconnect();
+        }
+        self::$connectionPoolTestClass = array();
+        self::$datasetRegistryTestClass = null;
     }
 
 
@@ -69,6 +77,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
         self::$datasetRegistryTestCase = new DatasetRegistry();
+        self::$isTestCase = true;
     }
 
 
@@ -77,10 +86,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         parent::tearDown();
         self::removeDatasets(self::$datasetRegistryTestCase);
 
-        foreach (self::$connectionCache as $conn) {
-            $conn->disconnect();
-        }
-        self::$connectionCache = array();
+        self::$datasetRegistryTestCase = null;
+        self::$isTestCase = false;
     }
 
 
@@ -268,25 +275,28 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     public static function createDatabaseConnection(array $database)
     {
-        $scheme = self::getSchemeFromDsn($database['dsn']);
-        /** @var \Dive\Connection\Driver\DriverInterface $driver */
-        $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
-        $conn = new Connection($driver, $database['dsn'], $database['user'], $database['password']);
-        $eventDispatcher = $conn->getEventDispatcher();
-        $datasetRegistry = self::$datasetRegistryTestCase
-            ? self::$datasetRegistryTestCase
-            : self::$datasetRegistryTestClass;
-        $debug = self::$debug;
-        $callOnEvent = function(ConnectionRowChangeEvent $event) use ($datasetRegistry, $debug) {
-            $identifier = $event->getIdentifier();
-            if ($debug) {
-                echo 'add record to registry ' . $event->getTable()->getTableName() . ' ' . implode(',', $identifier) . "\n";
-            }
-            $datasetRegistry->add($event->getTable(), $identifier);
-        };
-        $eventDispatcher->addListener(Connection::EVENT_POST_INSERT, $callOnEvent);
-        self::$connectionCache[] = $conn;
-        return $conn;
+        $dsn = $database['dsn'];
+        if (!isset(self::$connectionPoolTestClass[$dsn])) {
+            $scheme = self::getSchemeFromDsn($dsn);
+            /** @var \Dive\Connection\Driver\DriverInterface $driver */
+            $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
+            $conn = new Connection($driver, $dsn, $database['user'], $database['password']);
+            $eventDispatcher = $conn->getEventDispatcher();
+            $eventDispatcher->addListener(Connection::EVENT_POST_INSERT, array(__CLASS__, 'addToDatasetRegistry'));
+            self::$connectionPoolTestClass[$dsn] = $conn;
+        }
+        return self::$connectionPoolTestClass[$dsn];
+    }
+
+
+    public static function addToDatasetRegistry(ConnectionRowChangeEvent $event)
+    {
+        $datasetRegistry = self::$isTestCase ? self::$datasetRegistryTestCase : self::$datasetRegistryTestClass;
+        $identifier = $event->getIdentifier();
+        if (self::$debug) {
+            echo 'add record to registry ' . $event->getTable()->getTableName() . ' ' . implode(',', $identifier) . "\n";
+        }
+        $datasetRegistry->add($event->getTable(), $identifier);
     }
 
 

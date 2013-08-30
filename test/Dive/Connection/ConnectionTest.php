@@ -56,7 +56,7 @@ class ConnectionTest extends TestCase
     {
         $events = array(Connection::EVENT_PRE_CONNECT, Connection::EVENT_POST_CONNECT);
 
-        $conn = $this->createDatabaseConnection($database);
+        $conn = $this->createConnection($database);
 
         // expected events will be gathered through closure calls
         $expectedEventsCalled = array();
@@ -84,7 +84,7 @@ class ConnectionTest extends TestCase
     {
         $events = array(Connection::EVENT_PRE_DISCONNECT, Connection::EVENT_POST_DISCONNECT);
 
-        $conn = $this->createDatabaseConnection($database);
+        $conn = $this->createConnection($database);
 
         // expected events will be gathered through closure calls
         $expectedEventsCalled = array();
@@ -98,6 +98,20 @@ class ConnectionTest extends TestCase
 
         $this->assertFalse($conn->isConnected());
         $this->assertEquals($events, $expectedEventsCalled);
+    }
+
+
+    /**
+     * @param  array $database
+     * @return Connection
+     */
+    private function createConnection($database)
+    {
+        $dsn = $database['dsn'];
+        $scheme = self::getSchemeFromDsn($dsn);
+        /** @var \Dive\Connection\Driver\DriverInterface $driver */
+        $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
+        return new Connection($driver, $dsn, $database['user'], $database['password']);
     }
 
 

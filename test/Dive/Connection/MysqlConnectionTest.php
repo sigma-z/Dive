@@ -13,6 +13,7 @@
 
 namespace Dive\Test\Connection;
 
+use Dive\Connection\Connection;
 use Dive\Platform\PlatformInterface;
 use Dive\TestSuite\TestCase;
 
@@ -25,11 +26,27 @@ class MysqlConnectionTest extends TestCase
         if ($database === false) {
             $this->markTestSkipped("Skipped, no database connection defined for scheme 'mysql'");
         }
-        $conn = $this->createDatabaseConnection($database);
+
+        $conn = $this->createConnection($database);
         $conn->setEncoding(PlatformInterface::ENC_LATIN1);
         $conn->connect();
 
         $result = $conn->query("SHOW VARIABLES LIKE 'character_set_connection'");
         $this->assertEquals('latin1', $result[0]['Value']);
     }
+
+
+    /**
+     * @param  array $database
+     * @return Connection
+     */
+    private function createConnection($database)
+    {
+        $dsn = $database['dsn'];
+        $scheme = self::getSchemeFromDsn($dsn);
+        /** @var \Dive\Connection\Driver\DriverInterface $driver */
+        $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
+        return new Connection($driver, $dsn, $database['user'], $database['password']);
+    }
+
 }

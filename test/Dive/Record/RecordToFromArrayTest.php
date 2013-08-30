@@ -198,7 +198,7 @@ class RecordToFromArrayTest extends TestCase
             true,   // recursive flag
             false,  // map fields flag
             $authorOneFields + $authorDefaultFields + array(
-                'Editor' => array_merge($authorDefaultFields, $authorTwoFields)
+                'Editor' => array_merge($authorDefaultFields, $authorTwoFields, array('Author' => array(false)))
             )
         );
         $testCases[] = array(
@@ -207,7 +207,12 @@ class RecordToFromArrayTest extends TestCase
             true,   // recursive flag
             true,   // map fields flag
             $authorOneFields + $authorDefaultFields + $authorOneMappedFields + array(
-                'Editor' => array_merge($authorDefaultFields, $authorTwoFields, $authorTwoMappedFields)
+                'Editor' => array_merge(
+                    $authorDefaultFields,
+                    $authorTwoFields,
+                    $authorTwoMappedFields,
+                    array('Author' => array(false))
+                )
             )
         );
 

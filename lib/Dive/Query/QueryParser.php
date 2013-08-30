@@ -69,10 +69,7 @@ class QueryParser
      */
     public function parseQuery(QueryInterface $query)
     {
-        $sqlParts =  $this->getSqlParts($query);
-        $sql = implode("\n", $sqlParts);
-
-        return $sql;
+        return $this->getSqlParts($query);
     }
 
 

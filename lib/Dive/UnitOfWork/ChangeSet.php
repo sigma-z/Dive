@@ -72,6 +72,13 @@ class ChangeSet implements ChangeSetInterface
     }
 
 
+    /**
+     * TODO what is with unloaded references?
+     * TODO implement constraint handing
+     *
+     * @param Record $record
+     * @param array  $visited
+     */
     private function processRecord(Record $record, array &$visited = array())
     {
         $oid = $record->getOid();

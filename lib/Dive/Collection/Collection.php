@@ -155,6 +155,17 @@ class Collection implements CollectionInterface
 
 
     /**
+     * Checks if the collection is empty
+     *
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        return empty($this->items);
+    }
+
+
+    /**
      * @param array|\Dive\Record $item
      * @param null $id
      * @return Collection

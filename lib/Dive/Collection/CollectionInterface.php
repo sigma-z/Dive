@@ -56,22 +56,11 @@ interface CollectionInterface extends \Countable, \ArrayAccess, \IteratorAggrega
     public function keys();
 
 
-//    /**
-//     * @abstract
-//     * @return \Dive\Record
-//     */
-//    public function first();
-//
-//    /**
-//     * @abstract
-//     * @return \Dive\Record
-//     */
-//    public function last();
-
-//    /**
-//     * @abstract
-//     * @param  int $position
-//     */
-//    public function seek($position);
+    /**
+     * Checks if the collection is empty
+     *
+     * @return bool
+     */
+    public function isEmpty();
 
 }

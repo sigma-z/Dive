@@ -445,7 +445,13 @@ class Relation
 
         if (!$isOwningSide && $this->isOneToMany()) {
             $reference = $this->map->getRelatedCollection($record->getOid());
-            if ($reference) {
+            if (!$reference) {
+                $refId = $this->getRecordReferencedIdentifiers($record, $relationName);
+                if (!empty($refId)) {
+                    return true;
+                }
+            }
+            if ($reference && !$reference->isEmpty()) {
                 return true;
             }
         }

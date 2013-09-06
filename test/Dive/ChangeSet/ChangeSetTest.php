@@ -7,12 +7,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Dive\Test\UnitOfWork;
+namespace Dive\Test\ChangeSet;
 
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
-use Dive\UnitOfWork\ChangeSet;
+use Dive\ChangeSet\ChangeSet;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -68,7 +68,7 @@ class ChangeSetTest extends TestCase
         $record->fromArray($graphData);
 
         $changeSet = new ChangeSet();
-        $changeSet->calculateSave($record);
+        $changeSet->calculateSave($record, RecordManager::CONSTRAINT_NATIVE);
 
         $this->assertChangeSet($expectedScheduled, $changeSet);
     }
@@ -238,7 +238,7 @@ class ChangeSetTest extends TestCase
 
     /**
      * @param array                      $expectedData
-     * @param \Dive\UnitOfWork\ChangeSet $changeSet
+     * @param \Dive\ChangeSet\ChangeSet  $changeSet
      */
     private function assertChangeSet(array $expectedData, ChangeSet $changeSet)
     {

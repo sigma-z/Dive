@@ -29,6 +29,8 @@ interface PlatformInterface
     const SET_NULL      = 'SET NULL';
     const NO_ACTION     = 'NO ACTION';
     const RESTRICT      = 'RESTRICT';
+    const SET_DEFAULT   = 'SET DEFAULT';
+
 
     const ENC_UTF8      = 'UTF8';
     const ENC_LATIN1    = 'LATIN1';

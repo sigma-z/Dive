@@ -22,11 +22,6 @@ use Dive\Util\CamelCase;
 abstract class AbstractImporter implements ImporterInterface
 {
 
-    const CONSTRAINT_RESTRICT   = 'RESTRICT';
-    const CONSTRAINT_CASCADE    = 'CASCADE';
-    const CONSTRAINT_SET_NULL   = 'SET NULL';
-
-
     /**
      * @var \Dive\Connection\Connection
      */

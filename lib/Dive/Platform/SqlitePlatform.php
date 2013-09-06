@@ -18,8 +18,6 @@ use Dive\Schema\DataTypeMapper\DataTypeMapper;
 class SqlitePlatform extends AbstractPlatform
 {
 
-    const SET_DEFAULT = 'SET DEFAULT';
-
     /**
      * @var array
      */

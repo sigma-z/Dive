@@ -21,7 +21,7 @@
  *   case: record exists, fully loaded - no data changed        -> not modified
  *   case: record exists, fully loaded - data changed           -> modified
  * Should we handle partial loaded records? How to mark fields as not loaded, yet?
- * RecordManager/UnitOfWork/ChangeSet for performing saves and deletes?
+ * RecordManager/ChangeSet/ChangeSet for performing saves and deletes?
  *   Idea:
  *     - RecordManager should hold a UnitOfWork, which handles changes provided by the object graph.
  *     - ChangeSet should calculate by iterating through the object graph, if records has to been inserted,

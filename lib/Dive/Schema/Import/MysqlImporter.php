@@ -9,13 +9,13 @@
 
 namespace Dive\Schema\Import;
 
+use Dive\Platform\PlatformInterface;
+use Dive\Relation\Relation;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 04.11.12
  */
-use Dive\Platform\PlatformInterface;
-use Dive\Relation\Relation;
-
 class MysqlImporter extends AbstractImporter
 {
 
@@ -116,8 +116,8 @@ class MysqlImporter extends AbstractImporter
                 'owningField' => $localField,
                 'refTable' => $match[3],
                 'refField' => $match[4],
-                'onDelete' => self::CONSTRAINT_RESTRICT,
-                'onUpdate' => self::CONSTRAINT_RESTRICT,
+                'onDelete' => PlatformInterface::RESTRICT,
+                'onUpdate' => PlatformInterface::RESTRICT,
                 'type' => Relation::ONE_TO_MANY
             );
 

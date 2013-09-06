@@ -17,7 +17,6 @@ use Dive\RecordManager;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.10.12
  */
-
 class Relation
 {
 

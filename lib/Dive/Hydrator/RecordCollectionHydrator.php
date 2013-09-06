@@ -38,6 +38,7 @@ class RecordCollectionHydrator extends RecordHydrator
             $record->setResultCollection($collection);
             $collection->add($record);
         }
+        $collection->snapshotIdentifiers();
         return $collection;
     }
 

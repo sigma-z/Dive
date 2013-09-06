@@ -17,6 +17,7 @@ use Dive\Schema\SchemaException;
 use Dive\Connection\Connection;
 use Dive\Relation\Relation;
 use Dive\Table;
+use Dive\Platform\PlatformInterface;
 
 
 class RecordManager
@@ -29,35 +30,32 @@ class RecordManager
     const FETCH_SCALARS = 'scalars';
     const FETCH_SINGLE_SCALAR = 'single-scalar';
 
+    const CONSTRAINT_NATIVE = 'nativeConstraints';
+    const CONSTRAINT_DIVE = 'diveConstraints';
 
-    /**
-     * @var Table[]
-     */
+    /** @var Table[] */
     private $tables = array();
-    /**
-     * @var Connection
-     */
-    private $conn;
-    /**
-     * @var Schema
-     */
-    private $schema;
-    /**
-     * @var \Dive\Relation\Relation[]
-     */
+
+    /** @var Connection */
+    private $conn = null;
+
+    /** @var Schema */
+    private $schema = null;
+
+    /** @var \Dive\Relation\Relation[] */
     private $relations = array();
-    /**
-     * @var \Dive\Hydrator\HydratorInterface[]
-     */
+
+    /** @var \Dive\Hydrator\HydratorInterface[] */
     private $hydrators = array();
-    /**
-     * @var UnitOfWork\UnitOfWork
-     */
-    private $unitOfWork;
-    /**
-     * @var string
-     */
+
+    /** @var UnitOfWork\UnitOfWork */
+    private $unitOfWork = null;
+
+    /** @var string */
     private $queryClass = '\Dive\Query\Query';
+
+    /** @var string */
+    private $constraintHandling = self::CONSTRAINT_NATIVE;
 
 
     /**
@@ -87,6 +85,24 @@ class RecordManager
     public function getSchema()
     {
         return $this->schema;
+    }
+
+
+    /**
+     * @param string $constraintHandling
+     */
+    public function setConstraintHandling($constraintHandling)
+    {
+        $this->constraintHandling = $constraintHandling;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getConstraintHandling()
+    {
+        return $this->constraintHandling;
     }
 
 
@@ -180,15 +196,13 @@ class RecordManager
             $referencedAlias = $relationData['refAlias'];
             $referencedField = $relationData['refField'];
             $type = $relationData['type'];
+            $onDelete = !empty($relationData['onDelete']) ? $relationData['onDelete'] : PlatformInterface::RESTRICT;
+            $onUpdate = !empty($relationData['onUpdate']) ? $relationData['onUpdate'] : PlatformInterface::RESTRICT;
 
             $relation = new Relation(
-                $owningAlias,
-                $owningTable,
-                $owningField,
-                $referencedAlias,
-                $referencedTable,
-                $referencedField,
-                $type
+                $owningAlias, $owningTable, $owningField,
+                $referencedAlias, $referencedTable, $referencedField,
+                $type, $onDelete, $onUpdate
             );
 
             if (isset($relationData['orderBy'])) {
@@ -239,13 +253,13 @@ class RecordManager
 
     /**
      * @param  Record $record
-     * @param  UnitOfWork\ChangeSet $changeSet
-     * @return UnitOfWork\ChangeSet
+     * @param  ChangeSet\ChangeSet $changeSet
+     * @return ChangeSet\ChangeSet
      */
-    public function saveRecord(Record $record, UnitOfWork\ChangeSet $changeSet = null)
+    public function saveRecord(Record $record, ChangeSet\ChangeSet $changeSet = null)
     {
         if ($changeSet === null) {
-            $changeSet = new UnitOfWork\ChangeSet();
+            $changeSet = new ChangeSet\ChangeSet();
         }
         $this->unitOfWork->saveGraph($record, $changeSet);
         return $changeSet;
@@ -254,13 +268,13 @@ class RecordManager
 
     /**
      * @param  Record $record
-     * @param  UnitOfWork\ChangeSet $changeSet
-     * @return UnitOfWork\ChangeSet
+     * @param  ChangeSet\ChangeSet $changeSet
+     * @return ChangeSet\ChangeSet
      */
-    public function deleteRecord(Record $record, UnitOfWork\ChangeSet $changeSet = null)
+    public function deleteRecord(Record $record, ChangeSet\ChangeSet $changeSet = null)
     {
         if ($changeSet === null) {
-            $changeSet = new UnitOfWork\ChangeSet();
+            $changeSet = new ChangeSet\ChangeSet();
         }
         $this->unitOfWork->deleteGraph($record, $changeSet);
         return $changeSet;

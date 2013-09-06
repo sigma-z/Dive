@@ -6,25 +6,23 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 06.02.13
- */
 
 namespace Dive\UnitOfWork;
 
+use Dive\ChangeSet\ChangeSet;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
 use Dive\Exception as DiveException;
 
-
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 06.02.13
+ */
 class UnitOfWork
 {
 
-    /**
-     * @var RecordManager
-     */
+    /** @var RecordManager */
     private $rm = null;
 
 
@@ -62,7 +60,7 @@ class UnitOfWork
      */
     public function saveGraph(Record $record, ChangeSet $changeSet)
     {
-        $changeSet->calculateSave($record);
+        $changeSet->calculateSave($record, $this->rm->getConstraintHandling());
         $this->executeChangeSet($changeSet);
     }
 
@@ -72,7 +70,7 @@ class UnitOfWork
      */
     public function deleteGraph(Record $record, ChangeSet $changeSet)
     {
-        $changeSet->calculateDelete($record);
+        $changeSet->calculateDelete($record, $this->rm->getConstraintHandling());
         $this->executeChangeSet($changeSet);
     }
 

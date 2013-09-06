@@ -9,6 +9,8 @@
 
 namespace Dive\Test\Record;
 
+use Dive\ChangeSet\ChangeSet;
+use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -18,52 +20,110 @@ use Dive\TestSuite\TestCase;
 class RecordDeleteGraphTest extends TestCase
 {
 
-    public function testOneToOneReferencedSide()
+
+    /**
+     * @dataProvider provideOneToOneDelete
+     */
+    public function testOneToOneReferencedSideDelete($tableName, array $graphData, $relationName, $constraintHandling)
     {
-        $this->markTestIncomplete();
+        $this->markTestSkipped();
+        $record = $this->saveRecordGraph($tableName, $graphData);
+        $record->getRecordManager()->setConstraintHandling($constraintHandling);
+        $changeSet = $record->delete();
 
-        $author = $this->createOneToOneReferencedRecords();
-        $changeSet = $author->delete();
-
-        $this->assertFalse($author->exists());
         $affected = $changeSet->getScheduledForDelete();
         echo count($affected);
     }
 
 
-    public function testOneToOneOwningSide()
+    /**
+     * @dataProvider provideOneToOneDelete
+     */
+    public function testOneToOneOwningSideDelete($tableName, array $graphData, $relationName, $constraintHandling)
     {
-        $this->markTestIncomplete();
+        $this->markTestSkipped();
 
-        $author = $this->createOneToOneReferencedRecords();
-        $user = $author->User;
-        $changeSet = $user->delete();
+        $record = $this->saveRecordGraph($tableName, $graphData);
+        $record->getRecordManager()->setConstraintHandling($constraintHandling);
+        $record = $record->get($relationName);
+        $changeSet = $record->delete();
 
-        $this->assertFalse($user->exists());
         $affected = $changeSet->getScheduledForDelete();
         echo count($affected);
     }
 
 
-    private function createOneToOneReferencedRecords()
+
+
+
+//    public function testOneToOneReferencedSide()
+//    {
+//        $this->markTestIncomplete();
+//
+//        $author = $this->saveRecordGraph('author', self::$authorUserGraph);
+//        $changeSet = $author->delete();
+//
+//        $this->assertFalse($author->exists());
+//        $affected = $changeSet->getScheduledForDelete();
+//        echo count($affected);
+//    }
+//
+//
+//    public function testOneToOneOwningSide()
+//    {
+//        $this->markTestIncomplete();
+//
+//        $author = $this->saveRecordGraph('author', self::$authorUserGraph);
+//        $user = $author->User;
+//        $changeSet = $user->delete();
+//
+//        $this->assertFalse($user->exists());
+//        $affected = $changeSet->getScheduledForDelete();
+//        echo count($affected);
+//    }
+
+
+    private function saveRecordGraph($tableName, array $graphData)
     {
-        $graphData = array(
-            'firstname' => 'John',
-            'lastname' => 'Doe',
-            'email' => 'jdo@example.com',
-            'User' => array(
-                'username' => 'John',
-                'password' => 'secret'
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable($tableName);
+        $record = $table->createRecord();
+        $record->fromArray($graphData);
+        $record->save();
+
+        return $record;
+    }
+
+
+    public function provideOneToOneDelete()
+    {
+        $testCases = array();
+
+        $authorUserGraphData = array(
+            'username' => 'John',
+            'password' => 'secret',
+            'Author' => array(
+                'firstname' => 'John',
+                'lastname' => 'Doe',
+                'email' => 'jdo@example.com'
             )
         );
+        $testCases[] = array(
+            'user',
+            $authorUserGraphData,
+            'Author',
+            RecordManager::CONSTRAINT_DIVE,
+            false
+        );
+        $testCases[] = array(
+            'user',
+            $authorUserGraphData,
+            'Author',
+            RecordManager::CONSTRAINT_NATIVE,
+            false
+        );
 
-        $rm = self::createDefaultRecordManager();
-        $table = $rm->getTable('author');
-        $author = $table->createRecord();
-        $author->fromArray($graphData);
-        $author->save();
-
-        return $author;
+        return $testCases;
     }
 
 }

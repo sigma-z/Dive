@@ -25,6 +25,8 @@ class RecordSaveGraphTest extends TestCase
      */
     public function testSaveGraph($tableName, array $graphData, $expectedOperation)
     {
+        $this->markTestSkipped();
+
         $rm = self::createDefaultRecordManager();
         $table = $rm->getTable($tableName);
 

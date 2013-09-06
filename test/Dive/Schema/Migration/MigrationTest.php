@@ -333,7 +333,7 @@ class MigrationTest extends TestCase
                             . "UNIQUE INDEX `UNIQUE` (`firstname`, `lastname`),\n"
                             . "UNIQUE INDEX `UQ_user_id` (`user_id`),\n"
                             . "CONSTRAINT `author_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,\n"
-                            . "CONSTRAINT `author_fk_editor_id` FOREIGN KEY (`editor_id`) REFERENCES `author` (`id`) ON DELETE CASCADE ON UPDATE CASCADE\n"
+                            . "CONSTRAINT `author_fk_editor_id` FOREIGN KEY (`editor_id`) REFERENCES `author` (`id`) ON DELETE SET NULL ON UPDATE CASCADE\n"
                             . ")"
                     )
                 )

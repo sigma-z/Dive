@@ -23,21 +23,26 @@ class RecordCollection extends Collection
 {
 
     /**
+     * TODO find a better name?
+     * @var array
+     */
+    private $snapshotIdentifiers = array();
+
+    /**
      * @var Table
      */
     protected $table = null;
+
     /**
      * @var array
      */
     protected $toBeDeleted = array();
-    /**
-     * @var array
-     */
-    protected $toBeInserted = array();
+
     /**
      * @var \Dive\Record
      */
     private $refRecord = null;
+
     /**
      * @var \Dive\Relation\Relation
      */
@@ -134,6 +139,18 @@ class RecordCollection extends Collection
     public function removeRecord(Record $record)
     {
         return $this->remove($record->getInternalId());
+    }
+
+
+    public function snapshotIdentifiers()
+    {
+        $this->snapshotIdentifiers = $this->keys();
+    }
+
+
+    public function getSnapshotIdentifiers()
+    {
+        return $this->snapshotIdentifiers;
     }
 
 

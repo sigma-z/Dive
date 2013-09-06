@@ -13,6 +13,7 @@ namespace Dive\Test\Schema\Import;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 14.01.13
  */
+use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\Import\AbstractImporter;
 use Dive\Schema\Schema;
@@ -181,8 +182,8 @@ class ImportTest extends TestCase
                         'owningField' => 'user_id',
                         'refTable' => 'user',
                         'refField' => 'id',
-                        'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
-                        'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'onDelete' => PlatformInterface::CASCADE,
+                        'onUpdate' => PlatformInterface::CASCADE,
                         'type' => Relation::ONE_TO_ONE
                     ),
                     'author.editor_id' => array(
@@ -190,8 +191,8 @@ class ImportTest extends TestCase
                         'owningField' => 'editor_id',
                         'refTable' => 'author',
                         'refField' => 'id',
-                        'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
-                        'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'onDelete' => PlatformInterface::SET_NULL,
+                        'onUpdate' => PlatformInterface::CASCADE,
                         'type' => Relation::ONE_TO_MANY
                     )
                 ),
@@ -201,8 +202,8 @@ class ImportTest extends TestCase
                         'owningField' => 'user_id',
                         'refTable' => 'user',
                         'refField' => 'id',
-                        'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
-                        'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'onDelete' => PlatformInterface::CASCADE,
+                        'onUpdate' => PlatformInterface::CASCADE,
                         'type' => Relation::ONE_TO_ONE
                     ),
                     'author.editor_id' => array(
@@ -210,8 +211,8 @@ class ImportTest extends TestCase
                         'owningField' => 'editor_id',
                         'refTable' => 'author',
                         'refField' => 'id',
-                        'onDelete' => AbstractImporter::CONSTRAINT_CASCADE,
-                        'onUpdate' => AbstractImporter::CONSTRAINT_CASCADE,
+                        'onDelete' => PlatformInterface::SET_NULL,
+                        'onUpdate' => PlatformInterface::CASCADE,
                         'type' => Relation::ONE_TO_MANY
                     )
                 )

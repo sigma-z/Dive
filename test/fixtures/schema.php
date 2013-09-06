@@ -204,7 +204,8 @@ return array(
             'refField' => 'id',
             'refTable' => 'author',
             'type' => '1-m',
-            'onUpdate' => 'CASCADE'
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'RESTRICT'
         ),
         'author.user_id' => array(
             'owningAlias' => 'User',
@@ -226,7 +227,7 @@ return array(
             'refTable' => 'author',
             'type' => '1-m',
             'onUpdate' => 'CASCADE',
-            'onDelete' => 'CASCADE'
+            'onDelete' => 'SET NULL'
         ),
         'comment.user_id' => array(
             'owningAlias' => 'User',
@@ -236,7 +237,8 @@ return array(
             'refField' => 'id',
             'refTable' => 'user',
             'type' => '1-m',
-            'onUpdate' => 'CASCADE'
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'CASCADE'
         ),
         'comment.article_id' => array(
             'owningAlias' => 'Article',

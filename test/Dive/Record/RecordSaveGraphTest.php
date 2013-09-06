@@ -56,7 +56,7 @@ class RecordSaveGraphTest extends TestCase
                 /** @var \Dive\Record[] $related */
                 $related = $record->get($relAlias);
                 $refField = $relation->getReferencedField();
-                $owningField = $relation->getOwnerField();
+                $owningField = $relation->getOwningField();
 
                 if ($relation->isOwningSide($relAlias) || !$relation->isOneToMany()) {
                     $related = array($related);
@@ -69,7 +69,7 @@ class RecordSaveGraphTest extends TestCase
                         $foreignKeyFieldValue = $record->get($owningField);
                     }
                     else {
-                        $backRelAlias = $relation->getOwnerAlias();
+                        $backRelAlias = $relation->getOwningAlias();
                         $recordId = $record->get($refField);
                         $foreignKeyFieldValue = $relatedRecord->get($owningField);
                     }

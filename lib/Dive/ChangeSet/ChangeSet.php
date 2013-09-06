@@ -120,10 +120,10 @@ class ChangeSet implements ChangeSetInterface
             }
         }
         else {
-            $relatedTable = $record->getRecordManager()->getTable($relation->getOwnerTable());
+            $relatedTable = $record->getRecordManager()->getTable($relation->getOwningTable());
             //echo $relatedTable . "\n";
             $relatedRecord = $relatedTable->createQuery('a')
-                ->where('a.' . $relation->getOwnerField() . ' = ?', $record->getIdentifierAsString())
+                ->where('a.' . $relation->getOwningField() . ' = ?', $record->getIdentifierAsString())
                 ->fetchOneAsObject();
             //echo 'deleteCascade: ' . $relatedRecord->getTable()->getTableName() . "\n";
             if ($relatedRecord) {

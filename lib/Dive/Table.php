@@ -48,7 +48,7 @@ class Table
     protected $relations = array();
     /**
      * @var \Dive\Relation\Relation[]
-     * indexed by owner field
+     * indexed by owning field
      */
     protected $owningRelations = null;
     /**
@@ -428,7 +428,7 @@ class Table
             $this->owningRelations = array();
             foreach ($this->relations as $name => $relation) {
                 if ($relation->isOwningSide($name)) {
-                    $this->owningRelations[$relation->getOwnerField()] = $relation;
+                    $this->owningRelations[$relation->getOwningField()] = $relation;
                 }
             }
         }

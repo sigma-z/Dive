@@ -26,15 +26,15 @@ class Relation
     /**
      * @var string
      */
-    protected $ownerField = '';
+    protected $owningField = '';
     /**
      * @var string
      */
-    protected $ownerTable = '';
+    protected $owningTable = '';
     /**
      * @var string
      */
-    protected $ownerAlias = '';
+    protected $owningAlias = '';
     /**
      * @var string
      */
@@ -71,9 +71,9 @@ class Relation
 
     /**
      * constructor
-     * @param string    $ownerAlias
-     * @param string    $ownerTable
-     * @param string    $ownerField
+     * @param string    $owningAlias
+     * @param string    $owningTable
+     * @param string    $owningField
      * @param string    $refAlias
      * @param string    $refTable
      * @param string    $refField
@@ -84,9 +84,9 @@ class Relation
      * @throws \InvalidArgumentException
      */
     public function __construct(
-        $ownerAlias,
-        $ownerTable,
-        $ownerField,
+        $owningAlias,
+        $owningTable,
+        $owningField,
         $refAlias,
         $refTable,
         $refField,
@@ -95,13 +95,13 @@ class Relation
         $onUpdate = '',
         $orderBy = ''
     ) {
-        if ($ownerAlias == $refAlias) {
-            throw new \InvalidArgumentException('Owner alias and referenced alias must not be equal!');
+        if ($owningAlias == $refAlias) {
+            throw new \InvalidArgumentException('Owning alias and referenced alias must not be equal!');
         }
 
-        $this->ownerAlias = $ownerAlias;
-        $this->ownerTable = $ownerTable;
-        $this->ownerField = $ownerField;
+        $this->owningAlias = $owningAlias;
+        $this->owningTable = $owningTable;
+        $this->owningField = $owningField;
         $this->refAlias   = $refAlias;
         $this->refTable   = $refTable;
         $this->refField   = $refField;
@@ -117,9 +117,9 @@ class Relation
     public function getDefinition()
     {
         $definition = array(
-            'ownerAlias' => $this->ownerAlias,
-            'ownerTable' => $this->ownerTable,
-            'ownerField' => $this->ownerField,
+            'owningAlias' => $this->owningAlias,
+            'owningTable' => $this->owningTable,
+            'owningField' => $this->owningField,
             'refAlias'   => $this->refAlias,
             'refTable'   => $this->refTable,
             'refField'   => $this->refField,
@@ -178,7 +178,7 @@ class Relation
      */
     public function isOwningSide($relationName)
     {
-        return $relationName === $this->ownerAlias;
+        return $relationName === $this->owningAlias;
     }
 
 
@@ -187,9 +187,9 @@ class Relation
      *
      * @return string
      */
-    public function getOwnerAlias()
+    public function getOwningAlias()
     {
-        return $this->ownerAlias;
+        return $this->owningAlias;
     }
 
 
@@ -198,18 +198,18 @@ class Relation
      *
      * @return string
      */
-    public function getOwnerTable()
+    public function getOwningTable()
     {
-        return $this->ownerTable;
+        return $this->owningTable;
     }
 
 
     /**
      * @return string
      */
-    public function getOwnerField()
+    public function getOwningField()
     {
-        return $this->ownerField;
+        return $this->owningField;
     }
 
 
@@ -266,10 +266,10 @@ class Relation
      */
     public function getJoinTableName($relationName)
     {
-        if ($relationName === $this->ownerAlias) {
+        if ($relationName === $this->owningAlias) {
             return $this->refTable;
         }
-        return $this->ownerTable;
+        return $this->owningTable;
     }
 
 
@@ -298,20 +298,20 @@ class Relation
      */
     public function getJoinOnCondition($relationAlias, $tabAlias, $refTabAlias, $quote = '')
     {
-        $ownerField = $quote . $this->ownerField . $quote;
+        $owningField = $quote . $this->owningField . $quote;
         $refField = $quote . $this->refField . $quote;
         $tabAliasQuoted = $quote . $tabAlias . $quote;
         $refAliasQuoted = $quote . $refTabAlias . $quote;
 
         if ($this->isOwningSide($relationAlias)) {
-            $ownerField = $tabAliasQuoted . '.' . $ownerField;
+            $owningField = $tabAliasQuoted . '.' . $owningField;
             $refField = $refAliasQuoted . '.' . $refField;
         }
         else {
-            $ownerField = $refAliasQuoted . '.' . $ownerField;
+            $owningField = $refAliasQuoted . '.' . $owningField;
             $refField = $tabAliasQuoted . '.' . $refField;
         }
-        return $ownerField . ' = ' . $refField;
+        return $owningField . ' = ' . $refField;
     }
 
 
@@ -331,7 +331,7 @@ class Relation
         $id = $record->getInternalId();
         $isOwningSide = $this->isOwningSide($relationName);
         if ($isOwningSide) {
-            return $record->get($this->ownerField);
+            return $record->get($this->owningField);
         }
         else if (!$this->map->hasReferenced($id)) {
             return false;
@@ -361,7 +361,7 @@ class Relation
                 ->whereIn("b.$this->refField", $identifiers);
         }
         else {
-            $query->whereIn("a.$this->ownerField", $identifiers);
+            $query->whereIn("a.$this->owningField", $identifiers);
             if ($this->isOneToMany() && $this->orderBy) {
                 if (false !== ($pos = strpos($this->orderBy, '.'))) {
                     list($orderByRelationAlias, $orderByField) = explode('.', $this->orderBy);
@@ -534,7 +534,7 @@ class Relation
 
 
     /**
-     * Gets referenced record (for owner field)
+     * Gets referenced record (for owning field)
      *
      * @param  Record $record
      * @param  string $relationName
@@ -595,7 +595,7 @@ class Relation
      * Gets references
      *
      * @return array
-     *   keys:   owner ids,
+     *   keys:   owning ids,
      *   values:
      *      one-to-many: referencing ids as array
      *      one-to-one:  referencing id as string

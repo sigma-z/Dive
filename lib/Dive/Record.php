@@ -549,12 +549,12 @@ class Record
         $tableName = $this->_table->getTableName();
         $relations = $this->_table->getRelations();
         foreach ($relations as $relation) {
-            $ownerTable = $relation->getOwnerTable();
-            $ownerAlias = $relation->getOwnerAlias();
-            if ($tableName == $ownerTable && !isset($references[$ownerAlias])) {
-                $reference = $this->getReferenceAsArray($relation, $ownerAlias, $withMappedFields, $visited);
+            $owningTable = $relation->getOwningTable();
+            $owningAlias = $relation->getOwningAlias();
+            if ($tableName == $owningTable && !isset($references[$owningAlias])) {
+                $reference = $this->getReferenceAsArray($relation, $owningAlias, $withMappedFields, $visited);
                 if ($reference !== false) {
-                    $references[$ownerAlias] = $reference;
+                    $references[$owningAlias] = $reference;
                 }
             }
 

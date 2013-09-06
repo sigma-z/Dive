@@ -576,13 +576,13 @@ abstract class AbstractMigration implements MigrationInterface
      */
     public function addForeignKeyByRelation(Relation $relation)
     {
-        if ($relation->getOwnerTable() != $this->tableName) {
+        if ($relation->getOwningTable() != $this->tableName) {
             throw new MigrationException("
-                Relation does not belong to table $this->tableName, it belongs to " . $relation->getOwnerTable() . '!'
+                Relation does not belong to table $this->tableName, it belongs to " . $relation->getOwningTable() . '!'
             );
         }
 
-        $owningField = $relation->getOwnerField();
+        $owningField = $relation->getOwningField();
         $referencedTable = $relation->getReferencedTable();
         $referencedField = $relation->getReferencedField();
         $onDelete = $relation->getOnDelete();

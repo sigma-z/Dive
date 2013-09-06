@@ -9,6 +9,8 @@
 
 namespace Dive\Test\Relation;
 
+use Dive\Relation\Relation;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.10.12
@@ -17,7 +19,7 @@ class RelationTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @var \Dive\Relation\Relation
+     * @var Relation
      */
     private $relation;
 
@@ -26,17 +28,17 @@ class RelationTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $ownerTable = 'author';
-        $ownerField = 'user_id';
-        $ownerAlias = 'User';
+        $owningTable = 'author';
+        $owningField = 'user_id';
+        $owningAlias = 'User';
         $refTable = 'user';
         $refField = 'id';
         $refAlias = 'Author';
-        $type = \Dive\Relation\Relation::ONE_TO_ONE;
-        $this->relation = new \Dive\Relation\Relation(
-            $ownerAlias,
-            $ownerTable,
-            $ownerField,
+        $type = Relation::ONE_TO_ONE;
+        $this->relation = new Relation(
+            $owningAlias,
+            $owningTable,
+            $owningField,
             $refAlias,
             $refTable,
             $refField,

@@ -152,8 +152,8 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
             $userTwoId => $authorOneId
         );
         $this->assertEquals($expectedReferences, $references);
-        $this->assertEquals($authorOne->get($relation->getOwnerField()), $userTwoId);
-        $this->assertNull($authorTwo->get($relation->getOwnerField()));
+        $this->assertEquals($authorOne->get($relation->getOwningField()), $userTwoId);
+        $this->assertNull($authorTwo->get($relation->getOwningField()));
     }
 
 
@@ -199,8 +199,8 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
             $userTwoId => null
         );
         $this->assertEquals($expectedReferences, $references);
-        $this->assertEquals($authorTwo->get($relation->getOwnerField()), $userOneId);
-        $this->assertNull($authorOne->get($relation->getOwnerField()));
+        $this->assertEquals($authorTwo->get($relation->getOwningField()), $userOneId);
+        $this->assertNull($authorOne->get($relation->getOwningField()));
     }
 
 

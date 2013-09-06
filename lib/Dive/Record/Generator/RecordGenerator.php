@@ -163,15 +163,15 @@ class RecordGenerator
      */
     private function saveRecordsOnReferencedRelation(Relation $relation, $relatedRows, $id)
     {
-        $ownerTable = $relation->getOwnerTable();
-        $ownerField = $relation->getOwnerField();
+        $owningTable = $relation->getOwningTable();
+        $owningField = $relation->getOwningField();
         if ($relation->isOneToMany()) {
             foreach ($relatedRows as $relatedKey => $relatedRow) {
-                $this->saveRecordOnReferencedRelation($relatedRow, $ownerTable, $ownerField, $id, $relatedKey);
+                $this->saveRecordOnReferencedRelation($relatedRow, $owningTable, $owningField, $id, $relatedKey);
             }
         }
         else {
-            $this->saveRecordOnReferencedRelation($relatedRows, $ownerTable, $ownerField, $id);
+            $this->saveRecordOnReferencedRelation($relatedRows, $owningTable, $owningField, $id);
         }
     }
 
@@ -210,7 +210,7 @@ class RecordGenerator
     private function saveRecordOnOwningRelation(array $row, Relation $relation, $value)
     {
         $refTable = $relation->getReferencedTable();
-        $owningField = $relation->getOwnerField();
+        $owningField = $relation->getOwningField();
         $relatedId = $this->getRecordFromMap($refTable, $value);
         if ($relatedId === false) {
             $relatedId = $this->saveRelatedRecord($refTable, $value);

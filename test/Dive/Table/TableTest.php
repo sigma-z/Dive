@@ -76,8 +76,8 @@ class TableTest extends TestCase
             }
         }
 
-        $this->assertEquals($expectedOwning, $actualOwning);
-        $this->assertEquals($expectedReferenced, $actualReferenced);
+        $this->assertEquals($expectedOwning, $actualOwning, 'Owning relations do not match!');
+        $this->assertEquals($expectedReferenced, $actualReferenced, 'Referenced relations do not match!');
     }
 
 
@@ -87,7 +87,19 @@ class TableTest extends TestCase
 
         $testCases[] = array(
             'tableName' => 'article2tag',
-            'owning' => array('Article', 'Tag'),
+            'owning' => array(),
+            'referenced' => array('Article', 'Tag')
+        );
+
+        $testCases[] = array(
+            'tableName' => 'author',
+            'owning' => array('Article', 'Author'),
+            'referenced' => array('User', 'Editor')
+        );
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'owning' => array('Author', 'Comment'),
             'referenced' => array()
         );
 

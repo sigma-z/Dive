@@ -35,7 +35,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * @var DatasetRegistry
      */
-    private static $datasetRegistryTestClass = null;
+    protected static $datasetRegistryTestClass = null;
     /**
      * @var FieldValuesGenerator
      */
@@ -443,24 +443,28 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     protected static function removeDatasets(DatasetRegistry $registry)
     {
-        $tables = $registry->getTables();
-        if (empty($tables)) {
-            return;
-        }
+        $connections = $registry->getConnections();
 
-        if (self::$debug) {
-            echo "\ncleaning up data records\n";
-        }
-        /** @var Table[] $tables */
-        $tables = array_reverse($tables);
-        foreach ($tables as $table) {
-            $datasetIds = $registry->getByTable($table);
-            $conn = $table->getConnection();
-            foreach ($datasetIds as $id) {
-                if (self::$debug) {
-                    echo 'remove record from registry ' . $table->getTableName() . ' ' . implode(',', $id) . "\n";
+        foreach ($connections as $conn) {
+            $tables = $registry->getTables($conn);
+            if (empty($tables)) {
+                continue;
+            }
+
+            if (self::$debug) {
+                echo "\ncleaning up data records\n";
+            }
+            /** @var Table[] $tables */
+            $tables = array_reverse($tables);
+            foreach ($tables as $table) {
+                $datasetIds = $registry->getByTable($table);
+                foreach ($datasetIds as $id) {
+                    if (self::$debug) {
+                        echo 'remove record from registry '
+                            . $conn->getDatabaseName() . '.' . $table->getTableName() . ' ' . implode(',', $id) . "\n";
+                    }
+                    $conn->delete($table, $id);
                 }
-                $conn->delete($table, $id);
             }
         }
     }
@@ -484,7 +488,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $data = array();
         // recursion: walk through all local relations that are required and handle this by calling this method with
         //  next relation
-        $owningRelations = $refTable->getOwningRelationsIndexedByOwnerField();
+        $owningRelations = $refTable->getReferencedRelationsIndexedByOwningField();
         foreach ($owningRelations as $owningField => $owningRelation) {
             // check if field is required (default of matchType) and insert required related data
             if ($randomGenerator->matchType($refFields[$owningField])) {

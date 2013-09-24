@@ -197,10 +197,10 @@ return array(
     ),
     'relations' => array(
         'article.author_id' => array(
-            'owningAlias' => 'Author',
+            'owningAlias' => 'Article',
             'owningField' => 'author_id',
             'owningTable' => 'article',
-            'refAlias' => 'Article',
+            'refAlias' => 'Author',
             'refField' => 'id',
             'refTable' => 'author',
             'type' => '1-m',
@@ -208,10 +208,10 @@ return array(
             'onDelete' => 'RESTRICT'
         ),
         'author.user_id' => array(
-            'owningAlias' => 'User',
+            'owningAlias' => 'Author',
             'owningField' => 'user_id',
             'owningTable' => 'author',
-            'refAlias' => 'Author',
+            'refAlias' => 'User',
             'refField' => 'id',
             'refTable' => 'user',
             'type' => '1-1',
@@ -219,10 +219,10 @@ return array(
             'onDelete' => 'CASCADE'
         ),
         'author.editor_id' => array(
-            'owningAlias' => 'Editor',
+            'owningAlias' => 'Author',
             'owningField' => 'editor_id',
             'owningTable' => 'author',
-            'refAlias' => 'Author',
+            'refAlias' => 'Editor',
             'refField' => 'id',
             'refTable' => 'author',
             'type' => '1-m',
@@ -230,10 +230,10 @@ return array(
             'onDelete' => 'SET NULL'
         ),
         'comment.user_id' => array(
-            'owningAlias' => 'User',
+            'owningAlias' => 'Comment',
             'owningField' => 'user_id',
             'owningTable' => 'comment',
-            'refAlias' => 'Comment',
+            'refAlias' => 'User',
             'refField' => 'id',
             'refTable' => 'user',
             'type' => '1-m',
@@ -241,10 +241,10 @@ return array(
             'onDelete' => 'CASCADE'
         ),
         'comment.article_id' => array(
-            'owningAlias' => 'Article',
+            'owningAlias' => 'Comment',
             'owningField' => 'article_id',
             'owningTable' => 'comment',
-            'refAlias' => 'Comment',
+            'refAlias' => 'Article',
             'refField' => 'id',
             'refTable' => 'article',
             'type' => '1-m',
@@ -252,10 +252,10 @@ return array(
             'onDelete' => 'CASCADE'
         ),
         'article2tag.article_id' => array(
-            'owningAlias' => 'Article',
+            'owningAlias' => 'Article2tagHasMany',
             'owningField' => 'article_id',
             'owningTable' => 'article2tag',
-            'refAlias' => 'Article2tagHasMany',
+            'refAlias' => 'Article',
             'refField' => 'id',
             'refTable' => 'article',
             'type' => '1-m',
@@ -263,10 +263,10 @@ return array(
             'onDelete' => 'CASCADE'
         ),
         'article2tag.tag_id' => array(
-            'owningAlias' => 'Tag',
+            'owningAlias' => 'Article2tagHasMany',
             'owningField' => 'tag_id',
             'owningTable' => 'article2tag',
-            'refAlias' => 'Article2tagHasMany',
+            'refAlias' => 'Tag',
             'refField' => 'id',
             'refTable' => 'tag',
             'type' => '1-m',

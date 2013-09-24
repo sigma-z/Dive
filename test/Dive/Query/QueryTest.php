@@ -669,8 +669,8 @@ class QueryTest extends TestCase
         $methodResult = call_user_func(array($query, $method));
 
         // assert
-        $this->assertQueryExecute($executedResult, $expected);
-        $this->assertQueryExecute($methodResult, $expected);
+        $this->assertQueryResult($executedResult, $expected);
+        $this->assertQueryResult($methodResult, $expected);
     }
 
 
@@ -678,7 +678,7 @@ class QueryTest extends TestCase
      * @param RecordCollection|Record|array|string|bool $result
      * @param array|string                              $expected
      */
-    private function assertQueryExecute($result, $expected)
+    private function assertQueryResult($result, $expected)
     {
         if (is_object($result)) {
             $this->assertTrue(method_exists($result, 'toArray'));

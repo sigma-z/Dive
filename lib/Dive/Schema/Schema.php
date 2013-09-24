@@ -241,7 +241,7 @@ class Schema
     {
         $tableName = $relation['owningTable'];
         if ($this->hasOwningTableRelation($tableName, $name)) {
-            $relationAlias = $relation['owningAlias'];
+            $relationAlias = $relation['refAlias'];
             throw new SchemaException(
                 "Owning relation '$relationAlias' already defined for '$tableName'!"
             );
@@ -263,7 +263,7 @@ class Schema
     {
         $tableName = $relation['refTable'];
         if ($this->hasReferencedTableRelation($tableName, $name)) {
-            $relationAlias = $relation['refAlias'];
+            $relationAlias = $relation['owningAlias'];
             throw new SchemaException(
                 "Referenced relation '$relationAlias' already defined for '$tableName'!"
             );

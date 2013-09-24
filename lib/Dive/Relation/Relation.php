@@ -183,6 +183,18 @@ class Relation
 
 
     /**
+     * Returns true, if relation name refers to the referenced side
+     *
+     * @param  string $relationName
+     * @return bool
+     */
+    public function isReferencedSide($relationName)
+    {
+        return $relationName === $this->refAlias;
+    }
+
+
+    /**
      * Gets referencing owning relation name
      *
      * @return string
@@ -267,9 +279,9 @@ class Relation
     public function getJoinTableName($relationName)
     {
         if ($relationName === $this->owningAlias) {
-            return $this->refTable;
+            return $this->owningTable;
         }
-        return $this->owningTable;
+        return $this->refTable;
     }
 
 
@@ -289,27 +301,26 @@ class Relation
 
     /**
      * Gets join condition
-     *
      * @param  string $relationAlias
-     * @param  string $tabAlias
      * @param  string $refTabAlias
+     * @param  string $tabAlias
      * @param  string $quote
      * @return string
      */
-    public function getJoinOnCondition($relationAlias, $tabAlias, $refTabAlias, $quote = '')
+    public function getJoinOnCondition($relationAlias, $refTabAlias, $tabAlias, $quote = '')
     {
         $owningField = $quote . $this->owningField . $quote;
         $refField = $quote . $this->refField . $quote;
-        $tabAliasQuoted = $quote . $tabAlias . $quote;
-        $refAliasQuoted = $quote . $refTabAlias . $quote;
+        $tabAliasQuoted = $quote . $refTabAlias . $quote;
+        $refAliasQuoted = $quote . $tabAlias . $quote;
 
         if ($this->isOwningSide($relationAlias)) {
-            $owningField = $tabAliasQuoted . '.' . $owningField;
-            $refField = $refAliasQuoted . '.' . $refField;
+            $refField = $tabAliasQuoted . '.' . $refField;
+            $owningField = $refAliasQuoted . '.' . $owningField;
         }
         else {
-            $owningField = $refAliasQuoted . '.' . $owningField;
-            $refField = $tabAliasQuoted . '.' . $refField;
+            $refField = $refAliasQuoted . '.' . $refField;
+            $owningField = $tabAliasQuoted . '.' . $owningField;
         }
         return $owningField . ' = ' . $refField;
     }
@@ -329,8 +340,8 @@ class Relation
     public function getRecordReferencedIdentifiers(Record $record, $relationName)
     {
         $id = $record->getInternalId();
-        $isOwningSide = $this->isOwningSide($relationName);
-        if ($isOwningSide) {
+        $isReferenceSide = $this->isReferencedSide($relationName);
+        if ($isReferenceSide) {
             return $record->get($this->owningField);
         }
         else if (!$this->map->hasReferenced($id)) {
@@ -355,9 +366,9 @@ class Relation
 
         $query = $relatedTable->createQuery('a');
         $query->distinct();
-        if ($this->isOwningSide($relationName)) {
+        if ($this->isReferencedSide($relationName)) {
             $query
-                ->leftJoin("a.$this->refAlias b")
+                ->leftJoin("a.$this->owningAlias b")
                 ->whereIn("b.$this->refField", $identifiers);
         }
         else {
@@ -409,17 +420,17 @@ class Relation
      */
     public function setReferenceFor(Record $record, $relationName, $related)
     {
-        // owning side (one-to-one/one-to-many)
-        if ($this->isOwningSide($relationName)) {
+        // one-to-one/one-to-many (referenced side)
+        if ($this->isReferencedSide($relationName)) {
             $this->throwReferenceMustBeRecordOrNullException($relationName, $related);
             $this->map->updateRecordReference($record, $related);
         }
-        // one-to-many (referenced side)
+        // one-to-many (owning side)
         else if ($this->isOneToMany()) {
             $this->throwReferenceMustBeRecordCollectionException($relationName, $related);
             $this->map->updateCollectionReference($record, $related);
         }
-        // one-to-one (referenced side)
+        // one-to-one (owning side)
         else {
             $this->throwReferenceMustBeRecordOrNullException($relationName, $related);
             $this->map->updateRecordReference($related, $record);
@@ -437,12 +448,11 @@ class Relation
     public function hasReferenceFor(Record $record, $relationName)
     {
         $isOwningSide = $this->isOwningSide($relationName);
-
-        if ($isOwningSide && $this->map->hasFieldMapping($record->getOid())) {
+        if (!$isOwningSide && $this->map->hasFieldMapping($record->getOid())) {
             return true;
         }
 
-        if (!$isOwningSide && $this->isOneToMany()) {
+        if ($isOwningSide && $this->isOneToMany()) {
             $reference = $this->map->getRelatedCollection($record->getOid());
             if (!$reference) {
                 $refId = $this->getRecordReferencedIdentifiers($record, $relationName);
@@ -477,7 +487,7 @@ class Relation
     private function getRecordRelatedByReferences(Record $record, $relationName)
     {
         // is reference expected as collection
-        if (!$this->isOwningSide($relationName) && $this->isOneToMany()) {
+        if ($this->isOwningSide($relationName) && $this->isOneToMany()) {
             $reference = $this->map->getRelatedCollection($record->getOid());
             if (!$reference) {
                 $reference = $this->map->createRelatedCollection($record);
@@ -527,8 +537,8 @@ class Relation
 
         // updates reference map between both collections
         $isOwningSide = $this->isOwningSide($relationName);
-        $ownerCollection      = $isOwningSide ? $recordCollection  : $relatedCollection;
-        $referencedCollection = $isOwningSide ? $relatedCollection : $recordCollection;
+        $ownerCollection      = $isOwningSide ? $relatedCollection : $recordCollection;
+        $referencedCollection = $isOwningSide ? $recordCollection  : $relatedCollection;
         $this->map->updateOwnerCollectionWithReferencedCollection($ownerCollection, $referencedCollection);
     }
 
@@ -543,11 +553,11 @@ class Relation
      */
     public function getRelatedRecord(Record $record, $relationName)
     {
-        if ($this->isOwningSide($relationName)) {
-            return $this->map->getRecordForOwningSide($record);
+        if ($this->isReferencedSide($relationName)) {
+            return $this->map->getRecordForReferencedSide($record);
         }
         if ($this->isOneToOne()) {
-            return $this->map->getRecordForReferencedSide($record);
+            return $this->map->getRecordForOwningSide($record);
         }
         throw new RelationException("Relation '$relationName' does not expected a record as reference!");
     }
@@ -595,10 +605,10 @@ class Relation
      * Gets references
      *
      * @return array
-     *   keys:   owning ids,
+     *   keys:   referenced ids,
      *   values:
-     *      one-to-many: referencing ids as array
-     *      one-to-one:  referencing id as string
+     *      one-to-many: owning ids as array
+     *      one-to-one:  owning id as string
      */
     public function getReferences()
     {
@@ -621,6 +631,7 @@ class Relation
             if (!($reference instanceof Record)) {
                 throw new RelationException(
                     "Reference for relation '$relationName' must be NULL or an instance of \\Dive\\Record!"
+                    . " Got: " . (is_object($reference) ? get_class($reference) : gettype($reference))
                 );
             }
             $joinTableName = $this->getJoinTableName($relationName);

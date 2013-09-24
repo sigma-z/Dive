@@ -422,34 +422,34 @@ class Table
     /**
      * @return \Dive\Relation\Relation[]
      */
-    public function getOwningRelationsIndexedByOwnerField()
+    public function getReferencedRelationsIndexedByOwningField()
     {
-        if (null === $this->owningRelations) {
-            $this->owningRelations = array();
+        if (null === $this->referencedRelations) {
+            $this->referencedRelations = array();
             foreach ($this->relations as $name => $relation) {
-                if ($relation->isOwningSide($name)) {
-                    $this->owningRelations[$relation->getOwningField()] = $relation;
+                if ($relation->isReferencedSide($name)) {
+                    $this->referencedRelations[$relation->getOwningField()] = $relation;
                 }
             }
         }
-        return $this->owningRelations;
+        return $this->referencedRelations;
     }
 
 
     /**
      * @return \Dive\Relation\Relation[]
      */
-    public function getReferencedRelations()
+    public function getOwningRelations()
     {
-        if (null === $this->referencedRelations) {
-            $this->referencedRelations = array();
+        if (null === $this->owningRelations) {
+            $this->owningRelations = array();
             foreach ($this->relations as $name => $relation) {
-                if (!$relation->isOwningSide($name)) {
-                    $this->referencedRelations[$name] = $relation;
+                if ($relation->isOwningSide($name)) {
+                    $this->owningRelations[$name] = $relation;
                 }
             }
         }
-        return $this->referencedRelations;
+        return $this->owningRelations;
     }
 
 
@@ -489,7 +489,7 @@ class Table
     public function getReferenceFor(Record $record, $relationName)
     {
         $relation = $this->getRelation($relationName);
-        if ($relation->isOneToOne() || $relation->isOwningSide($relationName)) {
+        if ($relation->isOneToOne() || $relation->isReferencedSide($relationName)) {
             $refRecord = $relation->getRelatedRecord($record, $relationName);
             if ($refRecord) {
                 return $refRecord;

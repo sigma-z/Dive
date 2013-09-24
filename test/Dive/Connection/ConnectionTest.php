@@ -319,7 +319,7 @@ class ConnectionTest extends TestCase
         $conn = $rm->getConnection();
 
         $table = $rm->getTable($tableName);
-        $owningRelations = $table->getOwningRelationsIndexedByOwnerField();
+        $owningRelations = $table->getReferencedRelationsIndexedByOwningField();
 
         $fields = $table->getFields();
         foreach ($insertTypes as $type) {
@@ -363,7 +363,7 @@ class ConnectionTest extends TestCase
 
         $table = $rm->getTable($tableName);
         $fields = $table->getFields();
-        $owningRelations = $table->getOwningRelationsIndexedByOwnerField();
+        $owningRelations = $table->getReferencedRelationsIndexedByOwningField();
 
         // build a minimal record and insert - tested by testInsert.
         $data = array();
@@ -413,7 +413,7 @@ class ConnectionTest extends TestCase
 
         $table = $rm->getTable($tableName);
         $fields = $table->getFields();
-        $owningRelations = $table->getOwningRelationsIndexedByOwnerField();
+        $owningRelations = $table->getReferencedRelationsIndexedByOwningField();
 
         // build a minimal record and insert - tested by testInsert.
         $data = array();

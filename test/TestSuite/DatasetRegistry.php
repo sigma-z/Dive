@@ -13,18 +13,19 @@
 
 namespace Dive\TestSuite;
 
+use Dive\Connection\Connection;
 use Dive\Table;
 
 class DatasetRegistry
 {
 
-    /**
-     * @var \Dive\Table[]
-     */
+    /** @var Connection[] */
+    private $connections = array();
+
+    /** @var \Dive\Table[] */
     private $tables = array();
-    /**
-     * @var array
-     */
+
+    /** @var array */
     private $registry = array();
 
 
@@ -37,10 +38,16 @@ class DatasetRegistry
      */
     public function add(Table $table, $id)
     {
+        $conn = $table->getConnection();
+        $connIndex = array_search($conn, $this->connections);
+        if ($connIndex === false) {
+            $this->connections[] = $conn;
+            $connIndex = count($this->connections) - 1;
+        }
         $tableName = $table->getTableName();
-        $this->tables[$tableName] = $table;
+        $this->tables[$connIndex][$tableName] = $table;
         $key = $this->getIdAsString($id);
-        $this->registry[$tableName][$key] = $id;
+        $this->registry[$connIndex][$tableName][$key] = $id;
         return $this;
     }
 
@@ -57,7 +64,8 @@ class DatasetRegistry
         $tableName = $table->getTableName();
         $key = $this->getIdAsString($id);
         if ($this->isRegistered($table, $key)) {
-            unset($this->registry[$tableName][$key]);
+            $connIndex = $this->getConnectionIndex($table->getConnection());
+            unset($this->registry[$connIndex][$tableName][$key]);
         }
         return $this;
     }
@@ -72,9 +80,13 @@ class DatasetRegistry
      */
     public function isRegistered(Table $table, $id)
     {
+        $connIndex = $this->getConnectionIndex($table->getConnection());
+        if ($connIndex === false) {
+            return false;
+        }
         $tableName = $table->getTableName();
         $key = $this->getIdAsString($id);
-        return isset($this->registry[$tableName][$key]);
+        return isset($this->registry[$connIndex][$tableName][$key]);
     }
 
 
@@ -94,13 +106,29 @@ class DatasetRegistry
 
 
     /**
+     * Gets registered connections
+     *
+     * @return \Dive\Connection\Connection[]
+     */
+    public function getConnections()
+    {
+        return $this->connections;
+    }
+
+
+    /**
      * Gets tables with registered dataset ids
      *
+     * @param  \Dive\Connection\Connection $connection
      * @return \Dive\Table[]
      */
-    public function getTables()
+    public function getTables(Connection $connection)
     {
-        return $this->tables;
+        $connIndex = $this->getConnectionIndex($connection);
+        if ($connIndex === false) {
+            return array();
+        }
+        return isset($this->tables[$connIndex]) ? $this->tables[$connIndex] : array();
     }
 
 
@@ -112,11 +140,27 @@ class DatasetRegistry
      */
     public function getByTable(Table $table)
     {
+        $connIndex = $this->getConnectionIndex($table->getConnection());
+        if ($connIndex === false) {
+            return array();
+        }
         $tableName = $table->getTableName();
-        if (isset($this->registry[$tableName])) {
-            return array_values($this->registry[$tableName]);
+        if (isset($this->registry[$connIndex][$tableName])) {
+            return array_values($this->registry[$connIndex][$tableName]);
         }
         return array();
+    }
+
+
+    /**
+     * Gets index for given connection
+     *
+     * @param  Connection $conn
+     * @return int|bool False if not found
+     */
+    private function getConnectionIndex(Connection $conn)
+    {
+        return array_search($conn, $this->connections);
     }
 
 
@@ -127,9 +171,13 @@ class DatasetRegistry
      */
     public function clearByTable(Table $table)
     {
+        $connIndex = $this->getConnectionIndex($table->getConnection());
+        if ($connIndex === false) {
+            return;
+        }
         $tableName = $table->getTableName();
-        unset($this->tables[$tableName]);
-        unset($this->registry[$tableName]);
+        unset($this->tables[$connIndex][$tableName]);
+        unset($this->registry[$connIndex][$tableName]);
     }
 
 
@@ -138,6 +186,7 @@ class DatasetRegistry
      */
     public function clear()
     {
+        $this->connections = array();
         $this->tables = array();
         $this->registry = array();
     }

@@ -227,7 +227,7 @@ class Record
 
         $relations = $this->_table->getRelations();
         foreach ($relations as $relationName => $relation) {
-            if (!$relation->isOwningSide($relationName)) {
+            if ($relation->isOwningSide($relationName)) {
                 $relation->updateRecordIdentifier($this, $oldIdentifier);
             }
         }
@@ -311,11 +311,11 @@ class Record
 
     private function handleOwningFieldRelation($fieldName)
     {
-        $owningRelations = $this->_table->getOwningRelationsIndexedByOwnerField();
-        if (isset($owningRelations[$fieldName])) {
+        $referencedRelations = $this->_table->getReferencedRelationsIndexedByOwningField();
+        if (isset($referencedRelations[$fieldName])) {
             $oldValue = $this->getModifiedFieldValue($fieldName);
             $newValue = $this->_data[$fieldName];
-            $owningRelations[$fieldName]->updateOwningReferenceByForeignKey($this, $newValue, $oldValue);
+            $referencedRelations[$fieldName]->updateOwningReferenceByForeignKey($this, $newValue, $oldValue);
         }
     }
 
@@ -507,7 +507,7 @@ class Record
                 if ($deep) {
                     $relation = $this->_table->getRelation($name);
                     $relatedTable = $relation->getJoinTable($rm, $name);
-                    if ($relation->isOneToMany() && !$relation->isOwningSide($name)) {
+                    if ($relation->isOneToMany() && $relation->isOwningSide($name)) {
                         $collection = new RecordCollection($relatedTable, $this, $relation);
                         foreach ($value as $relatedData) {
                             $relatedRecord = $relatedTable->createRecord();
@@ -549,18 +549,18 @@ class Record
         $tableName = $this->_table->getTableName();
         $relations = $this->_table->getRelations();
         foreach ($relations as $relation) {
-            $owningTable = $relation->getOwningTable();
+            $refTable = $relation->getReferencedTable();
             $owningAlias = $relation->getOwningAlias();
-            if ($tableName == $owningTable && !isset($references[$owningAlias])) {
+            if ($tableName == $refTable && !isset($references[$owningAlias])) {
                 $reference = $this->getReferenceAsArray($relation, $owningAlias, $withMappedFields, $visited);
                 if ($reference !== false) {
                     $references[$owningAlias] = $reference;
                 }
             }
 
-            $refTable = $relation->getReferencedTable();
+            $owningTable = $relation->getOwningTable();
             $refAlias = $relation->getReferencedAlias();
-            if ($tableName == $refTable && !isset($references[$refAlias])) {
+            if ($tableName == $owningTable && !isset($references[$refAlias])) {
                 $reference = $this->getReferenceAsArray($relation, $refAlias, $withMappedFields, $visited);
                 if ($reference !== false && !isset($references[$refAlias])) {
                     $references[$refAlias] = $reference;
@@ -573,17 +573,17 @@ class Record
 
     /**
      * @param  Relation $relation
-     * @param  string   $relationAlias
+     * @param  string   $relationName
      * @param  bool     $withMappedFields
      * @param  array    $visited
      * @return array|bool
      */
-    private function getReferenceAsArray(Relation $relation, $relationAlias, $withMappedFields, array &$visited)
+    private function getReferenceAsArray(Relation $relation, $relationName, $withMappedFields, array &$visited)
     {
-        if ($relation->hasReferenceFor($this, $relationAlias)) {
+        if ($relation->hasReferenceFor($this, $relationName)) {
             /** @var Record|Record[]|RecordCollection $related */
-            $related = $this->get($relationAlias);
-            if ($relation->isOneToMany() && !$relation->isOwningSide($relationAlias)) {
+            $related = $this->get($relationName);
+            if ($relation->isOneToMany() && $relation->isOwningSide($relationName)) {
                 $reference = array();
                 foreach ($related as $relatedRecord) {
                     $reference[] = $relatedRecord->toArray(true, $withMappedFields, $visited);

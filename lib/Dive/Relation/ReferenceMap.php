@@ -27,8 +27,10 @@ class ReferenceMap
     protected $relation = null;
     /**
      * @var array
-     * keys: referenced ids
-     * values: owning id (one-to-one) or owning ids (one to many)
+     * keys:   referenced ids,
+     * values:
+     *     one-to-many: owning ids as array
+     *     one-to-one:  owning id as string
      */
     private $references = array();
     /**
@@ -217,7 +219,7 @@ class ReferenceMap
      */
     public function createRelatedCollection(Record $record)
     {
-        $relationName = $this->relation->getReferencedAlias();
+        $relationName = $this->relation->getOwningAlias();
         if (!$this->relation->isOneToMany()) {
             throw new RelationException("Reference type for relation '$relationName' must be a collection!");
         }
@@ -287,7 +289,7 @@ class ReferenceMap
     private function getRefRepository(Record $record, $relationName)
     {
         $rm = $record->getTable()->getRecordManager();
-        $tableName = $this->relation->isOwningSide($relationName)
+        $tableName = $this->relation->isReferencedSide($relationName)
             ? $this->relation->getReferencedTable()
             : $this->relation->getOwningTable();
         $refTable = $rm->getTable($tableName);
@@ -300,20 +302,18 @@ class ReferenceMap
      *
      * @param  Record $record
      * @return bool|Record|null
+     * @throws RelationException
      */
     public function getRecordForOwningSide(Record $record)
     {
-        $refId = $record->get($this->relation->getOwningField());
-        if ($refId === null) {
-            $oid = $record->getOid();
-            if ($this->hasFieldMapping($oid)) {
-                $refOid = $this->getFieldMapping($oid);
-                $refRepository = $this->getRefRepository($record, $this->relation->getOwningAlias());
-                return $refRepository->getByOid($refOid);
-            }
+        $owningAlias = $this->relation->getOwningAlias();
+        if ($this->relation->isOneToMany()) {
+            throw new RelationException("Relation '$owningAlias' does not expected a record as reference!");
         }
-        else {
-            $refRepository = $this->getRefRepository($record, $this->relation->getOwningAlias());
+        $id = $record->getInternalId();
+        if ($this->hasReferenced($id)) {
+            $refId = $this->getOwning($id);
+            $refRepository = $this->getRefRepository($record, $owningAlias);
             return $refRepository->getByInternalId($refId);
         }
         return null;
@@ -325,18 +325,20 @@ class ReferenceMap
      *
      * @param  Record $record
      * @return bool|Record|null
-     * @throws RelationException
      */
     public function getRecordForReferencedSide(Record $record)
     {
-        $refAlias = $this->relation->getReferencedAlias();
-        if ($this->relation->isOneToMany()) {
-            throw new RelationException("Relation '$refAlias' does not expected a record as reference!");
+        $refId = $record->get($this->relation->getOwningField());
+        if ($refId === null) {
+            $oid = $record->getOid();
+            if ($this->hasFieldMapping($oid)) {
+                $refOid = $this->getFieldMapping($oid);
+                $refRepository = $this->getRefRepository($record, $this->relation->getReferencedAlias());
+                return $refRepository->getByOid($refOid);
+            }
         }
-        $id = $record->getInternalId();
-        if ($this->hasReferenced($id)) {
-            $refId = $this->getOwning($id);
-            $refRepository = $this->getRefRepository($record, $refAlias);
+        else {
+            $refRepository = $this->getRefRepository($record, $this->relation->getReferencedAlias());
             return $refRepository->getByInternalId($refId);
         }
         return null;
@@ -440,7 +442,7 @@ class ReferenceMap
             return;
         }
         $oldOwningId = $this->getOwning($refId);
-        $repositoryOwningSide = $this->getRefRepository($referencedRecord, $this->relation->getReferencedAlias());
+        $repositoryOwningSide = $this->getRefRepository($referencedRecord, $this->relation->getOwningAlias());
         if ($repositoryOwningSide->hasByInternalId($oldOwningId)) {
             $owningField = $this->relation->getOwningField();
             $oldOwningRecord = $repositoryOwningSide->getByInternalId($oldOwningId);
@@ -577,7 +579,13 @@ class ReferenceMap
 
 
     /**
+     * Gets reference mapping
+     *
      * @return array
+     *   keys:   referenced ids,
+     *   values:
+     *      one-to-many: owning ids as array
+     *      one-to-one:  owning id as string
      */
     public function getMapping()
     {

@@ -162,10 +162,10 @@ class RecordManager
         $relationsData = $this->schema->getTableRelations($tableName);
         $relations = array();
         foreach ($relationsData['owning'] as $relName => $relData) {
-            $relations[$relData['owningAlias']] = $this->getRelationInstance($relName, $relData);
+            $relations[$relData['refAlias']] = $this->getRelationInstance($relName, $relData);
         }
         foreach ($relationsData['referenced'] as $relName => $relData) {
-            $relations[$relData['refAlias']] = $this->getRelationInstance($relName, $relData);
+            $relations[$relData['owningAlias']] = $this->getRelationInstance($relName, $relData);
         }
         //-- relations
 

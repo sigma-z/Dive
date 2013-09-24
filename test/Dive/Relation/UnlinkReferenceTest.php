@@ -23,7 +23,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
 {
 
 
-    public function testUnlinkOwningSideOneToOne()
+    public function testUnlinkReferencedSideOneToOne()
     {
         $author = $this->createAuthor('Author');
         $user = $this->createUser('User');
@@ -47,7 +47,7 @@ class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
     }
 
 
-    public function testUnlinkReferencedSideOneToOne()
+    public function testUnlinkOwningSideOneToOne()
     {
         $author = $this->createAuthor('Author');
         $user = $this->createUser('User');

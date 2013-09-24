@@ -84,11 +84,18 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
 
         $author = $this->createAuthor('AuthorOne');
         $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
+
         $user->Author = $author;
         $this->assertEquals($author, $user->Author, 'Expected reference $user->Author to be the Author record!');
         $this->assertEquals($user, $author->User, 'Expected reference $author->User to be the User record!');
 
+        // setting reference to NULL
         $user->Author = null;
+
+        $expectedReferences = array($user->getInternalId() => null);
+        $actualReferences = $user->getTable()->getRelation('Author')->getReferences();
+        $this->assertEquals($expectedReferences, $actualReferences);
+
         $this->assertNull($user->Author, 'Expected reference $user->Author to be NULL!');
         $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
     }
@@ -101,11 +108,18 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
 
         $author = $this->createAuthor('AuthorOne');
         $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
+
         $author->User = $user;
         $this->assertEquals($user, $author->User, 'Expected reference $author->User to be the User record!');
         $this->assertEquals($author, $user->Author, 'Expected reference $user->Author to be the Author record!');
 
+        // setting reference to NULL
         $author->User = null;
+
+        $expectedReferences = array($user->getInternalId() => null);
+        $actualReferences = $author->getTable()->getRelation('User')->getReferences();
+        $this->assertEquals($expectedReferences, $actualReferences);
+
         $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
         $this->assertNull($user->Author, 'Expected reference $user->Author to be NULL!');
     }
@@ -143,6 +157,7 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
             $userTwoId => $authorTwoId
         );
         $this->assertEquals($expectedReferences, $references);
+        $this->assertInstanceOf('\Dive\Record', $authorTwo->User);
 
         $authorOne->User = $authorTwo->User;
 

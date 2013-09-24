@@ -18,8 +18,9 @@ use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\Schema\SchemaException;
+use Dive\TestSuite\TestCase;
 
-class SchemaTest extends \PHPUnit_Framework_TestCase
+class SchemaTest extends TestCase
 {
 
     /**
@@ -34,6 +35,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
+        parent::setUp();
+
         $this->schemaDefinition = include FIXTURE_DIR . '/schema.php';
         $this->schema = new Schema($this->schemaDefinition);
         $this->schema->setValidationEnabled(true);

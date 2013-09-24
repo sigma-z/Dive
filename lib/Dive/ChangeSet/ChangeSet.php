@@ -78,7 +78,7 @@ class ChangeSet implements ChangeSetInterface
             $relations = $record->getTable()->getRelations();
             // iterate owning side relations
             foreach ($relations as $relationName => $relation) {
-                if ($relation->isOwningSide($relationName)) {
+                if ($relation->isReferencedSide($relationName)) {
                     continue;
                 }
 
@@ -90,7 +90,6 @@ class ChangeSet implements ChangeSetInterface
 
                     case PlatformInterface::RESTRICT:
                     case PlatformInterface::NO_ACTION:
-
                         break;
 
                     case PlatformInterface::SET_NULL:
@@ -151,7 +150,7 @@ class ChangeSet implements ChangeSetInterface
         $relations = $record->getTable()->getRelations();
         // iterate owning side relations
         foreach ($relations as $relationName => $relation) {
-            if ($relation->isOwningSide($relationName) && $relation->hasReferenceFor($record, $relationName)) {
+            if ($relation->isReferencedSide($relationName) && $relation->hasReferenceFor($record, $relationName)) {
                 $related = $record->get($relationName);
                 $this->processRecordSave($related, $visited);
             }
@@ -161,7 +160,7 @@ class ChangeSet implements ChangeSetInterface
 
         // iterate referenced side relations
         foreach ($relations as $relationName => $relation) {
-            if (!$relation->isOwningSide($relationName) && $relation->hasReferenceFor($record, $relationName)) {
+            if ($relation->isOwningSide($relationName) && $relation->hasReferenceFor($record, $relationName)) {
                 $related = $record->get($relationName);
                 if ($relation->isOneToMany()) {
                     foreach ($related as $relatedRecord) {

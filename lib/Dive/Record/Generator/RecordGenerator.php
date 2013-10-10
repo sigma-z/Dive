@@ -31,6 +31,8 @@ class RecordGenerator
     private $fieldValueGenerator = null;
     /**
      * @var array
+     * keys: table names
+     * values: rows
      */
     private $tableRows = array();
     /**
@@ -69,7 +71,7 @@ class RecordGenerator
 
 
     /**
-     * Sets table data
+     * Sets table rows
      *
      * @param string $tableName
      * @param array  $rows
@@ -96,7 +98,7 @@ class RecordGenerator
                     $key = $row;
                     $row = array($mapField => $row);
                 }
-                else if ($rowKey === $key) {
+                else if (!is_string($key)) {
                     $key = null;
                 }
                 $this->saveRecord($table, $row, $key);
@@ -117,15 +119,15 @@ class RecordGenerator
     private function saveRecord(Table $table, array $row, $key)
     {
         // keep foreign key relations in array to process after record has been saved
-        $referencedRelations = array();
+        $owningRelations = array();
         foreach ($row as $relationName => $value) {
             if ($table->hasRelation($relationName)) {
                 $relation = $table->getRelation($relationName);
                 if ($relation->isReferencedSide($relationName)) {
-                    $row = $this->saveRecordOnOwningRelation($row, $relation, $value);
+                    $row = $this->saveRecordOnReferencedRelation($row, $relation, $value);
                 }
                 else {
-                    $referencedRelations[$relationName] = array(
+                    $owningRelations[$relationName] = array(
                         'related' => $value,
                         'relation' => $relation
                     );
@@ -134,20 +136,24 @@ class RecordGenerator
             }
         }
 
+        // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
         $record = $this->rm->getRecord($table, $row);
-        $record->save();
+        $this->rm->saveRecord($record);
+        $this->rm->commit();
 
+        // keep record identifier in the record map
         $id = $record->getIdentifierAsString();
-        if ($key) {
+        if (is_string($key)) {
             $this->recordMap[$table->getTableName()][$key] = $id;
         }
 
-        foreach ($referencedRelations as $relationData) {
+        // save owning relations
+        foreach ($owningRelations as $relationData) {
             /** @var $relation Relation */
             $relation = $relationData['relation'];
             $relatedRows = $relationData['related'];
-            $this->saveRecordsOnReferencedRelation($relation, $relatedRows, $id);
+            $this->saveRecordsOnOwningRelation($relation, $relatedRows, $id);
         }
 
         return $id;
@@ -161,17 +167,17 @@ class RecordGenerator
      * @param array|string  $relatedRows
      * @param string        $id
      */
-    private function saveRecordsOnReferencedRelation(Relation $relation, $relatedRows, $id)
+    private function saveRecordsOnOwningRelation(Relation $relation, $relatedRows, $id)
     {
         $owningTable = $relation->getOwningTable();
         $owningField = $relation->getOwningField();
         if ($relation->isOneToMany()) {
             foreach ($relatedRows as $relatedKey => $relatedRow) {
-                $this->saveRecordOnReferencedRelation($relatedRow, $owningTable, $owningField, $id, $relatedKey);
+                $this->saveRecordOnOwningRelation($relatedRow, $owningTable, $owningField, $id, $relatedKey);
             }
         }
         else {
-            $this->saveRecordOnReferencedRelation($relatedRows, $owningTable, $owningField, $id);
+            $this->saveRecordOnOwningRelation($relatedRows, $owningTable, $owningField, $id);
         }
     }
 
@@ -185,7 +191,7 @@ class RecordGenerator
      * @param string        $id
      * @param string        $relatedKey
      */
-    private function saveRecordOnReferencedRelation($relatedRow, $refTableName, $refField, $id, $relatedKey = null)
+    private function saveRecordOnOwningRelation($relatedRow, $refTableName, $refField, $id, $relatedKey = null)
     {
         if (is_string($relatedRow)) {
             $mapField = $this->getTableMapField($refTableName);
@@ -207,7 +213,7 @@ class RecordGenerator
      * @param  string                   $value
      * @return array
      */
-    private function saveRecordOnOwningRelation(array $row, Relation $relation, $value)
+    private function saveRecordOnReferencedRelation(array $row, Relation $relation, $value)
     {
         $refTable = $relation->getReferencedTable();
         $relatedId = $this->getRecordFromMap($refTable, $value);
@@ -220,6 +226,8 @@ class RecordGenerator
 
 
     /**
+     * TODO explain method
+     *
      * @param  string $tableName
      * @param  string $key
      * @param  array  $additionalData
@@ -256,6 +264,11 @@ class RecordGenerator
     }
 
 
+    /**
+     * @param  string $table
+     * @param  string $key
+     * @return bool
+     */
     private function isInRecordMap($table, $key)
     {
         return isset($this->recordMap[$table][$key]);
@@ -276,6 +289,11 @@ class RecordGenerator
     }
 
 
+    /**
+     * @param  string $tableName
+     * @return string
+     * @throws RecordGeneratorException
+     */
     private function getTableMapField($tableName)
     {
         if (isset($this->tableMapFields[$tableName])) {

@@ -9,8 +9,8 @@
 
 namespace Dive\Test\Record;
 
-use Dive\ChangeSet\ChangeSet;
 use Dive\RecordManager;
+use Dive\TestSuite\DatasetRegistry;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -20,13 +20,17 @@ use Dive\TestSuite\TestCase;
 class RecordDeleteGraphTest extends TestCase
 {
 
+    protected function setUp()
+    {
+        $this->markTestSkipped('UnitOfWork will handle record changes!');
+    }
+
 
     /**
      * @dataProvider provideOneToOneDelete
      */
     public function testOneToOneReferencedSideDelete($tableName, array $graphData, $relationName, $constraintHandling)
     {
-        $this->markTestSkipped();
         $record = $this->saveRecordGraph($tableName, $graphData);
         $record->getRecordManager()->setConstraintHandling($constraintHandling);
         $changeSet = $record->delete();
@@ -41,8 +45,6 @@ class RecordDeleteGraphTest extends TestCase
      */
     public function testOneToOneOwningSideDelete($tableName, array $graphData, $relationName, $constraintHandling)
     {
-        $this->markTestSkipped();
-
         $record = $this->saveRecordGraph($tableName, $graphData);
         $record->getRecordManager()->setConstraintHandling($constraintHandling);
         $record = $record->get($relationName);

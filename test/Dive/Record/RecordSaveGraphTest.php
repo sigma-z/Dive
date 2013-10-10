@@ -20,13 +20,17 @@ use Dive\TestSuite\TestCase;
 class RecordSaveGraphTest extends TestCase
 {
 
+    protected function setUp()
+    {
+        $this->markTestSkipped('UnitOfWork will handle record changes!');
+    }
+
+
     /**
      * @dataProvider provideSaveGraph
      */
     public function testSaveGraph($tableName, array $graphData, $expectedOperation)
     {
-        $this->markTestSkipped();
-
         $rm = self::createDefaultRecordManager();
         $table = $rm->getTable($tableName);
 

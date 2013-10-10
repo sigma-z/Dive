@@ -34,11 +34,6 @@ class RecordCollection extends Collection
     protected $table = null;
 
     /**
-     * @var array
-     */
-    protected $toBeDeleted = array();
-
-    /**
      * @var \Dive\Record
      */
     private $refRecord = null;
@@ -119,7 +114,6 @@ class RecordCollection extends Collection
     {
         $removed = false;
         if ($this->has($id)) {
-            $this->toBeDeleted[] = $id;
             $recordToBeRemoved = $this->get($id);
             $removed = parent::remove($id);
             if ($this->refRecord && $this->relation) {
@@ -131,14 +125,32 @@ class RecordCollection extends Collection
 
 
     /**
-     * removes record from collection
+     * unlink the record
      *
-     * @param \Dive\Record $record
+     * @param  Record $record
      * @return bool
      */
-    public function removeRecord(Record $record)
+    public function unlinkRecord(Record $record)
     {
         return $this->remove($record->getInternalId());
+    }
+
+
+    /**
+     * deletes record from collection
+     *
+     * @param \Dive\Record $record
+     * @throws CollectionException
+     * @return bool
+     */
+    public function deleteRecord(Record $record)
+    {
+        $id = $record->getInternalId();
+        if (!$this->has($id)) {
+            throw new CollectionException("$id is not in collection!");
+        }
+        $this->table->getRecordManager()->deleteRecord($record);
+        return $this->remove($id);
     }
 
 
@@ -165,6 +177,10 @@ class RecordCollection extends Collection
     }
 
 
+    /**
+     * @param  bool $deep
+     * @return array
+     */
     public function toArray($deep = false)
     {
         $data = array();

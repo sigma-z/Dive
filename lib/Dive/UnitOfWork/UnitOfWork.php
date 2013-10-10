@@ -9,11 +9,9 @@
 
 namespace Dive\UnitOfWork;
 
-use Dive\ChangeSet\ChangeSet;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
-use Dive\Exception as DiveException;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -22,8 +20,17 @@ use Dive\Exception as DiveException;
 class UnitOfWork
 {
 
+    const SAVE = 'save';
+    const DELETE = 'delete';
+
     /** @var RecordManager */
     private $rm = null;
+
+    /** @var array */
+    private $scheduledForCommit = array();
+
+    /** @var \Dive\Record[] */
+    private $recordIdentityMap = array();
 
 
     public function __construct(RecordManager $rm)
@@ -44,7 +51,6 @@ class UnitOfWork
     public function getRecord(Table $table, array $data, $exists = false)
     {
         $id = $this->getIdentifierFromData($table, $data);
-        // TODO implement repository handling!!
         if ($id !== false && $table->isInRepository($id)) {
             $record = $table->getFromRepository($id);
         }
@@ -56,45 +62,80 @@ class UnitOfWork
 
 
     /**
-     * TODO implement save
+     * Gets identifier as string, but returns false, if identifier could not be determined
+     *
+     * @param  Table $table
+     * @param  array $data
+     * @return bool|string
      */
-    public function saveGraph(Record $record, ChangeSet $changeSet)
+    private function getIdentifierFromData(Table $table, array $data)
     {
-        $changeSet->calculateSave($record, $this->rm->getConstraintHandling());
-        $this->executeChangeSet($changeSet);
+        $identifierFields = $table->getIdentifierAsArray();
+        $identifier = array();
+        foreach ($identifierFields as $fieldName) {
+            if (!isset($data[$fieldName])) {
+                return false;
+            }
+            $identifier[] = $data[$fieldName];
+        }
+        return implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
     }
 
 
     /**
-     * TODO implement delete
+     * @param Record $record
      */
-    public function deleteGraph(Record $record, ChangeSet $changeSet)
+    public function scheduleSave(Record $record)
     {
-        $changeSet->calculateDelete($record, $this->rm->getConstraintHandling());
-        $this->executeChangeSet($changeSet);
+        $this->scheduleRecordForCommit($record, self::SAVE);
     }
 
 
-    private function executeChangeSet(ChangeSet $changeSet)
+    /**
+     * @param Record $record
+     */
+    public function scheduleDelete(Record $record)
     {
-        $conn = $this->rm->getConnection();
-        try {
-            $conn->beginTransaction();
-            foreach ($changeSet->getScheduledForDelete() as $recordDelete) {
-                $this->doDelete($recordDelete);
+        $this->scheduleRecordForCommit($record, self::DELETE);
+    }
+
+
+    private function scheduleRecordForCommit(Record $record, $operation)
+    {
+        $oid = $record->getOid();
+        $this->scheduledForCommit[$oid] = $operation;
+        // to put the scheduled record to the end, the record oid will be deleted from the recordIdentityMap
+        unset($this->recordIdentityMap[$oid]);
+        $this->recordIdentityMap[$oid] = $record;
+    }
+
+
+    public function commitChanges()
+    {
+        foreach ($this->recordIdentityMap as $oid => $record) {
+            $isSave = $this->scheduledForCommit[$oid] === self::SAVE;
+            $recordExists = $record->exists();
+            if ($isSave) {
+                if ($recordExists) {
+                    $this->doUpdate($record);
+                }
+                else {
+                    $this->doInsert($record);
+                }
             }
-            foreach ($changeSet->getScheduledForInsert() as $recordInsert) {
-                $this->doInsert($recordInsert);
+            else if ($recordExists) {
+                $this->doDelete($record);
             }
-            foreach ($changeSet->getScheduledForUpdate() as $recordUpdate) {
-                $this->doUpdate($recordUpdate);
-            }
-            $conn->commit();
         }
-        catch (DiveException $e) {
-            $conn->rollBack();
-            throw $e;
-        }
+
+        $this->resetScheduled();
+    }
+
+
+    public function resetScheduled()
+    {
+        $this->scheduledForCommit = array();
+        $this->recordIdentityMap = array();
     }
 
 
@@ -153,24 +194,4 @@ class UnitOfWork
         $conn->update($table, $modifiedFields, $identifier);
     }
 
-
-    /**
-     * Gets identifier as string, but returns false, if identifier could not be determined
-     *
-     * @param  Table $table
-     * @param  array $data
-     * @return bool|string
-     */
-    private function getIdentifierFromData(Table $table, array $data)
-    {
-        $identifierFields = $table->getIdentifierAsArray();
-        $identifier = array();
-        foreach ($identifierFields as $fieldName) {
-            if (!isset($data[$fieldName])) {
-                return false;
-            }
-            $identifier[] = $data[$fieldName];
-        }
-        return implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
-    }
 }

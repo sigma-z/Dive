@@ -253,31 +253,35 @@ class RecordManager
 
     /**
      * @param  Record $record
-     * @param  ChangeSet\ChangeSet $changeSet
-     * @return ChangeSet\ChangeSet
+     * @return $this
      */
-    public function saveRecord(Record $record, ChangeSet\ChangeSet $changeSet = null)
+    public function saveRecord(Record $record)
     {
-        if ($changeSet === null) {
-            $changeSet = new ChangeSet\ChangeSet();
-        }
-        $this->unitOfWork->saveGraph($record, $changeSet);
-        return $changeSet;
+        $this->unitOfWork->scheduleSave($record);
+        return $this;
     }
 
 
     /**
      * @param  Record $record
-     * @param  ChangeSet\ChangeSet $changeSet
-     * @return ChangeSet\ChangeSet
+     * @return $this
      */
-    public function deleteRecord(Record $record, ChangeSet\ChangeSet $changeSet = null)
+    public function deleteRecord(Record $record)
     {
-        if ($changeSet === null) {
-            $changeSet = new ChangeSet\ChangeSet();
-        }
-        $this->unitOfWork->deleteGraph($record, $changeSet);
-        return $changeSet;
+        $this->unitOfWork->scheduleDelete($record);
+        return $this;
+    }
+
+
+    public function commit()
+    {
+        $this->unitOfWork->commitChanges();
+    }
+
+
+    public function rollback()
+    {
+        $this->unitOfWork->resetScheduled();
     }
 
 

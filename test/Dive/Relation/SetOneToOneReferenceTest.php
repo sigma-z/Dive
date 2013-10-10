@@ -223,14 +223,14 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
     {
         $user = $this->createUser('UserOne');
         if ($userExists) {
-            $user->save();
+            $this->rm->saveRecord($user)->commit();
         }
         $author = $this->createAuthor('AuthorOne');
         if ($userExists) {
             $author->user_id = $user->id;   // TODO foreign key should be set through Record::save()
         }
         if ($authorExists) {
-            $author->save();
+            $this->rm->saveRecord($author)->commit();
         }
         return array($user, $author);
     }

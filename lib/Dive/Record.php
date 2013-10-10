@@ -21,10 +21,10 @@
  *   case: record exists, fully loaded - no data changed        -> not modified
  *   case: record exists, fully loaded - data changed           -> modified
  * Should we handle partial loaded records? How to mark fields as not loaded, yet?
- * RecordManager/ChangeSet/ChangeSet for performing saves and deletes?
+ * UnitOfWork for performing saves and deletes?
  *   Idea:
  *     - RecordManager should hold a UnitOfWork, which handles changes provided by the object graph.
- *     - ChangeSet should calculate by iterating through the object graph, if records has to been inserted,
+ *     - UnitOfWork should calculate by iterating through the object graphs, if records has to been inserted,
  *       updated, and deleted.
  */
 
@@ -398,25 +398,22 @@ class Record
 
 
     /**
-     * Persists the record
+     * @deprecated use RecordManager->saveRecord($record)->commit() instead
      */
     public function save()
     {
-        $rm = $this->_table->getRecordManager();
-        $changeSet = $rm->saveRecord($this);
-        return $changeSet;
+        $rm = $this->getRecordManager();
+        $rm->saveRecord($this)->commit();
     }
 
 
     /**
-     * Removes the record
+     * @deprecated use RecordManager->deleteRecord($record)->commit() instead
      */
     public function delete()
     {
-        $rm = $this->_table->getRecordManager();
-        $changeSet = $rm->deleteRecord($this);
-        $this->_exists = false;
-        return $changeSet;
+        $rm = $this->getRecordManager();
+        $rm->deleteRecord($this)->commit();
     }
 
 

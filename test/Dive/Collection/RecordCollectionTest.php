@@ -80,7 +80,17 @@ class RecordCollectionTest extends TestCase
     {
         $user = $this->addRecordToCollection();
         $id = $user->getInternalId();
-        $this->assertTrue($this->userColl->removeRecord($user));
+        $this->assertTrue($this->userColl->has($id));
+        $this->assertTrue($this->userColl->deleteRecord($user));
+        $this->assertFalse($this->userColl->has($id));
+    }
+
+
+    public function testUnlink()
+    {
+        $user = $this->addRecordToCollection();
+        $id = $user->getInternalId();
+        $this->assertTrue($this->userColl->unlinkRecord($user));
         $this->assertFalse($this->userColl->has($id));
     }
 

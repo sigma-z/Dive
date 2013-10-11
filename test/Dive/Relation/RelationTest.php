@@ -33,13 +33,6 @@ class RelationTest extends TestCase
     }
 
 
-    protected function tearDown()
-    {
-        parent::tearDown();
-
-    }
-
-
     public function testGetJoinTable()
     {
         $user = $this->rm->getTable('user');

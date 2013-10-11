@@ -1,0 +1,15 @@
+{
+    "name": "sigma-z/dive",
+    "description": "Dive ORM Framework written in PHP",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Steffen Zeidler",
+            "email": "sigma_z@sigma-scripts.de"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "symfony/event-dispatcher": "~2"
+    }
+}

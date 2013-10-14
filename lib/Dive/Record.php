@@ -403,7 +403,7 @@ class Record
     public function save()
     {
         $rm = $this->getRecordManager();
-        $rm->saveRecord($this)->commit();
+        $rm->save($this)->commit();
     }
 
 
@@ -413,7 +413,7 @@ class Record
     public function delete()
     {
         $rm = $this->getRecordManager();
-        $rm->deleteRecord($this)->commit();
+        $rm->delete($this)->commit();
     }
 
 

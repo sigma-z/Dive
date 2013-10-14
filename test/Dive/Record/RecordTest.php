@@ -245,7 +245,7 @@ class RecordTest extends TestCase
     {
         $rm = $this->createRecordManager($database);
         $user = $this->createUserRecord($rm);
-        $rm->saveRecord($user);
+        $rm->save($user);
         $rm->commit();
 
         $this->assertTrue($user->exists());
@@ -266,12 +266,12 @@ class RecordTest extends TestCase
     {
         $rm = $this->createRecordManager($database);
         $user = $this->createUserRecord($rm);
-        $rm->saveRecord($user);
+        $rm->save($user);
         $rm->commit();
 
         $user->username = 'John Doe';
         $user->password = md5('my secret!');
-        $rm->saveRecord($user);
+        $rm->save($user);
         $rm->commit();
 
         // removing existing flag from user array
@@ -296,7 +296,7 @@ class RecordTest extends TestCase
 
         $logger = new SqlLogger();
         $rm->getConnection()->setSqlLogger($logger);
-        $rm->deleteRecord($user);
+        $rm->delete($user);
         $rm->commit();
 
         $this->assertFalse($user->exists());
@@ -312,10 +312,10 @@ class RecordTest extends TestCase
         $rm = $this->createRecordManager($database);
         $user = $this->createUserRecord($rm);
 
-        $rm->saveRecord($user);
+        $rm->save($user);
         $rm->commit();
 
-        $rm->deleteRecord($user);
+        $rm->delete($user);
         $rm->commit();
 
         $table = $rm->getTable('user');

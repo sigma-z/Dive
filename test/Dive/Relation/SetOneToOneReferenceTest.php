@@ -18,9 +18,6 @@ namespace Dive\Test\Relation;
 require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
 
 use Dive\Record;
-use Dive\RecordManager;
-use Dive\TestSuite\TestCase;
-use Dive\Util\FieldValuesGenerator;
 
 class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
 {
@@ -223,14 +220,14 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
     {
         $user = $this->createUser('UserOne');
         if ($userExists) {
-            $this->rm->saveRecord($user)->commit();
+            $this->rm->save($user)->commit();
         }
         $author = $this->createAuthor('AuthorOne');
         if ($userExists) {
             $author->user_id = $user->id;   // TODO foreign key should be set through Record::save()
         }
         if ($authorExists) {
-            $this->rm->saveRecord($author)->commit();
+            $this->rm->save($author)->commit();
         }
         return array($user, $author);
     }

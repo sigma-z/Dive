@@ -10,8 +10,11 @@
 namespace Dive\Test\Record;
 
 use Dive\Record;
+use Dive\Record\Generator\RecordGenerator;
+use Dive\RecordManager;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
+use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -20,199 +23,71 @@ use Dive\TestSuite\TestCase;
 class RecordSaveGraphTest extends TestCase
 {
 
+    /** @var RecordManager */
+    private $rm = null;
+
+
     protected function setUp()
     {
-        $this->markTestSkipped('UnitOfWork will handle record changes!');
+        $this->markTestSkipped();
+        parent::setUp();
+        $this->rm = self::createDefaultRecordManager();
     }
 
 
-    /**
-     * @dataProvider provideSaveGraph
-     */
-    public function testSaveGraph($tableName, array $graphData, $expectedOperation)
+    public function testOneToOneRelationOwningSideOnExistingRecord()
     {
-        $rm = self::createDefaultRecordManager();
-        $table = $rm->getTable($tableName);
-
-        $record = $table->createRecord();
-        $record->fromArray($graphData);
-        $changeSet = $record->save();
-
-        $this->assertTrue($record->exists());
-
-        $method = 'getScheduledFor' . ucfirst($expectedOperation);
-        $affected = call_user_func(array($changeSet, $method));
-
-        $this->assertTrue(in_array($record, $affected, true));
-        $this->assertSavedGraph($graphData, $record);
-
-        $this->assertNumOfRecords($affected);
-    }
-
-
-    private function assertSavedGraph(array $graphData, Record $record)
-    {
-        $table = $record->getTable();
-        foreach ($table->getRelations() as $relAlias => $relation) {
-            if (!empty($graphData[$relAlias])) {
-                $this->assertTrue($relation->hasReferenceFor($record, $relAlias));
-
-                /** @var \Dive\Record[] $related */
-                $related = $record->get($relAlias);
-                $refField = $relation->getReferencedField();
-                $owningField = $relation->getOwningField();
-
-                if ($relation->isOwningSide($relAlias) || !$relation->isOneToMany()) {
-                    $related = array($related);
-                }
-
-                foreach ($related as $relatedRecord) {
-                    if ($relation->isOwningSide($relAlias)) {
-                        $backRelAlias = $relation->getReferencedAlias();
-                        $recordId = $relatedRecord->get($refField);
-                        $foreignKeyFieldValue = $record->get($owningField);
-                    }
-                    else {
-                        $backRelAlias = $relation->getOwningAlias();
-                        $recordId = $record->get($refField);
-                        $foreignKeyFieldValue = $relatedRecord->get($owningField);
-                    }
-                    $message = "Expected that back reference from table '"
-                        . $relatedRecord->getTable()
-                        . "' to '$backRelAlias' is set!";
-
-                    $this->assertTrue($relation->hasReferenceFor($relatedRecord, $backRelAlias), $message);
-                    $this->assertEquals($recordId, $foreignKeyFieldValue);
-
-                    $this->assertSavedGraph($graphData[$relAlias], $relatedRecord);
-                }
-            }
-        }
-    }
-
-
-    /**
-     *
-     * @param \Dive\Record[] $affected
-     */
-    private function assertNumOfRecords($affected)
-    {
-        /** @var Table[] $tables */
-        $tables = array();
-        $actualNumOfRecords = array();
-        foreach ($affected as $record) {
-            $table = $record->getTable();
-            $tableName = $table->getTableName();
-            if (!isset($tables[$tableName])) {
-                $tables[$tableName] = $table;
-                $actualNumOfRecords[$tableName] = 0;
-            }
-            $actualNumOfRecords[$tableName]++;
-        }
-
-        foreach ($actualNumOfRecords as $tableName => $numOfRecords) {
-            $expected = $tables[$tableName]->getRepository()->count();
-            $actual = $numOfRecords;
-            $message = "Number of records does not match number of records in repository";
-            $this->assertEquals($expected, $actual, $message);
-
-            $expected = $tables[$tableName]->createQuery()->select('COUNT(*)')->fetchSingleScalar();
-            $message = "Number of records does not match number of records in database table";
-            $this->assertEquals($expected, $actual, $message);
-        }
-    }
-
-
-    public function provideSaveGraph()
-    {
-        $testCases = array();
-
-        $testCases[] = array(
-            'table' => 'author',
-            'graph' => array(
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'email' => 'jdo@example.com',
-                'User' => array(
-                    'username' => 'John',
-                    'password' => 'secret'
-                )
+        $tableRows = array(
+            'user' => array(
+                'JohnD' => array('username' => 'JohnD', 'password' => 'secret'),
+                'SallyK' => array('username' => 'SallyK', 'password' => 'secret')
             ),
-            'expectedOperation' => 'insert'
-        );
-
-        $testCases[] = array(
-            'table' => 'user',
-            'graph' => array(
-                'username' => 'John',
-                'password' => 'secret',
-                'Author' => array(
+            'author' => array(
+                array(
                     'firstname' => 'John',
                     'lastname' => 'Doe',
                     'email' => 'jdo@example.com',
-                )
-            ),
-            'expectedOperation' => 'insert'
-        );
-
-        $testCases[] = array(
-            'table' => 'author',
-            'graph' => array(
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'email' => 'jdo@example.com',
-                'User' => array(
-                    'username' => 'John',
-                    'password' => 'secret'
+                    'User' => 'SallyK'
                 ),
-                'Editor' => array(
-                    'firstname' => 'Lisa',
-                    'lastname' => 'Wood',
-                    'email' => 'lwo@example.com',
-                    'User' => array(
-                        'username' => 'Lisa',
-                        'password' => 'secret'
-                    )
+                array(
+                    'firstname' => 'Sally',
+                    'lastname' => 'Kingston',
+                    'email' => 'ski@example.com',
+                    'User' => 'JohnD'
                 )
-            ),
-            'expectedOperation' => 'insert'
+            )
         );
+        $this->createTestRecords($tableRows);
 
-        $testCases[] = array(
-            'table' => 'author',
-            'graph' => array(
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'email' => 'jdo@example.com',
-                'User' => array(
-                    'username' => 'John',
-                    'password' => 'secret'
-                ),
-                'Author' => array(
-                    array(
-                        'firstname' => 'Lisa',
-                        'lastname' => 'Wood',
-                        'email' => 'lwo@example.com',
-                        'User' => array(
-                            'username' => 'Lisa',
-                            'password' => 'secret'
-                        )
-                    ),
-                    array(
-                        'firstname' => 'Sue',
-                        'lastname' => 'Miller',
-                        'email' => 'smi@example.com',
-                        'User' => array(
-                            'username' => 'Sue',
-                            'password' => 'secret'
-                        )
-                    )
-                )
-            ),
-            'expectedOperation' => 'insert'
-        );
+        $userTable = $this->rm->getTable('user');
+        $userJohn = $userTable->createQuery()->where('username = ?', 'JohnD')->fetchOneAsObject();
+        $this->assertInstanceOf('\Dive\Record', $userJohn);
+        $userSally = $userTable->createQuery()->where('username = ?', 'SallyK')->fetchOneAsObject();
+        $this->assertInstanceOf('\Dive\Record', $userSally);
 
-        return $testCases;
+        $swapAuthor = $userJohn->Author;
+        $userJohn->Author = $userSally->Author;
+        $userSally->Author = $swapAuthor;
+
+        $this->rm->save($userJohn);
+        $this->rm->save($userSally);
+        //$this->rm->commit();
+    }
+
+
+    public function testOneToOneRelationReferencedSide()
+    {
+    }
+
+
+    private function createTestRecords(array $tablesRows, array $tablesMapFields = array())
+    {
+        $fvGenerator = new FieldValuesGenerator();
+        $recordGenerator = new RecordGenerator($this->rm, $fvGenerator);
+        $recordGenerator
+            ->setTablesMapField($tablesMapFields)
+            ->setTablesRows($tablesRows)
+            ->generate();
     }
 
 }

@@ -218,16 +218,15 @@ class RelationLoadingTest extends TestCase
                 )
             ),
         );
-        $tableMapFields = array('user' => 'username', 'tag' => 'name');
+        $tablesMapFields = array('user' => 'username', 'tag' => 'name');
 
         self::$rm = self::createDefaultRecordManager();
         $fvGenerator = new FieldValuesGenerator();
         $recordGenerator = new RecordGenerator(self::$rm, $fvGenerator);
-        foreach (self::$tableRows as $tableName => $tableRows) {
-            $mapField = isset($tableMapFields[$tableName]) ? $tableMapFields[$tableName] : null;
-            $recordGenerator->setTableRows($tableName, $tableRows, $mapField);
-        }
-        $recordGenerator->generate();
+        $recordGenerator
+            ->setTablesMapField($tablesMapFields)
+            ->setTablesRows(self::$tableRows)
+            ->generate();
     }
 
 }

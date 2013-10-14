@@ -149,7 +149,7 @@ class RecordCollection extends Collection
         if (!$this->has($id)) {
             throw new CollectionException("$id is not in collection!");
         }
-        $this->table->getRecordManager()->deleteRecord($record);
+        $this->table->getRecordManager()->delete($record);
         return $this->remove($id);
     }
 

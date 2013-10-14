@@ -30,9 +30,6 @@ class RecordManager
     const FETCH_SCALARS = 'scalars';
     const FETCH_SINGLE_SCALAR = 'single-scalar';
 
-    const CONSTRAINT_NATIVE = 'nativeConstraints';
-    const CONSTRAINT_DIVE = 'diveConstraints';
-
     /** @var Table[] */
     private $tables = array();
 
@@ -53,9 +50,6 @@ class RecordManager
 
     /** @var string */
     private $queryClass = '\Dive\Query\Query';
-
-    /** @var string */
-    private $constraintHandling = self::CONSTRAINT_NATIVE;
 
 
     /**
@@ -85,24 +79,6 @@ class RecordManager
     public function getSchema()
     {
         return $this->schema;
-    }
-
-
-    /**
-     * @param string $constraintHandling
-     */
-    public function setConstraintHandling($constraintHandling)
-    {
-        $this->constraintHandling = $constraintHandling;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getConstraintHandling()
-    {
-        return $this->constraintHandling;
     }
 
 
@@ -255,7 +231,7 @@ class RecordManager
      * @param  Record $record
      * @return $this
      */
-    public function saveRecord(Record $record)
+    public function save(Record $record)
     {
         $this->unitOfWork->scheduleSave($record);
         return $this;
@@ -266,7 +242,7 @@ class RecordManager
      * @param  Record $record
      * @return $this
      */
-    public function deleteRecord(Record $record)
+    public function delete(Record $record)
     {
         $this->unitOfWork->scheduleDelete($record);
         return $this;
@@ -279,6 +255,9 @@ class RecordManager
     }
 
 
+    /**
+     * TODO should rollback relation references and their record collections as well
+     */
     public function rollback()
     {
         $this->unitOfWork->resetScheduled();

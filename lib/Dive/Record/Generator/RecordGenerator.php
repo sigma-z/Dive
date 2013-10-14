@@ -66,23 +66,68 @@ class RecordGenerator
     public function clear()
     {
         $this->tableRows = array();
+        $this->tableMapFields = array();
         $this->recordMap = array();
+    }
+
+
+    /**
+     * Sets tables mapping fields
+     *
+     * @param  array $tablesMapField
+     * @return $this
+     */
+    public function setTablesMapField(array $tablesMapField)
+    {
+        $this->tableMapFields = array();
+        foreach ($tablesMapField as $tableName => $mapField) {
+            $this->setTableMapField($tableName, $mapField);
+        }
+        return $this;
+    }
+
+
+    /**
+     * Sets table map field
+     *
+     * @param  string $tableName
+     * @param  string $mapField
+     * @return $this
+     */
+    public function setTableMapField($tableName, $mapField)
+    {
+        $this->tableMapFields[$tableName] = $mapField;
+        return $this;
+    }
+
+
+    /**
+     * Sets tables rows
+     *
+     * @param  array $tablesRows
+     * @return $this
+     */
+    public function setTablesRows(array $tablesRows)
+    {
+        $this->tableRows = array();
+        foreach ($tablesRows as $tableName => $tableRows) {
+            $this->setTableRows($tableName, $tableRows);
+        }
+        return $this;
     }
 
 
     /**
      * Sets table rows
      *
-     * @param string $tableName
-     * @param array  $rows
-     * @param string $mapField
+     * @param  string $tableName
+     * @param  array  $rows
+     * @return $this
      */
-    public function setTableRows($tableName, array $rows, $mapField = null)
+    public function setTableRows($tableName, array $rows)
     {
         $this->tableRows[$tableName] = $rows;
-        if ($mapField) {
-            $this->tableMapFields[$tableName] = $mapField;
-        }
+        return $this;
     }
 
 
@@ -139,7 +184,7 @@ class RecordGenerator
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
         $record = $this->rm->getRecord($table, $row);
-        $this->rm->saveRecord($record);
+        $this->rm->save($record);
         $this->rm->commit();
 
         // keep record identifier in the record map

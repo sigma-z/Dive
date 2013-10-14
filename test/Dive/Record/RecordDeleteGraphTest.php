@@ -29,10 +29,9 @@ class RecordDeleteGraphTest extends TestCase
     /**
      * @dataProvider provideOneToOneDelete
      */
-    public function testOneToOneReferencedSideDelete($tableName, array $graphData, $relationName, $constraintHandling)
+    public function testOneToOneReferencedSideDelete($tableName, array $graphData, $relationName)
     {
         $record = $this->saveRecordGraph($tableName, $graphData);
-        $record->getRecordManager()->setConstraintHandling($constraintHandling);
         $changeSet = $record->delete();
 
         $affected = $changeSet->getScheduledForDelete();
@@ -43,10 +42,9 @@ class RecordDeleteGraphTest extends TestCase
     /**
      * @dataProvider provideOneToOneDelete
      */
-    public function testOneToOneOwningSideDelete($tableName, array $graphData, $relationName, $constraintHandling)
+    public function testOneToOneOwningSideDelete($tableName, array $graphData, $relationName)
     {
         $record = $this->saveRecordGraph($tableName, $graphData);
-        $record->getRecordManager()->setConstraintHandling($constraintHandling);
         $record = $record->get($relationName);
         $changeSet = $record->delete();
 
@@ -114,14 +112,12 @@ class RecordDeleteGraphTest extends TestCase
             'user',
             $authorUserGraphData,
             'Author',
-            RecordManager::CONSTRAINT_DIVE,
             false
         );
         $testCases[] = array(
             'user',
             $authorUserGraphData,
             'Author',
-            RecordManager::CONSTRAINT_NATIVE,
             false
         );
 

@@ -90,14 +90,14 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
     {
         $user = $this->createUser('UserOne');
         if ($userExists) {
-            $this->rm->saveRecord($user)->commit();
+            $this->rm->save($user)->commit();
         }
         $author = $this->createAuthor('AuthorOne');
         if ($userExists) {
             $author->user_id = $user->id;   // TODO foreign key should be set through Record::save()
         }
         if ($authorExists) {
-            $this->rm->saveRecord($author)->commit();
+            $this->rm->save($author)->commit();
         }
         return array($user, $author);
     }
@@ -188,12 +188,12 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
 
         $authorOne = $this->createAuthorWithUser('One');
         $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
-        $this->rm->saveRecord($authorOne)->commit();
+        $this->rm->save($authorOne)->commit();
         $authorOneId = $authorOne->id;
 
         $authorTwo = $this->createAuthorWithUser('Two');
         $authorTwo->editor_id = $editorTwo->id; // TODO should be done through UnitOfWork
-        $this->rm->saveRecord($authorTwo)->commit();
+        $this->rm->save($authorTwo)->commit();
 
         $this->rm->clearTables();
 
@@ -215,11 +215,11 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
 
         $authorOne = $this->createAuthorWithUser('One');
         $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
-        $this->rm->saveRecord($authorOne)->commit();
+        $this->rm->save($authorOne)->commit();
 
         $authorTwo = $this->createAuthorWithUser('Two');
         $authorTwo->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
-        $this->rm->saveRecord($authorTwo)->commit();
+        $this->rm->save($authorTwo)->commit();
 
         $this->rm->clearTables();
 
@@ -241,10 +241,10 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
     private function createAuthorWithUser($name)
     {
         $user = $this->createUser('User' . $name);
-        $this->rm->saveRecord($user)->commit();
+        $this->rm->save($user)->commit();
         $author  = $this->createAuthor('Author' . $name);
         $author->user_id = $user->id;// TODO should be done through UnitOfWork
-        $this->rm->saveRecord($author)->commit();
+        $this->rm->save($author)->commit();
         return $author;
     }
 
@@ -252,23 +252,23 @@ class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
     private function createAuthorEditorUsers($authorExists, $editorExists)
     {
         $user = $this->createUser('UserOne');
-        $this->rm->saveRecord($user)->commit();
+        $this->rm->save($user)->commit();
         $author = $this->createAuthor('Author');
         $user->Author = $author;
         $this->assertEquals($user->id, $author->user_id);
 
         $userEditor = $this->createUser('UserTwo');
-        $this->rm->saveRecord($userEditor)->commit();
+        $this->rm->save($userEditor)->commit();
         $editor = $this->createAuthor('Editor');
         $userEditor->Author = $editor;
         $this->assertEquals($userEditor->id, $editor->user_id);
 
         if ($editorExists) {
-            $this->rm->saveRecord($editor)->commit();
+            $this->rm->save($editor)->commit();
         }
 
         if ($authorExists) {
-            $this->rm->saveRecord($author)->commit();
+            $this->rm->save($author)->commit();
         }
 
         return array($user, $userEditor);

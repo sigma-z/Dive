@@ -87,7 +87,9 @@ class UnitOfWork
      */
     public function scheduleSave(Record $record)
     {
-        $this->scheduleRecordForCommit($record, self::SAVE);
+        $operation = self::SAVE;
+        $this->scheduleRecordForCommit($record, $operation);
+        $this->handleConstraints($record, $operation);
     }
 
 
@@ -96,17 +98,52 @@ class UnitOfWork
      */
     public function scheduleDelete(Record $record)
     {
-        $this->scheduleRecordForCommit($record, self::DELETE);
+        $operation = self::DELETE;
+        $this->scheduleRecordForCommit($record, $operation);
+        $this->handleConstraints($record, $operation);
     }
 
 
     private function scheduleRecordForCommit(Record $record, $operation)
     {
         $oid = $record->getOid();
+        if (isset($this->scheduledForCommit[$oid])) {
+            if ($this->scheduledForCommit[$oid] == $operation) {
+                return;
+            }
+            else {
+                throw new UnitOfWorkException(
+                    "Scheduling record for " . strtoupper($operation) . " failed!\n"
+                    . "Reason: Record already has been scheduled for " . strtoupper($this->scheduledForCommit[$oid])
+                );
+            }
+        }
+
         $this->scheduledForCommit[$oid] = $operation;
-        // to put the scheduled record to the end, the record oid will be deleted from the recordIdentityMap
-        unset($this->recordIdentityMap[$oid]);
         $this->recordIdentityMap[$oid] = $record;
+    }
+
+
+    private function handleConstraints(Record $record, $operation)
+    {
+        if (!$record->exists()) {
+            return;
+        }
+
+//        $owningRelations = $record->getTable()->getOwningRelations();
+//        foreach ($owningRelations as $relation) {
+//            if ($operation == self::SAVE && $record->isFieldModified($relation->getReferencedField())) {
+//
+//            }
+//
+//            $owningTable = $this->rm->getTable($relation->getOwningTable());
+//            $query = $owningTable->createQuery()
+//                ->where($relation->getOwningField() . ' = ?', $record->getIdentifierAsString());
+//            $records = $query->execute();
+//            foreach ($records as $record) {
+//                echo $operation == self::DELETE ? $relation->getOnDelete() : $relation->getOnUpdate() . "\n";
+//            }
+//        }
     }
 
 

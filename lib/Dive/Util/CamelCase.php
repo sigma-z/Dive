@@ -25,7 +25,10 @@ class CamelCase
     public static function toCamelCase($string)
     {
         $string = strtolower($string);
-        $string = preg_replace('/[^a-z0-9]+?([a-z0-9])/ie', 'ucfirst(\'\1\')', $string);
+        $pregReplaceClosure = function ($matches) {
+            return ucfirst($matches[1]);
+        };
+        $string = preg_replace_callback('/[^a-z0-9]+?([a-z0-9])/i', $pregReplaceClosure, $string);
         $string = ucfirst($string);
         return $string;
     }

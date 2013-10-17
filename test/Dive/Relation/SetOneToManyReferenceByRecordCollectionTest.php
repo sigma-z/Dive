@@ -54,14 +54,7 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
         $this->editor->Author[] = $this->authorTwo;
         $this->assertEquals(2, $this->editor->Author->count());
 
-        $references = $this->editor->getTable()->getRelation('Author')->getReferences();
-        $expectedReferences = array(
-            $this->editor->getInternalId() => array(
-                $this->authorOne->getInternalId(),
-                $this->authorTwo->getInternalId()
-            )
-        );
-        $this->assertEquals($expectedReferences, $references);
+        $this->assertRelationReferences($this->editor, 'Author', array($this->authorOne, $this->authorTwo));
     }
 
 
@@ -72,12 +65,9 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
 
         $this->editor->Author->remove($this->authorOne->getInternalId());
 
-        $relation = $this->editor->getTable()->getRelation('Author');
-        $references = $relation->getReferences();
-        $expectedReferences = array(
-            $this->editor->getInternalId() => array($this->authorTwo->getInternalId())
-        );
-        $this->assertEquals($expectedReferences, $references);
+        $this->assertNoRelationReferences($this->editor, 'Author', $this->authorOne);
+        $this->assertRelationReferences($this->editor, 'Author', $this->authorTwo);
+        $this->assertEquals(1, $this->editor->Author->count());
     }
 
 
@@ -91,10 +81,7 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
         $this->authorOne->Editor = null;
         $this->authorTwo->Editor = null;
 
-        $references = $this->editor->getTable()->getRelation('Author')->getReferences();
-        $expectedReferences = array($this->editor->getInternalId() => array());
-        $this->assertEquals($expectedReferences, $references);
-
+        $this->assertNoRelationReferences($this->editor, 'Author', array($this->authorOne, $this->authorTwo));
         $this->assertEquals(0, $this->editor->Author->count());
     }
 
@@ -106,9 +93,11 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
         $this->assertEquals(0, $this->editor->Author->count());
 
         $this->editor->Author[] = $this->authorOne;
+        $this->assertRelationReferences($this->editor, 'Author', $this->authorOne);
         $this->assertEquals(1, $this->editor->Author->count());
 
         $this->authorTwo->Editor = $this->editor;
+        $this->assertRelationReferences($this->editor, 'Author', array($this->authorOne, $this->authorTwo));
         $this->assertEquals(2, $this->editor->Author->count());
     }
 
@@ -135,15 +124,7 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
         $collection[] = $this->authorTwo;
         $this->editor->Author = $collection;
 
-        $references = $authorTable->getRelation('Author')->getReferences();
-        $expectedReferences = array(
-            $this->editor->getInternalId() => array(
-                $this->authorOne->getInternalId(),
-                $this->authorTwo->getInternalId()
-            )
-        );
-
-        $this->assertEquals($expectedReferences, $references);
+        $this->assertRelationReferences($this->editor, 'Author', array($this->authorOne, $this->authorTwo));
         $this->assertEquals(2, $this->editor->Author->count());
     }
 
@@ -155,10 +136,7 @@ class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetRef
         $this->editor->Author[] = $this->authorTwo;
         $this->editor->Author = new RecordCollection($authorTable);
 
-        $references = $authorTable->getRelation('Author')->getReferences();
-        $expectedReferences = array($this->editor->getInternalId() => array());
-
-        $this->assertEquals($expectedReferences, $references);
+        $this->assertNoRelationReferences($this->editor, 'Author', array($this->authorOne, $this->authorTwo));
         $this->assertEquals(0, $this->editor->Author->count());
     }
 

@@ -45,6 +45,13 @@ class ReferenceMap
      * values: oid (referenced not-yet-persisted record)
      */
     private $owningFieldOidMapping = array();
+    /**
+     * TODO could be used for unitOfWork rollbacks?
+     * keys:   oid (owning record - contains foreign key field)
+     * values: oid (referenced not-yet-persisted record)
+     * @var array
+     */
+    private $originalOwningFieldOidMapping = array();
 
 
     /**
@@ -84,25 +91,25 @@ class ReferenceMap
      * Sets reference for a referenced id
      *
      * @param  string       $id
-     * @param  array|string $ownerIdentifier
+     * @param  array|string $owningId
      * @throws \InvalidArgumentException
      */
-    public function setReference($id, $owningIdentifier)
+    public function setReference($id, $owningId)
     {
-        if ($this->relation->isOneToOne() && !is_string($owningIdentifier) && $owningIdentifier !== null) {
+        if ($this->relation->isOneToOne() && !is_string($owningId) && $owningId !== null) {
             throw new \InvalidArgumentException(
                 "One-To-One relation expects referencing identifier to be string!\nYou gave me: "
-                . gettype($owningIdentifier)
+                . gettype($owningId)
             );
         }
-        if ($this->relation->isOneToMany() && !is_array($owningIdentifier)) {
+        if ($this->relation->isOneToMany() && !is_array($owningId)) {
             throw new \InvalidArgumentException(
                 "One-To-One relation expects referencing identifier to be array!\nYou gave me: "
-                . gettype($owningIdentifier)
+                . gettype($owningId)
             );
         }
 
-        $this->references[$id] = $owningIdentifier;
+        $this->references[$id] = $owningId;
     }
 
 
@@ -151,7 +158,7 @@ class ReferenceMap
      * @param  string $owningOid
      * @return string
      */
-    private function getFieldMapping($owningOid)
+    public function getFieldMapping($owningOid)
     {
         return $this->owningFieldOidMapping[$owningOid];
     }
@@ -165,6 +172,20 @@ class ReferenceMap
     private function removeFieldMapping($owningId)
     {
         unset($this->owningFieldOidMapping[$owningId]);
+    }
+
+
+    /**
+     * @param  string $owningOid
+     * @param  string $referencedOid
+     * @return bool
+     */
+    public function isFieldMappedWith($owningOid, $referencedOid)
+    {
+        if (!$this->hasFieldMapping($owningOid)) {
+            return false;
+        }
+        return $this->getFieldMapping($owningOid) === $referencedOid;
     }
 
 

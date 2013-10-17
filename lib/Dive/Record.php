@@ -118,6 +118,35 @@ class Record
 
 
     /**
+     * @param  string $relationName
+     * @return bool
+     */
+    public function hasTableRelation($relationName)
+    {
+        return $this->_table->hasRelation($relationName);
+    }
+
+
+    /**
+     * @param  string $relationName
+     * @return Relation
+     */
+    public function getTableRelation($relationName)
+    {
+        return $this->_table->getRelation($relationName);
+    }
+
+
+    /**
+     * @return Relation[]
+     */
+    public function getTableRelations()
+    {
+        return $this->_table->getRelations();
+    }
+
+
+    /**
      * Sets record data
      * NOTE: setData does not change record modified state
      *
@@ -191,6 +220,9 @@ class Record
     }
 
 
+    /**
+     * @return string
+     */
     public function getInternalId()
     {
         $id = '';
@@ -204,6 +236,10 @@ class Record
     }
 
 
+    /**
+     * @param  array|string $identifier
+     * @throws Record\RecordException
+     */
     public function assignIdentifier($identifier)
     {
         $identifierFields = $this->_table->getIdentifierAsArray();

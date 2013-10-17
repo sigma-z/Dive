@@ -6,10 +6,14 @@ use Dive\Connection\Connection;
 use Dive\Connection\ConnectionRowChangeEvent;
 use Dive\Event\Dispatcher;
 use Dive\Event\Event;
+use Dive\Record;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\Table;
+use Dive\TestSuite\Constraint\OwningFieldMappingConstraint;
+use Dive\TestSuite\Constraint\ReferenceMapIsEmptyConstraint;
+use Dive\TestSuite\Constraint\RelationReferenceMapConstraint;
 use Dive\Util\FieldValuesGenerator;
 
 /**
@@ -343,6 +347,108 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $this->markTestSkipped("Skipping test, because $className could not be created for '$scheme'!");
         }
         return $instance;
+    }
+
+
+    protected function assertRelationReferenceMapIsEmpty(Relation $relation)
+    {
+        $constraint = new ReferenceMapIsEmptyConstraint();
+        $this->assertThat($relation, $constraint);
+    }
+
+
+    /**
+     * @param \Dive\Record $record
+     * @param string       $relationName
+     * @param \Dive\Record $otherRecord
+     */
+    protected function assertOwningFieldMapping(Record $record, $relationName, Record $otherRecord)
+    {
+        $constraint = new OwningFieldMappingConstraint($record, $relationName);
+        $this->assertThat($otherRecord, $constraint);
+    }
+
+
+    /**
+     * @param \Dive\Record $record
+     * @param string       $relationName
+     * @param \Dive\Record $otherRecord
+     */
+    protected function assertNoOwningFieldMapping(Record $record, $relationName, Record $otherRecord)
+    {
+        $constraint = new OwningFieldMappingConstraint($record, $relationName);
+        $this->assertThat($otherRecord, self::logicalNot($constraint));
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $relationName
+     * @param Record $otherRecord
+     */
+    protected function assertRelationReference(Record $record, $relationName, Record $otherRecord)
+    {
+        $constraint = new RelationReferenceMapConstraint($record, $relationName);
+        $this->assertThat($otherRecord, $constraint);
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $relationName
+     * @param Record $otherRecord
+     */
+    protected function assertNoRelationReference(Record $record, $relationName, Record $otherRecord)
+    {
+        $constraint = new RelationReferenceMapConstraint($record, $relationName);
+        $this->assertThat($otherRecord, self::logicalNot($constraint));
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $relationName
+     * @param array  $otherRecords
+     */
+    protected function assertOwningFieldMappingOneToMany(Record $record, $relationName, array $otherRecords)
+    {
+        foreach ($otherRecords as $otherRecord) {
+            $this->assertOwningFieldMapping($record, $relationName, $otherRecord);
+        }
+    }
+
+
+    /**
+     * @param Record            $record
+     * @param string            $relationName
+     * @param Record|Record[]   $otherRecords
+     */
+    protected function assertRelationReferences(Record $record, $relationName, $otherRecords)
+    {
+        if ($otherRecords instanceof Record) {
+            $otherRecords = array($otherRecords);
+        }
+        foreach ($otherRecords as $otherRecord) {
+            $this->assertOwningFieldMapping($record, $relationName, $otherRecord);
+            $this->assertRelationReference($record, $relationName, $otherRecord);
+        }
+    }
+
+
+    /**
+     * @param Record            $record
+     * @param string            $relationName
+     * @param Record|Record[]   $otherRecords
+     */
+    protected function assertNoRelationReferences(Record $record, $relationName, $otherRecords)
+    {
+        if ($otherRecords instanceof Record) {
+            $otherRecords = array($otherRecords);
+        }
+        foreach ($otherRecords as $otherRecord) {
+            $this->assertNoOwningFieldMapping($record, $relationName, $otherRecord);
+            $this->assertNoRelationReference($record, $relationName, $otherRecord);
+        }
     }
 
 

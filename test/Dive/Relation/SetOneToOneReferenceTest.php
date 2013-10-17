@@ -6,19 +6,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 22.04.13
- *
- * TODO implementing nullable one-to-one relation test
- */
 
 namespace Dive\Test\Relation;
 
-require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
-
 use Dive\Record;
 
+require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
+
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 22.04.13
+ */
 class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
 {
 
@@ -30,14 +28,23 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
      */
     public function testOneToOneReferencedSide($userExists, $authorExists)
     {
+        /**
+         * @var Record $user
+         * @var Record $author
+         */
         list($user, $author) = $this->createUserAndAuthor($userExists, $authorExists);
 
         // setting reference
         $user->Author = $author;
 
         // assertions
+        $this->assertEquals($userExists, $user->exists());
+        $this->assertEquals($authorExists, $author->exists());
+
         $this->assertEquals($author, $user->Author);
         $this->assertEquals($user, $user->Author->User);
+
+        $this->assertRelationReferences($user, 'Author', $author);
     }
 
 
@@ -57,6 +64,23 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
         // assertions
         $this->assertEquals($user, $author->User);
         $this->assertEquals($author, $author->User->Author);
+
+        $this->assertRelationReferences($user, 'Author', $author);
+    }
+
+
+    public function testOneToOneReferencedSideViaField()
+    {
+        list($user, $author) = $this->createUserAndAuthor(true, true);
+
+        // setting reference
+        $author->user_id = $user->id;
+
+        // assertions
+        $this->assertEquals($author, $user->Author);
+        $this->assertEquals($user, $user->Author->User);
+
+        $this->assertRelationReferences($user, 'Author', $author);
     }
 
 
@@ -216,6 +240,11 @@ class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
     }
 
 
+    /**
+     * @param  bool $userExists
+     * @param  bool $authorExists
+     * @return Record[]
+     */
     private function createUserAndAuthor($userExists, $authorExists)
     {
         $user = $this->createUser('UserOne');

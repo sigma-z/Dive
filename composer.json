@@ -11,5 +11,10 @@
     "minimum-stability": "dev",
     "require": {
         "symfony/event-dispatcher": "~2"
+    },
+    "autoload": {
+        "psr-0": {
+            "Dive": "lib"
+        }
     }
 }

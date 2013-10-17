@@ -1,6 +1,9 @@
 <?php
 
+/** @var $loader \Composer\Autoload\ClassLoader */
+require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/TestSuite/ClassLoader.php';
+
 
 define('FIXTURE_DIR', __DIR__ . '/fixtures');
 if (!defined('VENDOR_DIR')) {
@@ -9,12 +12,8 @@ if (!defined('VENDOR_DIR')) {
 
 use Dive\TestSuite\TestCase;
 
-$extLibDir = __DIR__ . '/../' . VENDOR_DIR;
-
 $classLoader = new Dive\TestSuite\ClassLoader();
 $classLoader->setNamespace('Dive\TestSuite', __DIR__ . '/TestSuite');
-$classLoader->setNamespace('Dive', __DIR__ . '/../lib');
-$classLoader->setNamespace('Symfony', $extLibDir);
 $classLoader->setNamespaceOmission('Dive\TestSuite');
 $classLoader->register();
 

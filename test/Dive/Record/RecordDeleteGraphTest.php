@@ -9,8 +9,8 @@
 
 namespace Dive\Test\Record;
 
+use Dive\Platform\PlatformInterface;
 use Dive\RecordManager;
-use Dive\TestSuite\DatasetRegistry;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -20,108 +20,106 @@ use Dive\TestSuite\TestCase;
 class RecordDeleteGraphTest extends TestCase
 {
 
-    protected function setUp()
-    {
-        $this->markTestSkipped('UnitOfWork will handle record changes!');
-    }
-
-
-    /**
-     * @dataProvider provideOneToOneDelete
-     */
-    public function testOneToOneReferencedSideDelete($tableName, array $graphData, $relationName)
-    {
-        $record = $this->saveRecordGraph($tableName, $graphData);
-        $changeSet = $record->delete();
-
-        $affected = $changeSet->getScheduledForDelete();
-        echo count($affected);
-    }
-
-
-    /**
-     * @dataProvider provideOneToOneDelete
-     */
-    public function testOneToOneOwningSideDelete($tableName, array $graphData, $relationName)
-    {
-        $record = $this->saveRecordGraph($tableName, $graphData);
-        $record = $record->get($relationName);
-        $changeSet = $record->delete();
-
-        $affected = $changeSet->getScheduledForDelete();
-        echo count($affected);
-    }
-
-
-
-
-
-//    public function testOneToOneReferencedSide()
-//    {
-//        $this->markTestIncomplete();
-//
-//        $author = $this->saveRecordGraph('author', self::$authorUserGraph);
-//        $changeSet = $author->delete();
-//
-//        $this->assertFalse($author->exists());
-//        $affected = $changeSet->getScheduledForDelete();
-//        echo count($affected);
-//    }
-//
-//
-//    public function testOneToOneOwningSide()
-//    {
-//        $this->markTestIncomplete();
-//
-//        $author = $this->saveRecordGraph('author', self::$authorUserGraph);
-//        $user = $author->User;
-//        $changeSet = $user->delete();
-//
-//        $this->assertFalse($user->exists());
-//        $affected = $changeSet->getScheduledForDelete();
-//        echo count($affected);
-//    }
-
-
-    private function saveRecordGraph($tableName, array $graphData)
-    {
-        $rm = self::createDefaultRecordManager();
-        $table = $rm->getTable($tableName);
-        $record = $table->createRecord();
-        $record->fromArray($graphData);
-        $record->save();
-
-        return $record;
-    }
-
-
-    public function provideOneToOneDelete()
-    {
-        $testCases = array();
-
-        $authorUserGraphData = array(
-            'username' => 'John',
-            'password' => 'secret',
-            'Author' => array(
+    private $tableRows = array(
+        'user' => array('JohnD'),
+        'author' => array(
+            array(
                 'firstname' => 'John',
                 'lastname' => 'Doe',
-                'email' => 'jdo@example.com'
-            )
-        );
-        $testCases[] = array(
-            'user',
-            $authorUserGraphData,
-            'Author',
-            false
-        );
-        $testCases[] = array(
-            'user',
-            $authorUserGraphData,
-            'Author',
-            false
-        );
+                'email' => 'jdo@example.com',
+                'User' => 'JohnD'
+            ),
+        )
+    );
 
-        return $testCases;
+    /** @var RecordManager */
+    private $rm = null;
+
+
+    protected function setUp()
+    {
+        $this->markTestIncomplete("Missing constraint handling implementation!");
+        parent::setUp();
+
+        $this->rm = self::createDefaultRecordManager();
+        $this->createRecords($this->rm, $this->tableRows, array('user' => 'username'));
+    }
+
+
+    private function changeDeleteConstraint($constraint)
+    {
+        $userTable = $this->rm->getTable('user');
+        $relation = $userTable->getRelation('Author');
+        $class = new \ReflectionClass($relation);
+        $property = $class->getProperty('onDelete');
+        $property->setAccessible(true);
+        $property->setValue($class, $constraint);
+    }
+
+
+    /**
+     * @dataProvider provide
+     */
+    public function testOneToOneRelationReferencedSide($constraint, $expected)
+    {
+        $this->changeDeleteConstraint($constraint);
+
+        $userTable = $this->rm->getTable('user');
+        $userJohn = $userTable->createQuery()
+            ->where('username = ?', 'JohnD')
+            ->fetchOneAsObject();
+        $this->assertInstanceOf('\Dive\Record', $userJohn);
+        $id = $userJohn->id;
+
+        $this->rm->delete($userJohn);
+        $this->assertEquals($userJohn, $userTable->findByPk($id));
+
+        if (is_bool($expected)) {
+            $this->rm->commit();
+            $this->assertFalse($userTable->findByPk($id));
+        }
+        else {
+            $this->setExpectedException($expected);
+        }
+    }
+
+
+    /**
+     * @dataProvider provide
+     */
+    public function testOneToOneRelationOwningSide($constraint, $expected)
+    {
+        $this->changeDeleteConstraint($constraint);
+
+        $authorTable = $this->rm->getTable('author');
+        $authorJohn = $authorTable->createQuery()
+            ->where('email = ?', 'jdo@example.com')
+            ->fetchOneAsObject();
+        $this->assertInstanceOf('\Dive\Record', $authorJohn);
+        $id = $authorJohn->id;
+
+        $this->rm->delete($authorJohn);
+        $this->assertEquals($authorJohn, $authorTable->findByPk($id));
+
+        if (is_bool($expected)) {
+            $this->rm->commit();
+            $this->assertFalse($authorTable->findByPk($id));
+        }
+        else {
+            $this->setExpectedException($expected);
+        }
+    }
+
+
+    public function provide()
+    {
+        return array(
+            array(PlatformInterface::CASCADE, true),
+            array(PlatformInterface::SET_NULL, '\\Dive\\Exception'),
+            array(PlatformInterface::RESTRICT, '\\Dive\\Exception'),
+            array(PlatformInterface::NO_ACTION, '\\Dive\\Exception'),
+            array(PlatformInterface::SET_DEFAULT, '\\Dive\\Exception')
+        );
     }
 
 }

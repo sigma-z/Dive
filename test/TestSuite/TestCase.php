@@ -7,6 +7,7 @@ use Dive\Connection\ConnectionRowChangeEvent;
 use Dive\Event\Dispatcher;
 use Dive\Event\Event;
 use Dive\Record;
+use Dive\Record\Generator\RecordGenerator;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
@@ -449,6 +450,17 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $this->assertNoOwningFieldMapping($record, $relationName, $otherRecord);
             $this->assertNoRelationReference($record, $relationName, $otherRecord);
         }
+    }
+
+
+    protected function createRecords(RecordManager $rm, array $tablesRows, array $tablesMapFields = array())
+    {
+        $fvGenerator = new FieldValuesGenerator();
+        $recordGenerator = new RecordGenerator($rm, $fvGenerator);
+        $recordGenerator
+            ->setTablesMapField($tablesMapFields)
+            ->setTablesRows($tablesRows)
+            ->generate();
     }
 
 

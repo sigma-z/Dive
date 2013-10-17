@@ -89,7 +89,7 @@ class UnitOfWork
     {
         $operation = self::SAVE;
         $this->scheduleRecordForCommit($record, $operation);
-        $this->handleConstraints($record, $operation);
+        $this->handleUpdateConstraints($record);
     }
 
 
@@ -100,10 +100,15 @@ class UnitOfWork
     {
         $operation = self::DELETE;
         $this->scheduleRecordForCommit($record, $operation);
-        $this->handleConstraints($record, $operation);
+        $this->handleDeleteConstraints($record);
     }
 
 
+    /**
+     * @param  Record $record
+     * @param  string $operation
+     * @throws UnitOfWorkException
+     */
     private function scheduleRecordForCommit(Record $record, $operation)
     {
         $oid = $record->getOid();
@@ -124,18 +129,23 @@ class UnitOfWork
     }
 
 
-    private function handleConstraints(Record $record, $operation)
+    private function handleUpdateConstraints(Record $record)
     {
         if (!$record->exists()) {
             return;
         }
-
-//        $owningRelations = $record->getTable()->getOwningRelations();
-//        foreach ($owningRelations as $relation) {
-//            if ($operation == self::SAVE && $record->isFieldModified($relation->getReferencedField())) {
+//
+//        echo $record->username . "\n";
+//        $relations = $record->getTable()->getRelations();
+//        foreach ($relations as $relationName => $relation) {
+//            if ($relation->isOwningSide($relationName)) {
+//                echo $relationName . " is Owning\n";
 //
 //            }
-//
+//            else {
+//                echo $relationName . " is Referenced\n";
+//            }
+
 //            $owningTable = $this->rm->getTable($relation->getOwningTable());
 //            $query = $owningTable->createQuery()
 //                ->where($relation->getOwningField() . ' = ?', $record->getIdentifierAsString());
@@ -143,7 +153,18 @@ class UnitOfWork
 //            foreach ($records as $record) {
 //                echo $operation == self::DELETE ? $relation->getOnDelete() : $relation->getOnUpdate() . "\n";
 //            }
+
 //        }
+    }
+
+
+    private function handleDeleteConstraints(Record $record)
+    {
+        if (!$record->exists()) {
+            return;
+        }
+
+
     }
 
 

@@ -16,7 +16,7 @@ namespace Dive\Platform;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
 
-class MysqlPlatform extends AbstractPlatform
+class MysqlPlatform extends Platform
 {
 
     const INDEX_FULLTEXT = 'FULLTEXT';

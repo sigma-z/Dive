@@ -118,7 +118,6 @@ class RecordDeleteGraphTest extends TestCase
             array(PlatformInterface::SET_NULL, '\\Dive\\Exception'),
             array(PlatformInterface::RESTRICT, '\\Dive\\Exception'),
             array(PlatformInterface::NO_ACTION, '\\Dive\\Exception'),
-            array(PlatformInterface::SET_DEFAULT, '\\Dive\\Exception')
         );
     }
 

@@ -10,7 +10,7 @@
 namespace Dive\TestSuite;
 
 use Dive\Connection\Connection;
-use Dive\Schema\Migration\AbstractMigration;
+use Dive\Schema\Migration\Migration;
 use Dive\Schema\Migration\MigrationInterface;
 use Dive\Schema\Schema;
 
@@ -48,7 +48,7 @@ class DbInit
             $dropMigration = $driver->createSchemaMigration($this->conn, $tableName, MigrationInterface::DROP_TABLE);
             $dropMigration->execute();
             // (re)create table
-            /** @var $createMigration AbstractMigration */
+            /** @var $createMigration Migration */
             $createMigration = $driver->createSchemaMigration($this->conn, $tableName, MigrationInterface::CREATE_TABLE);
             $createMigration->importFromSchema($this->schema);
             if ($this->conn->getScheme() == 'mysql') {

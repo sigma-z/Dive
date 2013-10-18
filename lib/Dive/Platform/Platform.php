@@ -15,7 +15,7 @@ namespace Dive\Platform;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
-abstract class AbstractPlatform implements PlatformInterface
+abstract class Platform implements PlatformInterface
 {
 
     /**
@@ -70,7 +70,7 @@ abstract class AbstractPlatform implements PlatformInterface
 
     /**
      * @param  bool $preventErrors
-     * @return AbstractPlatform
+     * @return Platform
      */
     public function setPreventErrors($preventErrors = true)
     {

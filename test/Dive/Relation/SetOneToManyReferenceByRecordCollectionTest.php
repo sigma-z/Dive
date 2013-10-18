@@ -9,7 +9,7 @@
 
 namespace Dive\Test\Relation;
 
-require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
+require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 
 use Dive\Collection\RecordCollection;
 use Dive\Record;
@@ -18,7 +18,7 @@ use Dive\Record;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 13.05.13
  */
-class SetOneToManyReferenceByRecordCollectionTest extends AbstractRelationSetReferenceTestCase
+class SetOneToManyReferenceByRecordCollectionTest extends RelationSetReferenceTestCase
 {
 
     /**

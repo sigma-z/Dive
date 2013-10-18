@@ -16,7 +16,7 @@ namespace Dive\Schema\Import;
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 
-class SqliteImporter extends AbstractImporter
+class SqliteImporter extends Importer
 {
 
     /**

@@ -16,7 +16,7 @@ namespace Dive\Test\Relation;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
-class AbstractRelationSetReferenceTestCase extends TestCase
+abstract class RelationSetReferenceTestCase extends TestCase
 {
 
     /**

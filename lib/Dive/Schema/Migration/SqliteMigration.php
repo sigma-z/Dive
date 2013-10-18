@@ -13,7 +13,7 @@ namespace Dive\Schema\Migration;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 01.12.12
  */
-class SqliteMigration extends AbstractMigration
+class SqliteMigration extends Migration
 {
 
     /**

@@ -10,7 +10,7 @@
 namespace Dive\Test\Schema\Migration;
 
 use Dive\Connection\Connection;
-use Dive\Schema\Migration\AbstractMigration;
+use Dive\Schema\Migration\Migration;
 use Dive\Platform\PlatformInterface;
 use Dive\Schema\Migration\MigrationInterface;
 use Dive\TestSuite\TestCase;
@@ -23,7 +23,7 @@ class MigrationTest extends TestCase
 {
 
     /**
-     * @var \Dive\Schema\Migration\AbstractMigration
+     * @var \Dive\Schema\Migration\Migration
      */
     private $migration;
     /**
@@ -52,9 +52,9 @@ class MigrationTest extends TestCase
 
         foreach ($this->revertTableForDbSchemas as $table => $conn) {
             $driver = $conn->getDriver();
-            $dropMigration = $driver->createSchemaMigration($conn, $table, AbstractMigration::DROP_TABLE);
+            $dropMigration = $driver->createSchemaMigration($conn, $table, Migration::DROP_TABLE);
             $dropMigration->execute();
-            $createMigration = $driver->createSchemaMigration($conn, $table, AbstractMigration::CREATE_TABLE);
+            $createMigration = $driver->createSchemaMigration($conn, $table, Migration::CREATE_TABLE);
             $createMigration->importFromSchema(self::getSchema());
             $createMigration->execute();
         }
@@ -148,69 +148,69 @@ class MigrationTest extends TestCase
         $testCases = array(
             // addColumn is not supported in DROP TABLE mode
             array(
-                AbstractMigration::DROP_TABLE,
+                Migration::DROP_TABLE,
                 'addColumn',
                 array('name', array())
             ),
 
             // dropColumn is not supported in DROP TABLE and CREATE TABLE mode
             array(
-                AbstractMigration::DROP_TABLE,
+                Migration::DROP_TABLE,
                 'dropColumn',
                 array('name')
             ),
             array(
-                AbstractMigration::CREATE_TABLE,
+                Migration::CREATE_TABLE,
                 'dropColumn',
                 array('name')
             ),
 
             // changeColumn is not supported in DROP TABLE and CREATE TABLE mode
             array(
-                AbstractMigration::DROP_TABLE,
+                Migration::DROP_TABLE,
                 'changeColumn',
                 array('name')
             ),
             array(
-                AbstractMigration::CREATE_TABLE,
+                Migration::CREATE_TABLE,
                 'changeColumn',
                 array('name')
             ),
 
             // addIndex is not supported in DROP TABLE mode
             array(
-                AbstractMigration::DROP_TABLE,
+                Migration::DROP_TABLE,
                 'addIndex',
                 array('name', array())
             ),
 
             // dropIndex is not supported in DROP TABLE and CREATE TABLE mode
             array(
-                AbstractMigration::DROP_TABLE,
+                Migration::DROP_TABLE,
                 'dropIndex',
                 array('name')
             ),
             array(
-                AbstractMigration::CREATE_TABLE,
+                Migration::CREATE_TABLE,
                 'dropIndex',
                 array('name')
             ),
 
             // renameIndex is not supported in DROP TABLE and CREATE TABLE mode
             array(
-                AbstractMigration::DROP_TABLE,
+                Migration::DROP_TABLE,
                 'renameIndex',
                 array('name', 'new_name')
             ),
             array(
-                AbstractMigration::CREATE_TABLE,
+                Migration::CREATE_TABLE,
                 'renameIndex',
                 array('UNIQUE', 'UQ_username')
             ),
 
             // addForeignKey is not supported in DROP TABLE mode
             array(
-                AbstractMigration::DROP_TABLE,
+                Migration::DROP_TABLE,
                 'addForeignKey',
                 array('owningField', 'refTable', 'refTable')
             ),
@@ -229,7 +229,7 @@ class MigrationTest extends TestCase
 
         $driver = $conn->getDriver();
         $importer = $driver->getSchemaImporter($conn);
-        /** @var AbstractMigration $migration */
+        /** @var Migration $migration */
         $migration = $driver->createSchemaMigration($conn, 'user');
         $migration->importFromDb($importer);
 
@@ -353,7 +353,7 @@ class MigrationTest extends TestCase
         $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
 
         $driver = $conn->getDriver();
-        $migration = $driver->createSchemaMigration($conn, $tableName, AbstractMigration::ALTER_TABLE);
+        $migration = $driver->createSchemaMigration($conn, $tableName, Migration::ALTER_TABLE);
         $migration->importFromSchema(self::getSchema());
 
         foreach ($operations as $operation) {
@@ -375,7 +375,7 @@ class MigrationTest extends TestCase
             'tableName' => 'user',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::ADD_COLUMN,
+                    'method' => Migration::ADD_COLUMN,
                     'args' => array(
                         'password_phrase',
                         array('type' => 'string', 'length' => 100, 'nullable' => false),
@@ -398,7 +398,7 @@ class MigrationTest extends TestCase
             'tableName' => 'user',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::CHANGE_COLUMN,
+                    'method' => Migration::CHANGE_COLUMN,
                     'args' => array(
                         'username',
                         array(),
@@ -430,7 +430,7 @@ class MigrationTest extends TestCase
             'tableName' => 'user',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::DROP_COLUMN,
+                    'method' => Migration::DROP_COLUMN,
                     'args' => array('password')
                 )
             ),
@@ -453,14 +453,14 @@ class MigrationTest extends TestCase
             'tableName' => 'user',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::ADD_COLUMN,
+                    'method' => Migration::ADD_COLUMN,
                     'args' => array(
                         'is_active',
                         array('type' => 'boolean', 'nullable' => false, 'default' => true)
                     )
                 ),
                 array(
-                    'method' => AbstractMigration::ADD_INDEX,
+                    'method' => Migration::ADD_INDEX,
                     'args' => array(
                         'IX_is_active',
                         'is_active',
@@ -485,18 +485,18 @@ class MigrationTest extends TestCase
             'tableName' => 'user',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::ADD_COLUMN,
+                    'method' => Migration::ADD_COLUMN,
                     'args' => array(
                         'manager_id',
                         array('type' => 'integer', 'length' => 10, 'nullable' => true)
                     )
                 ),
                 array(
-                    'method' => AbstractMigration::ADD_INDEX,
+                    'method' => Migration::ADD_INDEX,
                     'args' => array('FK_manager_id', 'manager_id', PlatformInterface::INDEX)
                 ),
                 array(
-                    'method' => AbstractMigration::ADD_FOREIGN_KEY,
+                    'method' => Migration::ADD_FOREIGN_KEY,
                     'args' => array('manager_id', 'user', 'id', PlatformInterface::SET_NULL, PlatformInterface::CASCADE)
                 )
             ),
@@ -529,7 +529,7 @@ class MigrationTest extends TestCase
             'tableName' => 'user',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::ADD_INDEX,
+                    'method' => Migration::ADD_INDEX,
                     'args' => array('UNIQUE', array('username', 'password'), PlatformInterface::UNIQUE)
                 )
             ),
@@ -550,7 +550,7 @@ class MigrationTest extends TestCase
             'tableName' => 'user',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::ADD_INDEX,
+                    'method' => Migration::ADD_INDEX,
                     'args' => array('UNIQUE', array('username', 'password'), PlatformInterface::UNIQUE)
                 )
             ),
@@ -571,7 +571,7 @@ class MigrationTest extends TestCase
             'tableName' => 'author',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::DROP_FOREIGN_KEY,
+                    'method' => Migration::DROP_FOREIGN_KEY,
                     'args' => array('user_id')
                 )
             ),
@@ -604,7 +604,7 @@ class MigrationTest extends TestCase
             'tableName' => 'author',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::CHANGE_FOREIGN_KEY,
+                    'method' => Migration::CHANGE_FOREIGN_KEY,
                     'args' => array('user_id', PlatformInterface::RESTRICT, PlatformInterface::RESTRICT)
                 )
             ),
@@ -639,7 +639,7 @@ class MigrationTest extends TestCase
             'tableName' => 'author',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::DROP_COLUMN,
+                    'method' => Migration::DROP_COLUMN,
                     'args' => array('user_id')
                 )
             ),
@@ -672,7 +672,7 @@ class MigrationTest extends TestCase
             'tableName' => 'author',
             'operations' => array(
                 array(
-                    'method' => AbstractMigration::RENAME_TABLE,
+                    'method' => Migration::RENAME_TABLE,
                     'args' => array('person')
                 )
             ),

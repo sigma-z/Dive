@@ -14,12 +14,12 @@
 
 namespace Dive\Test\Relation;
 
-require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
+require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\TestSuite\TestCase;
 
-class UnlinkReferenceTest extends AbstractRelationSetReferenceTestCase
+class UnlinkReferenceTest extends RelationSetReferenceTestCase
 {
 
 

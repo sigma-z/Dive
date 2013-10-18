@@ -16,7 +16,7 @@ namespace Dive\Hydrator;
 use Dive\Table;
 
 
-class SingleScalarHydrator extends AbstractHydrator
+class SingleScalarHydrator extends Hydrator
 {
 
     /**

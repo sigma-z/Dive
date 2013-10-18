@@ -13,6 +13,6 @@ namespace Dive\Schema\Migration;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 12.12.12
  */
-class MysqlMigration extends AbstractMigration
+class MysqlMigration extends Migration
 {
 }

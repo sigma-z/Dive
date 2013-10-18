@@ -16,7 +16,7 @@ use Dive\Relation\Relation;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 04.11.12
  */
-class MysqlImporter extends AbstractImporter
+class MysqlImporter extends Importer
 {
 
     /**

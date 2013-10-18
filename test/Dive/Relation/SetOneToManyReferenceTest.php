@@ -9,7 +9,7 @@
 
 namespace Dive\Test\Relation;
 
-require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
+require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 
 use Dive\Collection\RecordCollection;
 use Dive\Record;
@@ -20,7 +20,7 @@ use Dive\Record;
  *
  * TODO test set null reference!
  */
-class SetOneToManyReferenceTest extends AbstractRelationSetReferenceTestCase
+class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
 {
 
     /**

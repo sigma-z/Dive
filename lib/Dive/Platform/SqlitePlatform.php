@@ -15,7 +15,7 @@ namespace Dive\Platform;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
-class SqlitePlatform extends AbstractPlatform
+class SqlitePlatform extends Platform
 {
 
     /**
@@ -24,19 +24,6 @@ class SqlitePlatform extends AbstractPlatform
     protected $supportedEncodings = array(
         self::ENC_UTF8 => 'utf-8'
     );
-
-
-    /**
-     * constructor
-     *
-     * @param DataTypeMapper $dataTypeMapper
-     */
-    public function __construct(DataTypeMapper $dataTypeMapper)
-    {
-        parent::__construct($dataTypeMapper);
-
-        $this->foreignKeyConstraintTypes[self::SET_DEFAULT] = self::SET_DEFAULT;
-    }
 
 
     public function getCreateTableSql(

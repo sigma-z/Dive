@@ -11,13 +11,13 @@ namespace Dive\Test\Relation;
 
 use Dive\Record;
 
-require_once __DIR__ . '/AbstractRelationSetReferenceTestCase.php';
+require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 22.04.13
  */
-class SetOneToOneReferenceTest extends AbstractRelationSetReferenceTestCase
+class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
 {
 
     /**

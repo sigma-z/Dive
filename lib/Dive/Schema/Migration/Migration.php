@@ -20,7 +20,7 @@ use Dive\Table;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 24.11.12
  */
-abstract class AbstractMigration implements MigrationInterface
+abstract class Migration implements MigrationInterface
 {
 
     const RENAME_TABLE  = 'renameTable';
@@ -167,7 +167,7 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * @param  bool $preventErrors
-     * @return AbstractMigration
+     * @return Migration
      */
     public function setPreventErrors($preventErrors = true)
     {
@@ -177,7 +177,7 @@ abstract class AbstractMigration implements MigrationInterface
 
 
     /**
-     * @return AbstractMigration
+     * @return Migration
      */
     public function reset()
     {
@@ -188,9 +188,10 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * rename table
+
      *
-     * @param  string $newName
-     * @return AbstractMigration
+*@param  string $newName
+     * @return Migration
      */
     public function renameTable($newName)
     {
@@ -205,14 +206,15 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * sets table option
-     * @example
+     *
+*@example
      *   collation: utf8_unicode_ci
      *   charset:   utf8
      *   engine:    InnoDB          for mysql
-     *
+
      * @param  string $name
      * @param  string $value
-     * @return AbstractMigration
+     * @return Migration
      */
     public function setTableOption($name, $value)
     {
@@ -254,11 +256,12 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * adds column
+
      *
-     * @param  string   $name
+*@param  string   $name
      * @param  array    $definition
      * @param  string   $afterColumn
-     * @return AbstractMigration
+     * @return Migration
      */
     public function addColumn($name, array $definition, $afterColumn = null)
     {
@@ -281,9 +284,10 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * drops column
+
      *
-     * @param  string $name
-     * @return AbstractMigration
+*@param  string $name
+     * @return Migration
      */
     public function dropColumn($name)
     {
@@ -319,11 +323,12 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * change column
+
      *
-     * @param  string $name
+*@param  string $name
      * @param  array  $definition
      * @param  string $newName
-     * @return AbstractMigration
+     * @return Migration
      */
     public function changeColumn($name, array $definition = array(), $newName = null)
     {
@@ -402,11 +407,12 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * adds index
+
      *
-     * @param   string          $name
+*@param   string          $name
      * @param   string|array    $fields
      * @param   string          $indexType
-     * @return  AbstractMigration
+     * @return  Migration
      */
     public function addIndex($name, $fields, $indexType = null)
     {
@@ -430,9 +436,10 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * drops index
+
      *
-     * @param  string $name
-     * @return AbstractMigration
+*@param  string $name
+     * @return Migration
      */
     public function dropIndex($name)
     {
@@ -454,11 +461,12 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * changes index
+
      *
-     * @param   string          $name
+*@param   string          $name
      * @param   string|array    $fields
      * @param   string          $indexType
-     * @return  AbstractMigration
+     * @return  Migration
      */
     public function changeIndex($name, $fields, $indexType = null)
     {
@@ -489,11 +497,12 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * renames index
+
      *
-     * @param  string $name
+*@param  string $name
      * @param  string $newName
      * @throws MigrationException
-     * @return AbstractMigration
+     * @return Migration
      */
     public function renameIndex($name, $newName)
     {
@@ -524,9 +533,10 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * checks if foreign key is defined
+
      *
-     * @param  string $owningField
-     * @return AbstractMigration
+*@param  string $owningField
+     * @return Migration
      */
     public function hasForeignKey($owningField)
     {
@@ -536,13 +546,14 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * adds foreign key
+
      *
-     * @param   string  $owningField
+*@param   string  $owningField
      * @param   string  $refTable
      * @param   string  $refField
      * @param   string  $onDelete
      * @param   string  $onUpdate
-     * @return  AbstractMigration
+     * @return  Migration
      */
     public function addForeignKey($owningField, $refTable, $refField, $onDelete = null, $onUpdate = null)
     {
@@ -569,9 +580,10 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * adds foreign key by relation instance
+
      *
-     * @param \Dive\Relation\Relation $relation
-     * @return AbstractMigration
+*@param \Dive\Relation\Relation $relation
+     * @return Migration
      * @throws MigrationException
      */
     public function addForeignKeyByRelation(Relation $relation)
@@ -593,9 +605,10 @@ abstract class AbstractMigration implements MigrationInterface
 
     /**
      * drops foreign key
+
      *
-     * @param   string $owningField
-     * @return  AbstractMigration
+*@param   string $owningField
+     * @return  Migration
      */
     public function dropForeignKey($owningField)
     {

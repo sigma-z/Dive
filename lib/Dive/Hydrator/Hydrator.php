@@ -16,7 +16,7 @@ namespace Dive\Hydrator;
 use \Dive\RecordManager;
 
 
-abstract class AbstractHydrator implements HydratorInterface
+abstract class Hydrator implements HydratorInterface
 {
 
     /**

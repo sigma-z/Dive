@@ -98,6 +98,10 @@ class UnitOfWork
      */
     public function scheduleDelete(Record $record)
     {
+        if (!$record->exists()) {
+            return;
+        }
+
         $operation = self::DELETE;
         $this->scheduleRecordForCommit($record, $operation);
         $this->handleDeleteConstraints($record);
@@ -111,21 +115,36 @@ class UnitOfWork
      */
     private function scheduleRecordForCommit(Record $record, $operation)
     {
+        if ($this->isRecordScheduledForCommit($record, $operation)) {
+            return;
+        }
+
         $oid = $record->getOid();
-        if (isset($this->scheduledForCommit[$oid])) {
-            if ($this->scheduledForCommit[$oid] == $operation) {
-                return;
-            }
-            else {
-                throw new UnitOfWorkException(
-                    "Scheduling record for " . strtoupper($operation) . " failed!\n"
-                    . "Reason: Record already has been scheduled for " . strtoupper($this->scheduledForCommit[$oid])
-                );
-            }
+
+        if ($this->isRecordScheduledForCommit($record)) {
+            throw new UnitOfWorkException(
+                "Scheduling record for " . strtoupper($operation) . " failed!\n"
+                . "Reason: Record already has been scheduled for " . strtoupper($this->scheduledForCommit[$oid])
+            );
         }
 
         $this->scheduledForCommit[$oid] = $operation;
         $this->recordIdentityMap[$oid] = $record;
+    }
+
+
+    /**
+     * @param Record      $record
+     * @param string|null $operation name of specific operation or NULL for any operation
+     * @return bool
+     */
+    public function isRecordScheduledForCommit(Record $record, $operation = null)
+    {
+        $oid = $record->getOid();
+        if (!isset($this->scheduledForCommit[$oid])) {
+            return false;
+        }
+        return $operation === null || $this->scheduledForCommit[$oid] == $operation;
     }
 
 
@@ -164,7 +183,20 @@ class UnitOfWork
             return;
         }
 
-
+        $owningRelations = $record->getTable()->getOwningRelations();
+        foreach ($owningRelations as $relationName => $owningRelation) {
+            $relatedRecords = $owningRelation->getReferenceFor($record, $relationName);
+            if ($relatedRecords) {
+                if ($owningRelation->isOneToOne()) {
+                    $relatedRecords = array($relatedRecords);
+                }
+                foreach ($relatedRecords as $relatedRecord) {
+                    $this->scheduleDelete($relatedRecord);
+                }
+            }
+//            $reference = $owningRelation->getOriginalReferencedForOwningSide($record);
+//            if ($reference) {}
+        }
     }
 
 

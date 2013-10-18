@@ -18,7 +18,7 @@ use Dive\Connection\Connection;
 use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Platform\PlatformInterface;
-
+use Dive\UnitOfWork\UnitOfWork;
 
 class RecordManager
 {
@@ -29,6 +29,7 @@ class RecordManager
     const FETCH_SINGLE_ARRAY = 'single-array';
     const FETCH_SCALARS = 'scalars';
     const FETCH_SINGLE_SCALAR = 'single-scalar';
+
 
     /** @var Table[] */
     private $tables = array();
@@ -45,7 +46,7 @@ class RecordManager
     /** @var \Dive\Hydrator\HydratorInterface[] */
     private $hydrators = array();
 
-    /** @var UnitOfWork\UnitOfWork */
+    /** @var UnitOfWork */
     private $unitOfWork = null;
 
     /** @var string */
@@ -60,7 +61,7 @@ class RecordManager
     {
         $this->conn = $conn;
         $this->schema = $schema;
-        $this->unitOfWork = new UnitOfWork\UnitOfWork($this);
+        $this->unitOfWork = new UnitOfWork($this);
     }
 
 
@@ -246,6 +247,19 @@ class RecordManager
     {
         $this->unitOfWork->scheduleDelete($record);
         return $this;
+    }
+
+
+
+    public function isRecordScheduledForDelete(Record $record)
+    {
+        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::DELETE);
+    }
+
+
+    public function isRecordScheduledForSave(Record $record)
+    {
+        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::SAVE);
     }
 
 

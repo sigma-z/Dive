@@ -25,22 +25,26 @@ class RecordGenerator
      * @var RecordManager
      */
     private $rm = null;
+
     /**
      * @var FieldValuesGenerator
      */
     private $fieldValueGenerator = null;
+
     /**
      * @var array
      * keys: table names
      * values: rows
      */
     private $tableRows = array();
+
     /**
      * @var string[]
      * keys: keys provided by table rows
      * values: record identifier as string
      */
-    private $recordMap = array();
+    private $recordAliasIdMap = array();
+
     /**
      * @var array
      * keys: table name
@@ -61,13 +65,13 @@ class RecordGenerator
 
 
     /**
-     * Clears data of tableRows and recordMap
+     * Clears data of tableRows and recordAliasIdMap
      */
     public function clear()
     {
         $this->tableRows = array();
         $this->tableMapFields = array();
-        $this->recordMap = array();
+        $this->recordAliasIdMap = array();
     }
 
 
@@ -190,7 +194,7 @@ class RecordGenerator
         // keep record identifier in the record map
         $id = $record->getIdentifierAsString();
         if (is_string($key)) {
-            $this->recordMap[$table->getTableName()][$key] = $id;
+            $this->recordAliasIdMap[$table->getTableName()][$key] = $id;
         }
 
         // save owning relations
@@ -261,7 +265,7 @@ class RecordGenerator
     private function saveRecordOnReferencedRelation(array $row, Relation $relation, $value)
     {
         $refTable = $relation->getReferencedTable();
-        $relatedId = $this->getRecordFromMap($refTable, $value);
+        $relatedId = $this->getRecordIdFromMap($refTable, $value);
         if ($relatedId === false) {
             $relatedId = $this->saveRelatedRecord($refTable, $value);
         }
@@ -311,24 +315,24 @@ class RecordGenerator
 
     /**
      * @param  string $table
-     * @param  string $key
+     * @param  string $alias
      * @return bool
      */
-    private function isInRecordMap($table, $key)
+    public function isInRecordMap($table, $alias)
     {
-        return isset($this->recordMap[$table][$key]);
+        return isset($this->recordAliasIdMap[$table][$alias]);
     }
 
 
     /**
      * @param  string $table
-     * @param  string $key
+     * @param  string $alias
      * @return bool|string
      */
-    private function getRecordFromMap($table, $key)
+    public function getRecordIdFromMap($table, $alias)
     {
-        if ($this->isInRecordMap($table, $key)) {
-            return $this->recordMap[$table][$key];
+        if ($this->isInRecordMap($table, $alias)) {
+            return $this->recordAliasIdMap[$table][$alias];
         }
         return false;
     }

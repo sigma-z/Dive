@@ -10,6 +10,7 @@
 namespace Dive\Test\Record;
 
 use Dive\Platform\PlatformInterface;
+use Dive\Record\Generator\RecordGenerator;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
@@ -23,7 +24,7 @@ class RecordDeleteGraphTest extends TestCase
     private $tableRows = array(
         'user' => array('JohnD'),
         'author' => array(
-            array(
+            'John' => array(
                 'firstname' => 'John',
                 'lastname' => 'Doe',
                 'email' => 'jdo@example.com',
@@ -35,14 +36,16 @@ class RecordDeleteGraphTest extends TestCase
     /** @var RecordManager */
     private $rm = null;
 
+    /** @var RecordGenerator */
+    private $recordGenerator = null;
+
 
     protected function setUp()
     {
-        $this->markTestIncomplete("Missing constraint handling implementation!");
         parent::setUp();
 
         $this->rm = self::createDefaultRecordManager();
-        $this->createRecords($this->rm, $this->tableRows, array('user' => 'username'));
+        $this->recordGenerator = $this->createRecords($this->rm, $this->tableRows, array('user' => 'username'));
     }
 
 
@@ -57,68 +60,87 @@ class RecordDeleteGraphTest extends TestCase
     }
 
 
-    /**
-     * @dataProvider provide
-     */
-    public function testOneToOneRelationReferencedSide($constraint, $expected)
+    public function testDeleteOnNonExistingRecordsOwningSide()
     {
-        $this->changeDeleteConstraint($constraint);
+        $user = $this->rm->getTable('user')->createRecord();
+        $author = $this->rm->getTable('author')->createRecord();
+        $user->Author = $author;
 
+        $this->rm->delete($author);
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($author));
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($user));
+    }
+
+
+    public function testDeleteOnNonExistingRecordsReferencedSide()
+    {
+        $user = $this->rm->getTable('user')->createRecord();
+        $author = $this->rm->getTable('author')->createRecord();
+        $user->Author = $author;
+
+        $this->rm->delete($user);
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($author));
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($user));
+    }
+
+
+    /**
+     * deleting the author, user stays untouched
+     */
+    public function testOneToOneDeleteCascadeConstraintOwningSide()
+    {
+        $this->changeDeleteConstraint(PlatformInterface::CASCADE);
+
+        $author = $this->getAuthor();
+        $user = $this->getUser();
+
+        $this->rm->delete($author);
+
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($author));
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($user));
+    }
+
+
+    /**
+     * both records have to be deleted
+     */
+    public function testOneToOneDeleteCascadeConstraintReferencedSide()
+    {
+        $this->changeDeleteConstraint(PlatformInterface::CASCADE);
+
+        $author = $this->getAuthor();
+        $user = $this->getUser();
+
+        $this->rm->delete($user);
+
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($author));
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($user));
+    }
+
+
+    /**
+     * @return \Dive\Record
+     */
+    private function getUser()
+    {
+        $id = $this->recordGenerator->getRecordIdFromMap('user', 'JohnD');
         $userTable = $this->rm->getTable('user');
-        $userJohn = $userTable->createQuery()
-            ->where('username = ?', 'JohnD')
-            ->fetchOneAsObject();
-        $this->assertInstanceOf('\Dive\Record', $userJohn);
-        $id = $userJohn->id;
-
-        $this->rm->delete($userJohn);
-        $this->assertEquals($userJohn, $userTable->findByPk($id));
-
-        if (is_bool($expected)) {
-            $this->rm->commit();
-            $this->assertFalse($userTable->findByPk($id));
-        }
-        else {
-            $this->setExpectedException($expected);
-        }
+        $user = $userTable->findByPk($id);
+        $this->assertInstanceOf('\Dive\Record', $user);
+        return $user;
     }
 
 
     /**
-     * @dataProvider provide
+     * @return \Dive\Record
      */
-    public function testOneToOneRelationOwningSide($constraint, $expected)
+    private function getAuthor()
     {
-        $this->changeDeleteConstraint($constraint);
-
+        $id = $this->recordGenerator->getRecordIdFromMap('author', 'John');
         $authorTable = $this->rm->getTable('author');
-        $authorJohn = $authorTable->createQuery()
-            ->where('email = ?', 'jdo@example.com')
-            ->fetchOneAsObject();
-        $this->assertInstanceOf('\Dive\Record', $authorJohn);
-        $id = $authorJohn->id;
-
-        $this->rm->delete($authorJohn);
-        $this->assertEquals($authorJohn, $authorTable->findByPk($id));
-
-        if (is_bool($expected)) {
-            $this->rm->commit();
-            $this->assertFalse($authorTable->findByPk($id));
-        }
-        else {
-            $this->setExpectedException($expected);
-        }
-    }
-
-
-    public function provide()
-    {
-        return array(
-            array(PlatformInterface::CASCADE, true),
-            array(PlatformInterface::SET_NULL, '\\Dive\\Exception'),
-            array(PlatformInterface::RESTRICT, '\\Dive\\Exception'),
-            array(PlatformInterface::NO_ACTION, '\\Dive\\Exception'),
-        );
+        $author = $authorTable->findByPk($id);
+        $this->assertInstanceOf('\Dive\Record', $author);
+        return $author;
     }
 
 }

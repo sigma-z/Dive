@@ -453,6 +453,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * @param  RecordManager $rm
+     * @param  array         $tablesRows
+     * @param  array         $tablesMapFields
+     * @return RecordGenerator
+     */
     protected function createRecords(RecordManager $rm, array $tablesRows, array $tablesMapFields = array())
     {
         $fvGenerator = new FieldValuesGenerator();
@@ -461,6 +467,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             ->setTablesMapField($tablesMapFields)
             ->setTablesRows($tablesRows)
             ->generate();
+
+        return $recordGenerator;
     }
 
 

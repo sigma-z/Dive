@@ -40,7 +40,7 @@ class MigrationTest extends TestCase
         $driver = $this->getMockForAbstractClass('\Dive\Connection\Driver\DriverInterface');
         $conn = new Connection($driver, 'sqlite:');
         $this->migration = $this->getMockForAbstractClass(
-            '\Dive\Schema\Migration\AbstractMigration',
+            '\Dive\Schema\Migration\Migration',
             array($conn, 'user')
         );
     }

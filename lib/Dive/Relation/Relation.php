@@ -344,7 +344,7 @@ class Relation
         if ($isReferenceSide) {
             return $record->get($this->owningField);
         }
-        else if (!$this->map->hasReferenced($id)) {
+        else if (!$this->map->isReferenced($id) && !$this->map->hasNullReference($id)) {
             return false;
         }
         return $this->map->getOwning($id);
@@ -460,7 +460,7 @@ class Relation
                     return true;
                 }
             }
-            if ($reference && !$reference->isEmpty()) {
+            else if (!$reference->isEmpty()) {
                 return true;
             }
         }
@@ -482,7 +482,40 @@ class Relation
     /**
      * @param  Record $record
      * @param  string $relationName
-     * @return bool|RecordCollection|Record|\Dive\Record[]|null
+     * @return null|RecordCollection|Record[]|Record
+     */
+    public function getOriginalReferenceFor(Record $record, $relationName)
+    {
+        $isReferencedSide = $this->isReferencedSide($relationName);
+        if ($isReferencedSide) {
+            $owningField = $this->getOwningField();
+            if ($record->isFieldModified($owningField)) {
+                $id = $record->getModifiedFieldValue($owningField);
+            }
+            else {
+                $id = $record->get($owningField);
+            }
+            if ($id) {
+
+            }
+        }
+
+
+
+//        $related = $this->getRecordRelatedByReferences($record, $relationName);
+//        if ($related !== false) {
+//            return $related;
+//        }
+//        $this->loadReferenceFor($record, $relationName);
+//
+//        return $this->getRecordRelatedByReferences($record, $relationName);
+    }
+
+
+    /**
+     * @param  Record $record
+     * @param  string $relationName
+     * @return bool|RecordCollection|Record|Record[]|null
      */
     private function getRecordRelatedByReferences(Record $record, $relationName)
     {

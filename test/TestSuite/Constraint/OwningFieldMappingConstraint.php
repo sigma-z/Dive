@@ -82,7 +82,11 @@ class OwningFieldMappingConstraint extends \PHPUnit_Framework_Constraint
         $otherTableName = $relation->isOwningSide($this->relationName)
             ? $relation->getOwningTable()
             : $relation->getReferencedTable();
-        return $this->toString() . " to {$otherTableName}[$otherOid]";
+        $msg = $this->toString() . " to {$otherTableName}[$otherOid]";
+        if ($otherOid === $this->record->getOid()) {
+            $msg .= ", both have the same oid";
+        }
+        return $msg;
     }
 
 

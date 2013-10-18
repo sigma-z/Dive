@@ -6,17 +6,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 01.11.12
- */
-/**
- * TODO valid switch => default: false
- */
+
 namespace Dive\Schema;
 
 use Dive\Platform\PlatformInterface;
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 01.11.12
+ */
 class Schema
 {
 

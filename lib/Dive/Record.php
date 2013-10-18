@@ -6,7 +6,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Dive;
+
+use Dive\Collection\RecordCollection;
+use Dive\Record\RecordException;
+use Dive\Relation\Relation;
+
 /**
+ * Representing a database table row as an object.
+ *
+ * @package Dive
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 30.01.13
  *
@@ -27,14 +37,6 @@
  *     - UnitOfWork should calculate by iterating through the object graphs, if records has to been inserted,
  *       updated, and deleted.
  */
-
-namespace Dive;
-
-
-use Dive\Collection\RecordCollection;
-use Dive\Record\RecordException;
-use Dive\Relation\Relation;
-
 class Record
 {
 
@@ -143,6 +145,13 @@ class Record
     public function getTableRelations()
     {
         return $this->_table->getRelations();
+    }
+
+
+    public function getOriginalReference($relationName)
+    {
+        $relation = $this->_table->getRelation($relationName);
+        return $relation->getOriginalReferenceFor($this, $relationName);
     }
 
 

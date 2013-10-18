@@ -84,14 +84,8 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         // assert test data setup was correct
         $this->assertEquals($editor, $authorOne->Editor);
         $this->assertEquals($editor, $authorTwo->Editor);
-        $expectedReferences = array(
-            $editor->getInternalId() => array(
-                $authorOne->getInternalId(),
-                $authorTwo->getInternalId()
-            )
-        );
-        $references = $relation->getReferences();
-        $this->assertEquals($expectedReferences, $references);
+
+        $this->assertRelationReferences($editor, 'Author', array($authorOne, $authorTwo));
 
         // perform test
         $authorOne->Editor = null;
@@ -99,9 +93,9 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         // assert unlink of reference
         $this->assertNull($authorOne->Editor);
         $this->assertNotNull($authorTwo->Editor);
-        $references = $relation->getReferences();
-        $expectedReferences = array($editor->getInternalId() => array($authorTwo->getInternalId()));
-        $this->assertEquals($expectedReferences, $references);
+
+        $this->assertNoRelationReferences($editor, 'Author', $authorOne);
+        $this->assertRelationReferences($editor, 'Author', $authorTwo);
     }
 
 

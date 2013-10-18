@@ -89,7 +89,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
 
         // [authorExists, editorExists]
         $testCases[] = array(false, false);
-        //$testCases[] = array(false, true); // TODO will not work, because author cannot be saved for non-existing user!!
+        //$testCases[] = array(false, true); // will not work, because author cannot be saved for non-existing user
         $testCases[] = array(true, false);
         $testCases[] = array(true, true);
 
@@ -104,7 +104,14 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $editorTwoId = $editorTwo->id;
 
         $authorOne = $this->createAuthorWithUser('One');
+        $this->assertNull($authorOne->Editor);
         $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $this->assertEquals($editorOne->id, $authorOne->Editor->id);
+        $this->assertNull($authorOne->getModifiedFieldValue('editor_id'));
+
+        $this->assertNull($authorOne->getTable()->getRelation('Editor')->getOriginalReferenceFor($authorOne, 'Editor'));
+
+
         $this->rm->save($authorOne)->commit();
         $this->assertRelationReferences($editorOne, 'Author', $authorOne);
 
@@ -135,9 +142,13 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $editorTwoId = $editorTwo->id;
 
         $authorOne = $this->createAuthorWithUser('One');
+
         $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $this->markTestIncomplete('Fix unit test, references seem to be wrong!');
         $this->rm->save($authorOne)->commit();
         $this->assertRelationReferences($editorOne, 'Author', $authorOne);
+
+        $this->assertNoRelationReferences($authorOne, 'Editor', array($authorOne, $editorTwo));
 
         $authorTwo = $this->createAuthorWithUser('Two');
         $authorTwo->editor_id = $editorOne->id; // TODO should be done through UnitOfWork

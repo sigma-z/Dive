@@ -185,6 +185,8 @@ class UnitOfWork
 
         $owningRelations = $record->getTable()->getOwningRelations();
         foreach ($owningRelations as $relationName => $owningRelation) {
+            // TODO $owningRelation->getOriginalReferenceFor()
+
             $relatedRecords = $owningRelation->getReferenceFor($record, $relationName);
             if ($relatedRecords) {
                 if ($owningRelation->isOneToOne()) {

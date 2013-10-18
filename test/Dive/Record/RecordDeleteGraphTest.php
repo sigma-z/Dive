@@ -10,9 +10,9 @@
 namespace Dive\Test\Record;
 
 use Dive\Platform\PlatformInterface;
-use Dive\Record\Generator\RecordGenerator;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
+use Dive\Record;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -22,22 +22,32 @@ class RecordDeleteGraphTest extends TestCase
 {
 
     private $tableRows = array(
-        'user' => array('JohnD'),
-        'author' => array(
-            'John' => array(
-                'firstname' => 'John',
-                'lastname' => 'Doe',
-                'email' => 'jdo@example.com',
-                'User' => 'JohnD'
-            ),
+        'JohnD' => array(
+            'user' => array('JohnD'),
+            'author' => array(
+                'John' => array(
+                    'firstname' => 'John',
+                    'lastname' => 'Doe',
+                    'email' => 'jdo@example.com',
+                    'User' => 'JohnD'
+                )
+            )
+        ),
+        'SallyK' => array(
+            'user' => array('SallyK'),
+            'author' => array(
+                'SallyK' => array(
+                    'firstname' => 'Sally',
+                    'lastname' => 'Kingston',
+                    'email' => 'ski@example.com',
+                    'User' => 'SallyK'
+                )
+            )
         )
     );
 
     /** @var RecordManager */
     private $rm = null;
-
-    /** @var RecordGenerator */
-    private $recordGenerator = null;
 
 
     protected function setUp()
@@ -45,7 +55,6 @@ class RecordDeleteGraphTest extends TestCase
         parent::setUp();
 
         $this->rm = self::createDefaultRecordManager();
-        $this->recordGenerator = $this->createRecords($this->rm, $this->tableRows, array('user' => 'username'));
     }
 
 
@@ -60,9 +69,9 @@ class RecordDeleteGraphTest extends TestCase
     }
 
 
-    public function testDeleteOnNonExistingRecordsOwningSide()
+    public function testDeleteOnNonSavedRecordsOwningSide()
     {
-        $user = $this->rm->getTable('user')->createRecord();
+        $user = $this->rm->getRecord('user', array());
         $author = $this->rm->getTable('author')->createRecord();
         $user->Author = $author;
 
@@ -72,7 +81,7 @@ class RecordDeleteGraphTest extends TestCase
     }
 
 
-    public function testDeleteOnNonExistingRecordsReferencedSide()
+    public function testDeleteOnNonSavedRecordsReferencedSide()
     {
         $user = $this->rm->getTable('user')->createRecord();
         $author = $this->rm->getTable('author')->createRecord();
@@ -91,8 +100,9 @@ class RecordDeleteGraphTest extends TestCase
     {
         $this->changeDeleteConstraint(PlatformInterface::CASCADE);
 
-        $author = $this->getAuthor();
-        $user = $this->getUser();
+        $user = $this->createUserWithAuthor('JohnD');
+
+        $author = $user->Author;
 
         $this->rm->delete($author);
 
@@ -108,8 +118,8 @@ class RecordDeleteGraphTest extends TestCase
     {
         $this->changeDeleteConstraint(PlatformInterface::CASCADE);
 
-        $author = $this->getAuthor();
-        $user = $this->getUser();
+        $user = $this->createUserWithAuthor('JohnD');
+        $author = $user->Author;
 
         $this->rm->delete($user);
 
@@ -118,29 +128,69 @@ class RecordDeleteGraphTest extends TestCase
     }
 
 
-    /**
-     * @return \Dive\Record
-     */
-    private function getUser()
+    public function testOneToOneRecordWithModifiedReferenceOnReferenceSide()
     {
-        $id = $this->recordGenerator->getRecordIdFromMap('user', 'JohnD');
-        $userTable = $this->rm->getTable('user');
-        $user = $userTable->findByPk($id);
-        $this->assertInstanceOf('\Dive\Record', $user);
-        return $user;
+        $this->changeDeleteConstraint(PlatformInterface::CASCADE);
+
+        $userJohn = $this->createUserWithAuthor('JohnD');
+        $authorJohn = $userJohn->Author;
+        $userSally = $this->createUserWithAuthor('SallyK');
+        $authorSally = $userSally->Author;
+
+        $userJohn->Author = $authorSally;
+
+        $this->rm->delete($userJohn);
+
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($userJohn));
+        $this->markTestIncomplete('original reference has to be implemented');
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($authorJohn));
+
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($userSally));
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($authorSally));
+    }
+
+
+    public function testOneToOneRecordWithModifiedReferenceOnOwningSide()
+    {
+        $this->changeDeleteConstraint(PlatformInterface::CASCADE);
+
+        $userJohn = $this->createUserWithAuthor('JohnD');
+        $authorJohn = $userJohn->Author;
+        $userSally = $this->createUserWithAuthor('SallyK');
+        $authorSally = $userSally->Author;
+
+        $authorJohn->User = $userSally;
+
+        $this->rm->delete($authorJohn);
+
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($authorJohn));
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($userJohn));
+
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($userSally));
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($authorSally));
     }
 
 
     /**
-     * @return \Dive\Record
+     * @param  string $username
+     * @return Record
      */
-    private function getAuthor()
+    private function createUserWithAuthor($username)
     {
-        $id = $this->recordGenerator->getRecordIdFromMap('author', 'John');
-        $authorTable = $this->rm->getTable('author');
-        $author = $authorTable->findByPk($id);
-        $this->assertInstanceOf('\Dive\Record', $author);
-        return $author;
+        $recordGenerator = $this->createRecordGenerator($this->rm);
+        $recordGenerator
+            ->setTablesMapField(array('user' => 'username'))
+            ->setTablesRows($this->tableRows[$username])
+            ->generate();
+
+        $userId = $recordGenerator->getRecordIdFromMap('user', $username);
+        $userTable = $this->rm->getTable('user');
+        $user = $userTable->findByPk($userId);
+
+        $this->assertInstanceOf('\Dive\Record', $user);
+        $this->assertInstanceOf('\Dive\Record', $user->Author);
+
+        return $user;
     }
 
 }

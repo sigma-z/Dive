@@ -47,11 +47,9 @@ class ReferenceMap
     private $owningFieldOidMapping = array();
     /**
      * TODO could be used for unitOfWork rollbacks?
-     * keys:   oid (owning record - contains foreign key field)
-     * values: oid (referenced not-yet-persisted record)
      * @var array
      */
-    private $originalOwningFieldOidMapping = array();
+    private $originalReferences = array();
 
 
     /**
@@ -69,9 +67,22 @@ class ReferenceMap
      * @param  string $id
      * @return bool
      */
-    public function hasReferenced($id)
+    public function isReferenced($id)
     {
-        return array_key_exists($id, $this->references);
+        return $id && isset($this->references[$id]);
+    }
+
+
+    /**
+     * @param  string $id
+     * @return bool
+     */
+    public function hasNullReference($id)
+    {
+        if ($this->relation->isOneToMany()) {
+            return false;
+        }
+        return array_key_exists($id, $this->references) && $this->references[$id] === null;
     }
 
 
@@ -125,6 +136,46 @@ class ReferenceMap
         if (!$checkExistence || !isset($this->references[$id]) || !in_array($owningId, $this->references[$id])) {
             $this->references[$id][] = $owningId;
         }
+    }
+
+
+    /**
+     * Sets (one-to-one) or adds (one-to-many) a reference
+     *
+     * @param string $owningId
+     * @param string $refId
+     */
+    private function assignReference($owningId, $refId)
+    {
+        // add new referenced record id
+        if ($this->relation->isOneToOne()) {
+            $this->setReference($refId, $owningId);
+        }
+        else if ($owningId) {
+            $this->addReference($refId, $owningId);
+        }
+    }
+
+
+    private function removeOwningReference($oldRefId, $owningId)
+    {
+        if (!$this->isReferenced($oldRefId)) {
+            return;
+        }
+        $pos = array_search($owningId, $this->references[$oldRefId]);
+        if ($pos !== false) {
+            array_splice($this->references[$oldRefId], $pos, 1);
+        }
+    }
+
+
+    /**
+     * @param string $id
+     * @param string $reference
+     */
+    private function setOriginalReference($id, $reference)
+    {
+        $this->originalReferences[$id] = $reference;
     }
 
 
@@ -332,7 +383,7 @@ class ReferenceMap
             throw new RelationException("Relation '$owningAlias' does not expected a record as reference!");
         }
         $id = $record->getInternalId();
-        if ($this->hasReferenced($id)) {
+        if ($this->isReferenced($id)) {
             $refId = $this->getOwning($id);
             $refRepository = $this->getRefRepository($record, $owningAlias);
             return $refRepository->getByInternalId($refId);
@@ -422,19 +473,14 @@ class ReferenceMap
     {
         $oid = $referencedRecord->getOid();
         if (isset($this->relatedCollections[$oid][$oldReferencedId])) {
-            // TODO change collection identifier!!
+            // TODO change collection identifier
         }
-        if (isset($this->references[$oldReferencedId])) {
-            if ($this->relation->isOneToMany()) {
-                $owningIds = $this->references[$oldReferencedId];
-            }
-            else {
-                $owningIds = array($this->references[$oldReferencedId]);
-            }
-
+        if ($this->isReferenced($oldReferencedId)) {
+            $owningIds = (array)$this->getOwning($oldReferencedId);
             if (!empty($owningIds)) {
                 $referenceId = $referencedRecord->getIdentifier();
                 $owningRepository = $this->getRefRepository($referencedRecord, $this->relation->getReferencedAlias());
+
                 foreach ($owningIds as $owningId) {
                     $owningRecord = $owningRepository->getByInternalId($owningId);
                     // TODO will probably cause an infinity recursion
@@ -459,7 +505,7 @@ class ReferenceMap
         }
 
         $refId = $referencedRecord->getInternalId();
-        if (!$this->hasReferenced($refId)) {
+        if (!$this->isReferenced($refId)) {
             return;
         }
         $oldOwningId = $this->getOwning($refId);
@@ -498,17 +544,14 @@ class ReferenceMap
      */
     public function removeOwningReferenceForeignKey(Record $record, $oldRefId)
     {
-        if (!$oldRefId || !isset($this->references[$oldRefId])) {
+
+        if (!$oldRefId || !$this->isReferenced($oldRefId)) {
             return;
         }
         if ($this->relation->isOneToMany()) {
             $owningId = $record->getInternalId();
-            if (isset($this->references[$oldRefId])) {
-                $pos = array_search($owningId, $this->references[$oldRefId]);
-                if ($pos !== false) {
-                    array_splice($this->references[$oldRefId], $pos, 1);
-                }
-            }
+
+            $this->removeOwningReference($oldRefId, $owningId);
 
             $refRepository = $this->getRefRepository($record, $this->relation->getOwningAlias());
             $oldRefRecord = $refRepository->getByInternalId($oldRefId);
@@ -521,7 +564,7 @@ class ReferenceMap
             }
         }
         else {
-            $this->references[$oldRefId] = null;
+            $this->setReference($oldRefId, null);
         }
     }
 
@@ -574,27 +617,13 @@ class ReferenceMap
 
         foreach ($referencedCollection as $refRecord) {
             $id = $refRecord->getInternalId();
-            if (!$this->hasReferenced($id)) {
-                $this->setReference($id, $isOneToMany ? array() : null);
+            $reference = $isOneToMany ? array() : null;
+            if (!$this->isReferenced($id) && !$this->hasNullReference($id)) {
+                $this->setReference($id, $reference);
             }
-        }
-    }
-
-
-    /**
-     * Sets (one-to-one) or adds (one-to-many) a reference
-     *
-     * @param string $owningId
-     * @param string $refId
-     */
-    private function assignReference($owningId, $refId)
-    {
-        // add new referenced record id
-        if ($this->relation->isOneToOne()) {
-            $this->setReference($refId, $owningId);
-        }
-        else if ($owningId) {
-            $this->addReference($refId, $owningId);
+            else if ($refRecord->exists()) {
+                $this->setOriginalReference($id, $reference);
+            }
         }
     }
 

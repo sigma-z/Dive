@@ -187,14 +187,15 @@ class RecordGenerator
 
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
-        $record = $this->rm->getRecord($table, $row);
+        $tableName = $table->getTableName();
+        $record = $this->rm->getRecord($tableName, $row);
         $this->rm->save($record);
         $this->rm->commit();
 
         // keep record identifier in the record map
         $id = $record->getIdentifierAsString();
         if (is_string($key)) {
-            $this->recordAliasIdMap[$table->getTableName()][$key] = $id;
+            $this->recordAliasIdMap[$tableName][$key] = $id;
         }
 
         // save owning relations

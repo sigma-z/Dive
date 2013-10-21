@@ -45,11 +45,6 @@ class ReferenceMap
      * values: oid (referenced not-yet-persisted record)
      */
     private $owningFieldOidMapping = array();
-    /**
-     * TODO could be used for unitOfWork rollbacks?
-     * @var array
-     */
-    private $originalReferences = array();
 
 
     /**
@@ -157,25 +152,15 @@ class ReferenceMap
     }
 
 
-    private function removeOwningReference($oldRefId, $owningId)
+    private function removeOwningReference($referencedId, $owningId)
     {
-        if (!$this->isReferenced($oldRefId)) {
+        if (!$this->isReferenced($referencedId)) {
             return;
         }
-        $pos = array_search($owningId, $this->references[$oldRefId]);
+        $pos = array_search($owningId, $this->references[$referencedId]);
         if ($pos !== false) {
-            array_splice($this->references[$oldRefId], $pos, 1);
+            array_splice($this->references[$referencedId], $pos, 1);
         }
-    }
-
-
-    /**
-     * @param string $id
-     * @param string $reference
-     */
-    private function setOriginalReference($id, $reference)
-    {
-        $this->originalReferences[$id] = $reference;
     }
 
 
@@ -430,9 +415,9 @@ class ReferenceMap
         }
 
         // get old referenced id from owning record
-        $oldRefId = false;
+        $actualRefId = false;
         if ($owningRecord) {
-            $oldRefId = $this->getOldReferencedId($owningRecord);
+            $actualRefId = $this->getOldReferencedId($owningRecord);
         }
 
         // unlink the field mapping of the referenced record for the old owning record
@@ -442,23 +427,21 @@ class ReferenceMap
 
         if ($owningRecord) {
             // set field reference id, if referenced record exists in database
-            if (!$referencedRecord || $referencedRecord->exists()) {
-                $owningField = $this->relation->getOwningField();
-                $refId = $referencedRecord ? $referencedRecord->getInternalId() : null;
-                $owningRecord->set($owningField, $refId);
-            }
+            $owningField = $this->relation->getOwningField();
+            $refId = $referencedRecord && $referencedRecord->exists() ? $referencedRecord->getInternalId() : null;
+            $owningRecord->set($owningField, $refId);
             $this->updateFieldMapping($owningRecord, $referencedRecord);
         }
 
         // unlink old reference
-        if ($oldRefId) {
-            $this->removeOwningReferenceForeignKey($owningRecord, $oldRefId);
+        if ($actualRefId) {
+            $this->removeOwningReferenceForeignKey($owningRecord, $actualRefId);
         }
         // link new reference
         if ($referencedRecord) {
             $owningId = $owningRecord ? $owningRecord->getInternalId() : null;
             $this->assignReference($owningId, $referencedRecord->getInternalId());
-            if ($owningId) {
+            if ($owningId && $this->relation->isOneToMany()) {
                 $relatedCollection = $this->getRelatedCollection($referencedRecord->getOid());
                 // TODO exception, or if not set create one??
                 if ($relatedCollection) {
@@ -528,7 +511,7 @@ class ReferenceMap
     private function getOldReferencedId(Record $owningRecord)
     {
         $oid = $owningRecord->getOid();
-        $oldRefId = $owningRecord->getModifiedFieldValue($this->relation->getOwningField());
+        $oldRefId = $owningRecord->get($this->relation->getOwningField());
         if (!$oldRefId && $this->hasFieldMapping($oid)) {
             $oldRefId = Record::NEW_RECORD_ID_MARK . $this->getFieldMapping($oid);
         }
@@ -540,21 +523,20 @@ class ReferenceMap
      * Removes owning record from record collection belonging to the referenced record given by it's id
      *
      * @param Record $record
-     * @param string $oldRefId
+     * @param string $referencedId
      */
-    public function removeOwningReferenceForeignKey(Record $record, $oldRefId)
+    public function removeOwningReferenceForeignKey(Record $record, $referencedId)
     {
-
-        if (!$oldRefId || !$this->isReferenced($oldRefId)) {
+        if (!$referencedId || !$this->isReferenced($referencedId)) {
             return;
         }
+
         if ($this->relation->isOneToMany()) {
             $owningId = $record->getInternalId();
-
-            $this->removeOwningReference($oldRefId, $owningId);
+            $this->removeOwningReference($referencedId, $owningId);
 
             $refRepository = $this->getRefRepository($record, $this->relation->getOwningAlias());
-            $oldRefRecord = $refRepository->getByInternalId($oldRefId);
+            $oldRefRecord = $refRepository->getByInternalId($referencedId);
             if ($oldRefRecord) {
                 $relatedCollection = $this->getRelatedCollection($oldRefRecord->getOid());
                 // TODO exception, or if not set create one??
@@ -564,7 +546,7 @@ class ReferenceMap
             }
         }
         else {
-            $this->setReference($oldRefId, null);
+            $this->setReference($referencedId, null);
         }
     }
 
@@ -617,12 +599,9 @@ class ReferenceMap
 
         foreach ($referencedCollection as $refRecord) {
             $id = $refRecord->getInternalId();
-            $reference = $isOneToMany ? array() : null;
             if (!$this->isReferenced($id) && !$this->hasNullReference($id)) {
+                $reference = $isOneToMany ? array() : null;
                 $this->setReference($id, $reference);
-            }
-            else if ($refRecord->exists()) {
-                $this->setOriginalReference($id, $reference);
             }
         }
     }

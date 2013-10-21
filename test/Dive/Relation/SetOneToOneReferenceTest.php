@@ -161,8 +161,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $authorTwoId = self::insertDataset($authorTable, $authorTwoData);
 
         $relation = $authorTable->getRelation('User');
-        $references = $relation->getReferences();
-        $this->assertEmpty($references);
+        $this->assertRelationReferenceMapIsEmpty($relation);
 
         /** @var Record[] $authors */
         $authors = $authorTable->createQuery()->fetchObjects();
@@ -172,24 +171,48 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         // loading references for 'User' (for the the other author records, too)
         $authorOne->User;
 
-        $references = $relation->getReferences();
-        $expectedReferences = array(
-            $userOneId => $authorOneId,
-            $userTwoId => $authorTwoId
-        );
-        $this->assertEquals($expectedReferences, $references);
+        $this->assertInstanceOf('\Dive\Record', $authorOne->User);
         $this->assertInstanceOf('\Dive\Record', $authorTwo->User);
 
-        $authorOne->User = $authorTwo->User;
+        $this->assertNotEquals($authorOne->User, $authorTwo->User);
 
-        $references = $relation->getReferences();
-        $expectedReferences = array(
-            $userOneId => null,
-            $userTwoId => $authorOneId
-        );
-        $this->assertEquals($expectedReferences, $references);
-        $this->assertEquals($authorOne->get($relation->getOwningField()), $userTwoId);
-        $this->assertNull($authorTwo->get($relation->getOwningField()));
+        $this->assertNotNull($authorOne->User);
+        $this->assertNotNull($authorTwo->User);
+
+        $users = $userTable->createQuery()->fetchObjects();
+        $this->assertRelationReference($authorOne, 'User', $users[$userOneId]);
+        $this->assertRelationReference($authorTwo, 'User', $users[$userTwoId]);
+
+        // user of author two gets lost when setting it to user of author one
+        $authorOne->User = $authorTwo->User;
+        $this->assertNotNull($authorOne->User);
+        $this->assertNull($authorTwo->User);
+        $this->assertNotEquals($authorOne->User, $authorTwo->User);
+
+        $this->assertRelationReference($authorOne, 'User', $users[$userTwoId]);
+    }
+
+
+    public function testOneToOneOwningSideSetNonExistingRecordOnExistingRecord()
+    {
+        $userTable = $this->rm->getTable('user');
+        $authorTable = $this->rm->getTable('author');
+        $userOneId = self::insertDataset($userTable, array('username' => 'userOne', 'password' => 'my-secret'));
+        $authorOneData = array('lastname' => 'authorOne', 'email' => '', 'user_id' => $userOneId);
+        self::insertDataset($authorTable, $authorOneData);
+
+        $users = $userTable->createQuery()->fetchObjects();
+        $userOne = $users->getIterator()->current();
+
+        $this->assertInstanceOf('\Dive\Record', $userOne->Author);
+
+        $newAuthor = $authorTable->createRecord();
+        $userOne->Author = $newAuthor;
+
+        $this->assertInstanceOf('\Dive\Record', $userOne->Author);
+        $this->assertOwningFieldMapping($userOne, 'Author', $newAuthor);
+        $this->assertRelationReference($userOne, 'Author', $newAuthor);
+        $this->assertEquals($newAuthor, $userOne->Author);
     }
 
 
@@ -208,8 +231,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $authorTwoId = self::insertDataset($authorTable, $authorTwoData);
 
         $relation = $authorTable->getRelation('User');
-        $references = $relation->getReferences();
-        $this->assertEmpty($references);
+        $this->assertRelationReferenceMapIsEmpty($relation);
 
         /** @var Record[] $users */
         $users = $userTable->createQuery()->fetchObjects();
@@ -237,6 +259,30 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $this->assertEquals($expectedReferences, $references);
         $this->assertEquals($authorTwo->get($relation->getOwningField()), $userOneId);
         $this->assertNull($authorOne->get($relation->getOwningField()));
+    }
+
+
+    public function testOneToOneReferencedSideSetNonExistingRecordOnExistingRecord()
+    {
+        $userTable = $this->rm->getTable('user');
+        $authorTable = $this->rm->getTable('author');
+        $userOneId = self::insertDataset($userTable, array('username' => 'userOne', 'password' => 'my-secret'));
+        $authorOneData = array('lastname' => 'authorOne', 'email' => '', 'user_id' => $userOneId);
+        self::insertDataset($authorTable, $authorOneData);
+
+        $authors = $authorTable->createQuery()->fetchObjects();
+        $authorOne = $authors->getIterator()->current();
+
+        $this->assertInstanceOf('\Dive\Record', $authorOne->User);
+
+        $newUser = $userTable->createRecord();
+        $authorOne->User = $newUser;
+        $this->assertNull($authorOne->user_id);
+
+        $this->assertInstanceOf('\Dive\Record', $authorOne->User);
+        $this->assertOwningFieldMapping($authorOne, 'User', $newUser);
+        $this->assertRelationReference($authorOne, 'User', $newUser);
+        $this->assertEquals($newUser, $authorOne->User);
     }
 
 

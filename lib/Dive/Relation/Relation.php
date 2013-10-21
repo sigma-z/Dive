@@ -479,36 +479,26 @@ class Relation
     }
 
 
-    /**
-     * @param  Record $record
-     * @param  string $relationName
-     * @return null|RecordCollection|Record[]|Record
-     */
-    public function getOriginalReferenceFor(Record $record, $relationName)
+    public function getOriginalReferencedIds(Record $record, $relationName)
     {
         $isReferencedSide = $this->isReferencedSide($relationName);
         if ($isReferencedSide) {
             $owningField = $this->getOwningField();
             if ($record->isFieldModified($owningField)) {
-                $id = $record->getModifiedFieldValue($owningField);
+                return array($record->getModifiedFieldValue($owningField));
             }
-            else {
-                $id = $record->get($owningField);
-            }
-            if ($id) {
-
-            }
+            return array($record->get($owningField));
         }
 
-
-
-//        $related = $this->getRecordRelatedByReferences($record, $relationName);
-//        if ($related !== false) {
-//            return $related;
-//        }
-//        $this->loadReferenceFor($record, $relationName);
-//
-//        return $this->getRecordRelatedByReferences($record, $relationName);
+        $query = $this->getReferenceQuery($record, $relationName, array($record->getInternalId()));
+        $originalReferencedIds = $query->fetchScalars();
+        if ($this->isOneToOne()) {
+            $moreThanOne = isset($originalReferencedIds[1]);
+            if ($moreThanOne) {
+                throw new RelationException("One-to-one relation has returned more than one result!");
+            }
+        }
+        return $originalReferencedIds;
     }
 
 

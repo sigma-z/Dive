@@ -109,9 +109,6 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $this->assertEquals($editorOne->id, $authorOne->Editor->id);
         $this->assertNull($authorOne->getModifiedFieldValue('editor_id'));
 
-        $this->assertNull($authorOne->getTable()->getRelation('Editor')->getOriginalReferenceFor($authorOne, 'Editor'));
-
-
         $this->rm->save($authorOne)->commit();
         $this->assertRelationReferences($editorOne, 'Author', $authorOne);
 

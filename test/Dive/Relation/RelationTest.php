@@ -73,7 +73,6 @@ class RelationTest extends TestCase
     {
         $userTable = $this->rm->getTable('user');
         $relation = $userTable->getRelation('Author');
-
         $this->assertRelationReferenceMapIsEmpty($relation);
     }
 
@@ -90,12 +89,16 @@ class RelationTest extends TestCase
         $relation = $userTable->getRelation('Author');
 
         if ($isOwningSide) {
+            $referenceMessage = 'Reference to user->Author';
+            $this->assertFalse($relation->hasReferenceFor($user, 'Author'), $referenceMessage . ' is not set, yet!');
             $user->Author = $author;
-            $this->assertTrue($relation->hasReferenceFor($user, 'Author'), 'Reference to user->Author is not set!');
+            $this->assertTrue($relation->hasReferenceFor($user, 'Author'), $referenceMessage . ' should be set!');
         }
         else {
+            $referenceMessage = 'Reference to author->User';
+            $this->assertFalse($relation->hasReferenceFor($author, 'User'), $referenceMessage . ' is not set, yet!');
             $author->User = $user;
-            $this->assertTrue($relation->hasReferenceFor($author, 'User', 'Reference to author->User is not set!'));
+            $this->assertTrue($relation->hasReferenceFor($author, 'User'), $referenceMessage . ' should be set!');
         }
 
         $this->assertRelationReferences($user, 'Author', $author);

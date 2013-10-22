@@ -148,10 +148,14 @@ class Record
     }
 
 
+    /**
+     * @param string $relationName
+     * @return null|RecordCollection|Record[]|Record
+     */
     public function getOriginalReference($relationName)
     {
         $relation = $this->_table->getRelation($relationName);
-        return $relation->getOriginalReferenceFor($this, $relationName);
+        return $relation->getOriginalReferencedIds($this, $relationName);
     }
 
 
@@ -223,6 +227,9 @@ class Record
     }
 
 
+    /**
+     * @return string
+     */
     public function getOid()
     {
         return spl_object_hash($this);
@@ -354,6 +361,9 @@ class Record
     }
 
 
+    /**
+     * @param string $fieldName
+     */
     private function handleOwningFieldRelation($fieldName)
     {
         $referencedRelations = $this->_table->getReferencedRelationsIndexedByOwningField();

@@ -11,11 +11,7 @@ namespace Dive\Test\Connection;
 
 use Dive\Connection\Connection;
 use Dive\Log\SqlLogger;
-use Dive\RecordManager;
-use Dive\Relation\Relation;
-use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
-use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -26,25 +22,40 @@ class ConnectionTest extends TestCase
 
     /**
      * @dataProvider provideGetScheme
-     *
      * @param string $dsn
      * @param string $expected
+     * @param bool   $throwsException
      */
-    public function testGetScheme($dsn, $expected)
+    public function testGetScheme($dsn, $expected, $throwsException)
     {
         /** @var \Dive\Connection\Driver\DriverInterface $driver */
         $driver = $this->getMockForAbstractClass('\Dive\Connection\Driver\DriverInterface');
+        if ($throwsException) {
+            $this->setExpectedException('\InvalidArgumentException');
+        }
         $conn = new Connection($driver, $dsn);
         $this->assertEquals($expected, $conn->getScheme());
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetScheme()
     {
         return array(
-            array('mysql:', 'mysql'),
-            array('sqlite:', 'sqlite'),
-            array('mssql::', 'mssql'),
+            array('mysql:', 'mysql', false),
+            array('sqlite:', 'sqlite', false),
+            array('mssql::', 'mssql', false),
+            array('mysql', '', true),
+            array('sqlite', '', true),
+            array('mssql', '', true),
+            array('my:sql', 'my', false),
+            array('sq:lite', 'sq', false),
+            array('ms:sql', 'ms', false),
+            array('m$sql:', '', true),
+            array('m_sql:', 'm_sql', false),
+            array('mSqL:', 'msql', false),
         );
     }
 
@@ -71,6 +82,9 @@ class ConnectionTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideTestConnectDisconnect()
     {
         return $this->getDatabaseAwareTestCases();
@@ -137,6 +151,9 @@ class ConnectionTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetDatabaseName()
     {
         return $this->getDatabaseAwareTestCases();
@@ -184,6 +201,9 @@ class ConnectionTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetStatement()
     {
         $dbTestCases    = $this->getDatabaseAwareTestCases();
@@ -228,6 +248,9 @@ class ConnectionTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideExec()
     {
         $dbTestCases    = $this->getDatabaseAwareTestCases();

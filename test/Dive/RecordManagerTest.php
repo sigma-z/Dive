@@ -54,6 +54,26 @@ class RecordManagerTest extends TestCase
     }
 
 
+    public function testGetConnection()
+    {
+        $this->assertInstanceOf('Dive\Connection\Connection', $this->rm->getConnection());
+    }
+
+
+    public function testClearTables()
+    {
+        $this->assertCount(0, self::readAttribute($this->rm, 'tables'));
+        $this->rm->getTable('user');
+        $this->assertCount(1, self::readAttribute($this->rm, 'tables'));
+        $this->rm->getTable('author');
+        $this->assertCount(2, self::readAttribute($this->rm, 'tables'));
+        $this->rm->getTable('author');
+        $this->assertCount(2, self::readAttribute($this->rm, 'tables'));
+        $this->rm->clearTables();
+        $this->assertCount(0, self::readAttribute($this->rm, 'tables'));
+    }
+
+
     /**
      * @param string $hydratorName
      * @param string $expectedHydratorClassName

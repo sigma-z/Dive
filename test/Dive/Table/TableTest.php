@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 01.03.13
- */
 
 namespace Dive\Test\Table;
 
@@ -17,11 +13,15 @@ namespace Dive\Test\Table;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
 
-
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 01.03.13
+ */
 class TableTest extends TestCase
 {
 
     /**
+     * @param string $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testFindByFk($database)
@@ -47,6 +47,7 @@ class TableTest extends TestCase
 
 
     /**
+     * @param string $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testFindByFkOnNonExistingRecord($database)
@@ -58,9 +59,24 @@ class TableTest extends TestCase
 
 
     /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     * @expectedException \Dive\Table\TableException
+     */
+    public function testFindByFkOnNonMatchingIdentifier($database)
+    {
+        $rm = self::createRecordManager($database);
+        $rm->getTable('user')->findByPk(array(10,10,10));
+    }
+
+
+    /**
+     * @param string $tableName
+     * @param array  $expectedOwning
+     * @param array  $expectedReferenced
      * @dataProvider provideGetRelations
      */
-    public function testGetRelations($tableName, $expectedOwning, $expectedReferenced)
+    public function testGetRelations($tableName, array $expectedOwning, array $expectedReferenced)
     {
         $rm = self::createDefaultRecordManager();
         $table = $rm->getTable($tableName);
@@ -81,6 +97,9 @@ class TableTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetRelations()
     {
         $testCases = array();
@@ -103,6 +122,60 @@ class TableTest extends TestCase
             'referenced' => array()
         );
 
+        return $testCases;
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testToString($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $tableToString = (string)$table;
+        $this->assertInternalType('string', $tableToString);
+    }
+
+
+    /**
+     * @param string $database
+     * @param string $field
+     * @param bool $throwsException
+     * @dataProvider provideGetField
+     */
+    public function testGetField($database, $field, $throwsException)
+    {
+        if ($throwsException) {
+            $this->setExpectedException('Dive\Table\TableException');
+        }
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $table->getField($field);
+    }
+
+
+    /**
+     * @return array
+     */
+    public function provideGetField()
+    {
+        $testCases = $this->provideDatabaseAwareTestCases();
+        $fields = array(
+            'id' => false,
+            'username' => false,
+            'password' => false,
+            'notexistingfield' => true
+        );
+        foreach ($testCases as $key => $testCase) {
+            foreach ($fields as $field => $throwsException) {
+                $testCases[$key] = array_merge(
+                    $testCase,
+                    array('field' => $field, 'throwsException' => $throwsException)
+                );
+            }
+        }
         return $testCases;
     }
 

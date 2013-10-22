@@ -11,7 +11,6 @@ namespace Dive;
 
 use Dive\Connection\Connection;
 use Dive\Query\Query;
-use Dive\RecordManager;
 use Dive\Table\Repository;
 use Dive\Table\TableException;
 
@@ -297,6 +296,9 @@ class Table
     }
 
 
+    /**
+     * @param Record $record
+     */
     public function refreshRecordIdentityInRepository(Record $record)
     {
         $this->getRepository()->refreshIdentity($record);
@@ -621,15 +623,15 @@ class Table
     }
 
 
-    public function throwExceptionIfIdentifierDoesNotMatchFields($id)
+    /**
+     * @param array $id
+     * @throws Table\TableException
+     */
+    public function throwExceptionIfIdentifierDoesNotMatchFields(array $id)
     {
-        if (!is_array($id)) {
-            $id = array($id);
-        }
         if (count($id) != count($this->identifier)) {
             throw new TableException(
-                'Id does not match identifier fields: '
-                    . implode(', ', $this->identifier)
+                'Id does not match identifier fields: ' . implode(', ', $this->identifier)
                     . ' (you gave me: ' . implode(', ', $id) . ')!'
             );
         }

@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 24.11.12
- */
 namespace Dive;
 
 use Dive\Schema\Schema;
@@ -20,6 +16,10 @@ use Dive\Table;
 use Dive\Platform\PlatformInterface;
 use Dive\UnitOfWork\UnitOfWork;
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 24.11.12
+ */
 class RecordManager
 {
 
@@ -96,7 +96,7 @@ class RecordManager
 
     /**
      * @param  string $name
-     * @return Table\Repository
+     * @return \Dive\Table\Repository
      */
     public function getTableRepository($name)
     {
@@ -250,13 +250,20 @@ class RecordManager
     }
 
 
-
+    /**
+     * @param Record $record
+     * @return bool
+     */
     public function isRecordScheduledForDelete(Record $record)
     {
         return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::DELETE);
     }
 
 
+    /**
+     * @param Record $record
+     * @return bool
+     */
     public function isRecordScheduledForSave(Record $record)
     {
         return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::SAVE);

@@ -6,12 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 27.03.13
- *
- * @TODO unit test missing!
- */
 
 
 namespace Dive\Test\Table;
@@ -20,6 +14,10 @@ use Dive\Table;
 use Dive\TestSuite\TestCase;
 
 
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 27.03.13
+ */
 class RepositoryTest extends TestCase
 {
 
@@ -35,13 +33,16 @@ class RepositoryTest extends TestCase
 
     public function setUp()
     {
+        $tableName = 'user';
         parent::setUp();
 
         // table instance is always the same
-        $this->table = self::createDefaultRecordManager()->getTable('user');
+        $this->table = self::createDefaultRecordManager()->getTable($tableName);
         // repository instance is always the same, too, and therefore is must be cleared in setUp()
         $this->repository = $this->table->getRepository();
         $this->repository->clear();
+
+        $this->assertEquals($tableName, $this->repository->getTable()->getTableName());
     }
 
 
@@ -95,6 +96,9 @@ class RepositoryTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideExistingFlag()
     {
         return array(

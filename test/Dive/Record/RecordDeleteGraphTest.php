@@ -58,6 +58,9 @@ class RecordDeleteGraphTest extends TestCase
     }
 
 
+    /**
+     * @param string $constraint
+     */
     private function changeDeleteConstraint($constraint)
     {
         $userTable = $this->rm->getTable('user');
@@ -121,10 +124,13 @@ class RecordDeleteGraphTest extends TestCase
         $user = $this->createUserWithAuthor('JohnD');
         $author = $user->Author;
 
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($author), 'author must not be scheduled for delete');
+        $this->assertFalse($this->rm->isRecordScheduledForDelete($user), 'user must not be scheduled for delete');
+
         $this->rm->delete($user);
 
-        $this->assertTrue($this->rm->isRecordScheduledForDelete($author));
-        $this->assertTrue($this->rm->isRecordScheduledForDelete($user));
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($author), 'author must be scheduled for delete');
+        $this->assertTrue($this->rm->isRecordScheduledForDelete($user), 'user must be scheduled for delete');
     }
 
 

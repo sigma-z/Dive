@@ -29,7 +29,6 @@ class RecordSaveGraphTest extends TestCase
 
     protected function setUp()
     {
-        $this->markTestSkipped();
         parent::setUp();
         $this->rm = self::createDefaultRecordManager();
     }
@@ -71,7 +70,7 @@ class RecordSaveGraphTest extends TestCase
 
         $this->rm->save($userJohn);
         $this->rm->save($userSally);
-        //$this->rm->commit();
+        $this->rm->commit();
     }
 
 
@@ -80,6 +79,10 @@ class RecordSaveGraphTest extends TestCase
     }
 
 
+    /**
+     * @param array $tablesRows
+     * @param array $tablesMapFields
+     */
     private function createTestRecords(array $tablesRows, array $tablesMapFields = array())
     {
         $fvGenerator = new FieldValuesGenerator();

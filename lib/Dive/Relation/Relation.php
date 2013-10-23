@@ -114,9 +114,12 @@ class Relation
     }
 
 
+    /**
+     * @return array
+     */
     public function getDefinition()
     {
-        $definition = array(
+        return array(
             'owningAlias' => $this->owningAlias,
             'owningTable' => $this->owningTable,
             'owningField' => $this->owningField,
@@ -128,7 +131,6 @@ class Relation
             'onUpdate'   => $this->onUpdate,
             'orderBy'    => $this->orderBy,
         );
-        return $definition;
     }
 
 
@@ -479,6 +481,12 @@ class Relation
     }
 
 
+    /**
+     * @param Record $record
+     * @param string $relationName
+     * @return array
+     * @throws RelationException
+     */
     public function getOriginalReferencedIds(Record $record, $relationName)
     {
         $isReferencedSide = $this->isReferencedSide($relationName);
@@ -515,23 +523,19 @@ class Relation
             if (!$reference) {
                 $reference = $this->map->createRelatedCollection($record);
             }
-            if ($reference) {
-                return $reference;
-            }
+            return $reference;
         }
         // is reference expected as record
-        else {
-            $refId = $this->getRecordReferencedIdentifiers($record, $relationName);
-            // is a NULL-reference
-            if (null === $refId) {
-                return null;
-            }
+        $refId = $this->getRecordReferencedIdentifiers($record, $relationName);
+        // is a NULL-reference
+        if (null === $refId) {
+            return null;
+        }
 
-            $rm = $record->getTable()->getRecordManager();
-            $refTable = $this->getJoinTable($rm, $relationName);
-            if (is_string($refId) && $refTable->isInRepository($refId)) {
-                return $refTable->getFromRepository($refId);
-            }
+        $rm = $record->getTable()->getRecordManager();
+        $refTable = $this->getJoinTable($rm, $relationName);
+        if (is_string($refId) && $refTable->isInRepository($refId)) {
+            return $refTable->getFromRepository($refId);
         }
 
         return false;
@@ -648,6 +652,11 @@ class Relation
     }
 
 
+    /**
+     * @param string      $relationName
+     * @param Record|null $reference
+     * @throws RelationException
+     */
     private function throwReferenceMustBeRecordOrNullException($relationName, $reference)
     {
         if ($reference !== null) {
@@ -667,6 +676,11 @@ class Relation
     }
 
 
+    /**
+     * @param string      $relationName
+     * @param Record|null $reference
+     * @throws RelationException
+     */
     private function throwReferenceMustBeRecordCollectionException($relationName, $reference)
     {
         if (!($reference instanceof RecordCollection)) {

@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 10.02.13
- */
 
 namespace Dive\Query;
 
@@ -17,6 +13,10 @@ use Dive\RecordManager;
 use Dive\Connection\Connection;
 use Dive\Util\StringExplode;
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 10.02.13
+ */
 class Query implements QueryInterface, QueryHydrationInterface
 {
 
@@ -307,27 +307,31 @@ class Query implements QueryInterface, QueryHydrationInterface
     }
 
 
-    protected function getLeftJoinByDefinition(array $joinDef)
+    /**
+     * @param array $definition
+     * @return string
+     */
+    protected function getLeftJoinByDefinition(array $definition)
     {
         $conn = $this->rm->getConnection();
         $quote = $conn->getIdentifierQuote();
-        if (!isset($joinDef['onClause'])) {
-            $parentAlias = $joinDef['parent'];
-            $alias = $joinDef['alias'];
-            $relationName = $joinDef['relation'];
+        if (!isset($definition['onClause'])) {
+            $parentAlias = $definition['parent'];
+            $alias = $definition['alias'];
+            $relationName = $definition['relation'];
             $parentTableName = $this->queryComponents[$parentAlias]['table'];
             $parentTable = $this->rm->getTable($parentTableName);
             $relation = $parentTable->getRelation($relationName);
             $onClause = $relation->getJoinOnCondition($relationName, $parentAlias, $alias, $quote);
-            if (isset($joinDef['withClause'])) {
-                $onClause .= ' AND ' . $joinDef['withClause'];
+            if (isset($definition['withClause'])) {
+                $onClause .= ' AND ' . $definition['withClause'];
             }
         }
         else {
-            $onClause = $joinDef['onClause'];
+            $onClause = $definition['onClause'];
         }
-        return $conn->quoteIdentifier($joinDef['table'])
-            . ' ' . $conn->quoteIdentifier($joinDef['alias'])
+        return $conn->quoteIdentifier($definition['table'])
+            . ' ' . $conn->quoteIdentifier($definition['alias'])
             . ' ON ' . $onClause;
     }
 
@@ -896,10 +900,10 @@ class Query implements QueryInterface, QueryHydrationInterface
 
     /**
      * Gets query params flattened
-     *
+     * @param array $params
      * @return array
      */
-    public function getParamsFlattened($params = null)
+    public function getParamsFlattened(array $params = null)
     {
         if (null === $params) {
             $params = $this->params;

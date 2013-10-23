@@ -426,7 +426,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     protected function assertRelationReferences(Record $record, $relationName, $otherRecords)
     {
-        if ($otherRecords instanceof Record) {
+        if (!is_array($otherRecords)) {
             $otherRecords = array($otherRecords);
         }
         foreach ($otherRecords as $otherRecord) {

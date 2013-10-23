@@ -6,14 +6,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 11.02.13
- */
 
 namespace Dive\Test\Collection;
 
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 11.02.13
+ */
 class CollectionTest extends \PHPUnit_Framework_TestCase
 {
 
@@ -88,6 +88,19 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
     {
         $item = array('name' => 'Item D');
         $this->coll->add($item, 'd');
+        $this->assertEquals($item, $this->coll->get('d'));
+    }
+
+
+    public function testDoubleAddItem()
+    {
+        $item = array('name' => 'Item D');
+        $count = $this->coll->count();
+        $this->coll->add($item, 'd');
+        $count++;
+        $this->assertEquals($count, $this->coll->count());
+        $this->coll->add($item, 'd');
+        $this->assertEquals($count, $this->coll->count());
         $this->assertEquals($item, $this->coll->get('d'));
     }
 

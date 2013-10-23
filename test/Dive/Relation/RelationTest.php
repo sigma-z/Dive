@@ -10,7 +10,9 @@
 namespace Dive\Test\Relation;
 
 use Dive\RecordManager;
+use Dive\Relation\Relation;
 use Dive\TestSuite\TestCase;
+use InvalidArgumentException;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -28,6 +30,45 @@ class RelationTest extends TestCase
         parent::setUp();
 
         $this->rm = self::createDefaultRecordManager();
+    }
+
+
+    public function testGetDefinition()
+    {
+        $expected = array(
+            'owningAlias' => 'Author',
+            'owningTable' => 'user_id',
+            'owningField' => 'author',
+            'refAlias' => 'User',
+            'refTable' => 'id',
+            'refField' => 'user',
+            'type' => '1-1',
+            'onDelete' => 'CASCADE',
+            'onUpdate' => 'CASCADE',
+            'orderBy' => '',
+        );
+
+        $rm = new Relation(
+            $expected['owningAlias'],
+            $expected['owningTable'],
+            $expected['owningField'],
+            $expected['refAlias'],
+            $expected['refTable'],
+            $expected['refField'],
+            $expected['type'],
+            $expected['onDelete'],
+            $expected['onUpdate']
+        );
+        $this->assertEquals($expected, $rm->getDefinition());
+    }
+
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testCreateException()
+    {
+        new Relation('Author', 'user_id', 'author', 'Author', 'user_id', 'author', '1-1', 'CASCADE', 'CASCADE');
     }
 
 
@@ -129,6 +170,9 @@ class RelationTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideIsOwningSideFlag()
     {
         return array(array(true), array(false));

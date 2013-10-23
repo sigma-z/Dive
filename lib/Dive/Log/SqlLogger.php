@@ -6,15 +6,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Dive\Log;
+
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 18.03.13
  */
-
-
-namespace Dive\Log;
-
-
 class SqlLogger
 {
 
@@ -40,6 +38,10 @@ class SqlLogger
     private $startTime;
 
 
+    /**
+     * @param string $sql
+     * @param array  $params
+     */
     public function startQuery($sql, array $params = array())
     {
         if (!$this->enabled) {
@@ -49,7 +51,7 @@ class SqlLogger
         $this->queries[++$this->current] = array(
             'sql' => $sql,
             'params' => $params,
-            'executionTime' => 0
+            'executionTime' => 0.0
         );
     }
 
@@ -66,14 +68,25 @@ class SqlLogger
     }
 
 
+    /**
+     * @param int $pos
+     */
     public function dumpQuery($pos)
     {
-        $queryData = $this->queries[$pos];
-        echo "SQL [$pos]\n";
-        echo $queryData['sql'] . "\n";
-        echo "Params:\n";
-        var_dump($queryData['params']);
-        echo 'executed in ' . number_format($queryData['executionTime'], 5) . "\n\n";
+        if (!$this->getCount()) {
+            echo "no queries logged yet";
+        }
+        else if (!isset($this->queries[$pos])) {
+            echo "Query $pos was not logged";
+        }
+        else {
+            echo "SQL [$pos]\n";
+            echo $this->queries[$pos]['sql'] . "\n";
+            echo "Params:\n";
+            var_dump($this->queries[$pos]['params']);
+            echo 'executed in ' . number_format($this->queries[$pos]['executionTime'], 5);
+        }
+        echo "\n\n";
     }
 
 
@@ -84,33 +97,72 @@ class SqlLogger
     }
 
 
+    /**
+     * @return string[]
+     */
     public function getQueries()
     {
         return $this->queries;
     }
 
 
+    /**
+     * @param bool $echoOutput
+     */
     public function setEchoOutput($echoOutput = true)
     {
         $this->echo = $echoOutput;
     }
 
 
-    public function disable($disable = true)
+    /**
+     * @param bool $disable
+     */
+    public function setDisabled($disable = true)
     {
         $this->enabled = ($disable !== true);
     }
 
 
-    public function enabled()
+    /**
+     * @return bool
+     */
+    public function isEnabled()
     {
         return $this->enabled;
     }
 
 
-    public function count()
+    /**
+     * @return int
+     */
+    public function getCount()
     {
         return $this->current + 1;
     }
 
+
+    /**
+     * @return float
+     */
+    public function getLastQueryExecutionTime()
+    {
+        if (!$this->getCount()) {
+            return 0.0;
+        }
+        return $this->queries[$this->current]['executionTime'];
+    }
+
+
+    /**
+     * @return float
+     */
+    public function getOverallQueryExectuionTime()
+    {
+        $time = 0.0;
+        for ($pos = 0; $pos <= $this->current; $pos++) {
+            $time += $this->queries[$pos]['executionTime'];
+        }
+        return $time;
+    }
 }

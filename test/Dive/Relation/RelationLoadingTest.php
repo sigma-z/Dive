@@ -101,7 +101,7 @@ class RelationLoadingTest extends TestCase
         }
 
         $sqlLogger->setEchoOutput(false);
-        $this->assertEquals(3, $sqlLogger->count());
+        $this->assertEquals(3, $sqlLogger->getCount());
     }
 
 

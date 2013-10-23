@@ -300,7 +300,7 @@ class RecordTest extends TestCase
         $rm->commit();
 
         $this->assertFalse($user->exists());
-        $this->assertEquals(0, $logger->count());
+        $this->assertEquals(0, $logger->getCount());
     }
 
 

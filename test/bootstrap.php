@@ -4,11 +4,7 @@
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/TestSuite/ClassLoader.php';
 
-
 define('FIXTURE_DIR', __DIR__ . '/fixtures');
-if (!defined('VENDOR_DIR')) {
-    define('VENDOR_DIR', 'vendor');
-}
 
 use Dive\TestSuite\TestCase;
 

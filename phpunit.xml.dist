@@ -13,8 +13,4 @@
             <directory>test/Dive</directory>
         </testsuite>
     </testsuites>
-
-    <php>
-        <const name="VENDOR_DIR" value="vendor"/>
-    </php>
 </phpunit>

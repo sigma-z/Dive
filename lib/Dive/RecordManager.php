@@ -85,7 +85,7 @@ class RecordManager
 
     /**
      * @param  string $name
-     * @return \Dive\Table
+     * @return Table
      */
     public function getTable($name)
     {
@@ -118,25 +118,49 @@ class RecordManager
      * initializes table instance
      *
      * @param  string $tableName
-     * @throws \Dive\Schema\SchemaException
+     * @throws SchemaException
      */
     private function initTable($tableName)
     {
-        if (isset($this->tables[$tableName])) {
-            return;
-        }
+        if (!isset($this->tables[$tableName])) {
+            if (!$this->schema->hasTable($tableName)) {
+                throw new SchemaException("Table '$tableName' not found!");
+            }
 
-        if (!$this->schema->hasTable($tableName)) {
-            throw new SchemaException("Table '$tableName' not found!");
+            $this->tables[$tableName] = $this->createTable($tableName);
         }
+    }
 
-        $autoLoadClass = true;
+
+    /**
+     * @param string $tableName
+     * @param bool   $autoLoadClass
+     * @return Table
+     */
+    private function createTable($tableName, $autoLoadClass = true)
+    {
         $tableClass = $this->schema->getTableClass($tableName, $autoLoadClass);
         $recordClass = $this->schema->getRecordClass($tableName);
         $fields = $this->schema->getTableFields($tableName);
 
-        // relations
         $relationsData = $this->schema->getTableRelations($tableName);
+        $relations = $this->instantiateRelations($relationsData);
+
+        $indexes = $this->schema->getTableIndexes($tableName);
+        /**
+         * @var Table $table
+         */
+        $table = new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
+        return $table;
+    }
+
+
+    /**
+     * @param $relationsData
+     * @return array
+     */
+    private function instantiateRelations($relationsData)
+    {
         $relations = array();
         foreach ($relationsData['owning'] as $relName => $relData) {
             $relations[$relData['refAlias']] = $this->getRelationInstance($relName, $relData);
@@ -144,15 +168,7 @@ class RecordManager
         foreach ($relationsData['referenced'] as $relName => $relData) {
             $relations[$relData['owningAlias']] = $this->getRelationInstance($relName, $relData);
         }
-        //-- relations
-
-        $indexes = $this->schema->getTableIndexes($tableName);
-        /**
-         * @var \Dive\Table $table
-         */
-        $table = new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
-
-        $this->tables[$tableName] = $table;
+        return $relations;
     }
 
 

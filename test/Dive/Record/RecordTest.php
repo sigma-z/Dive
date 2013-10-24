@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 30.01.13
- */
 
 namespace Dive\Test\Record;
 
@@ -19,7 +15,10 @@ use Dive\RecordManager;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
 
-
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 30.01.13
+ */
 class RecordTest extends TestCase
 {
 
@@ -118,6 +117,9 @@ class RecordTest extends TestCase
     }
 
 
+    /**
+     * @return Record
+     */
     public function testHasMappedValue()
     {
         $record = $this->table->createRecord();
@@ -164,6 +166,34 @@ class RecordTest extends TestCase
     }
 
 
+    public function testSetDataWithNullValue()
+    {
+        $fieldName = 'username';
+        $fieldValue = 'testuser';
+
+        $record = $this->table->createRecord(array(), false);
+
+        // set a value
+        $record->setData(array($fieldName => $fieldValue));
+        $actualValue = $record->get($fieldName);
+        $this->assertEquals($fieldValue, $actualValue);
+
+        // set value to null
+        $record->setData(array($fieldName => null));
+        $actualValue = $record->get($fieldName);
+        $this->assertNull($actualValue);
+    }
+
+
+    public function testSetFieldWithDefaultValue()
+    {
+        $article = $this->rm->getTable('article')->createRecord();
+        $this->assertEquals('0', $article->get('is_published'));
+        $article->set('is_published', true);
+        $this->assertEquals('1', $article->get('is_published'));
+    }
+
+
     /**
      * @dataProvider provideModifiedTestCases
      * @param array $data
@@ -198,6 +228,9 @@ class RecordTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideIsModifiedThroughSetData()
     {
         $testCases = array(
@@ -208,6 +241,9 @@ class RecordTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideModifiedTestCases()
     {
         return array(
@@ -230,6 +266,10 @@ class RecordTest extends TestCase
     }
 
 
+    /**
+     * @param RecordManager $rm
+     * @return Record
+     */
     private function createUserRecord(RecordManager $rm)
     {
         $table = $rm->getTable('user');

@@ -46,8 +46,9 @@ class Record
 
     /**
      * @var array
+     * @todo save identifiers on change
      */
-    private $_identifiers = array();
+    private /** @noinspection PhpUnusedPrivateFieldInspection */ $_identifiers = array();
     /**
      * @var Table
      */
@@ -167,7 +168,8 @@ class Record
      */
     public function setData(array $data)
     {
-        foreach ($this->_table->getFields() as $field => $def) {
+        $fields = $this->_table->getFields();
+        foreach ($fields as $field => $def) {
             if (isset($data[$field])) {
                 $this->_data[$field] = $data[$field];
             }

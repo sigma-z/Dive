@@ -54,6 +54,15 @@ class RecordManagerTest extends TestCase
     }
 
 
+    /**
+     * @expectedException \Dive\Schema\SchemaException
+     */
+    public function testGetNotExistingTable()
+    {
+        $this->rm->getTable('notexistingtable');
+    }
+
+
     public function testGetConnection()
     {
         $this->assertInstanceOf('Dive\Connection\Connection', $this->rm->getConnection());
@@ -114,8 +123,7 @@ class RecordManagerTest extends TestCase
 
     public function testGetSchema()
     {
-        $schema = $this->rm->getSchema();
-        $this->assertInstanceOf('\Dive\Schema\Schema', $schema);
+        $this->assertInstanceOf('\Dive\Schema\Schema', self::readAttribute($this->rm, 'schema'));
     }
 
 

@@ -14,13 +14,14 @@ use Dive\Connection\Connection;
 use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Platform\PlatformInterface;
+use Dive\Table\Repository;
 use Dive\UnitOfWork\UnitOfWork;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 24.11.12
  */
-class RecordManager
+class RecordManager extends HiddenFactory
 {
 
     const FETCH_RECORD_COLLECTION = 'record-collection';
@@ -147,10 +148,18 @@ class RecordManager
         $relations = $this->instantiateRelations($relationsData);
 
         $indexes = $this->schema->getTableIndexes($tableName);
-        /**
-         * @var Table $table
-         */
-        $table = new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
+
+        $tableDefinition = array(
+            'tableName' => $tableName,
+            'recordClass' => $recordClass,
+            'fields' => $fields,
+            'relations' => $relations,
+            'indexes' => $indexes
+        );
+
+        $table = Table::createRecordManagerTable($tableClass, $this, $tableDefinition);
+        $repository = new Repository($table);
+        $table->setRepository($repository);
         return $table;
     }
 

@@ -37,7 +37,7 @@ use Dive\Relation\Relation;
  *     - UnitOfWork should calculate by iterating through the object graphs, if records has to been inserted,
  *       updated, and deleted.
  */
-class Record
+class Record extends HiddenFactory
 {
 
     const NEW_RECORD_ID_MARK = "_";
@@ -77,17 +77,12 @@ class Record
 
     /**
      * @param Table $table
-     * @param array $data
      * @param bool  $exists
      */
-    public function __construct(Table $table, array $data = array(), $exists = false)
+    final protected function __construct(Table $table, $exists = false)
     {
         $this->_table = $table;
         $this->_exists = $exists;
-        $this->setData($data);
-        //$this->fromArray($data);
-        // TODO It violates law of demeter and does work in the constructor! Does anyone have an idea, how to do better?
-        $table->getRepository()->add($this);
     }
 
 

@@ -20,13 +20,17 @@ use Dive\Relation\Relation;
 class OwningFieldMappingConstraint extends \PHPUnit_Framework_Constraint
 {
 
-    /** @var \Dive\Record */
+    /** @var Record */
     private $record = null;
 
     /** @var string */
     private $relationName = '';
 
 
+    /**
+     * @param Record $record
+     * @param string $relationName
+     */
     public function __construct(Record $record, $relationName)
     {
         $this->record = $record;
@@ -75,9 +79,14 @@ class OwningFieldMappingConstraint extends \PHPUnit_Framework_Constraint
     }
 
 
+    /**
+     * @param Record $other
+     *
+     * @return string
+     */
     protected function failureDescription($other)
     {
-        $otherOid = $other instanceof Record ? $other->getOid() : 'NULL';
+        $otherOid = $other && $other instanceof Record ? $other->getOid() : 'NULL';
         $relation = $this->record->getTableRelation($this->relationName);
         $otherTableName = $relation->isOwningSide($this->relationName)
             ? $relation->getOwningTable()
@@ -93,7 +102,7 @@ class OwningFieldMappingConstraint extends \PHPUnit_Framework_Constraint
     /**
      * Gets the private ReferenceMap of a relation on a record
      *
-     * @param  \Dive\Relation\Relation $relation
+     * @param  Relation $relation
      * @throws \PHPUnit_Framework_AssertionFailedError
      * @return ReferenceMap
      */

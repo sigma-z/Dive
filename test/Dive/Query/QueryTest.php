@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 01.03.13
- */
 
 namespace Dive\Test\Query;
 
@@ -18,10 +14,12 @@ use Dive\Query\Query;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
-use Dive\TestSuite\DatasetRegistry;
 use Dive\TestSuite\TestCase;
 
-
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 01.03.13
+ */
 class QueryTest extends TestCase
 {
 
@@ -74,6 +72,9 @@ class QueryTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideSqlParts()
     {
         $testCases = array();
@@ -517,6 +518,9 @@ class QueryTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetSqlThrowsAliasException()
     {
         $testCases = array();
@@ -615,6 +619,9 @@ class QueryTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideSqlPartsDatabaseAware()
     {
         $testCases = $this->provideSqlParts();
@@ -622,6 +629,11 @@ class QueryTest extends TestCase
     }
 
 
+    /**
+     * @param RecordManager $rm
+     *
+     * @return array
+     */
     private static function saveUserRecords(RecordManager $rm)
     {
         $table = $rm->getTable('user');
@@ -690,6 +702,9 @@ class QueryTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideExecute()
     {
         $testCases = array();
@@ -776,6 +791,10 @@ class QueryTest extends TestCase
     }
 
 
+    /**
+     * @param Query $query
+     * @param array $operations
+     */
     private static function applyQueryObjectOperations(Query $query, array $operations)
     {
         foreach ($operations as $operation) {

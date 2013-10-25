@@ -10,6 +10,8 @@
 namespace Dive\TestSuite;
 
 use Dive\Connection\Connection;
+use Dive\Connection\Driver\DriverInterface;
+use Dive\Platform\PlatformInterface;
 use Dive\Schema\Migration\Migration;
 use Dive\Schema\Migration\MigrationInterface;
 use Dive\Schema\Schema;
@@ -22,15 +24,19 @@ class DbInit
 {
 
     /**
-     * @var \Dive\Connection\Connection
+     * @var Connection
      */
     private $conn;
     /**
-     * @var \Dive\Schema\Schema
+     * @var Schema
      */
     private $schema;
 
 
+    /**
+     * @param Connection $conn
+     * @param Schema     $schema
+     */
     public function __construct(Connection $conn, Schema $schema)
     {
         $this->conn = $conn;
@@ -40,36 +46,81 @@ class DbInit
 
     public function init()
     {
-        $tableNames = $this->schema->getTableNames();
         $driver = $this->conn->getDriver();
+
+        // (re)create tables
+        $tableNames = $this->schema->getTableNames();
         $this->conn->disableForeignKeys();
         foreach ($tableNames as $tableName) {
-            // drop table
-            $dropMigration = $driver->createSchemaMigration($this->conn, $tableName, MigrationInterface::DROP_TABLE);
-            $dropMigration->execute();
-            // (re)create table
-            /** @var $createMigration Migration */
-            $createMigration = $driver->createSchemaMigration($this->conn, $tableName, MigrationInterface::CREATE_TABLE);
-            $createMigration->importFromSchema($this->schema);
-            if ($this->conn->getScheme() == 'mysql') {
-                $createMigration->setTableOption('engine', 'InnoDB');
-            }
-            $createMigration->execute();
+            $this->dropTable($driver, $tableName);
+            $this->createTable($driver, $tableName);
         }
         $this->conn->enableForeignKeys();
 
+        // (re)create views
         $viewNames = $this->schema->getViewNames();
         $platform = $driver->getPlatform();
         foreach ($viewNames as $viewName) {
-            // drop view
-            $sql = $platform->getDropViewSql($viewName);
-            $this->conn->exec($sql);
-
-            // (re)create view
-            $sqlStatement = $this->schema->getViewStatement($viewName);
-            $sql = $platform->getCreateViewSql($viewName, $sqlStatement);
-            $this->conn->exec($sql);
+            $this->dropView($platform, $viewName);
+            $this->createView($platform, $viewName);
         }
+    }
+
+
+    /**
+     * drop table
+     *
+     * @param DriverInterface $driver
+     * @param string          $tableName
+     */
+    private function dropTable(DriverInterface $driver, $tableName)
+    {
+        $driver->createSchemaMigration($this->conn, $tableName, MigrationInterface::DROP_TABLE)->execute();
+    }
+
+
+    /**
+     * (re)create table
+     *
+     * @param DriverInterface $driver
+     * @param string          $tableName
+     */
+    private function createTable(DriverInterface $driver, $tableName)
+    {
+        /** @var $createMigration Migration */
+        $createMigration = $driver->createSchemaMigration($this->conn, $tableName, MigrationInterface::CREATE_TABLE);
+        $createMigration->importFromSchema($this->schema);
+        if ($this->conn->getScheme() == 'mysql') {
+            $createMigration->setTableOption('engine', 'InnoDB');
+        }
+        $createMigration->execute();
+    }
+
+
+    /**
+     * drop view
+     *
+     * @param PlatformInterface $platform
+     * @param string            $viewName
+     */
+    private function dropView(PlatformInterface $platform, $viewName)
+    {
+        $sql = $platform->getDropViewSql($viewName);
+        $this->conn->exec($sql);
+    }
+
+
+    /**
+     * (re)create view
+     *
+     * @param PlatformInterface $platform
+     * @param string            $viewName
+     */
+    private function createView(PlatformInterface $platform, $viewName)
+    {
+        $sqlStatement = $this->schema->getViewStatement($viewName);
+        $sql = $platform->getCreateViewSql($viewName, $sqlStatement);
+        $this->conn->exec($sql);
     }
 
 }

@@ -18,13 +18,17 @@ use Dive\Record;
 class RelationReferenceMapConstraint extends \PHPUnit_Framework_Constraint
 {
 
-    /** @var \Dive\Record */
+    /** @var Record */
     private $record = null;
 
     /** @var string */
     private $relationName = '';
 
 
+    /**
+     * @param Record $record
+     * @param string $relationName
+     */
     public function __construct(Record $record, $relationName)
     {
         $this->record = $record;
@@ -33,7 +37,8 @@ class RelationReferenceMapConstraint extends \PHPUnit_Framework_Constraint
 
 
     /**
-     * @param  Record $other
+     * @param Record $other
+     *
      * @return bool
      */
     public function matches($other)
@@ -51,6 +56,12 @@ class RelationReferenceMapConstraint extends \PHPUnit_Framework_Constraint
     }
 
 
+    /**
+     * @param string $referencedId
+     * @param string $owningId
+     *
+     * @return bool
+     */
     private function matchByRecordIds($referencedId, $owningId)
     {
         $relation = $this->record->getTableRelation($this->relationName);
@@ -91,6 +102,11 @@ class RelationReferenceMapConstraint extends \PHPUnit_Framework_Constraint
     }
 
 
+    /**
+     * @param Record $other
+     *
+     * @return string
+     */
     protected function failureDescription($other)
     {
         $otherId = $other->getInternalId();
@@ -100,6 +116,5 @@ class RelationReferenceMapConstraint extends \PHPUnit_Framework_Constraint
             : $relation->getReferencedTable();
         return $this->toString() . " to {$otherTableName}[$otherId]";
     }
-
 
 }

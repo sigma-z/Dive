@@ -131,19 +131,21 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Adds mock listener via closure to event dispatcher
      *
-     * @param \Dive\Event\Dispatcher $eventDispatcher
-     * @param \Dive\Event\Event|\Dive\Event\Event[] $events
+     * @param Dispatcher $eventDispatcher
+     * @param Event[] $events
      * @param array $expectedEventsCalled
      */
     protected function addMockListenerToEventDispatcher(
         Dispatcher $eventDispatcher,
-        $events,
+        array $events,
         array &$expectedEventsCalled
     ) {
         $callOnEvent = function(Event $event) use (&$expectedEventsCalled) {
+            // TODO Event::getName() will be deprecated in symfony/event-dispatcher 3
+            /** @noinspection PhpDeprecationInspection */
             $expectedEventsCalled[] = $event->getName();
         };
-        foreach ((array)$events as $eventName) {
+        foreach ($events as $eventName) {
             $eventDispatcher->addListener($eventName, $callOnEvent);
         }
     }
@@ -294,6 +296,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * @param ConnectionRowChangeEvent $event
+     */
     public static function addToDatasetRegistry(ConnectionRowChangeEvent $event)
     {
         $datasetRegistry = self::$isTestCase ? self::$datasetRegistryTestCase : self::$datasetRegistryTestClass;
@@ -351,6 +356,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * @param Relation $relation
+     */
     protected function assertRelationReferenceMapIsEmpty(Relation $relation)
     {
         $constraint = new ReferenceMapIsEmptyConstraint();
@@ -359,26 +367,15 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @param \Dive\Record $record
-     * @param string       $relationName
-     * @param \Dive\Record $otherRecord
+     * @param Record $record
+     * @param string $relationName
+     * @param Record $otherRecord
+     * @param string $message
      */
-    protected function assertOwningFieldMapping(Record $record, $relationName, Record $otherRecord)
+    protected function assertOwningFieldMapping(Record $record, $relationName, Record $otherRecord, $message = '')
     {
         $constraint = new OwningFieldMappingConstraint($record, $relationName);
-        $this->assertThat($otherRecord, $constraint);
-    }
-
-
-    /**
-     * @param \Dive\Record $record
-     * @param string       $relationName
-     * @param \Dive\Record $otherRecord
-     */
-    protected function assertNoOwningFieldMapping(Record $record, $relationName, Record $otherRecord)
-    {
-        $constraint = new OwningFieldMappingConstraint($record, $relationName);
-        $this->assertThat($otherRecord, self::logicalNot($constraint));
+        $this->assertThat($otherRecord, $constraint, $message);
     }
 
 
@@ -386,11 +383,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param Record $record
      * @param string $relationName
      * @param Record $otherRecord
+     * @param string $message
      */
-    protected function assertRelationReference(Record $record, $relationName, Record $otherRecord)
+    protected function assertNoOwningFieldMapping(Record $record, $relationName, Record $otherRecord, $message = '')
     {
-        $constraint = new RelationReferenceMapConstraint($record, $relationName);
-        $this->assertThat($otherRecord, $constraint);
+        $constraint = new OwningFieldMappingConstraint($record, $relationName);
+        $this->assertThat($otherRecord, self::logicalNot($constraint), $message);
     }
 
 
@@ -398,11 +396,25 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param Record $record
      * @param string $relationName
      * @param Record $otherRecord
+     * @param string $message
      */
-    protected function assertNoRelationReference(Record $record, $relationName, Record $otherRecord)
+    protected function assertRelationReference(Record $record, $relationName, Record $otherRecord, $message = '')
     {
         $constraint = new RelationReferenceMapConstraint($record, $relationName);
-        $this->assertThat($otherRecord, self::logicalNot($constraint));
+        $this->assertThat($otherRecord, $constraint, $message);
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $relationName
+     * @param Record $otherRecord
+     * @param string $message
+     */
+    protected function assertNoRelationReference(Record $record, $relationName, Record $otherRecord, $message = '')
+    {
+        $constraint = new RelationReferenceMapConstraint($record, $relationName);
+        $this->assertThat($otherRecord, self::logicalNot($constraint), $message);
     }
 
 
@@ -410,45 +422,58 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param Record $record
      * @param string $relationName
      * @param array  $otherRecords
+     * @param string $message
      */
-    protected function assertOwningFieldMappingOneToMany(Record $record, $relationName, array $otherRecords)
-    {
+    protected function assertOwningFieldMappingOneToMany(
+        Record $record,
+        $relationName,
+        array $otherRecords,
+        $message = ''
+    ) {
+        $constraint = new OwningFieldMappingConstraint($record, $relationName);
         foreach ($otherRecords as $otherRecord) {
-            $this->assertOwningFieldMapping($record, $relationName, $otherRecord);
+            $this->assertThat($otherRecord, $constraint, $message);
         }
     }
 
 
     /**
-     * @param Record            $record
-     * @param string            $relationName
-     * @param Record|Record[]   $otherRecords
+     * @param Record          $record
+     * @param string          $relationName
+     * @param Record|Record[] $otherRecords
+     * @param string          $message
      */
-    protected function assertRelationReferences(Record $record, $relationName, $otherRecords)
+    protected function assertRelationReferences(Record $record, $relationName, $otherRecords, $message = '')
     {
         if (!is_array($otherRecords)) {
             $otherRecords = array($otherRecords);
         }
+        $owningFieldMappingConstraint = new OwningFieldMappingConstraint($record, $relationName);
+        $relationReferenceMapConstraint = new RelationReferenceMapConstraint($record, $relationName);
+        $constraint = self::logicalAnd($relationReferenceMapConstraint, $owningFieldMappingConstraint);
         foreach ($otherRecords as $otherRecord) {
-            $this->assertOwningFieldMapping($record, $relationName, $otherRecord);
-            $this->assertRelationReference($record, $relationName, $otherRecord);
+            $this->assertThat($otherRecord, $constraint, $message);
         }
     }
 
 
     /**
-     * @param Record            $record
-     * @param string            $relationName
-     * @param Record|Record[]   $otherRecords
+     * @param Record          $record
+     * @param string          $relationName
+     * @param Record|Record[] $otherRecords
+     * @param string          $message
      */
-    protected function assertNoRelationReferences(Record $record, $relationName, $otherRecords)
+    protected function assertNoRelationReferences(Record $record, $relationName, $otherRecords, $message = '')
     {
-        if ($otherRecords instanceof Record) {
+        if (!is_array($otherRecords)) {
             $otherRecords = array($otherRecords);
         }
+        $owningFieldMappingConstraint = new OwningFieldMappingConstraint($record, $relationName);
+        $relationReferenceMapConstraint = new RelationReferenceMapConstraint($record, $relationName);
+        $constraint = self::logicalAnd($relationReferenceMapConstraint, $owningFieldMappingConstraint);
+        $invertedConstraint = self::logicalNot($constraint);
         foreach ($otherRecords as $otherRecord) {
-            $this->assertNoOwningFieldMapping($record, $relationName, $otherRecord);
-            $this->assertNoRelationReference($record, $relationName, $otherRecord);
+            $this->assertThat($otherRecord, $invertedConstraint, $message);
         }
     }
 
@@ -642,6 +667,19 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         }
 
         return $testCases;
+    }
+
+
+    /**
+     * @param Record   $record
+     * @param string   $relationName
+     * @param string[] $expectedOriginalIds
+     */
+    protected function assertOriginalReference(Record $record, $relationName, array $expectedOriginalIds)
+    {
+        $relation = $record->getTable()->getRelation($relationName);
+        $originalReferencedIds = $relation->getOriginalReferencedIds($record, $relationName);
+        $this->assertEquals($expectedOriginalIds, $originalReferencedIds);
     }
 
 }

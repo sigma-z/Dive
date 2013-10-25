@@ -41,6 +41,11 @@ class ReferenceMapIsEmptyConstraint extends \PHPUnit_Framework_Constraint
     }
 
 
+    /**
+     * Returns a string representation of the object.
+     *
+     * @return string
+     */
     public function toString()
     {
         return 'relation map is empty';

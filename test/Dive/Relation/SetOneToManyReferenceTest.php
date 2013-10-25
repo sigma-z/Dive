@@ -32,9 +32,9 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     public function testOneToManyReferencedSide($authorExists, $editorExists)
     {
         list($user, $userEditor) = $this->createAuthorEditorUsers($authorExists, $editorExists);
-        /** @var \Dive\Record $author */
+        /** @var Record $author */
         $author = $user->Author;
-        /** @var \Dive\Record $editor */
+        /** @var Record $editor */
         $editor = $userEditor->Author;
 
         // setting reference
@@ -63,9 +63,9 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     public function testOneToManyOwningSide($authorExists, $editorExists)
     {
         list($user, $userEditor) = $this->createAuthorEditorUsers($authorExists, $editorExists);
-        /** @var \Dive\Record $author */
+        /** @var Record $author */
         $author = $user->Author;
-        /** @var \Dive\Record $editor */
+        /** @var Record $editor */
         $editor = $userEditor->Author;
 
         // setting reference
@@ -83,6 +83,9 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideOneToMany()
     {
         $testCases = array();
@@ -138,10 +141,13 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $editorTwo = $this->createAuthorWithUser('EditorTwo');
         $editorTwoId = $editorTwo->id;
 
+        $this->assertNotEquals($editorOneId, $editorTwoId);
+
         $authorOne = $this->createAuthorWithUser('One');
 
+        $this->assertNotEquals($authorOne->editor_id, $editorOne->id);
         $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
-        $this->markTestIncomplete('Fix unit test, references seem to be wrong!');
+
         $this->rm->save($authorOne)->commit();
         $this->assertRelationReferences($editorOne, 'Author', $authorOne);
 
@@ -168,7 +174,8 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
 
     /**
      * @param  string $name
-     * @return \Dive\Record
+     *
+     * @return Record
      */
     private function createAuthorWithUser($name)
     {
@@ -181,6 +188,12 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     }
 
 
+    /**
+     * @param bool $authorExists
+     * @param bool $editorExists
+     *
+     * @return array
+     */
     private function createAuthorEditorUsers($authorExists, $editorExists)
     {
         $user = $this->createUser('UserOne');

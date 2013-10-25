@@ -139,19 +139,8 @@ class RelationOriginalReferenceTest extends TestCase
 
 
     /**
-     * @param Record   $record
-     * @param string   $relationName
-     * @param string[] $expectedOriginalIds
+     * @return array
      */
-    private function assertOriginalReference(Record $record, $relationName, array $expectedOriginalIds)
-    {
-        $relation = $record->getTable()->getRelation($relationName);
-        $originalReferencedIds = $relation->getOriginalReferencedIds($record, $relationName);
-        $this->assertEquals($expectedOriginalIds, $originalReferencedIds);
-    }
-
-
-
     public function provideOneToOne()
     {
         return array(
@@ -293,6 +282,12 @@ class RelationOriginalReferenceTest extends TestCase
     }
 
 
+    /**
+     * @param string $username
+     * @param bool $withArticles
+     *
+     * @return array|bool|Record
+     */
     private function createUserWithAuthor($username, $withArticles)
     {
         $tablesRows = $this->tableRows[$username];

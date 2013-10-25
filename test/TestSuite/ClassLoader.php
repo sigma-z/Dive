@@ -141,9 +141,9 @@ class ClassLoader
     /**
      * gets relative path to class by class namespace
      *
-     * @param   string  $classNamespace
-     * @param   string  $namespace
-     * @return  string
+     * @param string $classNamespace
+     *
+     * @return string
      */
     private function getClassPath($classNamespace)
     {

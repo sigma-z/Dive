@@ -6,16 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 01.03.13
- */
 
 namespace Dive\TestSuite;
 
 use Dive\Connection\Connection;
 use Dive\Table;
 
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 01.03.13
+ */
 class DatasetRegistry
 {
 

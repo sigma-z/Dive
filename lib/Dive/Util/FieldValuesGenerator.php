@@ -25,6 +25,30 @@ class FieldValuesGenerator
 
 
     /**
+     * check field is autoIncrement
+     *
+     * @param $fieldDefinition
+     * @return bool
+     */
+    public static function fieldIsAutoIncrement($fieldDefinition)
+    {
+        return isset($fieldDefinition['autoIncrement']) && $fieldDefinition['autoIncrement'] === true;
+    }
+
+
+    /**
+     * check field is required
+     *
+     * @param $fieldDefinition
+     * @return bool
+     */
+    public static function fieldIsNullable($fieldDefinition)
+    {
+        return !isset($fieldDefinition['nullable']) || $fieldDefinition['nullable'] !== true;
+    }
+
+
+    /**
      * Delivers all type-constant values of this class
      * @return array
      */
@@ -43,15 +67,13 @@ class FieldValuesGenerator
      * Checks whether given type hits given fieldDefinition.
      *
      * @param array  $fieldDefinition
-     * @param string $type              = self::REQUIRED
+     * @param string $type = self::REQUIRED
      * @return bool
      */
     public function matchType($fieldDefinition, $type = self::REQUIRED)
     {
-        // check field is required
-        $required       = !isset($fieldDefinition['nullable'])      || $fieldDefinition['nullable'] !== true;
-        // check field is autoIncrement
-        $autoIncrement  = isset($fieldDefinition['autoIncrement'])  && $fieldDefinition['autoIncrement'] === true;
+        $required = self::fieldIsNullable($fieldDefinition);
+        $autoIncrement = self::fieldIsAutoIncrement($fieldDefinition);
 
         // default: do add field, when MAXIMAL was requested
         $addFieldValue = $type === self::MAXIMAL;
@@ -96,15 +118,18 @@ class FieldValuesGenerator
      *  supported it returns null.
      *
      * @param array $fieldDefinition
+     * @throws UnsupportedTypeException
      * @return string|int|float|null
      */
     public function getRandomFieldValue(array $fieldDefinition)
     {
-        switch ($fieldDefinition['type']) {
+        $type = $fieldDefinition['type'];
+        switch ($type) {
             case 'datetime':
                 return date('Y-m-d h:s:i');
             // TODO: create float/int really from supported interval with supported decimals
             case 'float':
+                return (float) mt_rand(0, 100000000);
             case 'integer':
                 return mt_rand(0, 100000000);
             case 'string':
@@ -125,7 +150,7 @@ class FieldValuesGenerator
                 return $string;
         }
 
-        return null;
+        throw new UnsupportedTypeException("unsupported field type: $type");
     }
 
 

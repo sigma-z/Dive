@@ -361,8 +361,12 @@ class Relation
      * @param  array  $identifiers
      * @return \Dive\Query\Query
      */
-    public function getReferenceQuery(Record $record, $relationName, array $identifiers)
+    private function getReferenceQuery(Record $record, $relationName, array $identifiers = array())
     {
+        if (empty($identifiers)) {
+            $identifiers = array($record->getIdentifierAsString());
+        }
+
         $rm = $record->getTable()->getRecordManager();
         $relatedTable = $this->getJoinTable($rm, $relationName);
 
@@ -709,7 +713,7 @@ class Relation
             return array();
         }
 
-        $query = $this->getReferenceQuery($record, $relationName, $referenceIds);
+        $query = $this->getReferenceQuery($record, $relationName);
         return $query->execute();
     }
 

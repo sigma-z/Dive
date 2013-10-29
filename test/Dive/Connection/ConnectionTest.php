@@ -10,6 +10,7 @@
 namespace Dive\Test\Connection;
 
 use Dive\Connection\Connection;
+use Dive\Connection\ConnectionEvent;
 use Dive\Log\SqlLogger;
 use Dive\TestSuite\TestCase;
 
@@ -228,7 +229,6 @@ class ConnectionTest extends TestCase
      */
     public function testExec($database, $sql, $params, $sqlWithoutParams)
     {
-        // create connection
         $conn = $this->createDatabaseConnection($database);
 
         $events = array(Connection::EVENT_PRE_EXEC, Connection::EVENT_POST_EXEC);
@@ -237,12 +237,19 @@ class ConnectionTest extends TestCase
         $expectedEventsCalled = array();
         $eventDispatcher = $conn->getEventDispatcher();
         $this->addMockListenerToEventDispatcher($eventDispatcher, $events, $expectedEventsCalled);
+        $preDisconnectEvent = function(ConnectionEvent $event) {
+            $event->getConnection()->exec('DELETE FROM user');
+        };
+        $eventDispatcher->addListener(Connection::EVENT_PRE_DISCONNECT, $preDisconnectEvent);
 
         $return1 = $conn->exec($sql, $params);
         $return2 = $conn->exec($sqlWithoutParams);
 
-        $this->assertEquals($return1, $return2, 'Connection->exec() does not deliver same return value for calling with'
-            . ' params and same with parsed params directly into sql and call exec without params');
+        $this->assertEquals(
+            $return1, $return2,
+            'Connection->exec() does not deliver same return value for calling with'
+                . ' params and same with parsed params directly into sql and call exec without params'
+        );
 
         $this->assertEquals(array_merge($events, $events), $expectedEventsCalled);
     }

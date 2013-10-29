@@ -18,7 +18,7 @@ use Dive\Table\TableException;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 24.11.12
  */
-class Table
+class Table extends HiddenFactory
 {
 
     /**
@@ -66,44 +66,47 @@ class Table
 
 
     /**
-     * TODO should repository be a obligated argument, given by the record manager?
-     *
      * constructor
      *
-     * @param RecordManager    $recordManager
-     * @param string           $tableName
-     * @param string           $recordClass
-     * @param array            $fields
-     * @param array            $relations
-     * @param array            $indexes
-     * @param Table\Repository $repository
+     * @param RecordManager $recordManager
+     * @param string        $tableName
+     * @param string        $recordClass
+     * @param array         $fields
+     * @param array         $relations
+     * @param array         $indexes
      */
-    public function __construct(
+    final protected function __construct(
         RecordManager $recordManager,
         $tableName,
         $recordClass,
         array $fields,
         array $relations = array(),
-        array $indexes = array(),
-        Repository $repository = null
+        array $indexes = array()
     )
     {
         $this->rm = $recordManager;
         $this->tableName = $tableName;
         $this->recordClass = $recordClass;
-        $this->fields = $fields;
-        foreach ($fields as $fieldName => $definition) {
-            if (isset($definition['primary']) && $definition['primary'] === true) {
-                $this->identifier[] = $fieldName;
-            }
-        }
+        $this->setFields($fields);
         $this->relations = $relations;
         $this->indexes = $indexes;
+    }
 
-        if (null === $repository) {
-            $repository = new Repository($this);
+
+    /**
+     * @param array $fields
+     */
+    protected function setFields(array $fields)
+    {
+        $identifier = array();
+        foreach ($fields as $fieldName => $definition) {
+            if (isset($definition['primary']) && $definition['primary'] === true) {
+                $identifier[] = $fieldName;
+            }
         }
-        $this->repository = $repository;
+
+        $this->fields = $fields;
+        $this->identifier = $identifier;
     }
 
 
@@ -147,8 +150,10 @@ class Table
      */
     public function createRecord(array $data = array(), $exists = false)
     {
-        $recordClass = $this->recordClass;
-        return new $recordClass($this, $data, $exists);
+        $record = Record::createTableRecord($this->recordClass, $this, $data, $exists);
+        $record->setData($data);
+        $this->getRepository()->add($record);
+        return $record;
     }
 
 

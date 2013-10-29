@@ -37,7 +37,7 @@ use Dive\Relation\Relation;
  *     - UnitOfWork should calculate by iterating through the object graphs, if records has to been inserted,
  *       updated, and deleted.
  */
-class Record extends HiddenFactory
+class Record
 {
 
     const NEW_RECORD_ID_MARK = "_";
@@ -46,7 +46,7 @@ class Record extends HiddenFactory
 
     /**
      * @var array
-     * @todo save identifiers on change
+     * @todo update identifiers on save
      */
     private /** @noinspection PhpUnusedPrivateFieldInspection */ $_identifiers = array();
     /**
@@ -79,7 +79,7 @@ class Record extends HiddenFactory
      * @param Table $table
      * @param bool  $exists
      */
-    final protected function __construct(Table $table, $exists = false)
+    public function __construct(Table $table, $exists = false)
     {
         $this->_table = $table;
         $this->_exists = $exists;

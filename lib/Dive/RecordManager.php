@@ -21,7 +21,7 @@ use Dive\UnitOfWork\UnitOfWork;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 24.11.12
  */
-class RecordManager extends HiddenFactory
+class RecordManager
 {
 
     const FETCH_RECORD_COLLECTION = 'record-collection';
@@ -134,8 +134,8 @@ class RecordManager extends HiddenFactory
 
 
     /**
-     * @param string $tableName
-     * @param bool   $autoLoadClass
+     * @param  string $tableName
+     * @param  bool   $autoLoadClass
      * @return Table
      */
     private function createTable($tableName, $autoLoadClass = true)
@@ -149,18 +149,7 @@ class RecordManager extends HiddenFactory
 
         $indexes = $this->schema->getTableIndexes($tableName);
 
-        $tableDefinition = array(
-            'tableName' => $tableName,
-            'recordClass' => $recordClass,
-            'fields' => $fields,
-            'relations' => $relations,
-            'indexes' => $indexes
-        );
-
-        $table = Table::createRecordManagerTable($tableClass, $this, $tableDefinition);
-        $repository = new Repository($table);
-        $table->setRepository($repository);
-        return $table;
+        return new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
     }
 
 

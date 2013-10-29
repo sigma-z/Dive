@@ -18,7 +18,7 @@ use Dive\Table\TableException;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 24.11.12
  */
-class Table extends HiddenFactory
+class Table
 {
 
     /**
@@ -62,20 +62,22 @@ class Table extends HiddenFactory
     /**
      * @var Repository
      */
-    private $repository;
+    private $repository = null;
 
 
     /**
      * constructor
      *
-     * @param RecordManager $recordManager
-     * @param string        $tableName
-     * @param string        $recordClass
-     * @param array         $fields
-     * @param array         $relations
-     * @param array         $indexes
+     * @use   RecordManager::getTable() instead of constructing this class directly
+     * @see   RecordManager::getTable()
+     * @param RecordManager    $recordManager
+     * @param string           $tableName
+     * @param string           $recordClass
+     * @param array            $fields
+     * @param array            $relations
+     * @param array            $indexes
      */
-    final protected function __construct(
+    public function __construct(
         RecordManager $recordManager,
         $tableName,
         $recordClass,
@@ -87,9 +89,12 @@ class Table extends HiddenFactory
         $this->rm = $recordManager;
         $this->tableName = $tableName;
         $this->recordClass = $recordClass;
-        $this->setFields($fields);
         $this->relations = $relations;
         $this->indexes = $indexes;
+
+        $this->setFields($fields);
+
+        $this->repository = new Repository($this);
     }
 
 
@@ -150,9 +155,10 @@ class Table extends HiddenFactory
      */
     public function createRecord(array $data = array(), $exists = false)
     {
-        $record = Record::createTableRecord($this->recordClass, $this, $data, $exists);
+        /** @var Record $record */
+        $record = new $this->recordClass($this, $exists);
         $record->setData($data);
-        $this->getRepository()->add($record);
+        $this->repository->add($record);
         return $record;
     }
 
@@ -252,17 +258,6 @@ class Table extends HiddenFactory
             }
         }
         return $uniqueIndexes;
-    }
-
-
-    /**
-     * Sets table repository
-     *
-     * @param Repository $repository
-     */
-    public function setRepository(Repository $repository)
-    {
-        $this->repository = $repository;
     }
 
 

@@ -6,11 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 18.03.13
- */
-
 
 namespace Dive\Connection;
 
@@ -18,6 +13,10 @@ use Dive\Event\Event;
 use Dive\Table;
 
 
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 18.03.13
+ */
 class ConnectionRowChangeEvent extends Event
 {
     /**

@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 30.10.12
- */
 
 namespace Dive\Connection;
 
@@ -19,8 +15,15 @@ use Dive\Expression;
 use Dive\Log\SqlLogger;
 use Dive\Platform\PlatformInterface;
 use Dive\Table;
+use InvalidArgumentException;
 
 
+/**
+ * generic class for connections
+ *
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 30.10.12
+ */
 class Connection
 {
 
@@ -49,7 +52,7 @@ class Connection
     /**
      * @var \PDO
      */
-    private $dbh;
+    private $dbh = null;
     /**
      * @var string
      */
@@ -57,11 +60,11 @@ class Connection
     /**
      * @var string
      */
-    private $user;
+    private $user = '';
     /**
      * @var string
      */
-    private $password;
+    private $password = '';
     /**
      * @var Driver\DriverInterface
      */
@@ -73,11 +76,11 @@ class Connection
     /**
      * @var string
      */
-    protected $dsn;
+    protected $dsn = '';
     /**
      * @var \Dive\Event\DispatcherInterface|\Dive\Event\Dispatcher
      */
-    protected $eventDispatcher;
+    protected $eventDispatcher = null;
     /**
      * @var string
      */
@@ -85,11 +88,10 @@ class Connection
     /**
      * @var SqlLogger
      */
-    protected $sqlLogger;
+    protected $sqlLogger = null;
 
 
     /**
-     * constructor
      * @param   Driver\DriverInterface  $driver
      * @param   string                  $dsn
      * @param   string                  $user
@@ -249,6 +251,11 @@ class Connection
     }
 
 
+    /**
+     * @param string $eventName
+     * @param string $sql
+     * @param array  $params
+     */
     protected function dispatchEvent($eventName, $sql = '', array $params = array())
     {
         if ($this->eventDispatcher) {
@@ -258,6 +265,12 @@ class Connection
     }
 
 
+    /**
+     * @param string $eventName
+     * @param Table  $table
+     * @param array  $fields
+     * @param array  $identifier
+     */
     protected function dispatchRowEvent($eventName, Table $table, array $fields = array(), array $identifier = array())
     {
         if ($this->eventDispatcher) {
@@ -286,6 +299,9 @@ class Connection
     }
 
 
+    /**
+     * @return string
+     */
     public function getDsn()
     {
         return $this->dsn;
@@ -359,7 +375,12 @@ class Connection
     }
 
 
-    // TODO unittest? same like getStatement? should we really test "fetchAll"?
+    /**
+     * @param  string $sql
+     * @param  array  $params
+     * @param  int    $pdoFetchMode
+     * @return array
+     */
     public function query($sql, array $params = array(), $pdoFetchMode = \PDO::FETCH_ASSOC)
     {
         $stmt = $this->getStatement($sql, $params);
@@ -368,6 +389,12 @@ class Connection
     }
 
 
+    /**
+     * @param  string $sql
+     * @param  array  $params
+     * @param  int    $pdoFetchMode
+     * @return mixed
+     */
     public function queryOne($sql, array $params = array(), $pdoFetchMode = \PDO::FETCH_ASSOC)
     {
         $stmt = $this->getStatement($sql, $params);
@@ -376,7 +403,14 @@ class Connection
     }
 
 
-    // TODO unittest!
+    /**
+     * TODO unittest!
+     *
+     * @param  string $sql
+     * @param  array  $params
+     * @return int
+     * @throws ConnectionException
+     */
     public function exec($sql, array $params = array())
     {
         $this->connect();
@@ -453,25 +487,28 @@ class Connection
      * gets scheme from data source name or throw exception
      *
      * @param  string $dsn
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @return string
      */
     private function getSchemeFromDsnOrThrowException($dsn)
     {
         $pos = strpos($dsn, ':');
         if (false === $pos) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Data source name '$dsn' must define a database scheme: ie. 'mysql:host=localhost;'!"
             );
         }
         $scheme = strtolower(substr($dsn, 0, $pos));
         if (!preg_match('/^[a-z0-9_]+$/', $scheme)) {
-            throw new \InvalidArgumentException("Scheme seems to contain invalid characters! You gave me: $scheme");
+            throw new InvalidArgumentException("Scheme seems to contain invalid characters! You gave me: $scheme");
         }
         return $scheme;
     }
 
 
+    /**
+     * @return string
+     */
     public function getDatabaseName()
     {
         return $this->driver->getDatabaseName($this);
@@ -561,7 +598,7 @@ class Connection
      * @param array $fields
      * @param string|array $identifier
      * @return bool|int
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function update(Table $table, array $fields, $identifier)
     {
@@ -617,7 +654,7 @@ class Connection
      * @param  Table         $table
      * @param  string|array  $identifier
      * @return int           affected rows
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function delete(Table $table, $identifier)
     {
@@ -645,6 +682,11 @@ class Connection
     }
 
 
+    /**
+     * @param  Table $table
+     * @param  array $identifier
+     * @throws InvalidArgumentException
+     */
     private static function throwExceptionIfIdentifierDoesNotMatchTableIdentifier(Table $table, array $identifier)
     {
         $identifierFields = $table->getIdentifier();
@@ -652,7 +694,7 @@ class Connection
             $identifierFields = array($identifierFields);
         }
         if (count($identifierFields) != count($identifier)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Identifier '" . implode(',', $identifier) . "'"
                     . ' does not match table identifier (' . implode(', ', $identifierFields) . ')'
             );
@@ -660,6 +702,11 @@ class Connection
     }
 
 
+    /**
+     * @param  string $sql
+     * @param  array  $params
+     * @throws ConnectionException
+     */
     public function throwErrorAsException($sql, array $params)
     {
         $error = $this->dbh->errorInfo();

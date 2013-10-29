@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 05.04.13
- */
 
 namespace Dive\Test\Relation;
 
@@ -19,6 +15,11 @@ use Dive\TestSuite\TestCase;
 use Dive\Util\FieldValuesGenerator;
 use Dive\Record\Generator\RecordGenerator;
 
+
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 05.04.13
+ */
 class RelationLoadingTest extends TestCase
 {
 

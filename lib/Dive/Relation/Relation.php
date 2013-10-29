@@ -361,7 +361,7 @@ class Relation
      * @param  array  $identifiers
      * @return \Dive\Query\Query
      */
-    private function getReferenceQuery(Record $record, $relationName, array $identifiers)
+    public function getReferenceQuery(Record $record, $relationName, array $identifiers)
     {
         $rm = $record->getTable()->getRecordManager();
         $relatedTable = $this->getJoinTable($rm, $relationName);
@@ -694,6 +694,23 @@ class Relation
                 "RecordCollection for relation '$relationName' must be a collection for table '$joinTableName'!"
             );
         }
+    }
+
+
+    /**
+     * @param  Record $record
+     * @param  string $relationName
+     * @return null|Record|Record[]|RecordCollection
+     */
+    public function getOriginalReferenceFor(Record $record, $relationName)
+    {
+        $referenceIds = $this->getOriginalReferencedIds($record, $relationName);
+        if (!$referenceIds) {
+            return array();
+        }
+
+        $query = $this->getReferenceQuery($record, $relationName, $referenceIds);
+        return $query->execute();
     }
 
 }

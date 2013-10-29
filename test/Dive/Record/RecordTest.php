@@ -13,6 +13,7 @@ use Dive\Log\SqlLogger;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
+use Dive\Table\TableException;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -225,6 +226,16 @@ class RecordTest extends TestCase
             $record->set($field, $value);
         }
         $this->assertEquals($expected, $record->getModifiedFields());
+    }
+
+
+    /**
+     * @expectedException \Dive\Table\TableException
+     */
+    public function testIfFieldModifiedThrowsExceptionOnNonExistingField()
+    {
+        $record = $this->table->createRecord();
+        $record->isFieldModified('not_existing_field');
     }
 
 

@@ -14,7 +14,6 @@ use Dive\Connection\Connection;
 use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Platform\PlatformInterface;
-use Dive\Table\Repository;
 use Dive\UnitOfWork\UnitOfWork;
 
 /**

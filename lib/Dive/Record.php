@@ -218,9 +218,9 @@ class Record
     {
         $identifier = $this->getIdentifier();
         if (is_array($identifier)) {
-            $identifier = implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
+            return implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
         }
-        return $identifier;
+        return (string)$identifier;
     }
 
 
@@ -421,6 +421,7 @@ class Record
      */
     public function isFieldModified($fieldName)
     {
+        $this->_table->throwExceptionIfFieldNotExists($fieldName);
         return array_key_exists($fieldName, $this->_modifiedFields);
     }
 

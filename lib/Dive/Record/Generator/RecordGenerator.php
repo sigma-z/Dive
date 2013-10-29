@@ -194,9 +194,7 @@ class RecordGenerator
 
         // keep record identifier in the record map
         $id = $record->getIdentifierAsString();
-        if (is_string($key)) {
-            $this->recordAliasIdMap[$tableName][$key] = $id;
-        }
+        $this->recordAliasIdMap[$tableName][$key] = $id;
 
         // save owning relations
         foreach ($owningRelations as $relationData) {

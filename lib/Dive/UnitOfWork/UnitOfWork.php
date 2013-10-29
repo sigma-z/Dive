@@ -9,6 +9,8 @@
 
 namespace Dive\UnitOfWork;
 
+use Dive\Exception;
+use Dive\Platform\PlatformInterface;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
@@ -19,6 +21,11 @@ use Dive\Table;
  */
 class UnitOfWork
 {
+
+    const EVENT_PRE_SCHEDULE_DELETE = 'Dive.UnitOfWork.preScheduleDelete';
+    const EVENT_POST_SCHEDULE_DELETE = 'Dive.UnitOfWork.postScheduleDelete';
+    const EVENT_PRE_SCHEDULE_SAVE   = 'Dive.UnitOfWork.preScheduleSave';
+    const EVENT_POST_SCHEDULE_SAVE  = 'Dive.UnitOfWork.postScheduleSave';
 
     const SAVE = 'save';
     const DELETE = 'delete';
@@ -33,6 +40,9 @@ class UnitOfWork
     private $recordIdentityMap = array();
 
 
+    /**
+     * @param RecordManager $rm
+     */
     public function __construct(RecordManager $rm)
     {
         $this->rm = $rm;
@@ -148,6 +158,9 @@ class UnitOfWork
     }
 
 
+    /**
+     * @param Record $record
+     */
     private function handleUpdateConstraints(Record $record)
     {
         if (!$record->exists()) {
@@ -177,6 +190,10 @@ class UnitOfWork
     }
 
 
+    /**
+     * @param Record $record
+     * @throws Exception
+     */
     private function handleDeleteConstraints(Record $record)
     {
         if (!$record->exists()) {
@@ -185,19 +202,28 @@ class UnitOfWork
 
         $owningRelations = $record->getTable()->getOwningRelations();
         foreach ($owningRelations as $relationName => $owningRelation) {
-            // TODO $owningRelation->getOriginalReferenceFor()
+            $constraintName = $owningRelation->getOnDelete();
 
-            $relatedRecords = $owningRelation->getReferenceFor($record, $relationName);
-            if ($relatedRecords) {
-                if ($owningRelation->isOneToOne()) {
-                    $relatedRecords = array($relatedRecords);
-                }
-                foreach ($relatedRecords as $relatedRecord) {
-                    $this->scheduleDelete($relatedRecord);
+            $owningFieldName = $owningRelation->getOwningField();
+            $originalReferences = $owningRelation->getOriginalReferenceFor($record, $relationName);
+            foreach ($originalReferences as $originalReferencedRecord) {
+                if (!$originalReferencedRecord->isFieldModified($owningFieldName)) {
+                    switch ($constraintName) {
+                        case PlatformInterface::CASCADE:
+                            $this->scheduleDelete($originalReferencedRecord);
+                            break;
+
+                        case PlatformInterface::SET_NULL:
+                            $originalReferencedRecord->set($owningFieldName, null);
+                            $this->scheduleSave($originalReferencedRecord);
+                            break;
+
+                        case PlatformInterface::RESTRICT:
+                        case PlatformInterface::NO_ACTION:
+                            throw new Exception("Delete record is restricted by onDelete!");
+                    }
                 }
             }
-//            $reference = $owningRelation->getOriginalReferencedForOwningSide($record);
-//            if ($reference) {}
         }
     }
 
@@ -231,6 +257,9 @@ class UnitOfWork
     }
 
 
+    /**
+     * @param Record $record
+     */
     private function doInsert(Record $record)
     {
         $table = $record->getTable();
@@ -254,6 +283,9 @@ class UnitOfWork
     }
 
 
+    /**
+     * @param Record $record
+     */
     private function doDelete(Record $record)
     {
         $table = $record->getTable();
@@ -268,6 +300,9 @@ class UnitOfWork
     }
 
 
+    /**
+     * @param Record $record
+     */
     private function doUpdate(Record $record)
     {
         $table = $record->getTable();

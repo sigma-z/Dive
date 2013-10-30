@@ -352,6 +352,11 @@ class ConnectionTest extends TestCase
         $owningRelations = $table->getReferencedRelationsIndexedByOwningField();
 
         $fields = $table->getFields();
+        foreach ($fields as $fieldName => $field) {
+            if ($table->isFieldIdentifier($fieldName)) {
+                unset($fields[$fieldName]); // do not overwrite fields with autoincrement / identifier
+            }
+        }
         foreach ($insertTypes as $type) {
             $data = array();
             foreach ($owningRelations as $fieldName => $relation) {

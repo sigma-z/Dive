@@ -13,6 +13,7 @@ use Dive\Exception;
 use Dive\Platform\PlatformInterface;
 use Dive\Record;
 use Dive\RecordManager;
+use Dive\Relation\Relation;
 use Dive\Table;
 
 /**
@@ -22,13 +23,13 @@ use Dive\Table;
 class UnitOfWork
 {
 
-    const EVENT_PRE_SCHEDULE_DELETE = 'Dive.UnitOfWork.preScheduleDelete';
-    const EVENT_POST_SCHEDULE_DELETE = 'Dive.UnitOfWork.postScheduleDelete';
-    const EVENT_PRE_SCHEDULE_SAVE   = 'Dive.UnitOfWork.preScheduleSave';
-    const EVENT_POST_SCHEDULE_SAVE  = 'Dive.UnitOfWork.postScheduleSave';
+//    const EVENT_PRE_SCHEDULE_DELETE = 'Dive.UnitOfWork.preScheduleDelete';
+//    const EVENT_POST_SCHEDULE_DELETE = 'Dive.UnitOfWork.postScheduleDelete';
+//    const EVENT_PRE_SCHEDULE_SAVE   = 'Dive.UnitOfWork.preScheduleSave';
+//    const EVENT_POST_SCHEDULE_SAVE  = 'Dive.UnitOfWork.postScheduleSave';
 
-    const SAVE = 'save';
-    const DELETE = 'delete';
+    const OPERATION_SAVE = 'save';
+    const OPERATION_DELETE = 'delete';
 
     /** @var RecordManager */
     private $rm = null;
@@ -97,7 +98,7 @@ class UnitOfWork
      */
     public function scheduleSave(Record $record)
     {
-        $operation = self::SAVE;
+        $operation = self::OPERATION_SAVE;
         $this->scheduleRecordForCommit($record, $operation);
         $this->handleUpdateConstraints($record);
     }
@@ -112,7 +113,7 @@ class UnitOfWork
             return;
         }
 
-        $operation = self::DELETE;
+        $operation = self::OPERATION_DELETE;
         $this->scheduleRecordForCommit($record, $operation);
         $this->handleDeleteConstraints($record);
     }
@@ -129,23 +130,22 @@ class UnitOfWork
             return;
         }
 
-        $oid = $record->getOid();
-
-        if ($this->isRecordScheduledForCommit($record)) {
+        if ($operation == self::OPERATION_SAVE && $this->isRecordScheduledForDelete($record)) {
             throw new UnitOfWorkException(
                 "Scheduling record for " . strtoupper($operation) . " failed!\n"
-                . "Reason: Record already has been scheduled for " . strtoupper($this->scheduledForCommit[$oid])
+                . "Reason: Record already has been scheduled for " . strtoupper(self::OPERATION_DELETE)
             );
         }
 
+        $oid = $record->getOid();
         $this->scheduledForCommit[$oid] = $operation;
         $this->recordIdentityMap[$oid] = $record;
     }
 
 
     /**
-     * @param Record      $record
-     * @param string|null $operation name of specific operation or NULL for any operation
+     * @param  Record      $record
+     * @param  string|null $operation name of specific operation or NULL for any operation
      * @return bool
      */
     public function isRecordScheduledForCommit(Record $record, $operation = null)
@@ -155,6 +155,26 @@ class UnitOfWork
             return false;
         }
         return $operation === null || $this->scheduledForCommit[$oid] == $operation;
+    }
+
+
+    /**
+     * @param  Record $record
+     * @return bool
+     */
+    private function isRecordScheduledForDelete(Record $record)
+    {
+        return $this->isRecordScheduledForCommit($record, self::OPERATION_DELETE);
+    }
+
+
+    /**
+     * @param  Record $record
+     * @return bool
+     */
+    private function isRecordScheduledForSave(Record $record)
+    {
+        return $this->isRecordScheduledForCommit($record, self::OPERATION_SAVE);
     }
 
 
@@ -183,7 +203,7 @@ class UnitOfWork
 //                ->where($relation->getOwningField() . ' = ?', $record->getIdentifierAsString());
 //            $records = $query->execute();
 //            foreach ($records as $record) {
-//                echo $operation == self::DELETE ? $relation->getOnDelete() : $relation->getOnUpdate() . "\n";
+//                echo $operation == self::OPERATION_DELETE ? $relation->getOnDelete() : $relation->getOnUpdate() . "\n";
 //            }
 
 //        }
@@ -202,28 +222,44 @@ class UnitOfWork
 
         $owningRelations = $record->getTable()->getOwningRelations();
         foreach ($owningRelations as $relationName => $owningRelation) {
-            $constraintName = $owningRelation->getOnDelete();
-
-            $owningFieldName = $owningRelation->getOwningField();
-            $originalReferences = $owningRelation->getOriginalReferenceFor($record, $relationName);
-            foreach ($originalReferences as $originalReferencedRecord) {
-                if (!$originalReferencedRecord->isFieldModified($owningFieldName)) {
-                    switch ($constraintName) {
-                        case PlatformInterface::CASCADE:
-                            $this->scheduleDelete($originalReferencedRecord);
-                            break;
-
-                        case PlatformInterface::SET_NULL:
-                            $originalReferencedRecord->set($owningFieldName, null);
-                            $this->scheduleSave($originalReferencedRecord);
-                            break;
-
-                        case PlatformInterface::RESTRICT:
-                        case PlatformInterface::NO_ACTION:
-                            throw new Exception("Delete record is restricted by onDelete!");
-                    }
-                }
+            $owningRecords = $owningRelation->getOriginalReferenceFor($record, $relationName);
+            foreach ($owningRecords as $owningRecord) {
+                $this->applyDeleteConstraint($owningRelation, $record, $owningRecord);
             }
+        }
+    }
+
+
+    /**
+     * @param  Relation $owningRelation
+     * @param  Record   $record
+     * @param  Record   $owningRecord
+     * @throws UnitOfWorkException
+     */
+    private function applyDeleteConstraint(Relation $owningRelation, Record $record, Record $owningRecord)
+    {
+        $owningFieldName = $owningRelation->getOwningField();
+        if ($owningRecord->isFieldModified($owningFieldName)) {
+            return;
+        }
+
+        $constraintName = $owningRelation->getOnDelete();
+        switch ($constraintName) {
+            case PlatformInterface::CASCADE:
+                $this->scheduleDelete($owningRecord);
+                break;
+
+            case PlatformInterface::SET_NULL:
+                if (!$this->isRecordScheduledForDelete($owningRecord)) {
+                    $owningRecord->set($owningFieldName, null);
+                    $this->scheduleSave($owningRecord);
+                }
+                break;
+
+            case PlatformInterface::RESTRICT:
+            case PlatformInterface::NO_ACTION:
+                // TODO exception not specific enough?
+                throw new UnitOfWorkException("Delete record is restricted by onDelete!");
         }
     }
 
@@ -231,7 +267,7 @@ class UnitOfWork
     public function commitChanges()
     {
         foreach ($this->recordIdentityMap as $oid => $record) {
-            $isSave = $this->scheduledForCommit[$oid] === self::SAVE;
+            $isSave = $this->scheduledForCommit[$oid] === self::OPERATION_SAVE;
             $recordExists = $record->exists();
             if ($isSave) {
                 if ($recordExists) {

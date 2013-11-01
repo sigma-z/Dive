@@ -269,7 +269,7 @@ class RecordManager
      */
     public function isRecordScheduledForDelete(Record $record)
     {
-        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::DELETE);
+        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::OPERATION_DELETE);
     }
 
 
@@ -279,7 +279,7 @@ class RecordManager
      */
     public function isRecordScheduledForSave(Record $record)
     {
-        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::SAVE);
+        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::OPERATION_SAVE);
     }
 
 

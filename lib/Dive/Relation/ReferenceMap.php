@@ -6,18 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 31.05.13
- */
-
 
 namespace Dive\Relation;
-
 
 use Dive\Collection\RecordCollection;
 use Dive\Record;
 
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 31.05.13
+ */
 class ReferenceMap
 {
 
@@ -152,6 +150,10 @@ class ReferenceMap
     }
 
 
+    /**
+     * @param string $referencedId
+     * @param string $owningId
+     */
     private function removeOwningReference($referencedId, $owningId)
     {
         if (!$this->isReferenced($referencedId)) {
@@ -283,25 +285,22 @@ class ReferenceMap
 
         $oid = $record->getOid();
         $refIds = $this->relation->getRecordReferencedIdentifiers($record, $relationName);
-        if (is_array($refIds)) {
-            $rm = $record->getTable()->getRecordManager();
-            $refTable = $this->relation->getJoinTable($rm, $relationName);
-            $collection = new RecordCollection($refTable, $record, $this->relation);
-            $recordsInRepository = true;
-            foreach ($refIds as $refId) {
-                if (!$refTable->isInRepository($refId)) {
-                    $recordsInRepository = false;
-                    break;
-                }
-                $relatedRecord = $refTable->getFromRepository($refId);
-                $collection->add($relatedRecord, $refId);
-            }
-            if ($recordsInRepository) {
-                $this->setRelatedCollection($oid, $collection);
-                return $collection;
-            }
+        if (!is_array($refIds)) {
+            return false;
         }
-        return false;
+
+        $rm = $record->getTable()->getRecordManager();
+        $refTable = $this->relation->getJoinTable($rm, $relationName);
+        $collection = new RecordCollection($refTable, $record, $this->relation);
+        foreach ($refIds as $refId) {
+            if (!$refTable->isInRepository($refId)) {
+                return false;
+            }
+            $relatedRecord = $refTable->getFromRepository($refId);
+            $collection->add($relatedRecord, $refId);
+        }
+        $this->setRelatedCollection($oid, $collection);
+        return $collection;
     }
 
 
@@ -356,6 +355,7 @@ class ReferenceMap
 
     /**
      * Gets record for owning side
+     * @TODO check that given record is the correct model and within this referenceMap
      *
      * @param  Record $record
      * @return bool|Record|null
@@ -452,6 +452,10 @@ class ReferenceMap
     }
 
 
+    /**
+     * @param Record $referencedRecord
+     * @param string $oldReferencedId
+     */
     public function updateRecordIdentifier(Record $referencedRecord, $oldReferencedId)
     {
         $oid = $referencedRecord->getOid();

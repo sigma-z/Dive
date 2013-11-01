@@ -115,16 +115,29 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * Gets schema
-     *
-     * @return \Dive\Schema\Schema
+     * @return array
      */
-    public static function getSchema()
+    protected static function getSchemaDefinition()
     {
         if (self::$schemaDefinition === null) {
             self::$schemaDefinition = include FIXTURE_DIR . '/schema.php';
         }
-        return new Schema(self::$schemaDefinition);
+        return self::$schemaDefinition;
+    }
+
+
+    /**
+     * Gets schema
+     *
+     * @param  array $definition
+     * @return \Dive\Schema\Schema
+     */
+    public static function getSchema(array $definition = null)
+    {
+        if ($definition === null) {
+            $definition = self::getSchemaDefinition();
+        }
+        return new Schema($definition);
     }
 
 
@@ -214,12 +227,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Gets default record manager
      *
+     * @param  array $schemaDefinition
      * @return \Dive\RecordManager
      */
-    public static function createDefaultRecordManager()
+    public static function createDefaultRecordManager(array $schemaDefinition = null)
     {
         $databases = self::getDatabases();
-        return self::createRecordManager($databases[0]);
+        return self::createRecordManager($databases[0], $schemaDefinition);
     }
 
 
@@ -250,7 +264,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @return \Dive\Connection\Connection
      * @throws \PHPUnit_Framework_SkippedTestError
      */
-    protected function createDatabaseConnectionOrMarkTestSkipped($database)
+    protected function createDatabaseConnectionOrMarkTestSkipped(array $database)
     {
         $conn = self::createDatabaseConnection($database);
         if (!$conn) {
@@ -264,12 +278,16 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * Creates record manager by given database array
      *
      * @param  array $database
+     * @param  array $schemaDefinition
      * @return \Dive\RecordManager
      */
-    protected static function createRecordManager($database)
+    protected static function createRecordManager(array $database, array $schemaDefinition = null)
     {
         $conn = self::createDatabaseConnection($database);
-        $schema = self::getSchema();
+        if ($schemaDefinition === null) {
+            $schemaDefinition = self::getSchemaDefinition();
+        }
+        $schema = self::getSchema($schemaDefinition);
         return new RecordManager($conn, $schema);
     }
 

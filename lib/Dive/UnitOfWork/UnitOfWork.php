@@ -98,8 +98,7 @@ class UnitOfWork
      */
     public function scheduleSave(Record $record)
     {
-        $operation = self::OPERATION_SAVE;
-        $this->scheduleRecordForCommit($record, $operation);
+        $this->scheduleRecordForCommit($record, self::OPERATION_SAVE);
         $this->handleUpdateConstraints($record);
     }
 
@@ -224,7 +223,7 @@ class UnitOfWork
         foreach ($owningRelations as $relationName => $owningRelation) {
             $owningRecords = $owningRelation->getOriginalReferenceFor($record, $relationName);
             foreach ($owningRecords as $owningRecord) {
-                $this->applyDeleteConstraint($owningRelation, $record, $owningRecord);
+                $this->applyDeleteConstraint($owningRelation, $owningRecord);
             }
         }
     }
@@ -232,11 +231,10 @@ class UnitOfWork
 
     /**
      * @param  Relation $owningRelation
-     * @param  Record   $record
      * @param  Record   $owningRecord
      * @throws UnitOfWorkException
      */
-    private function applyDeleteConstraint(Relation $owningRelation, Record $record, Record $owningRecord)
+    private function applyDeleteConstraint(Relation $owningRelation, Record $owningRecord)
     {
         $owningFieldName = $owningRelation->getOwningField();
         if ($owningRecord->isFieldModified($owningFieldName)) {
@@ -266,10 +264,9 @@ class UnitOfWork
 
     public function commitChanges()
     {
-        foreach ($this->recordIdentityMap as $oid => $record) {
-            $isSave = $this->scheduledForCommit[$oid] === self::OPERATION_SAVE;
+        foreach ($this->recordIdentityMap as $record) {
             $recordExists = $record->exists();
-            if ($isSave) {
+            if ($this->isRecordScheduledForSave($record)) {
                 if ($recordExists) {
                     $this->doUpdate($record);
                 }

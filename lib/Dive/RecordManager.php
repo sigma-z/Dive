@@ -265,21 +265,12 @@ class RecordManager
 
     /**
      * @param Record $record
+     * @param string $operation
      * @return bool
      */
-    public function isRecordScheduledForDelete(Record $record)
+    public function isRecordScheduledForCommit(Record $record, $operation)
     {
-        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::OPERATION_DELETE);
-    }
-
-
-    /**
-     * @param Record $record
-     * @return bool
-     */
-    public function isRecordScheduledForSave(Record $record)
-    {
-        return $this->unitOfWork->isRecordScheduledForCommit($record, UnitOfWork::OPERATION_SAVE);
+        return $this->unitOfWork->isRecordScheduledForCommit($record, $operation);
     }
 
 

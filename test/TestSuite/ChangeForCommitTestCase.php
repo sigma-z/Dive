@@ -12,6 +12,8 @@ namespace Dive\TestSuite;
 use Dive\Platform\PlatformInterface;
 use Dive\Record;
 use Dive\RecordManager;
+use Dive\TestSuite\Constraint\RecordScheduleConstraint;
+use Dive\UnitOfWork\UnitOfWork;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -22,6 +24,8 @@ class ChangeForCommitTestCase extends TestCase
 
     const CONSTRAINT_TYPE_ON_DELETE = 'onDelete';
     const CONSTRAINT_TYPE_ON_UPDATE = 'onUpdate';
+    const RELATION_SIDE_REFERENCE = 'reference';
+    const RELATION_SIDE_OWNING = 'owning';
 
 
     /**
@@ -31,7 +35,7 @@ class ChangeForCommitTestCase extends TestCase
 
 
     /**
-     * @return array
+     * @return string[]
      */
     public function provideConstraints()
     {
@@ -45,13 +49,13 @@ class ChangeForCommitTestCase extends TestCase
 
 
     /**
-     * @return array
+     * @return string[]
      */
-    public function provideRestrictConstraints()
+    public function provideRelationSides()
     {
         return array(
-            array(PlatformInterface::NO_ACTION),
-            array(PlatformInterface::RESTRICT)
+            array('side' => self::RELATION_SIDE_REFERENCE),
+            array('side' => self::RELATION_SIDE_OWNING),
         );
     }
 
@@ -62,12 +66,7 @@ class ChangeForCommitTestCase extends TestCase
      */
     protected function assertRecordIsScheduledForDelete(Record $record, $message = '')
     {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has to be scheduled for delete';
-        }
-        $this->assertTrue($rm->isRecordScheduledForDelete($record), $message);
+        self::assertThat($record, self::isScheduledFor(UnitOfWork::OPERATION_DELETE), $message);
     }
 
 
@@ -77,12 +76,7 @@ class ChangeForCommitTestCase extends TestCase
      */
     protected function assertRecordIsScheduledForSave(Record $record, $message = '')
     {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has to be scheduled for save';
-        }
-        $this->assertTrue($rm->isRecordScheduledForSave($record), $message);
+        self::assertThat($record, self::isScheduledFor(UnitOfWork::OPERATION_SAVE), $message);
     }
 
 
@@ -92,12 +86,7 @@ class ChangeForCommitTestCase extends TestCase
      */
     protected function assertRecordIsNotScheduledForDelete(Record $record, $message = '')
     {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has not to be scheduled for delete';
-        }
-        $this->assertFalse($rm->isRecordScheduledForDelete($record), $message);
+        self::assertThat($record, self::logicalNot(self::isScheduledFor(UnitOfWork::OPERATION_DELETE)), $message);
     }
 
 
@@ -107,12 +96,17 @@ class ChangeForCommitTestCase extends TestCase
      */
     protected function assertRecordIsNotScheduledForSave(Record $record, $message = '')
     {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has not to be scheduled for save';
-        }
-        $this->assertFalse($rm->isRecordScheduledForSave($record), $message);
+        self::assertThat($record, self::logicalNot(self::isScheduledFor(UnitOfWork::OPERATION_SAVE)), $message);
+    }
+
+
+    /**
+     * @param $operation
+     * @return RecordScheduleConstraint
+     */
+    private static function isScheduledFor($operation)
+    {
+        return new RecordScheduleConstraint($operation);
     }
 
 

@@ -10,8 +10,7 @@
 namespace Dive\Test\Record;
 
 use Dive\Platform\PlatformInterface;
-use Dive\RecordManager;
-use Dive\TestSuite\TestCase;
+use Dive\TestSuite\ChangeForCommitTestCase;
 use Dive\Record;
 
 /**
@@ -19,10 +18,13 @@ use Dive\Record;
  * @created 30.08.13
  * TODO refactor this class!
  */
-class RecordOneToOneDeleteTest extends TestCase
+class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
 {
 
-    private $tableRows = array(
+    /**
+     * @var array
+     */
+    protected $tableRows = array(
         'JohnD' => array(
             'user' => array('JohnD'),
             'author' => array(
@@ -50,7 +52,7 @@ class RecordOneToOneDeleteTest extends TestCase
 
     public function testDeleteOnNonSavedRecordsOwningSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint();
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE);
 
         $user = $rm->getRecord('user', array());
         $author = $rm->getTable('author')->createRecord();
@@ -65,7 +67,7 @@ class RecordOneToOneDeleteTest extends TestCase
 
     public function testDeleteOnNonSavedRecordsReferencedSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint();
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE);
 
         $user = $rm->getTable('user')->createRecord();
         $author = $rm->getTable('author')->createRecord();
@@ -81,9 +83,9 @@ class RecordOneToOneDeleteTest extends TestCase
     /**
      * deleting the author, user stays untouched
      */
-    public function testOneToOneDeleteCascadeConstraintOwningSide()
+    public function testDeleteCascadeConstraintOwningSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(PlatformInterface::CASCADE);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, PlatformInterface::CASCADE);
 
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
@@ -99,9 +101,9 @@ class RecordOneToOneDeleteTest extends TestCase
     /**
      * both records have to be deleted
      */
-    public function testOneToOneDeleteCascadeConstraintReferencedSide()
+    public function testDeleteCascadeConstraintReferencedSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(PlatformInterface::CASCADE);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, PlatformInterface::CASCADE);
 
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
@@ -123,9 +125,9 @@ class RecordOneToOneDeleteTest extends TestCase
     /**
      *
      */
-    public function testOneToOneDeleteSetNullConstraintOwningSide()
+    public function testDeleteSetNullConstraintOwningSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(PlatformInterface::SET_NULL);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, PlatformInterface::SET_NULL);
 
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
@@ -145,9 +147,9 @@ class RecordOneToOneDeleteTest extends TestCase
     /**
      *
      */
-    public function testOneToOneDeleteSetNullConstraintReferencedSide()
+    public function testDeleteSetNullConstraintReferencedSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(PlatformInterface::SET_NULL);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, PlatformInterface::SET_NULL);
 
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
@@ -168,9 +170,9 @@ class RecordOneToOneDeleteTest extends TestCase
      * @dataProvider provideConstraints
      * @expectedException \Dive\UnitOfWork\UnitOfWorkException
      */
-    public function testOneToOneDeleteThrowsExceptionForScheduleSave($constraint)
+    public function testDeleteThrowsExceptionForScheduleSave($constraint)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint($constraint);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, $constraint);
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
         $author = $user->Author;
@@ -185,18 +187,18 @@ class RecordOneToOneDeleteTest extends TestCase
      * @dataProvider provideRestrictConstraints
      * @expectedException \Dive\UnitOfWork\UnitOfWorkException
      */
-    public function testOneToOneDeleteThrowsRestrictException($constraint)
+    public function testDeleteThrowsRestrictException($constraint)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint($constraint);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, $constraint);
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
         $rm->delete($user);
     }
 
 
-    public function testOneToOneRecordWithModifiedReferenceOnReferenceSide()
+    public function testRecordWithModifiedReferenceOnReferenceSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(PlatformInterface::CASCADE);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, PlatformInterface::CASCADE);
 
         $userJohn = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
@@ -219,9 +221,9 @@ class RecordOneToOneDeleteTest extends TestCase
     }
 
 
-    public function testOneToOneRecordWithModifiedReferenceOnOwningSide()
+    public function testRecordWithModifiedReferenceOnOwningSide()
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(PlatformInterface::CASCADE);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, PlatformInterface::CASCADE);
 
         $userJohn = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
@@ -247,9 +249,9 @@ class RecordOneToOneDeleteTest extends TestCase
     /**
      * @dataProvider provideRestrictConstraints
      */
-    public function testOneToOneRecordWithoutOwningSide($constraint)
+    public function testRecordWithoutOwningSide($constraint)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint($constraint);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, $constraint);
 
         $userData = array('username' => 'JohnD', 'password' => 'secret');
         $user = $rm->getTable('user')->createRecord($userData);
@@ -267,9 +269,9 @@ class RecordOneToOneDeleteTest extends TestCase
     /**
      * @dataProvider provideRestrictConstraints
      */
-    public function testOneToOneRecordRestrictConstraintOwningSide($constraint)
+    public function testRecordRestrictConstraintOwningSide($constraint)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint($constraint);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, $constraint);
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         /** @noinspection PhpUndefinedFieldInspection */
         $author = $user->Author;
@@ -284,148 +286,11 @@ class RecordOneToOneDeleteTest extends TestCase
      * @expectedException \Dive\UnitOfWork\UnitOfWorkException
      * @dataProvider provideRestrictConstraints
      */
-    public function testOneToOneRecordRestrictConstraintReferencedSide($constraint)
+    public function testRecordRestrictConstraintReferencedSide($constraint)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint($constraint);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, $constraint);
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         $rm->delete($user);
-    }
-
-
-    /**
-     * @return array
-     */
-    public function provideConstraints()
-    {
-        return array(
-            array(PlatformInterface::CASCADE),
-            array(PlatformInterface::SET_NULL),
-            array(PlatformInterface::NO_ACTION),
-            array(PlatformInterface::RESTRICT)
-        );
-    }
-
-
-    /**
-     * @return array
-     */
-    public function provideRestrictConstraints()
-    {
-        return array(
-            array(PlatformInterface::NO_ACTION),
-            array(PlatformInterface::RESTRICT)
-        );
-    }
-
-
-    /**
-     * @param \Dive\RecordManager $rm
-     * @param  string             $username
-     * @return Record
-     */
-    private function createUserWithAuthor(RecordManager $rm,  $username)
-    {
-        $recordGenerator = $this->createRecordGenerator($rm);
-        $recordGenerator
-            ->setTablesMapField(array('user' => 'username'))
-            ->setTablesRows($this->tableRows[$username])
-            ->generate();
-
-        $userId = $recordGenerator->getRecordIdFromMap('user', $username);
-        $userTable = $rm->getTable('user');
-        $user = $userTable->findByPk($userId);
-
-        $this->assertInstanceOf('\Dive\Record', $user);
-        /** @noinspection PhpUndefinedFieldInspection */
-        $author = $user->Author;
-        $this->assertInstanceOf('\Dive\Record', $author);
-
-        $this->assertRecordIsNotScheduledForDelete($author);
-        $this->assertRecordIsNotScheduledForDelete($user);
-        $this->assertRecordIsNotScheduledForSave($author);
-        $this->assertRecordIsNotScheduledForSave($user);
-
-        return $user;
-    }
-
-
-    /**
-     * @param  string $constraint
-     * @return RecordManager
-     */
-    private function getRecordManagerWithOverWrittenConstraint($constraint = null)
-    {
-        $schemaDefinition = self::getSchemaDefinition();
-        if ($constraint) {
-            $schemaDefinition['relations']['author.user_id']['onDelete'] = $constraint;
-        }
-        $recordManager = self::createDefaultRecordManager($schemaDefinition);
-        if ($constraint) {
-            $userTable = $recordManager->getTable('user');
-            $relation = $userTable->getRelation('Author');
-            $this->assertEquals($constraint, $relation->getOnDelete());
-        }
-        return $recordManager;
-    }
-
-
-    /**
-     * @param Record $record
-     * @param string $message
-     */
-    private function assertRecordIsScheduledForDelete(Record $record, $message = '')
-    {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has to be scheduled for delete';
-        }
-        $this->assertTrue($rm->isRecordScheduledForDelete($record), $message);
-    }
-
-
-    /**
-     * @param Record $record
-     * @param string $message
-     */
-    private function assertRecordIsScheduledForSave(Record $record, $message = '')
-    {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has to be scheduled for save';
-        }
-        $this->assertTrue($rm->isRecordScheduledForSave($record), $message);
-    }
-
-
-    /**
-     * @param Record $record
-     * @param string $message
-     */
-    private function assertRecordIsNotScheduledForDelete(Record $record, $message = '')
-    {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has not to be scheduled for delete';
-        }
-        $this->assertFalse($rm->isRecordScheduledForDelete($record), $message);
-    }
-
-
-    /**
-     * @param Record $record
-     * @param string $message
-     */
-    private function assertRecordIsNotScheduledForSave(Record $record, $message = '')
-    {
-        $rm = $record->getRecordManager();
-        $tableName = $record->getTable()->getTableName();
-        if (!$message) {
-            $message = 'Record ' . $tableName . ' has not to be scheduled for save';
-        }
-        $this->assertFalse($rm->isRecordScheduledForSave($record), $message);
     }
 
 }

@@ -52,7 +52,8 @@ return array(
                         'user_id'
                     )
                 )
-            )
+            ),
+            'recordClass' => '\Dive\TestSuite\Model\Author'
         ),
         'user' => array(
             'fields' => array(
@@ -79,7 +80,8 @@ return array(
                         'username'
                     )
                 )
-            )
+            ),
+            'recordClass' => '\Dive\TestSuite\Model\User'
         ),
         'article' => array(
             'fields' => array(
@@ -117,7 +119,8 @@ return array(
                 'changed_on' => array(
                     'type'      => 'datetime'
                 )
-            )
+            ),
+            'recordClass' => '\Dive\TestSuite\Model\Article'
         ),
         'comment' => array(
             'fields' => array(
@@ -151,7 +154,8 @@ return array(
                 'datetime' => array(
                     'type'      => 'datetime'
                 )
-            )
+            ),
+            'recordClass' => '\Dive\TestSuite\Model\Comment'
         ),
         'tag' => array(
             'fields' => array(
@@ -174,7 +178,8 @@ return array(
                         'name'
                     )
                 )
-            )
+            ),
+            'recordClass' => '\Dive\TestSuite\Model\Tag'
         ),
         'article2tag' => array(
             'fields' => array(
@@ -192,7 +197,8 @@ return array(
                     'unsigned'  => true,
                     'foreign'   => 'tag.id'
                 )
-            )
+            ),
+            'recordClass' => '\Dive\TestSuite\Model\Article2tag'
         )
     ),
     'relations' => array(

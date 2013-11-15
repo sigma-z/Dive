@@ -55,7 +55,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
      */
     public function testDeleteOnNonSavedRecordsOwningSide($side)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, 'author.user_id');
 
         $user = $rm->getRecord('user', array());
         $author = $rm->getTable('author')->createRecord();
@@ -80,8 +80,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
     public function testDeleteSetNullConstraintOwningSide($side)
     {
         $rm = $this->getRecordManagerWithOverWrittenConstraint(
-            self::CONSTRAINT_TYPE_ON_DELETE,
-            PlatformInterface::SET_NULL
+            self::CONSTRAINT_TYPE_ON_DELETE, 'author.user_id', PlatformInterface::SET_NULL
         );
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         $author = $user->Author;
@@ -120,8 +119,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
     public function testDeleteCascadeConstraintReferencedSide()
     {
         $rm = $this->getRecordManagerWithOverWrittenConstraint(
-            self::CONSTRAINT_TYPE_ON_DELETE,
-            PlatformInterface::CASCADE
+            self::CONSTRAINT_TYPE_ON_DELETE, 'author.user_id', PlatformInterface::CASCADE
         );
 
         $user = $this->createUserWithAuthor($rm, 'JohnD');
@@ -145,8 +143,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
     public function testDeleteCascadeConstraintOwningSide()
     {
         $rm = $this->getRecordManagerWithOverWrittenConstraint(
-            self::CONSTRAINT_TYPE_ON_DELETE,
-            PlatformInterface::CASCADE
+            self::CONSTRAINT_TYPE_ON_DELETE, 'author.user_id', PlatformInterface::CASCADE
         );
 
         $user = $this->createUserWithAuthor($rm, 'JohnD');
@@ -164,7 +161,9 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
      */
     public function testDeleteThrowsExceptionForScheduleSaveAfterDelete($constraint)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, $constraint);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(
+            self::CONSTRAINT_TYPE_ON_DELETE, 'author.user_id', $constraint
+        );
         $user = $this->createUserWithAuthor($rm, 'JohnD');
         $rm->delete($user->Author);
         $this->assertRecordIsScheduledForDelete($user->Author);
@@ -183,8 +182,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
     public function testRecordWithModifiedReferenceOnReferenceSide($side = 'reference')
     {
         $rm = $this->getRecordManagerWithOverWrittenConstraint(
-            self::CONSTRAINT_TYPE_ON_DELETE,
-            PlatformInterface::CASCADE
+            self::CONSTRAINT_TYPE_ON_DELETE, 'author.user_id', PlatformInterface::CASCADE
         );
 
         $userJohn = $this->createUserWithAuthor($rm, 'JohnD');
@@ -219,7 +217,9 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
      */
     public function testRecordWithoutOwningSide($constraint)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraint(self::CONSTRAINT_TYPE_ON_DELETE, $constraint);
+        $rm = $this->getRecordManagerWithOverWrittenConstraint(
+            self::CONSTRAINT_TYPE_ON_DELETE, 'author.user_id', $constraint
+        );
 
         $userData = array('username' => 'JohnD', 'password' => 'secret');
         $user = $rm->getTable('user')->createRecord($userData);

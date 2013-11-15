@@ -19,7 +19,7 @@ use Dive\UnitOfWork\UnitOfWork;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 01.11.13
  */
-class ChangeForCommitTestCase extends TestCase
+abstract class ChangeForCommitTestCase extends TestCase
 {
 
     const CONSTRAINT_TYPE_ON_DELETE = 'onDelete';
@@ -112,16 +112,17 @@ class ChangeForCommitTestCase extends TestCase
 
     /**
      * @param  string $type
+     * @param  string $foreignKeyName
      * @param  string $constraint
      * @return RecordManager
      */
-    protected function getRecordManagerWithOverWrittenConstraint($type, $constraint = null)
+    protected function getRecordManagerWithOverWrittenConstraint($type, $foreignKeyName, $constraint = null)
     {
-        $schemaDefinition = TestCase::getSchemaDefinition();
+        $schemaDefinition = self::getSchemaDefinition();
         if ($constraint) {
-            $schemaDefinition['relations']['author.user_id'][$type] = $constraint;
+            $schemaDefinition['relations'][$foreignKeyName][$type] = $constraint;
         }
-        $recordManager = TestCase::createDefaultRecordManager($schemaDefinition);
+        $recordManager = self::createDefaultRecordManager($schemaDefinition);
         if ($constraint) {
             $userTable = $recordManager->getTable('user');
             $relation = $userTable->getRelation('Author');

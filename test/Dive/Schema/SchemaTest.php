@@ -65,6 +65,8 @@ class SchemaTest extends TestCase
         $tableBaseClass, $recordBaseClass, $recordClass, $expectedRecordClass, $expectedTableClass
     )
     {
+        $this->schema->setRecordClass('user', null);
+
         if ($tableBaseClass) {
             $this->schema->setTableBaseClass($tableBaseClass);
         }

@@ -508,6 +508,27 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
+     * @param  RecordManager $rm
+     * @param  array         $tableRows
+     * @param  array         $tableMapFields
+     */
+    protected static function saveTableRows(RecordManager $rm, array $tableRows = null, array $tableMapFields = null)
+    {
+        if ($tableRows === null) {
+            $tableRows = TableRowsProvider::provideTableRows();
+        }
+        if ($tableMapFields === null) {
+            $tableMapFields = TableRowsProvider::provideTableMapFields();
+        }
+        $fvGenerator = new FieldValuesGenerator();
+        $recordGenerator = new RecordGenerator($rm, $fvGenerator);
+        $recordGenerator->setTablesRows($tableRows);
+        $recordGenerator->setTablesMapField($tableMapFields);
+        $recordGenerator->generate();
+    }
+
+
+    /**
      * Gets expected result, if defined for scheme, otherwise mark test as incomplete
      *
      * @param   array $expected

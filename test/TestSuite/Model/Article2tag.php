@@ -14,6 +14,7 @@ use Dive\Record;
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 15.11.13
+ *
  * @property string $article_id
  * @property string $tag_id
  * @property Article $Article

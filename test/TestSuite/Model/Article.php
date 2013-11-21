@@ -9,11 +9,23 @@
 
 namespace Dive\TestSuite\Model;
 
+use Dive\Collection\RecordCollection;
 use Dive\Record;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 15.11.13
+ *
+ * @property string $id
+ * @property string $author_id
+ * @property bool $is_published
+ * @property string $title
+ * @property string $teaser
+ * @property string $text
+ * @property string $changed_on
+ * @property Author $Author
+ * @property Comment[]|RecordCollection $Comment
+ * @property Article2tag[]|RecordCollection $Article2tagHasMany
  */
 class Article extends Record
 {

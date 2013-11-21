@@ -9,13 +9,18 @@
 
 namespace Dive\TestSuite\Model;
 
+use Dive\Collection\RecordCollection;
 use Dive\Record;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 15.11.13
- * @property Author Author
- * @property Comment[] Comment
+ *
+ * @property string $id
+ * @property string $username
+ * @property string $password
+ * @property Author $Author
+ * @property Comment[]|RecordCollection $Comment
  */
 class User extends Record
 {

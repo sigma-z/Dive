@@ -13,6 +13,7 @@ use Dive\Platform\PlatformInterface;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\TestSuite\Constraint\RecordScheduleConstraint;
+use Dive\TestSuite\Model\User;
 use Dive\UnitOfWork\UnitOfWork;
 
 /**
@@ -24,7 +25,7 @@ abstract class ChangeForCommitTestCase extends TestCase
 
     const CONSTRAINT_TYPE_ON_DELETE = 'onDelete';
     const CONSTRAINT_TYPE_ON_UPDATE = 'onUpdate';
-    const RELATION_SIDE_REFERENCE = 'reference';
+    const RELATION_SIDE_REFERENCED = 'referenced';
     const RELATION_SIDE_OWNING = 'owning';
 
 
@@ -54,7 +55,7 @@ abstract class ChangeForCommitTestCase extends TestCase
     public function provideRelationSides()
     {
         return array(
-            array('side' => self::RELATION_SIDE_REFERENCE),
+            array('side' => self::RELATION_SIDE_REFERENCED),
             array('side' => self::RELATION_SIDE_OWNING),
         );
     }
@@ -122,21 +123,14 @@ abstract class ChangeForCommitTestCase extends TestCase
         if ($constraint) {
             $schemaDefinition['relations'][$foreignKeyName][$type] = $constraint;
         }
-        $recordManager = self::createDefaultRecordManager($schemaDefinition);
-        if ($constraint) {
-            $userTable = $recordManager->getTable('user');
-            $relation = $userTable->getRelation('Author');
-            $method = "get" . ucfirst($type);
-            $this->assertEquals($constraint, $relation->$method());
-        }
-        return $recordManager;
+        return self::createDefaultRecordManager($schemaDefinition);
     }
 
 
     /**
      * @param \Dive\RecordManager $rm
      * @param  string             $username
-     * @return Record
+     * @return User
      */
     protected function createUserWithAuthor(RecordManager $rm, $username)
     {

@@ -61,11 +61,11 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
         $author = $rm->getTable('author')->createRecord();
         $user->Author = $author;
 
-        if ($side == self::RELATION_SIDE_REFERENCE) {
-            $recordToDelete = $author;
+        if ($side == self::RELATION_SIDE_REFERENCED) {
+            $recordToDelete = $user;
         }
         else {
-            $recordToDelete = $user;
+            $recordToDelete = $author;
         }
         $rm->delete($recordToDelete);
         $this->assertRecordIsNotScheduledForDelete($author);
@@ -86,7 +86,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
         $author = $user->Author;
 
 
-        if ($side == self::RELATION_SIDE_REFERENCE) {
+        if ($side == self::RELATION_SIDE_REFERENCED) {
             $rm->delete($user);
             $this->assertRecordIsScheduledForSave($author);
 
@@ -190,7 +190,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
         $userSally = $this->createUserWithAuthor($rm, 'SallyK');
         $authorSally = $userSally->Author;
 
-        if ($side == self::RELATION_SIDE_REFERENCE) {
+        if ($side == self::RELATION_SIDE_REFERENCED) {
             $recordToBeDeleted = $userJohn;
             $authorWithoutUser = $authorJohn;
             $recordNotToBeDeleted = $authorJohn;

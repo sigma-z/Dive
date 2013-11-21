@@ -9,14 +9,16 @@
 
 namespace Dive\TestSuite\Model;
 
+use Dive\Collection\RecordCollection;
 use Dive\Record;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 15.11.13
+ *
  * @property string $id
  * @property string $name
- * @property Article2tag[] $Article2tagHasMany
+ * @property Article2tag[]|RecordCollection $Article2tagHasMany
  */
 class Tag extends Record
 {

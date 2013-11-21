@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 12.04.13
- */
 
 namespace Dive\Record\Generator;
 
@@ -18,6 +14,10 @@ use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Util\FieldValuesGenerator;
 
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 12.04.13
+ */
 class RecordGenerator
 {
 

@@ -14,6 +14,15 @@ use Dive\Record;
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 15.11.13
+ *
+ * @property string $id
+ * @property string $user_id
+ * @property string $article_id
+ * @property string $title
+ * @property string $text
+ * @property string $datetime
+ * @property User $User
+ * @property Article $Article
  */
 class Comment extends Record
 {

@@ -511,6 +511,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param  RecordManager $rm
      * @param  array         $tableRows
      * @param  array         $tableMapFields
+     * @return RecordGenerator
      */
     protected static function saveTableRows(RecordManager $rm, array $tableRows = null, array $tableMapFields = null)
     {
@@ -525,6 +526,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $recordGenerator->setTablesRows($tableRows);
         $recordGenerator->setTablesMapField($tableMapFields);
         $recordGenerator->generate();
+        return $recordGenerator;
     }
 
 

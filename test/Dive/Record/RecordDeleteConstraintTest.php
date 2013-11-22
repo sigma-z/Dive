@@ -27,10 +27,6 @@ use Dive\UnitOfWork\UnitOfWork;
 class RecordDeleteConstraintTest extends TestCase
 {
 
-    const NOT_REFERENCED = 0;
-    const REFERENCED = 1;
-    const NESTED_REFERENCED = 2;
-
     /** @var array */
     private static $tableRows = array();
 
@@ -150,7 +146,6 @@ class RecordDeleteConstraintTest extends TestCase
     {
         $testCases = array();
 
-        //
         $testCases[] = array(
             'deleteGraph' => array(
                 array(
@@ -167,20 +162,39 @@ class RecordDeleteConstraintTest extends TestCase
                     'comment' => array('DiveORM released#1')
                 )
             )
-//            'referencesByLevel' => array(
-//                'user' => array('JohnD')
-//            )
         );
-//        $testCases[] = array(
-//            'tableName' => 'author',
-//            'recordKey' => 'John Doe',
-//            'referencesByLevel' => array(2, 3)
-//        );
-//        $testCases[] = array(
-//            'tableName' => 'user',
-//            'recordKey' => 'JamieTK',
-//            'referencesByLevel' => array(3, 1, 4)
-//        );
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array(
+                    'author' => array('John Doe')
+                ),
+                array(
+                    'article' => array('helloWorld', 'DiveORM released')
+                ),
+                array(
+                    'article2tag' => array('DiveORM released#Release Notes', 'DiveORM released#News'),
+                    'comment' => array('DiveORM released#1')
+                )
+            )
+        );
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array(
+                    'user' => array('JamieTK')
+                ),
+                array(
+                    'author' => array('Jamie T. Kirk'),
+                    'comment' => array('tableSupport#2', 'tableSupport#4')
+                ),
+                array(
+                    'article' => array('tableSupport')
+                ),
+                array(
+                    'article2tag' => array('tableSupport#Feature', 'tableSupport#News'),
+                    'comment' => array('tableSupport#1', 'tableSupport#3')
+                )
+            )
+        );
 
         $combinedTestCases = array();
         $combinedConstraints = $this->getCombinedConstraints();
@@ -350,9 +364,6 @@ class RecordDeleteConstraintTest extends TestCase
      */
     private function getExpectedScheduledOperationsForCommit(RecordManager $rm, array $constraints, array $deleteGraph)
     {
-        $constraint = $constraints[0];
-        $nestedConstraint = $constraints[1];
-
         $expected = array(
             UnitOfWork::OPERATION_DELETE => array(),
             UnitOfWork::OPERATION_SAVE => array()
@@ -362,30 +373,59 @@ class RecordDeleteConstraintTest extends TestCase
             foreach ($tableReferences as $tableName => $recordKeys) {
                 foreach ($recordKeys as $recordKey) {
                     $record = $this->getGeneratedRecord($rm, $tableName, $recordKey);
-                    $oid = $record->getOid();
-                    if ($level == 0) {
-                        $expected[UnitOfWork::OPERATION_DELETE][] = $oid;
-                    }
-                    else if ($level == 1) {
-                        if ($constraint == PlatformInterface::CASCADE) {
-                            $expected[UnitOfWork::OPERATION_DELETE][] = $oid;
-                        }
-                        else if ($constraint == PlatformInterface::SET_NULL) {
-                            $expected[UnitOfWork::OPERATION_SAVE][] = $oid;
-                        }
-                    }
-                    else if ($constraint == PlatformInterface::CASCADE) {
-                        if ($nestedConstraint == PlatformInterface::CASCADE) {
-                            $expected[UnitOfWork::OPERATION_DELETE][] = $oid;
-                        }
-                        else if ($level == 2 && $nestedConstraint == PlatformInterface::SET_NULL) {
-                            $expected[UnitOfWork::OPERATION_SAVE][] = $oid;
-                        }
+                    $operation = self::getExpectedScheduleOperation($level, $constraints);
+                    if ($operation) {
+                        $expected[$operation][] = $record->getOid();
                     }
                 }
             }
         }
         return $expected;
+    }
+
+
+    /**
+     * @param  string $level
+     * @param  array  $constraints
+     * @return bool|string
+     */
+    private static function getExpectedScheduleOperation($level, array $constraints)
+    {
+        if ($level == 0) {
+            return UnitOfWork::OPERATION_DELETE;
+        }
+
+        $constraintPathIsCascade = self::isCascadingConstraintPath($level, $constraints);
+        $constraint = $level > 1 ? $constraints[1] : $constraints[0];
+
+        if ($constraintPathIsCascade && $constraint == PlatformInterface::CASCADE) {
+            return UnitOfWork::OPERATION_DELETE;
+        }
+        else if ($constraintPathIsCascade && $constraint == PlatformInterface::SET_NULL) {
+            return UnitOfWork::OPERATION_SAVE;
+        }
+        return false;
+    }
+
+
+    /**
+     * @param int   $level
+     * @param array $constraints
+     * @return array
+     */
+    private static function isCascadingConstraintPath($level, array $constraints)
+    {
+        if ($level == 0) {
+            return true;
+        }
+
+        $constraints = array_slice($constraints, 0, $level - 1);
+        foreach ($constraints as $constraint) {
+            if ($constraint != PlatformInterface::CASCADE) {
+                return false;
+            }
+        }
+        return true;
     }
 
 

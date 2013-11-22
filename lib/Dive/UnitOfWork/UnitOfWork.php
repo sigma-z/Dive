@@ -37,7 +37,7 @@ class UnitOfWork
     /** @var array */
     private $scheduledForCommit = array();
 
-    /** @var \Dive\Record[] */
+    /** @var Record[] */
     private $recordIdentityMap = array();
 
 

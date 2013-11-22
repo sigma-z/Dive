@@ -34,6 +34,7 @@ class Table
      */
     protected $recordClass;
     /**
+     * @TODO rename to identifierFields
      * @var array
      */
     protected $identifier = array();
@@ -320,6 +321,30 @@ class Table
     {
         $this->clearRelationReferences();
         $this->repository->clear();
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function hasCompositePrimaryKey()
+    {
+        return count($this->identifier) > 1;
+    }
+
+
+    /**
+     * splits any given primary key(s) into the Primary key(s)
+     * @param string|array $pk
+     * @return string[]
+     */
+    public function splitPrimaryKeyAsArray($pk)
+    {
+        if (is_array($pk)) {
+            return $pk;
+        }
+        $pkValues = explode(Record::COMPOSITE_ID_SEPARATOR, $pk);
+        return array_combine($this->identifier, $pkValues);
     }
 
 

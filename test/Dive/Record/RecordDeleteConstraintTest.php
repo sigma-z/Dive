@@ -105,32 +105,24 @@ class RecordDeleteConstraintTest extends TestCase
 
     /**
      * @dataProvider provideDelete
-     * @param string $tableName
-     * @param string $recordKey
-     * @param array  $referencesByLevel
+     * @param array  $deleteGraph
      * @param array  $constraints
      */
-    public function testDelete(
-        $tableName,
-        $recordKey,
-        array $referencesByLevel,
-        array $constraints
-    )
+    public function testDelete(array $deleteGraph, array $constraints)
     {
-        $pk = self::$recordGenerator->getRecordIdFromMap($tableName, $recordKey);
+        $tableName = key($deleteGraph[0]);
+        $recordKey = $deleteGraph[0][$tableName][0];
         $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
-        $record = $rm->getTable($tableName)->findByPk($pk);
-        $this->assertInstanceOf('\Dive\Record', $record);
-
+        $record = $this->getGeneratedRecord($rm, $tableName, $recordKey);
         $constraint = $constraints[0];
 
         $isConstraintRestricted = self::isRestrictedConstraint($constraint);
         $expectException = false;
-        if ($isConstraintRestricted && ($referencesByLevel[0] > 0 || $referencesByLevel[1] > 0)) {
+        if ($isConstraintRestricted && (!empty($deleteGraph[1]) || !empty($deleteGraph[2]))) {
             $expectException = true;
             $this->setExpectedException('\Dive\UnitOfWork\UnitOfWorkException');
         }
-        if ($referencesByLevel[1] > 0 && ($constraint == PlatformInterface::CASCADE)) {
+        if (!empty($deleteGraph[1]) && ($constraint == PlatformInterface::CASCADE)) {
             $nestedConstraint = $constraints[1];
             $isNestedConstraintRestricted = self::isRestrictedConstraint($nestedConstraint);
             if ($isNestedConstraintRestricted) {
@@ -143,8 +135,8 @@ class RecordDeleteConstraintTest extends TestCase
         }
         $rm->delete($record);
 
-        $expectedCounts = self::getExpectedScheduledOperationForCommitCount($constraints, $referencesByLevel);
-        $this->assertScheduledOperationForCommitCount($expectedCounts, $rm);
+        $message = implode(', ', $constraints) . " on table '$tableName' for recordKey '$recordKey'!";
+        $this->assertScheduledOperationsForCommit($constraints, $deleteGraph, $rm, $message);
     }
 
 
@@ -160,15 +152,35 @@ class RecordDeleteConstraintTest extends TestCase
 
         //
         $testCases[] = array(
-            'tableName' => 'user',
-            'recordKey' => 'JohnD',
-            'referencesByLevel' => array(1, 2, 3)
+            'deleteGraph' => array(
+                array(
+                    'user' => array('JohnD')
+                ),
+                array(
+                    'author' => array('John Doe')
+                ),
+                array(
+                    'article' => array('helloWorld', 'DiveORM released')
+                ),
+                array(
+                    'article2tag' => array('DiveORM released#Release Notes', 'DiveORM released#News'),
+                    'comment' => array('DiveORM released#1')
+                )
+            )
+//            'referencesByLevel' => array(
+//                'user' => array('JohnD')
+//            )
         );
-        $testCases[] = array(
-            'tableName' => 'author',
-            'recordKey' => 'John Doe',
-            'referencesByLevel' => array(2, 3)
-        );
+//        $testCases[] = array(
+//            'tableName' => 'author',
+//            'recordKey' => 'John Doe',
+//            'referencesByLevel' => array(2, 3)
+//        );
+//        $testCases[] = array(
+//            'tableName' => 'user',
+//            'recordKey' => 'JamieTK',
+//            'referencesByLevel' => array(3, 1, 4)
+//        );
 
         $combinedTestCases = array();
         $combinedConstraints = $this->getCombinedConstraints();
@@ -294,62 +306,106 @@ class RecordDeleteConstraintTest extends TestCase
 
 
     /**
-     * @param array         $expectedCounts
+     * @param array         $constraints
+     * @param array         $deleteGraph
      * @param RecordManager $rm
      * @param string        $message
      * @throws \PHPUnit_Framework_Exception
      */
-    protected function assertScheduledOperationForCommitCount(array $expectedCounts, RecordManager $rm, $message = '')
+    protected function assertScheduledOperationsForCommit(
+        array $constraints, array $deleteGraph, RecordManager $rm, $message
+    )
     {
-        if (empty($expectedCounts)) {
+        $expectedScheduledForCommit = self::getExpectedScheduledOperationsForCommit($rm, $constraints, $deleteGraph);
+        if (empty($expectedScheduledForCommit)) {
             throw \PHPUnit_Util_InvalidArgumentHelper::factory(1, 'not empty array');
         }
+
         /** @var UnitOfWork $unitOfWork */
         $unitOfWork = self::readAttribute($rm, 'unitOfWork');
         /** @var string[] $scheduledForCommit */
         $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
-        $operationCounts = array();
-        foreach ($expectedCounts as $operation => $count) {
-            $operationCounts[$operation] = 0;
-        }
-        foreach ($scheduledForCommit as $operation) {
-            if (isset($operationCounts[$operation])) {
-                $operationCounts[$operation]++;
-            }
+
+        $actualScheduledForCommit = array(
+            UnitOfWork::OPERATION_DELETE => array(),
+            UnitOfWork::OPERATION_SAVE => array()
+        );
+        foreach ($scheduledForCommit as $oid => $operation) {
+            $actualScheduledForCommit[$operation][] = $oid;
         }
 
-        $this->assertEquals($expectedCounts, $operationCounts, $message);
+        sort($expectedScheduledForCommit[UnitOfWork::OPERATION_DELETE]);
+        sort($actualScheduledForCommit[UnitOfWork::OPERATION_DELETE]);
+        sort($expectedScheduledForCommit[UnitOfWork::OPERATION_SAVE]);
+        sort($actualScheduledForCommit[UnitOfWork::OPERATION_SAVE]);
+        $this->assertEquals($expectedScheduledForCommit, $actualScheduledForCommit, $message);
     }
 
 
     /**
-     * @param  array $constraints
-     * @param  array $referencesByLevel
+     * @param \Dive\RecordManager $rm
+     * @param  array              $constraints
+     * @param  array              $deleteGraph
      * @return array
      */
-    private function getExpectedScheduledOperationForCommitCount(array $constraints, array $referencesByLevel)
+    private function getExpectedScheduledOperationsForCommit(RecordManager $rm, array $constraints, array $deleteGraph)
     {
         $constraint = $constraints[0];
         $nestedConstraint = $constraints[1];
 
-        $expectedCounts = array(
-            UnitOfWork::OPERATION_DELETE => 0,
-            UnitOfWork::OPERATION_SAVE => 0
+        $expected = array(
+            UnitOfWork::OPERATION_DELETE => array(),
+            UnitOfWork::OPERATION_SAVE => array()
         );
-        if ($constraint == PlatformInterface::CASCADE) {
-            $expectedCounts[UnitOfWork::OPERATION_DELETE] += $referencesByLevel[0] + 1;
-            if ($nestedConstraint == PlatformInterface::CASCADE) {
-                $expectedCounts[UnitOfWork::OPERATION_DELETE] = array_sum($referencesByLevel) + 1;
-            }
-            else if ($nestedConstraint == PlatformInterface::SET_NULL) {
-                $expectedCounts[UnitOfWork::OPERATION_SAVE] += $referencesByLevel[1];
+
+        foreach ($deleteGraph as $level => $tableReferences) {
+            foreach ($tableReferences as $tableName => $recordKeys) {
+                foreach ($recordKeys as $recordKey) {
+                    $record = $this->getGeneratedRecord($rm, $tableName, $recordKey);
+                    $oid = $record->getOid();
+                    if ($level == 0) {
+                        $expected[UnitOfWork::OPERATION_DELETE][] = $oid;
+                    }
+                    else if ($level == 1) {
+                        if ($constraint == PlatformInterface::CASCADE) {
+                            $expected[UnitOfWork::OPERATION_DELETE][] = $oid;
+                        }
+                        else if ($constraint == PlatformInterface::SET_NULL) {
+                            $expected[UnitOfWork::OPERATION_SAVE][] = $oid;
+                        }
+                    }
+                    else if ($constraint == PlatformInterface::CASCADE) {
+                        if ($nestedConstraint == PlatformInterface::CASCADE) {
+                            $expected[UnitOfWork::OPERATION_DELETE][] = $oid;
+                        }
+                        else if ($level == 2 && $nestedConstraint == PlatformInterface::SET_NULL) {
+                            $expected[UnitOfWork::OPERATION_SAVE][] = $oid;
+                        }
+                    }
+                }
             }
         }
-        else if ($constraint == PlatformInterface::SET_NULL) {
-            $expectedCounts[UnitOfWork::OPERATION_SAVE] += $referencesByLevel[0];
-            $expectedCounts[UnitOfWork::OPERATION_DELETE] += 1;
+        return $expected;
+    }
+
+
+    /**
+     * @param  RecordManager $rm
+     * @param  string        $tableName
+     * @param  string        $recordKey
+     * @return Record
+     */
+    private function getGeneratedRecord(RecordManager $rm, $tableName, $recordKey)
+    {
+        $pk = self::$recordGenerator->getRecordIdFromMap($tableName, $recordKey);
+        $table = $rm->getTable($tableName);
+        if ($table->hasCompositePrimaryKey()) {
+            $pk = explode(Record::COMPOSITE_ID_SEPARATOR, $pk);
         }
-        return $expectedCounts;
+        $record = $table->findByPk($pk);
+        $message = "Could not load record for '$recordKey' in table '$tableName'";
+        $this->assertInstanceOf('\Dive\Record', $record, $message);
+        return $record;
     }
 
 }

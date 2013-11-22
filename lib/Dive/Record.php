@@ -87,16 +87,6 @@ class Record
 
 
     /**
-     * splits any given primary key(s) into the Primary key(s)
-     * @param string $pk
-     * @return string[]
-     */
-    public static function splitPrimaryKey($pk)
-    {
-        return explode(self::COMPOSITE_ID_SEPARATOR, $pk);
-    }
-
-    /**
      * @return Table
      */
     public function getTable()

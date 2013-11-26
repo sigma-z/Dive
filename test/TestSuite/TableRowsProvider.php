@@ -28,7 +28,7 @@ class TableRowsProvider
      * Author
      *  - John Doe      (JohnD)
      *  - Jamie T. Kirk (JamieTK)
-     *  - Bart Simpson  (BartS)
+     *  - Bart Simon    (BartS)
      *
      * Tags
      *  - News
@@ -68,9 +68,9 @@ class TableRowsProvider
                 'lastname' => 'Kirk',
                 'User' => 'JamieTK'
             ),
-            'Bart Simpson' => array(
+            'Bart Simon' => array(
                 'firstname' => 'Bart',
-                'lastname' => 'Simpson',
+                'lastname' => 'Simon',
                 'User' => 'BartS'
             ),
         );

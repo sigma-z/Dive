@@ -114,11 +114,10 @@ class RecordDeleteConstraintTest extends TestCase
 
         $isConstraintRestricted = self::isRestrictedConstraint($constraint);
         $expectException = false;
-        if ($isConstraintRestricted && (!empty($deleteGraph[1]) || !empty($deleteGraph[2]))) {
+        if ($isConstraintRestricted && !empty($deleteGraph[1])) {
             $expectException = true;
-            $this->setExpectedException('\Dive\UnitOfWork\UnitOfWorkException');
         }
-        if (!empty($deleteGraph[1]) && ($constraint == PlatformInterface::CASCADE)) {
+        if (!empty($deleteGraph[2]) && $constraint == PlatformInterface::CASCADE) {
             $nestedConstraint = $constraints[1];
             $isNestedConstraintRestricted = self::isRestrictedConstraint($nestedConstraint);
             if ($isNestedConstraintRestricted) {
@@ -146,17 +145,12 @@ class RecordDeleteConstraintTest extends TestCase
     {
         $testCases = array();
 
+        // test cases on table 'user'
         $testCases[] = array(
             'deleteGraph' => array(
-                array(
-                    'user' => array('JohnD')
-                ),
-                array(
-                    'author' => array('John Doe')
-                ),
-                array(
-                    'article' => array('helloWorld', 'DiveORM released')
-                ),
+                array('user' => array('JohnD')),
+                array('author' => array('John Doe')),
+                array('article' => array('helloWorld', 'DiveORM released')),
                 array(
                     'article2tag' => array('DiveORM released#Release Notes', 'DiveORM released#News'),
                     'comment' => array('DiveORM released#1')
@@ -165,34 +159,107 @@ class RecordDeleteConstraintTest extends TestCase
         );
         $testCases[] = array(
             'deleteGraph' => array(
-                array(
-                    'author' => array('John Doe')
-                ),
-                array(
-                    'article' => array('helloWorld', 'DiveORM released')
-                ),
-                array(
-                    'article2tag' => array('DiveORM released#Release Notes', 'DiveORM released#News'),
-                    'comment' => array('DiveORM released#1')
-                )
-            )
-        );
-        $testCases[] = array(
-            'deleteGraph' => array(
-                array(
-                    'user' => array('JamieTK')
-                ),
+                array('user' => array('JamieTK')),
                 array(
                     'author' => array('Jamie T. Kirk'),
                     'comment' => array('tableSupport#2', 'tableSupport#4')
                 ),
-                array(
-                    'article' => array('tableSupport')
-                ),
+                array('article' => array('tableSupport')),
                 array(
                     'article2tag' => array('tableSupport#Feature', 'tableSupport#News'),
                     'comment' => array('tableSupport#1', 'tableSupport#3')
                 )
+            )
+        );
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('user' => array('BartS')),
+                array(
+                    'author' => array('Bart Simon'),
+                    'comment' => array('DiveORM released#1'),
+                ),
+                array(),
+                array()
+            )
+        );
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('user' => array('AdamE')),
+                array('comment' => array('tableSupport#1', 'tableSupport#3')),
+                array(),
+                array()
+            )
+        );
+
+        // test cases on table 'author'
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('author' => array('John Doe')),
+                array('article' => array('helloWorld', 'DiveORM released')),
+                array(
+                    'article2tag' => array('DiveORM released#Release Notes', 'DiveORM released#News'),
+                    'comment' => array('DiveORM released#1')
+                )
+            )
+        );
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('author' => array('Bart Simon')),
+                array(),
+                array(),
+                array()
+            )
+        );
+
+        // test cases on table 'tag'
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('tag' => array('News')),
+                array('article2tag' => array('tableSupport#News', 'DiveORM released#News')),
+                array(),
+                array()
+            )
+        );
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('tag' => array('Documentation')),
+                array(),
+                array(),
+                array()
+            )
+        );
+
+        // test cases on table 'article'
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('article' => array('DiveORM released')),
+                array(
+                    'article2tag' => array('DiveORM released#Release Notes', 'DiveORM released#News'),
+                    'comment' => array('DiveORM released#1')
+                ),
+                array(),
+                array()
+            )
+        );
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('article' => array('tableSupport')),
+                array(
+                    'article2tag' => array('tableSupport#Feature', 'tableSupport#News'),
+                    'comment' => array('tableSupport#1', 'tableSupport#2', 'tableSupport#3', 'tableSupport#4')
+                ),
+                array(),
+                array()
+            )
+        );
+
+        // test cases on table 'article2tag'
+        $testCases[] = array(
+            'deleteGraph' => array(
+                array('article2tag' => array('tableSupport#News')),
+                array(),
+                array(),
+                array()
             )
         );
 

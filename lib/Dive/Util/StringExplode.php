@@ -51,4 +51,33 @@ class StringExplode
         return $parts;
     }
 
+
+    /**
+     * explodes multi lines, trims them on the right, implodes them
+     * @param string $text
+     * @param string $trim
+     * @param string $eol
+     * @return string
+     */
+    public static function trimMultiLines($text, $trim = 'trim', $eol = PHP_EOL)
+    {
+        $lines = explode($eol, $text);
+        if ($trim == 'rtrim') {
+            foreach ($lines as &$line) {
+                $line = rtrim($line);
+            }
+        }
+        else if ($trim == 'ltrim') {
+            foreach ($lines as &$line) {
+                $line = ltrim($line);
+            }
+        }
+        else {
+            foreach ($lines as &$line) {
+                $line = trim($line);
+            }
+        }
+        return implode($eol, $lines);
+    }
+
 }

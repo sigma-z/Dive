@@ -6,16 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 23.02.13
- */
 
 namespace Dive\Test\Util;
 
 use Dive\Util\StringExplode;
 
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 23.02.13
+ */
 class StringExplodeTest extends \PHPUnit_Framework_TestCase
 {
 
@@ -29,6 +29,9 @@ class StringExplodeTest extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideExplodeAt()
     {
         $testString1 = 'a.TestString b';
@@ -65,6 +68,47 @@ class StringExplodeTest extends \PHPUnit_Framework_TestCase
                 1,
                 array('a', 'TestString', 'b')
             ),
+        );
+    }
+
+
+    /**
+     * @param string $method
+     * @param string $text
+     * @param string $expected
+     * @dataProvider provideRTrimMultiLine
+     */
+    public function testRTrimMultiLine($method, $text, $expected)
+    {
+        $actual = StringExplode::trimMultiLines($text, $method, PHP_EOL);
+        $this->assertEquals($expected, $actual);
+    }
+
+
+    /**
+     * @return array
+     */
+    public function provideRTrimMultiLine()
+    {
+        return array(
+            array('rtrim', '', ''),
+            array('rtrim', 'dasdsa dsasda ', 'dasdsa dsasda'),
+            array('rtrim', ' dasdsa dsasda ', ' dasdsa dsasda'),
+            array('rtrim', '    dasdsa dsasda ', '    dasdsa dsasda'),
+            array('rtrim', '    dasdsa dsasda', '    dasdsa dsasda'),
+            array('rtrim', '    dasdsa dsasda     ', '    dasdsa dsasda'),
+            array('ltrim', '', ''),
+            array('ltrim', 'dasdsa dsasda ', 'dasdsa dsasda '),
+            array('ltrim', ' dasdsa dsasda ', 'dasdsa dsasda '),
+            array('ltrim', '    dasdsa dsasda ', 'dasdsa dsasda '),
+            array('ltrim', '    dasdsa dsasda', 'dasdsa dsasda'),
+            array('ltrim', '    dasdsa dsasda     ', 'dasdsa dsasda     '),
+            array('trim', '', ''),
+            array('trim', 'dasdsa dsasda ', 'dasdsa dsasda'),
+            array('trim', ' dasdsa dsasda ', 'dasdsa dsasda'),
+            array('trim', '    dasdsa dsasda ', 'dasdsa dsasda'),
+            array('trim', '    dasdsa dsasda', 'dasdsa dsasda'),
+            array('trim', '    dasdsa dsasda     ', 'dasdsa dsasda'),
         );
     }
 

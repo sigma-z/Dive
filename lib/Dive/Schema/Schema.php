@@ -92,6 +92,10 @@ class Schema
     }
 
 
+    /**
+     * @param string $tableName
+     * @throws SchemaException
+     */
     private function initTable($tableName)
     {
         if (isset($this->tableSchemes[$tableName])) {
@@ -105,6 +109,10 @@ class Schema
     }
 
 
+    /**
+     * @param string $viewName
+     * @throws SchemaException
+     */
     private function initView($viewName)
     {
         if (isset($this->viewSchemes[$viewName])) {
@@ -118,6 +126,9 @@ class Schema
     }
 
 
+    /**
+     * @param string $tableName
+     */
     private function initTableRelations($tableName)
     {
         if (isset($this->relations[$tableName])) {

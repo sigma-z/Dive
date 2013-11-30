@@ -11,6 +11,7 @@ namespace Dive;
 
 
 use Dive\Schema\Schema;
+use Dive\Util\ClassNameExtractor;
 use Dive\Util\ModelFilterIterator;
 use Dive\Util\StringExplode;
 use RecursiveDirectoryIterator;
@@ -41,45 +42,28 @@ class ModelGenerator
 
     /**
      * @param string $targetDirectory
+     * @throws Exception
      * @return string[]
      */
     public function getExistingModelClasses($targetDirectory)
     {
+        if (!is_dir($targetDirectory)) {
+            throw new Exception("target directory not accessible: $targetDirectory");
+        }
         $dirReader = new RecursiveDirectoryIterator($targetDirectory);
         $filterIterator = new ModelFilterIterator($dirReader);
         $iteratorIterator = new RecursiveIteratorIterator($filterIterator);
+        $extractor = new ClassNameExtractor();
+        $extractor->setSubClassFilter('\Dive\Record');
 
         $classes = array();
         /** @var $model SplFileInfo */
         foreach ($iteratorIterator as $model) {
             $fileName = $model->getPath() . DIRECTORY_SEPARATOR . $model->getFilename();
-            $classNameFromFile = $this->getRecordClassNameFromFile($fileName);
-            if ($classNameFromFile) {
-                $classes[] = $classNameFromFile;
-            }
-
+            $classNameFromFile = $extractor->getClasses($fileName);
+            $classes = array_merge($classes, $classNameFromFile);
         }
         return $classes;
-    }
-
-
-    /**
-     * gets class defined in file only if it extends a record
-     * @param string $fileName
-     * @return string|null
-     */
-    public function getRecordClassNameFromFile($fileName)
-    {
-        /** @noinspection PhpIncludeInspection */
-        include $fileName;
-        $declaredClasses = get_declared_classes();
-        $className = "\\" . end($declaredClasses);
-        /** @var $class Record */
-        $class = new $className(new Table($this->rm, $className, $className, array()));
-        if ($class instanceof Record) {
-            return $className;
-        }
-        return null;
     }
 
 

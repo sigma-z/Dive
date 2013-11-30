@@ -11,7 +11,6 @@ namespace Dive\Test;
 
 
 use Dive\ModelGenerator;
-use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -20,22 +19,17 @@ use Dive\TestSuite\TestCase;
  */
 class ModelGeneratorTest extends TestCase
 {
+    const MODEL_PATH = 'Model';
 
     /**
-     * @var RecordManager
+     * @var ModelGenerator
      */
-    private $rm;
-
-
-    public function testCreatedRecordManager()
-    {
-        $this->assertInstanceOf('\Dive\RecordManager', $this->rm);
-    }
+    private $mg;
 
 
     public function testCreatedModelGenerator()
     {
-        $this->assertInstanceOf('\Dive\ModelGenerator', new ModelGenerator($this->rm));
+        $this->assertInstanceOf('\Dive\ModelGenerator', $this->mg);
     }
 
 
@@ -45,8 +39,7 @@ class ModelGeneratorTest extends TestCase
      */
     public function testGetNeededModels(array $expectedModels)
     {
-        $generator = new ModelGenerator($this->rm);
-        $actualNeededModels = $generator->getNeededModels($this->getSchema());
+        $actualNeededModels = $this->mg->getNeededModels($this->getSchema());
         $this->assertEquals($expectedModels, $actualNeededModels, '', 0, 10, true);
     }
 
@@ -58,9 +51,17 @@ class ModelGeneratorTest extends TestCase
      */
     public function testGetExistingModelClasses(array $expectedModels, $targetDirectory)
     {
-        $modelGenerator = new ModelGenerator($this->rm);
-        $actualModelClasses = $modelGenerator->getExistingModelClasses($targetDirectory);
+        $this->assertStringEndsWith(self::MODEL_PATH, $targetDirectory);
+        $actualModelClasses = $this->mg->getExistingModelClasses($targetDirectory);
         $this->assertEquals($expectedModels, $actualModelClasses, '', 0, 10, true);
+    }
+
+    /**
+     * @expectedException \Dive\Exception
+     */
+    public function testGetExistingModelClassesThrowsException()
+    {
+        $this->mg->getExistingModelClasses('NOT_EXISTING_FOLDER');
     }
 
 
@@ -75,14 +76,8 @@ class ModelGeneratorTest extends TestCase
         $author = 'Steffen Zeidler <sigma_z@sigma-scripts.de>';
         $expectedContent = str_replace(array('{date}', '{author}'), array($date, $author), $expectedContent);
 
-        $modelGenerator = new ModelGenerator($this->rm);
-        $actualClassFile = $modelGenerator->createClassFile(
-            $modelClassName,
-            $date,
-            $author,
-            $this->getSchema(),
-            PHP_EOL
-        );
+        $schema = $this->getSchema();
+        $actualClassFile = $this->mg->createClassFile($modelClassName, $date, $author, $schema, PHP_EOL);
 
         $this->assertSame($expectedContent, $actualClassFile);
     }
@@ -132,6 +127,7 @@ class ModelGeneratorTest extends TestCase
      */
     public function provideIteration()
     {
+        $path = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../' . DIRECTORY_SEPARATOR . 'TestSuite' . DIRECTORY_SEPARATOR . self::MODEL_PATH);
         return array(
             array(
                 array(
@@ -142,7 +138,7 @@ class ModelGeneratorTest extends TestCase
                     '\Dive\TestSuite\Model\Tag',
                     '\Dive\TestSuite\Model\User',
                 ),
-                '../TestSuite/Model'
+                $path
             )
         );
     }
@@ -152,8 +148,8 @@ class ModelGeneratorTest extends TestCase
     {
         parent::setUp();
 
-        // record manager
-        $this->rm = $this->createDefaultRecordManager();
+        $rm = $this->createDefaultRecordManager();
+        $this->mg = new ModelGenerator($rm);
     }
 
 }

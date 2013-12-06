@@ -44,34 +44,23 @@ class Record
     const COMPOSITE_ID_SEPARATOR = '|';
     const FROM_ARRAY_EXISTS_KEY = '_exists_';
 
-    /**
-     * @var array
-     * @todo update identifiers on save
-     */
-    private /** @noinspection PhpUnusedPrivateFieldInspection */ $_identifiers = array();
-    /**
-     * @var Table
-     */
+
+    /** @var Table */
     protected $_table;
-    /**
-     * @var array
-     */
+
+    /** @var array */
     protected $_data = array();
-    /**
-     * @var array
-     */
+
+    /** @var array */
     protected $_mappedValues = array();
-    /**
-     * @var array
-     */
+
+    /** @var array */
     protected $_modifiedFields = array();
-    /**
-     * @var RecordCollection
-     */
+
+    /** @var RecordCollection */
     protected $_resultCollection;
-    /**
-     * @var bool
-     */
+
+    /** @var bool */
     protected $_exists = false;
 
 
@@ -630,7 +619,7 @@ class Record
      */
     private function getReferenceAsArray(Relation $relation, $relationName, $withMappedFields, array &$visited)
     {
-        if ($relation->hasReferenceFor($this, $relationName)) {
+        if ($relation->hasReferenceLoadedFor($this, $relationName)) {
             /** @var Record|Record[]|RecordCollection $related */
             $related = $this->get($relationName);
             if ($relation->isOneToMany() && $relation->isOwningSide($relationName)) {
@@ -645,6 +634,41 @@ class Record
             }
         }
         return false;
+    }
+
+
+    /**
+     * TODO unit test code: find a better way!
+     *
+     * @param string $fieldName
+     */
+    public function markFieldAsModified($fieldName)
+    {
+        if (!$this->isFieldModified($fieldName)) {
+            $this->_modifiedFields[$fieldName] = $this->get($fieldName);
+        }
+    }
+
+
+    /**
+     * @param array $references
+     */
+    public function loadReferences(array $references)
+    {
+        foreach ($references as $relationName => $relatedReferences) {
+            /** @var RecordCollection|Record[]|Record $related */
+            $related = $this->_table->getRelation($relationName)->getReferenceFor($this, $relationName);
+            if (is_array($relatedReferences)) {
+                if ($related instanceof RecordCollection) {
+                    foreach ($related as $relatedRecord) {
+                        $relatedRecord->loadReferences($relatedReferences);
+                    }
+                }
+                else if ($related instanceof Record) {
+                    $related->loadReferences($relatedReferences);
+                }
+            }
+        }
     }
 
 }

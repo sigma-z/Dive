@@ -23,6 +23,7 @@ use Dive\UnitOfWork\UnitOfWork;
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 15.11.13
+ * @TODO refactor class
  */
 class RecordDeleteConstraintTest extends TestCase
 {
@@ -49,7 +50,7 @@ class RecordDeleteConstraintTest extends TestCase
      * @throws \Exception
      * @dataProvider provideDeleteOnNonSavedRecords
      */
-    public function testDeleteOnNonSavedRecordsOwningSide($tableName)
+    public function testDeleteOnNonSavedRecords($tableName)
     {
         $rm = self::createDefaultRecordManager();
 
@@ -109,7 +110,8 @@ class RecordDeleteConstraintTest extends TestCase
         $tableName = key($deleteGraph[0]);
         $recordKey = $deleteGraph[0][$tableName][0];
         $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
-        $record = $this->getGeneratedRecord($rm, $tableName, $recordKey);
+        $table = $rm->getTable($tableName);
+        $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $constraint = $constraints[0];
 
         $isConstraintRestricted = self::isRestrictedConstraint($constraint);
@@ -136,7 +138,6 @@ class RecordDeleteConstraintTest extends TestCase
 
 
     /**
-     * TODO define more tests
      * NOTE records are referenced by TableRowsProvider::provideTableRows()
      *
      * @return array[]
@@ -267,7 +268,8 @@ class RecordDeleteConstraintTest extends TestCase
         $combinedConstraints = $this->getCombinedConstraints();
         foreach ($testCases as $testCase) {
             foreach ($combinedConstraints as $constraintCombination) {
-                $combinedTestCases[] = array_merge($testCase, array($constraintCombination));
+                $testCase['constraints'] = $constraintCombination;
+                $combinedTestCases[] = $testCase;
             }
         }
         return $combinedTestCases;
@@ -282,7 +284,7 @@ class RecordDeleteConstraintTest extends TestCase
         $constraints = array(
             PlatformInterface::CASCADE,
             PlatformInterface::SET_NULL,
-            PlatformInterface::NO_ACTION,
+//            PlatformInterface::NO_ACTION,
             PlatformInterface::RESTRICT
         );
 
@@ -438,8 +440,9 @@ class RecordDeleteConstraintTest extends TestCase
 
         foreach ($deleteGraph as $level => $tableReferences) {
             foreach ($tableReferences as $tableName => $recordKeys) {
+                $table = $rm->getTable($tableName);
                 foreach ($recordKeys as $recordKey) {
-                    $record = $this->getGeneratedRecord($rm, $tableName, $recordKey);
+                    $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
                     $operation = self::getExpectedScheduleOperation($level, $constraints);
                     if ($operation) {
                         $expected[$operation][] = $record->getOid();
@@ -493,26 +496,6 @@ class RecordDeleteConstraintTest extends TestCase
             }
         }
         return true;
-    }
-
-
-    /**
-     * @param  RecordManager $rm
-     * @param  string        $tableName
-     * @param  string        $recordKey
-     * @return Record
-     */
-    private function getGeneratedRecord(RecordManager $rm, $tableName, $recordKey)
-    {
-        $pk = self::$recordGenerator->getRecordIdFromMap($tableName, $recordKey);
-        $table = $rm->getTable($tableName);
-        if ($table->hasCompositePrimaryKey()) {
-            $pk = explode(Record::COMPOSITE_ID_SEPARATOR, $pk);
-        }
-        $record = $table->findByPk($pk);
-        $message = "Could not load record for '$recordKey' in table '$tableName'";
-        $this->assertInstanceOf('\Dive\Record', $record, $message);
-        return $record;
     }
 
 }

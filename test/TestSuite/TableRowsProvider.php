@@ -71,7 +71,8 @@ class TableRowsProvider
             'Bart Simon' => array(
                 'firstname' => 'Bart',
                 'lastname' => 'Simon',
-                'User' => 'BartS'
+                'User' => 'BartS',
+                //'Editor' => 'John Doe'
             ),
         );
         $tableRows['tag'] = array('News', 'Release Notes', 'Feature', 'Documentation');

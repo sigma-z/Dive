@@ -132,15 +132,15 @@ class RelationTest extends TestCase
 
         if ($isOwningSide) {
             $referenceMessage = 'Reference to user->Author';
-            $this->assertFalse($relation->hasReferenceFor($user, 'Author'), $referenceMessage . ' is not set, yet!');
+            $this->assertFalse($relation->hasReferenceLoadedFor($user, 'Author'), $referenceMessage . ' is not set, yet!');
             $user->Author = $author;
-            $this->assertTrue($relation->hasReferenceFor($user, 'Author'), $referenceMessage . ' should be set!');
+            $this->assertTrue($relation->hasReferenceLoadedFor($user, 'Author'), $referenceMessage . ' should be set!');
         }
         else {
             $referenceMessage = 'Reference to author->User';
-            $this->assertFalse($relation->hasReferenceFor($author, 'User'), $referenceMessage . ' is not set, yet!');
+            $this->assertFalse($relation->hasReferenceLoadedFor($author, 'User'), $referenceMessage . ' is not set, yet!');
             $author->User = $user;
-            $this->assertTrue($relation->hasReferenceFor($author, 'User'), $referenceMessage . ' should be set!');
+            $this->assertTrue($relation->hasReferenceLoadedFor($author, 'User'), $referenceMessage . ' should be set!');
         }
 
         $this->assertRelationReferences($user, 'Author', $author);
@@ -159,12 +159,12 @@ class RelationTest extends TestCase
 
         if ($isOwningSide) {
             $author->Editor = $editor;
-            $this->assertTrue($relation->hasReferenceFor($author, 'Editor'), 'Reference to author->Editor is not set!');
+            $this->assertTrue($relation->hasReferenceLoadedFor($author, 'Editor'), 'Reference to author->Editor is not set!');
         }
         else {
             $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author);
             $editor->Author[] = $author;
-            $this->assertTrue($relation->hasReferenceFor($editor, 'Author'), 'Reference to editor->Author is not set!');
+            $this->assertTrue($relation->hasReferenceLoadedFor($editor, 'Author'), 'Reference to editor->Author is not set!');
         }
 
         $this->assertRelationReferences($editor, 'Author', $author);

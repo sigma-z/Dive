@@ -9,8 +9,12 @@
 
 namespace Dive\Test\Relation;
 
+use Dive\Collection\RecordCollection;
 use Dive\Log\SqlLogger;
+use Dive\Record\Generator\RecordGenerator;
+use Dive\Record;
 use Dive\RecordManager;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TableRowsProvider;
 use Dive\TestSuite\TestCase;
 
@@ -22,14 +26,14 @@ use Dive\TestSuite\TestCase;
 class RelationLoadingTest extends TestCase
 {
 
-    /**
-     * @var RecordManager
-     */
-    private static $rm = null;
-    /**
-     * @var array
-     */
+    /** @var RecordManager */
+    private static $rm;
+
+    /** @var array */
     private static $tableRows = array();
+
+    /** @var RecordGenerator */
+    private static $recordGenerator;
 
 
     public static function setUpBeforeClass()
@@ -38,7 +42,7 @@ class RelationLoadingTest extends TestCase
 
         self::$tableRows = TableRowsProvider::provideTableRows();
         self::$rm = self::createDefaultRecordManager();
-        self::saveTableRows(self::$rm, self::$tableRows);
+        self::$recordGenerator = self::saveTableRows(self::$rm, self::$tableRows);
     }
 
 
@@ -81,7 +85,7 @@ class RelationLoadingTest extends TestCase
         self::$rm->getConnection()->setSqlLogger($sqlLogger);
 
         $userTable = self::$rm->getTable('user');
-        /** @var \Dive\Collection\RecordCollection|\Dive\Record[] $users */
+        /** @var \Dive\Collection\RecordCollection|User[] $users */
         $users = $userTable->createQuery('u')
             ->leftJoin('u.Author au')
             ->where('au.id IS NOT NULL')
@@ -90,7 +94,6 @@ class RelationLoadingTest extends TestCase
 
         /** @var \Iterator $iterator */
         $iterator = $users->getIterator();
-        /** @var \Dive\Record $user */
         $user = $iterator->current();
         $coll = $user->getResultCollection();
         $this->assertInstanceOf('\Dive\Collection\RecordCollection', $coll);
@@ -104,5 +107,137 @@ class RelationLoadingTest extends TestCase
         $sqlLogger->setEchoOutput(false);
         $this->assertEquals(3, $sqlLogger->getCount());
     }
+
+
+    /**
+     * @dataProvider provideLoadReferences
+     * @param string $tableName
+     * @param string $recordKey
+     * @param array  $references
+     * @param array  $expectedReferencesLoaded
+     */
+    public function testLoadReferences($tableName, $recordKey, array $references, array $expectedReferencesLoaded)
+    {
+        $table = self::$rm->getTable($tableName);
+        $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
+        $record->loadReferences($references);
+
+        $actualReferencesLoaded = $this->getLoadedReferences($record);
+        $this->assertEquals($expectedReferencesLoaded, $actualReferencesLoaded);
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideLoadReferences()
+    {
+        $testCases = array();
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordKey' => 'JohnD',
+            'references' => array(),
+            'expectedReferencesLoaded' => array()
+        );
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordKey' => 'JohnD',
+            'references' => array(
+                'Comment' => array(),
+                'Author' => array(
+                    'Article' => array('Comment' => array())
+                ),
+            ),
+            'expectedReferencesLoaded' => array(
+                'Author' => array(
+                    'Article' => array('Comment' => array())
+                )
+            )
+        );
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordKey' => 'JamieTK',
+            'references' => array(
+                'Author' => array(
+                    'Article' => array(
+                        'Article2tagHasMany' => array(),
+                        'Comment' => array()
+                    )
+                ),
+                'Comment' => array()
+            ),
+            'expectedReferencesLoaded' => array(
+                'Comment' => array(
+                    // loaded through Article relation
+                    'Article' => array(
+                        'Author' => array(),
+                        'Article2tagHasMany' => array(),
+                        'Comment' => array()
+                    )
+                ),
+                'Author' => array(
+                    'Article' => array(
+                        'Article2tagHasMany' => array(),
+                        'Comment' => array()
+                    )
+                )
+            )
+        );
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordKey' => 'BartS',
+            'references' => array(
+                'Comment' => array(),
+                'Author' => array()
+            ),
+            'expectedReferencesLoaded' => array(
+                'Author' => array(),
+                'Comment' => array()
+            )
+        );
+
+        return $testCases;
+    }
+
+
+    /**
+     * @param  Record $record
+     * @param  array  $visited
+     * @return array
+     */
+    private function getLoadedReferences(Record $record, array $visited = array())
+    {
+        $oid = $record->getOid();
+        if (in_array($oid, $visited)) {
+            return false;
+        }
+        $visited[] = $oid;
+
+        $actualReferences = array();
+        $table = $record->getTable();
+        $relations = $table->getRelations();
+        foreach ($relations as $relationName => $relation) {
+            if ($relation->hasReferenceLoadedFor($record, $relationName)) {
+                $related = $relation->getReferenceFor($record, $relationName);
+                if ($related instanceof RecordCollection) {
+                    foreach ($related as $relatedRecord) {
+                        $loadedReferences = $this->getLoadedReferences($relatedRecord, $visited);
+                        if ($loadedReferences !== false) {
+                            $actualReferences[$relationName] = $loadedReferences;
+                        }
+                    }
+                }
+                else if ($related instanceof Record) {
+                    $loadedReferences = $this->getLoadedReferences($related, $visited);
+                    if ($loadedReferences !== false) {
+                        $actualReferences[$relationName] = $loadedReferences;
+                    }
+                }
+            }
+        }
+        return $actualReferences;
+    }
+
 
 }

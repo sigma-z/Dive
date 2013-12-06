@@ -12,6 +12,7 @@ namespace Dive\Relation;
 use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\RecordManager;
+use Dive\Table;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -367,18 +368,26 @@ class Relation
             $identifiers = array($record->getIdentifierAsString());
         }
 
-        $rm = $record->getTable()->getRecordManager();
+        $table = $record->getTable();
+        $rm = $table->getRecordManager();
         $relatedTable = $this->getJoinTable($rm, $relationName);
 
         $query = $relatedTable->createQuery('a');
         $query->distinct();
         if ($this->isReferencedSide($relationName)) {
+            $expression = $table->hasCompositePrimaryKey()
+                ? self::getCompositeIdentifierConcat($table, 'b')
+                : "b.$this->refField";
             $query
                 ->leftJoin("a.$this->owningAlias b")
-                ->whereIn("b.$this->refField", $identifiers);
+                ->whereIn($expression, $identifiers);
         }
         else {
-            $query->whereIn("a.$this->owningField", $identifiers);
+            $expression = $table->hasCompositePrimaryKey()
+                ? self::getCompositeIdentifierConcat($table, 'a')
+                : "a.$this->owningField";
+
+            $query->whereIn($expression, $identifiers);
             if ($this->isOneToMany() && $this->orderBy) {
                 if (false !== ($pos = strpos($this->orderBy, '.'))) {
                     list($orderByRelationAlias, $orderByField) = explode('.', $this->orderBy);
@@ -392,6 +401,22 @@ class Relation
             }
         }
         return $query;
+    }
+
+
+    /**
+     * @param  Table $table
+     * @param  string $alias
+     * @return string
+     */
+    private static function getCompositeIdentifierConcat(Table $table, $alias)
+    {
+        $connection = $table->getConnection();
+        $identifierFields = $table->getIdentifierAsArray();
+        foreach ($identifierFields as &$idField) {
+            $idField = $connection->quoteIdentifier("$alias.$idField");
+        }
+        return 'CONCAT(' . implode(", '" . Record::COMPOSITE_ID_SEPARATOR . "', ", $identifierFields) . ')';
     }
 
 
@@ -451,7 +476,7 @@ class Relation
      * @param  string $relationName
      * @return bool
      */
-    public function hasReferenceFor(Record $record, $relationName)
+    public function hasReferenceLoadedFor(Record $record, $relationName)
     {
         $isOwningSide = $this->isOwningSide($relationName);
         if (!$isOwningSide && $this->map->hasFieldMapping($record->getOid())) {

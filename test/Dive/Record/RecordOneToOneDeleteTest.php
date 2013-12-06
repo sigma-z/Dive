@@ -227,7 +227,7 @@ class RecordOneToOneDeleteTest extends ChangeForCommitTestCase
         $rm->commit();
 
         $relation = $user->getTableRelation('Author');
-        $this->assertFalse($relation->hasReferenceFor($user, 'Author'));
+        $this->assertFalse($relation->hasReferenceLoadedFor($user, 'Author'));
 
         $rm->delete($user);
         $this->assertRecordIsScheduledForDelete($user);

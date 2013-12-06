@@ -98,7 +98,12 @@ class UnitOfWork
      */
     public function scheduleSave(Record $record)
     {
-        $this->scheduleRecordForCommit($record, self::OPERATION_SAVE);
+        $operation = self::OPERATION_SAVE;
+        $this->throwAlreadyScheduledAsDeleteException($record, $operation);
+
+        if (!$record->exists() || $record->isModified()) {
+            $this->scheduleRecordForCommit($record, $operation);
+        }
         $this->handleUpdateConstraints($record);
     }
 
@@ -125,20 +130,31 @@ class UnitOfWork
      */
     private function scheduleRecordForCommit(Record $record, $operation)
     {
+        $this->throwAlreadyScheduledAsDeleteException($record, $operation);
+
         if ($this->isRecordScheduledForCommit($record, $operation)) {
             return;
         }
 
+        $oid = $record->getOid();
+        $this->scheduledForCommit[$oid] = $operation;
+        $this->recordIdentityMap[$oid] = $record;
+    }
+
+
+    /**
+     * @param  Record $record
+     * @param  string $operation
+     * @throws UnitOfWorkException
+     */
+    private function throwAlreadyScheduledAsDeleteException(Record $record, $operation)
+    {
         if ($operation == self::OPERATION_SAVE && $this->isRecordScheduledForDelete($record)) {
             throw new UnitOfWorkException(
                 "Scheduling record for " . strtoupper($operation) . " failed!\n"
                 . "Reason: Record already has been scheduled for " . strtoupper(self::OPERATION_DELETE)
             );
         }
-
-        $oid = $record->getOid();
-        $this->scheduledForCommit[$oid] = $operation;
-        $this->recordIdentityMap[$oid] = $record;
     }
 
 
@@ -185,27 +201,57 @@ class UnitOfWork
         if (!$record->exists()) {
             return;
         }
-//
-//        echo $record->username . "\n";
-//        $relations = $record->getTable()->getRelations();
-//        foreach ($relations as $relationName => $relation) {
-//            if ($relation->isOwningSide($relationName)) {
-//                echo $relationName . " is Owning\n";
-//
-//            }
-//            else {
-//                echo $relationName . " is Referenced\n";
-//            }
 
-//            $owningTable = $this->rm->getTable($relation->getOwningTable());
-//            $query = $owningTable->createQuery()
-//                ->where($relation->getOwningField() . ' = ?', $record->getIdentifierAsString());
-//            $records = $query->execute();
-//            foreach ($records as $record) {
-//                echo $operation == self::OPERATION_DELETE ? $relation->getOnDelete() : $relation->getOnUpdate() . "\n";
-//            }
+        $owningRelations = $record->getTable()->getOwningRelations();
+        foreach ($owningRelations as $relationName => $owningRelation) {
+            $owningRecords = $owningRelation->getOriginalReferenceFor($record, $relationName);
+            foreach ($owningRecords as $owningRecord) {
+                $this->applyUpdateConstraint($owningRelation, $owningRecord, $record);
+            }
+        }
+    }
 
-//        }
+
+    /**
+     * @param Relation $owningRelation
+     * @param Record   $owningRecord
+     * @param Record   $referencedRecord
+     * @throws UnitOfWorkException
+     */
+    private function applyUpdateConstraint(Relation $owningRelation, Record $owningRecord, Record $referencedRecord)
+    {
+        $refFieldName = $owningRelation->getReferencedField();
+        if (!$referencedRecord->isFieldModified($refFieldName)) {
+            return;
+        }
+
+        $owningFieldName = $owningRelation->getOwningField();
+        if ($owningRecord->isFieldModified($owningFieldName)) {
+            return;
+        }
+
+        $constraintName = $owningRelation->getOnUpdate();
+        switch ($constraintName) {
+            case PlatformInterface::CASCADE:
+                $value = $referencedRecord->get($refFieldName);
+                $owningRecord->set($owningFieldName, $value);
+                if (!$this->isRecordScheduledForSave($owningRecord)) {
+                    $this->scheduleSave($owningRecord);
+                }
+                break;
+
+            case PlatformInterface::SET_NULL:
+                $owningRecord->set($owningFieldName, null);
+                if (!$this->isRecordScheduledForSave($owningRecord)) {
+                    $this->scheduleSave($owningRecord);
+                }
+                break;
+
+            case PlatformInterface::RESTRICT:
+            case PlatformInterface::NO_ACTION:
+                // TODO exception not specific enough?
+                throw new UnitOfWorkException("Update record is restricted by onUpdate!");
+        }
     }
 
 

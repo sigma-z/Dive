@@ -213,6 +213,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
+     * TODO could we use getRecordWithRandomData() instead?
      * @return FieldValuesGenerator
      */
     public function getRandomRecordDataGenerator()
@@ -221,6 +222,19 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $this->randomRecordDataGenerator = new FieldValuesGenerator();
         }
         return $this->randomRecordDataGenerator;
+    }
+
+
+    /**
+     * @param  Table $table
+     * @param  array $defaultFieldValues
+     * @return Record
+     */
+    protected function getRecordWithRandomData(Table $table, array $defaultFieldValues = array())
+    {
+        $fieldValueGenerator = new FieldValuesGenerator();
+        $recordData = $fieldValueGenerator->getRandomRecordData($table->getFields(), $defaultFieldValues);
+        return $table->createRecord($recordData);
     }
 
 
@@ -527,6 +541,28 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $recordGenerator->setTablesMapField($tableMapFields);
         $recordGenerator->generate();
         return $recordGenerator;
+    }
+
+
+    /**
+     * NOTE Table should use a different record manager than generator to use different table repositories
+     *
+     * @param \Dive\Record\Generator\RecordGenerator $generator
+     * @param  Table            $table
+     * @param  string           $recordKey
+     * @return Record
+     */
+    protected function getGeneratedRecord(RecordGenerator $generator, Table $table, $recordKey)
+    {
+        $tableName = $table->getTableName();
+        $pk = $generator->getRecordIdFromMap($tableName, $recordKey);
+        if ($table->hasCompositePrimaryKey()) {
+            $pk = explode(Record::COMPOSITE_ID_SEPARATOR, $pk);
+        }
+        $record = $table->findByPk($pk);
+        $message = "Could not load record for '$recordKey' in table '$tableName'";
+        $this->assertInstanceOf('\Dive\Record', $record, $message);
+        return $record;
     }
 
 

@@ -11,6 +11,7 @@ namespace Dive\Test;
 
 
 use Dive\ModelGenerator;
+use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -19,17 +20,27 @@ use Dive\TestSuite\TestCase;
  */
 class ModelGeneratorTest extends TestCase
 {
+
     const MODEL_PATH = 'Model';
+
+    /**
+     * used as test values
+     */
+    const DATE = '15.11.13';
+
+    const MAIL = 'sigma_z@sigma-scripts.de';
+
+    const AUTHOR = 'Steffen Zeidler';
 
     /**
      * @var ModelGenerator
      */
-    private $mg;
+    private $modelGenerator;
 
 
     public function testCreatedModelGenerator()
     {
-        $this->assertInstanceOf('\Dive\ModelGenerator', $this->mg);
+        $this->assertInstanceOf('\Dive\ModelGenerator', $this->modelGenerator);
     }
 
 
@@ -39,7 +50,7 @@ class ModelGeneratorTest extends TestCase
      */
     public function testGetNeededModels(array $expectedModels)
     {
-        $actualNeededModels = $this->mg->getNeededModels($this->getSchema());
+        $actualNeededModels = $this->modelGenerator->getNeededModels($this->getSchema());
         $this->assertEquals($expectedModels, $actualNeededModels, '', 0, 10, true);
     }
 
@@ -52,16 +63,17 @@ class ModelGeneratorTest extends TestCase
     public function testGetExistingModelClasses(array $expectedModels, $targetDirectory)
     {
         $this->assertStringEndsWith(self::MODEL_PATH, $targetDirectory);
-        $actualModelClasses = $this->mg->getExistingModelClasses($targetDirectory);
+        $actualModelClasses = $this->modelGenerator->getExistingModelClasses($targetDirectory);
         $this->assertEquals($expectedModels, $actualModelClasses, '', 0, 10, true);
     }
+
 
     /**
      * @expectedException \Dive\Exception
      */
     public function testGetExistingModelClassesThrowsException()
     {
-        $this->mg->getExistingModelClasses('NOT_EXISTING_FOLDER');
+        $this->modelGenerator->getExistingModelClasses('NOT_EXISTING_FOLDER');
     }
 
 
@@ -72,12 +84,16 @@ class ModelGeneratorTest extends TestCase
      */
     public function testCreateClassFile($modelClassName, $expectedContent)
     {
-        $date = '15.11.13';
-        $author = 'Steffen Zeidler <sigma_z@sigma-scripts.de>';
-        $expectedContent = str_replace(array('{date}', '{author}'), array($date, $author), $expectedContent);
+        $replaces = array(
+            '{date}' => self::DATE,
+            '{author}' => self::AUTHOR,
+            '{mail}' => self::MAIL
+        );
+        $expectedContent = str_replace(array_keys($replaces), array_values($replaces), $expectedContent);
 
         $schema = $this->getSchema();
-        $actualClassFile = $this->mg->createClassFile($modelClassName, $date, $author, $schema, PHP_EOL);
+
+        $actualClassFile = $this->modelGenerator->createClassFile($modelClassName, $schema);
 
         $this->assertSame($expectedContent, $actualClassFile);
     }
@@ -105,11 +121,11 @@ class ModelGeneratorTest extends TestCase
                     . 'use Dive\Record;' . PHP_EOL
                     . '' . PHP_EOL
                     . '/**' . PHP_EOL
-                    . ' * @author  {author}' . PHP_EOL
+                    . ' * @author  {author} <{mail}>' . PHP_EOL
                     . ' * @created {date}' . PHP_EOL
                     . ' *' . PHP_EOL
-                    . ' * @property integer $article_id' . PHP_EOL
-                    . ' * @property integer $tag_id' . PHP_EOL
+                    . ' * @property string $article_id' . PHP_EOL
+                    . ' * @property string $tag_id' . PHP_EOL
                     . ' * @property Article $Article' . PHP_EOL
                     . ' * @property Tag $Tag' . PHP_EOL
                     . ' */' . PHP_EOL
@@ -117,7 +133,79 @@ class ModelGeneratorTest extends TestCase
                     . '{' . PHP_EOL
                     . '' . PHP_EOL
                     . '}'
-            )
+            ),
+            array(
+                '\Dive\TestSuite\Model\Author',
+                '<?php' . PHP_EOL
+                    . '/*' . PHP_EOL
+                    . ' * This file is part of the Dive ORM framework.' . PHP_EOL
+                    . ' * (c) Steffen Zeidler <sigma_z@sigma-scripts.de>' . PHP_EOL
+                    . ' *' . PHP_EOL
+                    . ' * For the full copyright and license information, please view the LICENSE' . PHP_EOL
+                    . ' * file that was distributed with this source code.' . PHP_EOL
+                    . ' */' . PHP_EOL
+                    . PHP_EOL
+                    . 'namespace Dive\TestSuite\Model;' . PHP_EOL
+                    . '' . PHP_EOL
+                    . 'use Dive\Record;' . PHP_EOL
+                    . 'use Dive\Collection\RecordCollection;' . PHP_EOL
+                    . '' . PHP_EOL
+                    . '/**' . PHP_EOL
+                    . ' * @author  {author} <{mail}>' . PHP_EOL
+                    . ' * @created {date}' . PHP_EOL
+                    . ' *' . PHP_EOL
+                    . ' * @property string $id' . PHP_EOL
+                    . ' * @property string $firstname' . PHP_EOL
+                    . ' * @property string $lastname' . PHP_EOL
+                    . ' * @property string $email' . PHP_EOL
+                    . ' * @property string $user_id' . PHP_EOL
+                    . ' * @property string $editor_id' . PHP_EOL
+                    . ' * @property Article[]|RecordCollection $Article' . PHP_EOL
+                    . ' * @property Author[]|RecordCollection $Author' . PHP_EOL
+                    . ' * @property User $User' . PHP_EOL
+                    . ' * @property Author $Editor' . PHP_EOL
+                    . ' */' . PHP_EOL
+                    . 'class Author extends Record' . PHP_EOL
+                    . '{' . PHP_EOL
+                    . '' . PHP_EOL
+                    . '}'
+            ),
+            array(
+                '\Dive\TestSuite\Model\Article',
+                '<?php' . PHP_EOL
+                    . '/*' . PHP_EOL
+                    . ' * This file is part of the Dive ORM framework.' . PHP_EOL
+                    . ' * (c) Steffen Zeidler <sigma_z@sigma-scripts.de>' . PHP_EOL
+                    . ' *' . PHP_EOL
+                    . ' * For the full copyright and license information, please view the LICENSE' . PHP_EOL
+                    . ' * file that was distributed with this source code.' . PHP_EOL
+                    . ' */' . PHP_EOL
+                    . PHP_EOL
+                    . 'namespace Dive\TestSuite\Model;' . PHP_EOL
+                    . '' . PHP_EOL
+                    . 'use Dive\Record;' . PHP_EOL
+                    . 'use Dive\Collection\RecordCollection;' . PHP_EOL
+                    . '' . PHP_EOL
+                    . '/**' . PHP_EOL
+                    . ' * @author  {author} <{mail}>' . PHP_EOL
+                    . ' * @created {date}' . PHP_EOL
+                    . ' *' . PHP_EOL
+                    . ' * @property string $id' . PHP_EOL
+                    . ' * @property string $author_id' . PHP_EOL
+                    . ' * @property bool $is_published' . PHP_EOL
+                    . ' * @property string $title' . PHP_EOL
+                    . ' * @property string $teaser' . PHP_EOL
+                    . ' * @property string $text' . PHP_EOL
+                    . ' * @property string $changed_on' . PHP_EOL
+                    . ' * @property Author $Author' . PHP_EOL
+                    . ' * @property Comment[]|RecordCollection $Comment' . PHP_EOL
+                    . ' * @property Article2tag[]|RecordCollection $Article2tagHasMany' . PHP_EOL
+                    . ' */' . PHP_EOL
+                    . 'class Article extends Record' . PHP_EOL
+                    . '{' . PHP_EOL
+                    . '' . PHP_EOL
+                    . '}'
+            ),
         );
     }
 
@@ -127,7 +215,8 @@ class ModelGeneratorTest extends TestCase
      */
     public function provideIteration()
     {
-        $path = realpath(__DIR__ . DIRECTORY_SEPARATOR . '../' . DIRECTORY_SEPARATOR . 'TestSuite' . DIRECTORY_SEPARATOR . self::MODEL_PATH);
+        $testBaseDirectory = __DIR__ . DIRECTORY_SEPARATOR . '../' . DIRECTORY_SEPARATOR;
+        $path = realpath($testBaseDirectory . 'TestSuite' . DIRECTORY_SEPARATOR . self::MODEL_PATH);
         return array(
             array(
                 array(
@@ -148,8 +237,29 @@ class ModelGeneratorTest extends TestCase
     {
         parent::setUp();
 
-        $rm = $this->createDefaultRecordManager();
-        $this->mg = new ModelGenerator($rm);
+        $recordManager = $this->createDefaultRecordManager();
+        $this->modelGenerator = $this->createModelGenerator($recordManager);
+    }
+
+
+    /**
+     * @param RecordManager $recordManager
+     * @return ModelGenerator
+     */
+    private function createModelGenerator(RecordManager $recordManager)
+    {
+        $modelGenerator = new ModelGenerator($recordManager);
+
+        $license = "This file is part of the Dive ORM framework." . PHP_EOL
+            . "(c) Steffen Zeidler <sigma_z@sigma-scripts.de>" . PHP_EOL
+            . PHP_EOL
+            . "For the full copyright and license information, please view the LICENSE" . PHP_EOL
+            . "file that was distributed with this source code.";
+        $modelGenerator->setLicense($license);
+        $modelGenerator->setEndOfLine(PHP_EOL);
+        $modelGenerator->setAuthor(self::AUTHOR, self::MAIL);
+        $modelGenerator->setDate(self::DATE);
+        return $modelGenerator;
     }
 
 }

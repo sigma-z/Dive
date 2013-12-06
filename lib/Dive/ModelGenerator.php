@@ -10,10 +10,11 @@
 namespace Dive;
 
 
+use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\Util\ClassNameExtractor;
 use Dive\Util\ModelFilterIterator;
-use Dive\Util\StringExplode;
+use Dive\Util\PhpFormatter;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -26,17 +27,36 @@ class ModelGenerator
 {
 
     /**
+     * @var PhpFormatter
+     */
+    private $formatter = null;
+
+    /**
+     * @var string
+     */
+    private $date = '';
+
+    /**
+     * @var string
+     */
+    private $author = '';
+
+    /**
      * @var RecordManager|null
      */
-    private $rm = null;
+    private $recordManager = null;
 
 
     /**
-     * @param RecordManager $rm
+     * @param RecordManager $recordManager
+     * @return ModelGenerator
      */
-    public function __construct(RecordManager $rm)
+    public function __construct(RecordManager $recordManager)
     {
-        $this->rm = $rm;
+        $this->recordManager = $recordManager;
+        $this->date = date('d.m.y');
+
+        $this->formatter = new PhpFormatter();
     }
 
 
@@ -82,69 +102,66 @@ class ModelGenerator
 
 
     /**
-     * @param string              $modelClassName
-     * @param string              $date
-     * @param string              $author
-     * @param Schema $schema
-     * @param string              $eol End of Line
-     * @return string
-     */
-    public function createClassFile($modelClassName, $date, $author, Schema $schema, $eol = PHP_EOL)
-    {
-        $license = $this->getLicense($eol);
-        list($className, $namespace) = $this->splitClassAndNamespace($modelClassName);
-        $properties = $this->getProperties($modelClassName, $schema);
-        $annotations = $this->getAnnotations($properties, $date, $author, $eol);
-        return $this->formatClassFile($className, $namespace, $annotations, $license, $eol);
-    }
-
-
-    /**
-     * @param string $eol
-     * @return string
-     */
-    public function getLicense($eol)
-    {
-        return "This file is part of the Dive ORM framework." . $eol
-            . "(c) Steffen Zeidler <sigma_z@sigma-scripts.de>" . $eol
-            . $eol
-            . "For the full copyright and license information, please view the LICENSE" . $eol
-            . "file that was distributed with this source code.";
-    }
-
-
-    /**
-     * @param $modelClassName
-     * @return array
-     */
-    public function splitClassAndNamespace($modelClassName)
-    {
-        $classParts = explode('\\', $modelClassName);
-        array_shift($classParts);
-        $className = array_pop($classParts);
-        $namespace = implode('\\', $classParts);
-        return array($className, $namespace);
-    }
-
-
-    /**
      * @param string $modelClassName
      * @param Schema $schema
-     * @return array
+     * @param string $extendedClass
+     * @param string $collectionClass
+     * @return string
      */
-    private function getProperties($modelClassName, Schema $schema)
-    {
-        $tableFields = $this->getTableFieldsByClassName($modelClassName, $schema);
-        if (!$tableFields) {
-            return array();
-        }
+    public function createClassFile(
+        $modelClassName,
+        Schema $schema,
+        $extendedClass = '\\Dive\\Record',
+        $collectionClass = '\\Dive\\Collection\\RecordCollection'
+    ) {
+        $addUses = array();
+
+        $tableName = $this->getTableName($modelClassName, $schema);
+        $tableFields = $schema->getTableFields($tableName);
         $fields = array();
         foreach ($tableFields as $key => $tableField) {
-            $fields[] = array($tableField['type'], $key);
+            $type = $this->translateType($tableField['type'], $key);
+            $fields[] = array($type, $key);
         }
-        $fields[] = array('Article', 'Article');
-        $fields[] = array('Tag', 'Tag');
-        return $fields;
+
+
+        $tableRelations = $schema->getTableRelations($tableName);
+        foreach ($tableRelations as $relationType => $relations) {
+            foreach ($relations as $tableRelation) {
+                if ($relationType == 'owning') {
+                    $key = $tableRelation['refAlias'];
+                    $relatedTable = $tableRelation['refTable'];
+                    $isOneToOne = true;
+                }
+                else {
+                    $key = $tableRelation['owningAlias'];
+                    $relatedTable = $tableRelation['owningTable'];
+                    $isOneToOne = $tableRelation['type'] == Relation::ONE_TO_ONE;
+                }
+                $relatedRecordClass = $schema->getRecordClass($relatedTable);
+                list($relatedRecordClass) = $this->formatter->splitClassAndNamespace($relatedRecordClass);
+                if ($isOneToOne) {
+                    $type = $relatedRecordClass;
+                }
+                else {
+                    list($collectionClassName) = $this->formatter->splitClassAndNamespace($collectionClass);
+                    $type = $relatedRecordClass . '[]|' . $collectionClassName;
+                    $addUses[] = $collectionClass;
+                }
+                $fields[] = array($type, $key);
+            }
+        }
+
+
+        return $this->formatter
+            ->resetUsages()
+            ->addUsages($addUses)
+            ->setExtendFrom($extendedClass)
+            ->resetAnnotations()
+            ->addAnnotation('author', $this->author)
+            ->addAnnotation('created', $this->date)
+            ->setProperties($fields)
+            ->getClassFile($modelClassName);
     }
 
 
@@ -153,79 +170,76 @@ class ModelGenerator
      * @param Schema $schema
      * @return array
      */
-    private function getTableFieldsByClassName($modelClassName, Schema $schema)
+    private function getTableName($modelClassName, Schema $schema)
     {
         $tableNames = $schema->getTableNames();
         foreach ($tableNames as $tableName) {
             if ($modelClassName == $schema->getRecordClass($tableName)) {
-               return $schema->getTableFields($tableName);
+                return $tableName;
             }
         }
-        return null;
+        return array();
     }
 
 
     /**
-     * @param array  $properties
-     * @param string $date
-     * @param string $author
-     * @param string $eol
+     * @param string $type
+     * @param string $key
      * @return string
      */
-    public function getAnnotations(array $properties, $date, $author, $eol = PHP_EOL)
+    private function translateType($type, $key)
     {
-        $annotations = array(
-            array('author ', $author),
-            array('created', $date),
-        );
-        $lines = array();
-        foreach ($annotations as $annotation) {
-            $name = $annotation[0];
-            $type = $annotation[1];
-            $lines[] = "@${name} {$type}";
+        if ($type == 'integer' || $type == 'datetime') {
+            // blacklist integer and datetime
+            if (substr($key, 0, 3) == 'is_' || substr($key, 0, 4) == 'has_') {
+                return 'bool';
+            }
+            return 'string';
         }
-        $lines[] = '';
-        foreach ($properties as $annotation) {
-            $type = $annotation[0];
-            $variable = $annotation[1];
-            $lines[] = "@property {$type} \${$variable}";
-        }
-        return implode($eol, $lines);
+        return $type;
     }
 
 
     /**
-     * @param string $className
-     * @param string $namespace
-     * @param string $annotations
      * @param string $license
-     * @param string $eol
-     * @return string
+     * @return $this
      */
-    private function formatClassFile($className, $namespace, $annotations, $license, $eol = PHP_EOL)
+    public function setLicense($license = '')
     {
-        $useModelClassName = '\Dive\Record';
-        list($useClass, $useNamespace) = $this->splitClassAndNamespace($useModelClassName);
-        return '<?php' . $eol
-            . $this->formatComment($license, false, $eol) . $eol
-            . "namespace {$namespace};{$eol}{$eol}"
-            . "use {$useNamespace}\\{$useClass};{$eol}{$eol}"
-            . $this->formatComment($annotations, true, $eol)
-            . "class {$className} extends {$useClass}{$eol}{{$eol}{$eol}}";
+        $this->formatter->setFileComment($license);
+        return $this;
     }
 
 
     /**
-     * @param string $text
-     * @param bool   $isDocComment
      * @param string $eol
-     * @return string
+     * @return $this
      */
-    private function formatComment($text, $isDocComment = false, $eol = PHP_EOL)
+    public function setEndOfLine($eol = PHP_EOL)
     {
-        $text = preg_replace('/^(.*?)$/m', ' * $1', $text);
-        $text = StringExplode::trimMultiLines($text, 'rtrim', $eol);
-        $commentStart = $isDocComment ? '**' : '*';
-        return "/{$commentStart}{$eol}{$text}{$eol} */{$eol}";
+        $this->formatter->setEndOfLine($eol);
+        return $this;
+    }
+
+
+    /**
+     * @param string $author
+     * @param string $mail
+     */
+    public function setAuthor($author = '', $mail = null)
+    {
+        if ($mail !== null) {
+            $author .= " <$mail>";
+        }
+        $this->author = $author;
+    }
+
+
+    /**
+     * @param string $date
+     */
+    public function setDate($date)
+    {
+        $this->date = $date;
     }
 }

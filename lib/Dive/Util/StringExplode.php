@@ -61,6 +61,7 @@ class StringExplode
      */
     public static function trimMultiLines($text, $trim = 'trim', $eol = PHP_EOL)
     {
+        $trim = strtolower($trim);
         $lines = explode($eol, $text);
         if ($trim == 'rtrim') {
             foreach ($lines as &$line) {

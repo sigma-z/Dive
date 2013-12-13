@@ -102,6 +102,7 @@ class PhpClassFormatter implements FormatterInterface
         }
         $content = $content ? : $this->eol . $this->eol;
         $text .= $this->eol . '{' . $content . '}';
+        $text .= $this->eol;
         return $text;
     }
 

@@ -26,14 +26,19 @@ class ModelGeneratorTest extends TestCase
 
     const MODEL_PATH = 'Model';
 
+    const EOL = "\r\n";
+
     /**
      * used as test values
      */
     const DATE = '15.11.13';
-
     const MAIL = 'sigma_z@sigma-scripts.de';
-
     const AUTHOR = 'Steffen Zeidler';
+
+    /**
+     * @var string
+     */
+    private static $targetDirectory = null;
 
     /**
      * @var ModelGenerator
@@ -41,69 +46,84 @@ class ModelGeneratorTest extends TestCase
     private $modelGenerator;
 
 
+    public static function setUpBeforeClass()
+    {
+        parent::setUpBeforeClass();
+
+        $directorySeparator = DIRECTORY_SEPARATOR;
+        $testBaseDirectory = __DIR__ . $directorySeparator . '..' . $directorySeparator;
+        self::$targetDirectory = realpath($testBaseDirectory . 'TestSuite' . $directorySeparator . self::MODEL_PATH);
+
+        $formatter = new PhpClassFormatter();
+        $fileName = $formatter->getTargetFileName('\Dive\TestSuite\Model\Donation', self::$targetDirectory);
+        if (is_file($fileName . '.bak')) {
+            self::fail($fileName . '.bak exists');
+        }
+        if (is_file($fileName)) {
+            rename($fileName, $fileName . '.bak');
+        }
+    }
+
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $recordManager = $this->createDefaultRecordManager();
+        $formatter = $this->getFormatter();
+        $this->modelGenerator = $this->createModelGenerator($recordManager, $formatter);
+    }
+
+
     /**
-     * @param string[] $expectedExistingModels
      * @param string[] $expectedNotExistingModels
-     * @param string   $targetDirectory
+     * @param string[] $expectedExistingModels
      * @dataProvider provideIteration
      */
-    public function testGetNeededModels(
-        array $expectedExistingModels,
-        array $expectedNotExistingModels,
-        $targetDirectory
-    ) {
+    public function testGetNeededModels(array $expectedNotExistingModels, array $expectedExistingModels)
+    {
         $schema = $this->getSchema();
 
         $actualNeededModels = $this->modelGenerator->getNeededModels($schema);
         $expectedModels = array_merge($expectedExistingModels, $expectedNotExistingModels);
         $this->assertEquals($expectedModels, $actualNeededModels, '', 0, 10, true);
 
-        $this->assertStringEndsWith(self::MODEL_PATH, $targetDirectory);
-        $actualModelClasses = $this->modelGenerator->getExistingModelClasses($targetDirectory);
+        $this->assertStringEndsWith(self::MODEL_PATH, self::$targetDirectory);
+        $actualModelClasses = $this->modelGenerator->getExistingModelClasses(self::$targetDirectory);
         $this->assertEquals($expectedExistingModels, $actualModelClasses, '', 0, 10, true);
 
-        $actualMissingModels = $this->modelGenerator->getMissingModels($schema, $targetDirectory);
+        $actualMissingModels = $this->modelGenerator->getMissingModels($schema, self::$targetDirectory);
         $this->assertEquals($expectedNotExistingModels, $actualMissingModels, '', 0, 10, true);
     }
 
 
     /**
-     * @param string[] $expectedExistingModels
      * @param string[] $expectedNotExistingModels
-     * @param string   $targetDirectory
      * @dataProvider provideIteration
      */
-    public function testCreateNeededModels(
-        /** @noinspection PhpUnusedParameterInspection */
-        array $expectedExistingModels,
-        array $expectedNotExistingModels,
-        $targetDirectory
-    ) {
+    public function testCreateNeededModels(array $expectedNotExistingModels)
+    {
         $schema = $this->getSchema();
-        $missingModels = $this->modelGenerator->getMissingModels($schema, $targetDirectory);
+        $missingModels = $this->modelGenerator->getMissingModels($schema, self::$targetDirectory);
         $formatter = $this->getFormatter();
         $this->assertEquals($expectedNotExistingModels, $missingModels, '', 0, 10, true);
         $fileNames = array();
         $modelFileNames = array();
         foreach ($missingModels as $missingModel) {
-            $fileName = $formatter->getTargetFileName($missingModel, $targetDirectory);
+            $fileName = $formatter->getTargetFileName($missingModel, self::$targetDirectory);
             $this->assertFileNotExists($fileName);
             $fileNames[] = $fileName;
             $modelFileNames[$fileName] = $missingModel;
         }
 
         // create files
-        $this->modelGenerator->writeMissingModelFiles($schema, $targetDirectory);
+        $this->modelGenerator->writeMissingModelFiles($schema, self::$targetDirectory);
 
+        // check created
         foreach ($fileNames as $fileName) {
-            // check created
             $this->assertFileExists($fileName);
             $classContent = $this->modelGenerator->getContent($modelFileNames[$fileName], $schema);
             $this->assertStringEqualsFile($fileName, $classContent);
-
-            // remove created
-            unlink($fileName);
-            $this->assertFileNotExists($fileName);
         }
     }
 
@@ -140,32 +160,32 @@ class ModelGeneratorTest extends TestCase
         foreach ($use as $key => $value) {
             $use[$key] = "use $value;";
         }
-        $license = explode(PHP_EOL, $this->getLicense(PHP_EOL));
+        $license = explode(self::EOL, $this->getLicense(self::EOL));
         foreach ($license as $key => $value) {
             $license[$key] = " " . trim("* $value");
         }
         $date = self::DATE;
         $author = self::AUTHOR;
         $mail = self::MAIL;
-        $expectedContent = '<?php' . PHP_EOL
-            . '/*' . PHP_EOL
-            . implode(PHP_EOL, $license) . PHP_EOL
-            . ' */' . PHP_EOL
-            . PHP_EOL
-            . 'namespace Dive\TestSuite\Model;' . PHP_EOL
-            . '' . PHP_EOL
-            . implode(PHP_EOL, $use) . PHP_EOL
-            . '' . PHP_EOL
-            . '/**' . PHP_EOL
-            . " * @author  {$author} <{$mail}>" . PHP_EOL
-            . " * @created {$date}" . PHP_EOL
-            . ' *' . PHP_EOL
-            . implode(PHP_EOL, $properties) . PHP_EOL
-            . ' */' . PHP_EOL
-            . 'class ' . $className . ' extends Record' . PHP_EOL
-            . '{' . PHP_EOL
-            . '' . PHP_EOL
-            . '}';
+        $expectedContent = '<?php' . self::EOL
+            . '/*' . self::EOL
+            . implode(self::EOL, $license) . self::EOL
+            . ' */' . self::EOL
+            . self::EOL
+            . 'namespace Dive\TestSuite\Model;' . self::EOL
+            . '' . self::EOL
+            . implode(self::EOL, $use) . self::EOL
+            . '' . self::EOL
+            . '/**' . self::EOL
+            . " * @author  {$author} <{$mail}>" . self::EOL
+            . " * @created {$date}" . self::EOL
+            . ' *' . self::EOL
+            . implode(self::EOL, $properties) . self::EOL
+            . ' */' . self::EOL
+            . 'class ' . $className . ' extends Record' . self::EOL
+            . '{' . self::EOL
+            . '' . self::EOL
+            . '}' . self::EOL;
 
         $schema = $this->getSchema();
         $actualClassFile = $this->modelGenerator->getContent($modelClassName, $schema);
@@ -275,11 +295,11 @@ class ModelGeneratorTest extends TestCase
      */
     public function provideIteration()
     {
-        $directorySeparator = DIRECTORY_SEPARATOR;
-        $testBaseDirectory = __DIR__ . $directorySeparator . '..' . $directorySeparator;
-        $path = realpath($testBaseDirectory . 'TestSuite' . $directorySeparator . self::MODEL_PATH);
         return array(
             array(
+                array(
+                    '\Dive\TestSuite\Model\Donation',
+                ),
                 array(
                     '\Dive\TestSuite\Model\Article',
                     '\Dive\TestSuite\Model\Article2tag',
@@ -287,23 +307,9 @@ class ModelGeneratorTest extends TestCase
                     '\Dive\TestSuite\Model\Comment',
                     '\Dive\TestSuite\Model\Tag',
                     '\Dive\TestSuite\Model\User',
-                ),
-                array(
-                    '\Dive\TestSuite\Model\Donation',
-                ),
-                $path
+                )
             )
         );
-    }
-
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $recordManager = $this->createDefaultRecordManager();
-        $formatter = $this->getFormatter();
-        $this->modelGenerator = $this->createModelGenerator($recordManager, $formatter);
     }
 
 
@@ -315,8 +321,8 @@ class ModelGeneratorTest extends TestCase
     private function createModelGenerator(RecordManager $recordManager, FormatterInterface $formatter)
     {
         $modelGenerator = new ModelGenerator($recordManager, $formatter);
-        return $modelGenerator->setLicense($this->getLicense(PHP_EOL))
-            ->setEndOfLine(PHP_EOL)
+        return $modelGenerator->setLicense($this->getLicense(self::EOL))
+            ->setEndOfLine(self::EOL)
             ->setAuthor(self::AUTHOR, self::MAIL)
             ->setDate(self::DATE);
     }
@@ -326,13 +332,24 @@ class ModelGeneratorTest extends TestCase
      * @param string $eol
      * @return string
      */
-    private function getLicense($eol = PHP_EOL)
+    private function getLicense($eol = self::EOL)
     {
         return "This file is included in the generation test of the Dive ORM framework." . $eol
             . "(c) Steffen Zeidler <sigma_z@sigma-scripts.de>" . $eol
             . $eol
             . "For the full copyright and license information, please view the LICENSE" . $eol
             . "file that was distributed with this source code.";
+    }
+
+
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+        $formatter = new PhpClassFormatter();
+        $fileName = $formatter->getTargetFileName('\Dive\TestSuite\Model\Donation', self::$targetDirectory);
+        if (is_file($fileName . '.bak')) {
+            rename($fileName . '.bak', $fileName);
+        }
     }
 
 }

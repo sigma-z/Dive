@@ -7,14 +7,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Dive;
+namespace Dive\Generator;
 
 
+use Dive\Exception;
+use Dive\Generator\Formatter\FormatterInterface;
+use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\Util\ClassNameExtractor;
 use Dive\Util\ModelFilterIterator;
-use Dive\Util\PhpFormatter;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
@@ -27,7 +29,7 @@ class ModelGenerator
 {
 
     /**
-     * @var PhpFormatter
+     * @var FormatterInterface
      */
     private $formatter = null;
 
@@ -48,15 +50,16 @@ class ModelGenerator
 
 
     /**
-     * @param RecordManager $recordManager
+     * @param RecordManager      $recordManager
+     * @param FormatterInterface $formatter
      * @return ModelGenerator
      */
-    public function __construct(RecordManager $recordManager)
+    public function __construct(RecordManager $recordManager, FormatterInterface $formatter)
     {
         $this->recordManager = $recordManager;
         $this->date = date('d.m.y');
 
-        $this->formatter = new PhpFormatter();
+        $this->formatter = $formatter;
     }
 
 
@@ -102,21 +105,38 @@ class ModelGenerator
 
 
     /**
+     * @param Schema $schema
+     * @param string $targetDirectory
+     * @return string[]
+     */
+    public function getMissingModels(Schema $schema, $targetDirectory)
+    {
+        $existingModel = $this->getExistingModelClasses($targetDirectory);
+        $neededModels = $this->getNeededModels($schema);
+        return array_diff($neededModels, $existingModel);
+    }
+
+
+    /**
      * @param string $modelClassName
      * @param Schema $schema
      * @param string $extendedClass
      * @param string $collectionClass
+     * @throws Exception
      * @return string
      */
-    public function createClassFile(
+    public function getContent(
         $modelClassName,
         Schema $schema,
         $extendedClass = '\\Dive\\Record',
         $collectionClass = '\\Dive\\Collection\\RecordCollection'
     ) {
-        $addUses = array();
+        $usages = array();
 
         $tableName = $this->getTableName($modelClassName, $schema);
+        if ($tableName === null) {
+            throw new Exception("no table found for class $modelClassName");
+        }
         $tableFields = $schema->getTableFields($tableName);
         $fields = array();
         foreach ($tableFields as $key => $tableField) {
@@ -138,15 +158,14 @@ class ModelGenerator
                     $relatedTable = $tableRelation['owningTable'];
                     $isOneToOne = $tableRelation['type'] == Relation::ONE_TO_ONE;
                 }
-                $relatedRecordClass = $schema->getRecordClass($relatedTable);
-                list($relatedRecordClass) = $this->formatter->splitClassAndNamespace($relatedRecordClass);
+                $relatedRecordClassFull = $schema->getRecordClass($relatedTable);
+                $relatedRecordClass = ClassNameExtractor::splitClass($relatedRecordClassFull);
                 if ($isOneToOne) {
                     $type = $relatedRecordClass;
                 }
                 else {
-                    list($collectionClassName) = $this->formatter->splitClassAndNamespace($collectionClass);
-                    $type = $relatedRecordClass . '[]|' . $collectionClassName;
-                    $addUses[] = $collectionClass;
+                    $type = $relatedRecordClass . '[]|' . ClassNameExtractor::splitClass($collectionClass);
+                    $usages[] = $collectionClass;
                 }
                 $fields[] = array($type, $key);
             }
@@ -154,21 +173,20 @@ class ModelGenerator
 
 
         return $this->formatter
-            ->resetUsages()
-            ->addUsages($addUses)
-            ->setExtendFrom($extendedClass)
-            ->resetAnnotations()
-            ->addAnnotation('author', $this->author)
-            ->addAnnotation('created', $this->date)
+            ->setUsages($usages)
+            ->setExtendedFrom($extendedClass)
+            ->setAnnotations()
+            ->setAnnotation('author', $this->author)
+            ->setAnnotation('created', $this->date)
             ->setProperties($fields)
-            ->getClassFile($modelClassName);
+            ->getFileContent($modelClassName);
     }
 
 
     /**
      * @param string $modelClassName
      * @param Schema $schema
-     * @return array
+     * @return string
      */
     private function getTableName($modelClassName, Schema $schema)
     {
@@ -178,7 +196,7 @@ class ModelGenerator
                 return $tableName;
             }
         }
-        return array();
+        return null;
     }
 
 
@@ -189,12 +207,18 @@ class ModelGenerator
      */
     private function translateType($type, $key)
     {
-        if ($type == 'integer' || $type == 'datetime') {
+        if ($type == 'datetime') {
+            return 'string';
+        }
+        if ($type == 'integer') {
             // blacklist integer and datetime
             if (substr($key, 0, 3) == 'is_' || substr($key, 0, 4) == 'has_') {
                 return 'bool';
             }
             return 'string';
+        }
+        if ($type == 'decimal') {
+            return 'float';
         }
         return $type;
     }
@@ -225,6 +249,7 @@ class ModelGenerator
     /**
      * @param string $author
      * @param string $mail
+     * @return $this
      */
     public function setAuthor($author = '', $mail = null)
     {
@@ -232,14 +257,47 @@ class ModelGenerator
             $author .= " <$mail>";
         }
         $this->author = $author;
+        return $this;
     }
 
 
     /**
      * @param string $date
+     * @return $this
      */
     public function setDate($date)
     {
         $this->date = $date;
+        return $this;
+    }
+
+
+    /**
+     * @param string $className
+     * @param Schema $schema
+     * @param string $targetDirectory
+     * @throws Exception
+     */
+    public function writeClassFile($className, Schema $schema, $targetDirectory)
+    {
+        $classFile = $this->getContent($className, $schema);
+        $targetFile = $this->formatter->getTargetFileName($className, $targetDirectory);
+        $write = file_put_contents($targetFile, $classFile, LOCK_EX);
+        if ($write === false) {
+            throw new Exception('file could not be written');
+        }
+    }
+
+
+    /**
+     * @param Schema $schema
+     * @param string $targetDirectory
+     */
+    public function writeMissingModelFiles(Schema $schema, $targetDirectory)
+    {
+        $missingModels = $this->getMissingModels($schema, $targetDirectory);
+        foreach ($missingModels as $missingModel) {
+            $this->writeClassFile($missingModel, $schema, $targetDirectory);
+        }
     }
 }

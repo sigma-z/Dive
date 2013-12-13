@@ -16,12 +16,17 @@ namespace Dive\Test\Schema\Import;
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\Import\Importer;
+use Dive\Schema\Import\ImporterInterface;
 use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
 
 class ImportTest extends TestCase
 {
 
+    /**
+     * @param $database
+     * @return ImporterInterface
+     */
     private function getImporter($database)
     {
         $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
@@ -38,7 +43,7 @@ class ImportTest extends TestCase
     {
         $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
-        $expected = array('article', 'article2tag', 'author', 'comment', 'tag', 'user');
+        $expected = array('article', 'article2tag', 'author', 'comment', 'donation', 'tag', 'user');
 
         $actual = $importer->getTableNames(true);
         sort($actual);
@@ -46,6 +51,9 @@ class ImportTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetTableNames()
     {
         $testCases = array();
@@ -74,6 +82,9 @@ class ImportTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetTableFields()
     {
         $testCases = array();
@@ -132,6 +143,9 @@ class ImportTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetTableIndexes()
     {
         $testCases = array();
@@ -170,6 +184,9 @@ class ImportTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetTableForeignKeys()
     {
         $testCases = array();
@@ -236,6 +253,9 @@ class ImportTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetViewNames()
     {
         $testCases = array();
@@ -271,6 +291,9 @@ class ImportTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetViewFields()
     {
         $testCases = array();

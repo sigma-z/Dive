@@ -10,7 +10,10 @@
 namespace Dive\Test;
 
 
-use Dive\ModelGenerator;
+use Dive\Exception;
+use Dive\Generator\Formatter\FormatterInterface;
+use Dive\Generator\Formatter\PhpClassFormatter;
+use Dive\Generator\ModelGenerator;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
@@ -38,33 +41,70 @@ class ModelGeneratorTest extends TestCase
     private $modelGenerator;
 
 
-    public function testCreatedModelGenerator()
-    {
-        $this->assertInstanceOf('\Dive\ModelGenerator', $this->modelGenerator);
-    }
-
-
     /**
-     * @param string[] $expectedModels
-     * @dataProvider provideIteration
-     */
-    public function testGetNeededModels(array $expectedModels)
-    {
-        $actualNeededModels = $this->modelGenerator->getNeededModels($this->getSchema());
-        $this->assertEquals($expectedModels, $actualNeededModels, '', 0, 10, true);
-    }
-
-
-    /**
-     * @param string[] $expectedModels
+     * @param string[] $expectedExistingModels
+     * @param string[] $expectedNotExistingModels
      * @param string   $targetDirectory
      * @dataProvider provideIteration
      */
-    public function testGetExistingModelClasses(array $expectedModels, $targetDirectory)
-    {
+    public function testGetNeededModels(
+        array $expectedExistingModels,
+        array $expectedNotExistingModels,
+        $targetDirectory
+    ) {
+        $schema = $this->getSchema();
+
+        $actualNeededModels = $this->modelGenerator->getNeededModels($schema);
+        $expectedModels = array_merge($expectedExistingModels, $expectedNotExistingModels);
+        $this->assertEquals($expectedModels, $actualNeededModels, '', 0, 10, true);
+
         $this->assertStringEndsWith(self::MODEL_PATH, $targetDirectory);
         $actualModelClasses = $this->modelGenerator->getExistingModelClasses($targetDirectory);
-        $this->assertEquals($expectedModels, $actualModelClasses, '', 0, 10, true);
+        $this->assertEquals($expectedExistingModels, $actualModelClasses, '', 0, 10, true);
+
+        $actualMissingModels = $this->modelGenerator->getMissingModels($schema, $targetDirectory);
+        $this->assertEquals($expectedNotExistingModels, $actualMissingModels, '', 0, 10, true);
+    }
+
+
+    /**
+     * @param string[] $expectedExistingModels
+     * @param string[] $expectedNotExistingModels
+     * @param string   $targetDirectory
+     * @dataProvider provideIteration
+     */
+    public function testCreateNeededModels(
+        /** @noinspection PhpUnusedParameterInspection */
+        array $expectedExistingModels,
+        array $expectedNotExistingModels,
+        $targetDirectory
+    ) {
+        $schema = $this->getSchema();
+        $missingModels = $this->modelGenerator->getMissingModels($schema, $targetDirectory);
+        $formatter = $this->getFormatter();
+        $this->assertEquals($expectedNotExistingModels, $missingModels, '', 0, 10, true);
+        $fileNames = array();
+        $modelFileNames = array();
+        foreach ($missingModels as $missingModel) {
+            $fileName = $formatter->getTargetFileName($missingModel, $targetDirectory);
+            $this->assertFileNotExists($fileName);
+            $fileNames[] = $fileName;
+            $modelFileNames[$fileName] = $missingModel;
+        }
+
+        // create files
+        $this->modelGenerator->writeMissingModelFiles($schema, $targetDirectory);
+
+        foreach ($fileNames as $fileName) {
+            // check created
+            $this->assertFileExists($fileName);
+            $classContent = $this->modelGenerator->getContent($modelFileNames[$fileName], $schema);
+            $this->assertStringEqualsFile($fileName, $classContent);
+
+            // remove created
+            unlink($fileName);
+            $this->assertFileNotExists($fileName);
+        }
     }
 
 
@@ -78,24 +118,87 @@ class ModelGeneratorTest extends TestCase
 
 
     /**
-     * @param string $modelClassName
-     * @param string $expectedContent
+     * @param string   $modelClassName
+     * @param string   $expectedClassName
+     * @param string[] $expectedProperties
+     * @param string[] $expectedUse
      * @dataProvider provideCreateClassFile
      */
-    public function testCreateClassFile($modelClassName, $expectedContent)
-    {
-        $replaces = array(
-            '{date}' => self::DATE,
-            '{author}' => self::AUTHOR,
-            '{mail}' => self::MAIL
-        );
-        $expectedContent = str_replace(array_keys($replaces), array_values($replaces), $expectedContent);
+    public function testCreateClassFile(
+        $modelClassName,
+        $expectedClassName,
+        array $expectedProperties,
+        array $expectedUse
+    ) {
+        $use = $expectedUse;
+        $properties = $expectedProperties;
+        $className = $expectedClassName;
+
+        foreach ($properties as $varName => $type) {
+            $properties[$varName] = " * @property $type \$$varName";
+        }
+        foreach ($use as $key => $value) {
+            $use[$key] = "use $value;";
+        }
+        $license = explode(PHP_EOL, $this->getLicense(PHP_EOL));
+        foreach ($license as $key => $value) {
+            $license[$key] = " " . trim("* $value");
+        }
+        $date = self::DATE;
+        $author = self::AUTHOR;
+        $mail = self::MAIL;
+        $expectedContent = '<?php' . PHP_EOL
+            . '/*' . PHP_EOL
+            . implode(PHP_EOL, $license) . PHP_EOL
+            . ' */' . PHP_EOL
+            . PHP_EOL
+            . 'namespace Dive\TestSuite\Model;' . PHP_EOL
+            . '' . PHP_EOL
+            . implode(PHP_EOL, $use) . PHP_EOL
+            . '' . PHP_EOL
+            . '/**' . PHP_EOL
+            . " * @author  {$author} <{$mail}>" . PHP_EOL
+            . " * @created {$date}" . PHP_EOL
+            . ' *' . PHP_EOL
+            . implode(PHP_EOL, $properties) . PHP_EOL
+            . ' */' . PHP_EOL
+            . 'class ' . $className . ' extends Record' . PHP_EOL
+            . '{' . PHP_EOL
+            . '' . PHP_EOL
+            . '}';
 
         $schema = $this->getSchema();
-
-        $actualClassFile = $this->modelGenerator->createClassFile($modelClassName, $schema);
+        $actualClassFile = $this->modelGenerator->getContent($modelClassName, $schema);
 
         $this->assertSame($expectedContent, $actualClassFile);
+    }
+
+
+    /**
+     * @expectedException \Dive\Exception
+     */
+    public function testClassFileWithInvalidModelThrowsException()
+    {
+        $this->modelGenerator->getContent('notExistingModelName', $this->getSchema());
+    }
+
+
+    /**
+     * @expectedException \Dive\Exception
+     */
+    public function testFormatterThrowsExceptionInClassFileWithoutClassName()
+    {
+        $formatter = $this->getFormatter();
+        $formatter->getFileContent('NotExistingClassName');
+    }
+
+
+    /**
+     * @return PhpClassFormatter
+     */
+    private function getFormatter()
+    {
+        return new PhpClassFormatter();
     }
 
 
@@ -107,104 +210,61 @@ class ModelGeneratorTest extends TestCase
         return array(
             array(
                 '\Dive\TestSuite\Model\Article2tag',
-                '<?php' . PHP_EOL
-                    . '/*' . PHP_EOL
-                    . ' * This file is part of the Dive ORM framework.' . PHP_EOL
-                    . ' * (c) Steffen Zeidler <sigma_z@sigma-scripts.de>' . PHP_EOL
-                    . ' *' . PHP_EOL
-                    . ' * For the full copyright and license information, please view the LICENSE' . PHP_EOL
-                    . ' * file that was distributed with this source code.' . PHP_EOL
-                    . ' */' . PHP_EOL
-                    . PHP_EOL
-                    . 'namespace Dive\TestSuite\Model;' . PHP_EOL
-                    . '' . PHP_EOL
-                    . 'use Dive\Record;' . PHP_EOL
-                    . '' . PHP_EOL
-                    . '/**' . PHP_EOL
-                    . ' * @author  {author} <{mail}>' . PHP_EOL
-                    . ' * @created {date}' . PHP_EOL
-                    . ' *' . PHP_EOL
-                    . ' * @property string $article_id' . PHP_EOL
-                    . ' * @property string $tag_id' . PHP_EOL
-                    . ' * @property Article $Article' . PHP_EOL
-                    . ' * @property Tag $Tag' . PHP_EOL
-                    . ' */' . PHP_EOL
-                    . 'class Article2tag extends Record' . PHP_EOL
-                    . '{' . PHP_EOL
-                    . '' . PHP_EOL
-                    . '}'
+                'Article2tag',
+                array(
+                    'article_id' => 'string',
+                    'tag_id' => 'string',
+                    'Article' => 'Article',
+                    'Tag' => 'Tag',
+                ),
+                array('Dive\Record'),
             ),
             array(
                 '\Dive\TestSuite\Model\Author',
-                '<?php' . PHP_EOL
-                    . '/*' . PHP_EOL
-                    . ' * This file is part of the Dive ORM framework.' . PHP_EOL
-                    . ' * (c) Steffen Zeidler <sigma_z@sigma-scripts.de>' . PHP_EOL
-                    . ' *' . PHP_EOL
-                    . ' * For the full copyright and license information, please view the LICENSE' . PHP_EOL
-                    . ' * file that was distributed with this source code.' . PHP_EOL
-                    . ' */' . PHP_EOL
-                    . PHP_EOL
-                    . 'namespace Dive\TestSuite\Model;' . PHP_EOL
-                    . '' . PHP_EOL
-                    . 'use Dive\Record;' . PHP_EOL
-                    . 'use Dive\Collection\RecordCollection;' . PHP_EOL
-                    . '' . PHP_EOL
-                    . '/**' . PHP_EOL
-                    . ' * @author  {author} <{mail}>' . PHP_EOL
-                    . ' * @created {date}' . PHP_EOL
-                    . ' *' . PHP_EOL
-                    . ' * @property string $id' . PHP_EOL
-                    . ' * @property string $firstname' . PHP_EOL
-                    . ' * @property string $lastname' . PHP_EOL
-                    . ' * @property string $email' . PHP_EOL
-                    . ' * @property string $user_id' . PHP_EOL
-                    . ' * @property string $editor_id' . PHP_EOL
-                    . ' * @property Article[]|RecordCollection $Article' . PHP_EOL
-                    . ' * @property Author[]|RecordCollection $Author' . PHP_EOL
-                    . ' * @property User $User' . PHP_EOL
-                    . ' * @property Author $Editor' . PHP_EOL
-                    . ' */' . PHP_EOL
-                    . 'class Author extends Record' . PHP_EOL
-                    . '{' . PHP_EOL
-                    . '' . PHP_EOL
-                    . '}'
+                'Author',
+                array(
+                    'id' => 'string',
+                    'firstname' => 'string',
+                    'lastname' => 'string',
+                    'email' => 'string',
+                    'user_id' => 'string',
+                    'editor_id' => 'string',
+                    'Article' => 'Article[]|RecordCollection',
+                    'Author' => 'Author[]|RecordCollection',
+                    'User' => 'User',
+                    'Editor' => 'Author',
+                ),
+                array('Dive\Record', 'Dive\Collection\RecordCollection'),
             ),
             array(
                 '\Dive\TestSuite\Model\Article',
-                '<?php' . PHP_EOL
-                    . '/*' . PHP_EOL
-                    . ' * This file is part of the Dive ORM framework.' . PHP_EOL
-                    . ' * (c) Steffen Zeidler <sigma_z@sigma-scripts.de>' . PHP_EOL
-                    . ' *' . PHP_EOL
-                    . ' * For the full copyright and license information, please view the LICENSE' . PHP_EOL
-                    . ' * file that was distributed with this source code.' . PHP_EOL
-                    . ' */' . PHP_EOL
-                    . PHP_EOL
-                    . 'namespace Dive\TestSuite\Model;' . PHP_EOL
-                    . '' . PHP_EOL
-                    . 'use Dive\Record;' . PHP_EOL
-                    . 'use Dive\Collection\RecordCollection;' . PHP_EOL
-                    . '' . PHP_EOL
-                    . '/**' . PHP_EOL
-                    . ' * @author  {author} <{mail}>' . PHP_EOL
-                    . ' * @created {date}' . PHP_EOL
-                    . ' *' . PHP_EOL
-                    . ' * @property string $id' . PHP_EOL
-                    . ' * @property string $author_id' . PHP_EOL
-                    . ' * @property bool $is_published' . PHP_EOL
-                    . ' * @property string $title' . PHP_EOL
-                    . ' * @property string $teaser' . PHP_EOL
-                    . ' * @property string $text' . PHP_EOL
-                    . ' * @property string $changed_on' . PHP_EOL
-                    . ' * @property Author $Author' . PHP_EOL
-                    . ' * @property Comment[]|RecordCollection $Comment' . PHP_EOL
-                    . ' * @property Article2tag[]|RecordCollection $Article2tagHasMany' . PHP_EOL
-                    . ' */' . PHP_EOL
-                    . 'class Article extends Record' . PHP_EOL
-                    . '{' . PHP_EOL
-                    . '' . PHP_EOL
-                    . '}'
+                'Article',
+                array(
+                    'id' => 'string',
+                    'author_id' => 'string',
+                    'is_published' => 'bool',
+                    'title' => 'string',
+                    'teaser' => 'string',
+                    'text' => 'string',
+                    'changed_on' => 'string',
+                    'Author' => 'Author',
+                    'Comment' => 'Comment[]|RecordCollection',
+                    'Article2tagHasMany' => 'Article2tag[]|RecordCollection',
+                ),
+                array('Dive\Record', 'Dive\Collection\RecordCollection'),
+            ),
+            array(
+                '\Dive\TestSuite\Model\Donation',
+                'Donation',
+                array(
+                    'id' => 'string',
+                    'article_id' => 'string',
+                    'author_id' => 'string',
+                    'comment_id' => 'string',
+                    'is_cancelled' => 'bool',
+                    'value' => 'float',
+                ),
+                array('Dive\Record'),
             ),
         );
     }
@@ -215,8 +275,9 @@ class ModelGeneratorTest extends TestCase
      */
     public function provideIteration()
     {
-        $testBaseDirectory = __DIR__ . DIRECTORY_SEPARATOR . '../' . DIRECTORY_SEPARATOR;
-        $path = realpath($testBaseDirectory . 'TestSuite' . DIRECTORY_SEPARATOR . self::MODEL_PATH);
+        $directorySeparator = DIRECTORY_SEPARATOR;
+        $testBaseDirectory = __DIR__ . $directorySeparator . '..' . $directorySeparator;
+        $path = realpath($testBaseDirectory . 'TestSuite' . $directorySeparator . self::MODEL_PATH);
         return array(
             array(
                 array(
@@ -226,6 +287,9 @@ class ModelGeneratorTest extends TestCase
                     '\Dive\TestSuite\Model\Comment',
                     '\Dive\TestSuite\Model\Tag',
                     '\Dive\TestSuite\Model\User',
+                ),
+                array(
+                    '\Dive\TestSuite\Model\Donation',
                 ),
                 $path
             )
@@ -238,28 +302,37 @@ class ModelGeneratorTest extends TestCase
         parent::setUp();
 
         $recordManager = $this->createDefaultRecordManager();
-        $this->modelGenerator = $this->createModelGenerator($recordManager);
+        $formatter = $this->getFormatter();
+        $this->modelGenerator = $this->createModelGenerator($recordManager, $formatter);
     }
 
 
     /**
-     * @param RecordManager $recordManager
+     * @param RecordManager      $recordManager
+     * @param FormatterInterface $formatter
      * @return ModelGenerator
      */
-    private function createModelGenerator(RecordManager $recordManager)
+    private function createModelGenerator(RecordManager $recordManager, FormatterInterface $formatter)
     {
-        $modelGenerator = new ModelGenerator($recordManager);
+        $modelGenerator = new ModelGenerator($recordManager, $formatter);
+        return $modelGenerator->setLicense($this->getLicense(PHP_EOL))
+            ->setEndOfLine(PHP_EOL)
+            ->setAuthor(self::AUTHOR, self::MAIL)
+            ->setDate(self::DATE);
+    }
 
-        $license = "This file is part of the Dive ORM framework." . PHP_EOL
-            . "(c) Steffen Zeidler <sigma_z@sigma-scripts.de>" . PHP_EOL
-            . PHP_EOL
-            . "For the full copyright and license information, please view the LICENSE" . PHP_EOL
+
+    /**
+     * @param string $eol
+     * @return string
+     */
+    private function getLicense($eol = PHP_EOL)
+    {
+        return "This file is included in the generation test of the Dive ORM framework." . $eol
+            . "(c) Steffen Zeidler <sigma_z@sigma-scripts.de>" . $eol
+            . $eol
+            . "For the full copyright and license information, please view the LICENSE" . $eol
             . "file that was distributed with this source code.";
-        $modelGenerator->setLicense($license);
-        $modelGenerator->setEndOfLine(PHP_EOL);
-        $modelGenerator->setAuthor(self::AUTHOR, self::MAIL);
-        $modelGenerator->setDate(self::DATE);
-        return $modelGenerator;
     }
 
 }

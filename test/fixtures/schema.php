@@ -83,6 +83,48 @@ return array(
             ),
             'recordClass' => '\Dive\TestSuite\Model\User'
         ),
+        'donation' => array(
+            'fields' => array(
+                'id' => array(
+                    'primary' => true,
+                    'type' => 'integer',
+                    'length' => 10,
+                    'unsigned' => true,
+                    'autoIncrement' => true
+                ),
+                'article_id' => array(
+                    'type' => 'integer',
+                    'length' => 10,
+                    'unsigned' => true,
+                    'nullable' => true,
+                ),
+                'author_id' => array(
+                    'type' => 'integer',
+                    'length' => 10,
+                    'unsigned' => true,
+                    'nullable' => true,
+                ),
+                'comment_id' => array(
+                    'type' => 'integer',
+                    'length' => 10,
+                    'unsigned' => true,
+                    'nullable' => true,
+                ),
+                'is_cancelled' => array(
+                    'type' => 'integer',
+                    'length' => 1,
+                    'unsigned' => true,
+                    'default' => '0'
+                ),
+                'value' => array(
+                    'type' => 'decimal',
+                    'precision' => 2,
+                    'length' => 14,
+                    'nullable' => true
+                )
+            ),
+            'recordClass' => '\Dive\TestSuite\Model\Donation'
+        ),
         'article' => array(
             'fields' => array(
                 'id'    => array(

@@ -7,17 +7,21 @@
  * file that was distributed with this source code.
  */
 
-namespace Dive\Util;
+namespace Dive\Generator\Formatter;
 
 
 use Dive\Exception;
+use Dive\Util\ClassNameExtractor;
+use Dive\Util\StringExplode;
 
 /**
  * @author  Steven Nikolic <steven@nindoo.de>
  * @created 06.12.13
  */
-class PhpFormatter
+class PhpClassFormatter implements FormatterInterface
 {
+
+    const FILE_EXTENSION = 'php';
 
     /**
      * @var string[]
@@ -56,9 +60,9 @@ class PhpFormatter
      * @throws Exception
      * @return string
      */
-    public function getClassFile($fullClass, $content = null)
+    public function getFileContent($fullClass, $content = null)
     {
-        list($class, $namespace) = $this->splitClassAndNamespace($fullClass);
+        $class = ClassNameExtractor::splitClass($fullClass);
         if (!$class) {
             throw new Exception("no className found in: $fullClass");
         }
@@ -68,6 +72,7 @@ class PhpFormatter
             $fileComment = $this->formatBlockComment($this->fileComment);
             $text .= $fileComment . $this->eol . $this->eol;
         }
+        $namespace = ClassNameExtractor::splitNamespace($fullClass);
         if ($namespace) {
             $text .= "namespace {$namespace};" . $this->eol . $this->eol;
         }
@@ -79,7 +84,8 @@ class PhpFormatter
             }
             $usages = array_unique($usages);
             foreach ($usages as $usage) {
-                list($useClass, $useNameSpace) = $this->splitClassAndNamespace($usage);
+                $useClass = ClassNameExtractor::splitClass($usage);
+                $useNameSpace = ClassNameExtractor::splitNamespace($usage);
                 $text .= "use {$useNameSpace}\\{$useClass};" . $this->eol;
             }
             $text .= $this->eol;
@@ -91,7 +97,7 @@ class PhpFormatter
         }
         $text .= "class {$class}";
         if ($this->extendFromClass) {
-            list($extendFromClass) = $this->splitClassAndNamespace($this->extendFromClass);
+            $extendFromClass = ClassNameExtractor::splitClass($this->extendFromClass);
             $text .= " extends {$extendFromClass}";
         }
         $content = $content ? : $this->eol . $this->eol;
@@ -101,16 +107,14 @@ class PhpFormatter
 
 
     /**
-     * @param string $modelClass
-     * @return string[]
+     * @param string $fullClass
+     * @param string $targetDirectory
+     * @return string
      */
-    public function splitClassAndNamespace($modelClass)
+    public function getTargetFileName($fullClass, $targetDirectory)
     {
-        $classParts = explode('\\', $modelClass);
-        array_shift($classParts);
-        $class = array_pop($classParts);
-        $namespace = implode('\\', $classParts);
-        return array($class, $namespace);
+        $className = ClassNameExtractor::splitClass($fullClass);
+        return $targetDirectory . DIRECTORY_SEPARATOR . $className . '.' . self::FILE_EXTENSION;
     }
 
 
@@ -148,7 +152,7 @@ class PhpFormatter
         if ($this->annotations) {
             $maxLength = $this->getMaxKeyStrLength($this->annotations);
             foreach ($this->annotations as $name => $type) {
-                $lines[] = $this->formatAnnotation($name, $type, null, $maxLength);
+                $lines[] = $this->formatAnnotationParam($name, $type, null, $maxLength);
             }
         }
         if ($this->annotations && $this->properties) {
@@ -157,7 +161,7 @@ class PhpFormatter
         if ($this->properties) {
             $maxLength = $this->getMaxKeyStrLength($this->properties);
             foreach ($this->properties as $annotation) {
-                $lines[] = $this->formatAnnotation("property", $annotation[0], $annotation[1], $maxLength);
+                $lines[] = $this->formatAnnotationParam("property", $annotation[0], $annotation[1], $maxLength);
             }
         }
         return implode($this->eol, $lines);
@@ -189,7 +193,7 @@ class PhpFormatter
      * @param int         $length
      * @return string
      */
-    private function formatAnnotation($name, $type, $variable = null, $length = 0)
+    private function formatAnnotationParam($name, $type, $variable = null, $length = 0)
     {
         if ($length) {
             $name = str_pad($name, $length, ' ', STR_PAD_RIGHT);
@@ -216,19 +220,9 @@ class PhpFormatter
      * @param string $extendedFromClass
      * @return $this
      */
-    public function setExtendFrom($extendedFromClass)
+    public function setExtendedFrom($extendedFromClass)
     {
         $this->extendFromClass = $extendedFromClass;
-        return $this;
-    }
-
-
-    /**
-     * @return $this
-     */
-    public function resetUsages()
-    {
-        $this->usages = array();
         return $this;
     }
 
@@ -237,9 +231,9 @@ class PhpFormatter
      * @param string[] $usages
      * @return $this
      */
-    public function addUsages(array $usages)
+    public function setUsages(array $usages)
     {
-        $this->usages = array_merge($this->usages, $usages);
+        $this->usages = $usages;
         return $this;
     }
 
@@ -282,7 +276,7 @@ class PhpFormatter
      * @param string $value
      * @return $this
      */
-    public function addAnnotation($name, $value)
+    public function setAnnotation($name, $value)
     {
         $this->annotations[$name] = $value;
         return $this;
@@ -290,11 +284,12 @@ class PhpFormatter
 
 
     /**
+     * @param array $annotations
      * @return $this
      */
-    public function resetAnnotations()
+    public function setAnnotations($annotations = array())
     {
-        $this->annotations = array();
+        $this->annotations = $annotations;
         return $this;
     }
 }

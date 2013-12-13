@@ -83,6 +83,9 @@ class SchemaTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetTableClassWithoutAutoload()
     {
         return array(
@@ -141,7 +144,7 @@ class SchemaTest extends TestCase
 
     public function testGetTableNames()
     {
-        $expected = array('article', 'article2tag', 'author', 'comment', 'tag', 'user');
+        $expected = array('article', 'article2tag', 'author', 'comment', 'donation', 'tag', 'user');
         $actual = $this->schema->getTableNames();
         sort($actual);
         $this->assertEquals($expected, $actual);
@@ -223,6 +226,9 @@ class SchemaTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideGetTableRelations()
     {
         $testCases = array();
@@ -294,6 +300,9 @@ class SchemaTest extends TestCase
     }
 
 
+    /**
+     * @return array
+     */
     public function provideAddRelationThrowsInvalidRelationException()
     {
         // NOTE owningField and owningTable are set by addTableRelation(), therefore the exception won't be thrown

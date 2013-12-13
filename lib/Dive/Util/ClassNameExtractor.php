@@ -18,6 +18,11 @@ class ClassNameExtractor
 {
 
     /**
+     * @var string[]
+     */
+    private $classes = array();
+
+    /**
      * @var string|null
      */
     private $subClassFilter = null;
@@ -30,7 +35,7 @@ class ClassNameExtractor
     /**
      * @var bool
      */
-    private $dlm = false;
+    private $nameSpacePartsFollowing = false;
 
     /**
      * @var null|string
@@ -47,22 +52,15 @@ class ClassNameExtractor
     {
         // reset processing
         $this->namespace = null;
-        $this->dlm = false;
-        $this->tokens = array();
-        $this->getTokenFromFile($fileName);
+        $this->nameSpacePartsFollowing = false;
+        $this->classes = array();
+        $this->tokens = $this->getTokensFromFile($fileName);
 
         // process
-        $classes = array();
-        foreach ($this->tokens as $i => $token) {
-            $this->findNameSpace($i);
-            if ($this->isClass($i)) {
-                $fullClassName = "\\" . $this->namespace . "\\" . $this->tokens[$i][1];
-                if ($this->acceptAsSubClass($fullClassName)) {
-                    $classes[] = $fullClassName;
-                }
-            }
+        foreach ($this->tokens as $index => $token) {
+            $this->processToken($index);
         }
-        return $classes;
+        return $this->classes;
     }
 
 
@@ -103,49 +101,106 @@ class ClassNameExtractor
 
 
     /**
-     * @param int $i
+     * @param int $index
      */
-    private function findNameSpace($i)
+    private function processToken($index)
     {
-        $isPrependedByNameSpace = isset($this->tokens[$i - 2][1]) && ($this->tokens[$i - 2][1] == "phpnamespace" || $this->tokens[$i - 2][1] == "namespace");
-        if ($isPrependedByNameSpace || ($this->dlm && isset($this->tokens[$i - 1][0]) && $this->tokens[$i - 1][0] == T_NS_SEPARATOR && $this->tokens[$i][0] == T_STRING)) {
-            if (!$this->dlm) {
+        // extract namespace
+        if ($this->isTokenContent($index - 2, 'phpnamespace')
+            || $this->isTokenContent($index - 2, 'namespace')
+            || ($this->nameSpacePartsFollowing
+                && $this->isTokenIdentifier($index - 1, T_NS_SEPARATOR)
+                && $this->isTokenIdentifier($index, T_STRING)
+            )
+        ) {
+            if (!$this->nameSpacePartsFollowing) {
                 $this->namespace = null;
             }
-            if (isset($this->tokens[$i][1])) {
+            if (isset($this->tokens[$index][1])) {
                 if ($this->namespace) {
                     $this->namespace .= "\\";
                 }
-                $this->namespace .= $this->tokens[$i][1];
-                $this->dlm = true;
+                $this->namespace .= $this->tokens[$index][1];
+                $this->nameSpacePartsFollowing = true;
             }
         }
-        elseif ($this->dlm && isset($this->tokens[$i][0]) && $this->tokens[$i][0] != T_NS_SEPARATOR && $this->tokens[$i][0] != T_STRING) {
-            $this->dlm = false;
+        else if ($this->nameSpacePartsFollowing
+            && !$this->isTokenIdentifier($index, T_NS_SEPARATOR)
+            && !$this->isTokenIdentifier($index, T_STRING)
+        ) {
+            $this->nameSpacePartsFollowing = false;
+        }
+
+        // extract class
+        if ($this->isTokenIdentifier($index - 1, T_WHITESPACE)
+            && $this->isTokenIdentifier($index, T_STRING)
+            && ($this->isTokenIdentifier($index - 2, T_CLASS) || $this->isTokenContent($index - 2, 'phpclass'))
+            && isset($this->tokens[$index][1])
+        ) {
+            $fullClassName = "\\" . $this->namespace . "\\" . $this->tokens[$index][1];
+            if ($this->acceptAsSubClass($fullClassName)) {
+                $this->classes[] = $fullClassName;
+            }
         }
     }
 
 
     /**
-     * @param int $position
+     * @param int $index
+     * @param string $content
      * @return bool
      */
-    private function isClass($position)
+    private function isTokenContent($index, $content)
     {
-        $isPrependedByClass = (isset($this->tokens[$position - 2][0]) && $this->tokens[$position - 2][0] == T_CLASS)
-            || (isset($this->tokens[$position - 2][1]) && $this->tokens[$position - 2][1] == "phpclass");
-        return ($isPrependedByClass && $this->tokens[$position - 1][0] == T_WHITESPACE && $this->tokens[$position][0] == T_STRING);
+        return isset($this->tokens[$index][1]) && $this->tokens[$index][1] == $content;
     }
 
 
     /**
-     * @param $fileName
-     * @return array
+     * @param int $index
+     * @param int $identifier
+     * @return bool
      */
-    private function getTokenFromFile($fileName)
+    private function isTokenIdentifier($index, $identifier)
     {
-        $phpCode = file_get_contents($fileName);
-        $this->tokens = token_get_all($phpCode);
+        return isset($this->tokens[$index][0]) && $this->tokens[$index][0] == $identifier;
     }
 
+
+    /**
+     * @param string $fileName
+     * @return array
+     */
+    public function getTokensFromFile($fileName)
+    {
+        $source = file_get_contents($fileName);
+        return token_get_all($source);
+    }
+
+
+    /**
+     * @param string $fullClass
+     * @return string
+     */
+    public static function splitClass($fullClass)
+    {
+        $classParts = explode('\\', $fullClass);
+        array_shift($classParts);
+        $class = array_pop($classParts);
+        return $class;
+    }
+
+
+    /**
+     * @param string $fullClass
+     * @return string
+     */
+    public static function splitNamespace($fullClass)
+    {
+        $classParts = explode('\\', $fullClass);
+        array_shift($classParts);
+        array_pop($classParts);
+        $namespace = implode('\\', $classParts);
+        return $namespace;
+    }
 }

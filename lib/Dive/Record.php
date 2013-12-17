@@ -10,6 +10,7 @@
 namespace Dive;
 
 use Dive\Collection\RecordCollection;
+use Dive\Record\FieldValueChangeEvent;
 use Dive\Record\RecordException;
 use Dive\Relation\Relation;
 
@@ -40,9 +41,13 @@ use Dive\Relation\Relation;
 class Record
 {
 
-    const NEW_RECORD_ID_MARK = "_";
+    const NEW_RECORD_ID_MARK = '_';
     const COMPOSITE_ID_SEPARATOR = '|';
     const FROM_ARRAY_EXISTS_KEY = '_exists_';
+
+    /** events */
+    const EVENT_PRE_FIELD_VALUE_CHANGE = 'Dive.Record.preFieldValueChange';
+    const EVENT_POST_FIELD_VALUE_CHANGE = 'Dive.Record.postFieldValueChange';
 
 
     /** @var Table */
@@ -90,6 +95,15 @@ class Record
     public function getRecordManager()
     {
         return $this->_table->getRecordManager();
+    }
+
+
+    /**
+     * @return Event\DispatcherInterface
+     */
+    public function getEventDispatcher()
+    {
+        return $this->_table->getEventDispatcher();
     }
 
 
@@ -314,19 +328,7 @@ class Record
         $this->_table->throwExceptionIfFieldOrRelationNotExists($name);
 
         if ($this->_table->hasField($name)) {
-            $actualValue = $this->get($name);
-            if ($value != $actualValue) {
-                $fieldIsModified = array_key_exists($name, $this->_modifiedFields);
-                if ($fieldIsModified && $this->_modifiedFields[$name] == $value) {
-                    unset($this->_modifiedFields[$name]);
-                }
-                else if (!$fieldIsModified) {
-                    $this->_modifiedFields[$name] = $actualValue;
-                }
-                $this->_data[$name] = $value;
-            }
-
-            $this->handleOwningFieldRelation($name);
+            $this->setFieldValue($name, $value);
         }
 
         if ($this->_table->hasRelation($name)) {
@@ -344,6 +346,37 @@ class Record
     public function __set($name, $value)
     {
         $this->set($name, $value);
+    }
+
+
+    /**
+     * @param string $fieldName
+     * @param mixed  $value
+     */
+    protected function setFieldValue($fieldName, $value)
+    {
+        $actualValue = $this->get($fieldName);
+
+        $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $actualValue);
+        $this->getEventDispatcher()->dispatch(self::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeEvent);
+        if ($fieldValueChangeEvent->isPropagationStopped()) {
+            return;
+        }
+
+        if ($value != $actualValue) {
+            $fieldIsModified = array_key_exists($fieldName, $this->_modifiedFields);
+            if ($fieldIsModified && $this->_modifiedFields[$fieldName] == $value) {
+                unset($this->_modifiedFields[$fieldName]);
+            }
+            else if (!$fieldIsModified) {
+                $this->_modifiedFields[$fieldName] = $actualValue;
+            }
+            $this->_data[$fieldName] = $value;
+        }
+        $this->handleOwningFieldRelation($fieldName);
+
+        $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $actualValue);
+        $this->getEventDispatcher()->dispatch(self::EVENT_POST_FIELD_VALUE_CHANGE, $fieldValueChangeEvent);
     }
 
 
@@ -634,19 +667,6 @@ class Record
             }
         }
         return false;
-    }
-
-
-    /**
-     * TODO unit test code: find a better way!
-     *
-     * @param string $fieldName
-     */
-    public function markFieldAsModified($fieldName)
-    {
-        if (!$this->isFieldModified($fieldName)) {
-            $this->_modifiedFields[$fieldName] = $this->get($fieldName);
-        }
     }
 
 

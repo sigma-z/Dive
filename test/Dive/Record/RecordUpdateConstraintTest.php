@@ -9,11 +9,13 @@
 namespace Dive\Test\Record;
 
 use Dive\Collection\RecordCollection;
+use Dive\Event\Dispatcher;
 use Dive\Platform\PlatformInterface;
+use Dive\Record\FieldValueChangeEvent;
 use Dive\Record\Generator\RecordGenerator;
-use Dive\Record;
 use Dive\Table;
 use Dive\TestSuite\Constraint\RecordScheduleConstraint;
+use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TableRowsProvider;
 use Dive\TestSuite\TestCase;
 use Dive\UnitOfWork\UnitOfWork;
@@ -182,14 +184,22 @@ class RecordUpdateConstraintTest extends TestCase
         $tableName, $recordKey, array $relationsToLoad, array $constraints, $expectedCountScheduledForSave
     )
     {
-        $this->markTestIncomplete();
-
         $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
+        // clean event dispatcher with no listeners
+        $rm->getConnection()->setEventDispatcher(new Dispatcher());
+        $eventDispatcher = $rm->getEventDispatcher();
         $table = $rm->getTable($tableName);
 
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $record->loadReferences($relationsToLoad);
         $this->modifyRecordGraphConstraintFields($record);
+
+        $fieldValueChangeListener = function (FieldValueChangeEvent $event) {
+            /** @var Record $record */
+            $record = $event->getRecord();
+            $record->markFieldAsModified($event->getFieldName());
+        };
+        $eventDispatcher->addListener(Record::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeListener);
 
         $rm->save($record);
 
@@ -248,22 +258,6 @@ class RecordUpdateConstraintTest extends TestCase
             'relationsToLoad' => array(
                 'Author' => array(
                     'Article' => array()
-                )
-            ),
-            'constraints' => array(PlatformInterface::CASCADE),
-            'expectedCountScheduledForSave' => 9
-        );
-
-        $testCases[] = array(
-            'tableName' => 'user',
-            'recordKey' => 'JamieTK',
-            'relationsToLoad' => array(
-                'Author' => array(
-                    'Article' => array(
-                        'Article2tagHasMany' => array(
-                            'Tag' => array()
-                        )
-                    )
                 )
             ),
             'constraints' => array(PlatformInterface::CASCADE),

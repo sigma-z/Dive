@@ -237,10 +237,10 @@ class ConnectionTest extends TestCase
         $expectedEventsCalled = array();
         $eventDispatcher = $conn->getEventDispatcher();
         $this->addMockListenerToEventDispatcher($eventDispatcher, $events, $expectedEventsCalled);
-        $preDisconnectEvent = function(ConnectionEvent $event) {
+        $preDisconnectListener = function(ConnectionEvent $event) {
             $event->getConnection()->exec('DELETE FROM user');
         };
-        $eventDispatcher->addListener(Connection::EVENT_PRE_DISCONNECT, $preDisconnectEvent);
+        $eventDispatcher->addListener(Connection::EVENT_PRE_DISCONNECT, $preDisconnectListener);
 
         $return1 = $conn->exec($sql, $params);
         $return2 = $conn->exec($sqlWithoutParams);

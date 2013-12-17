@@ -10,7 +10,7 @@
 namespace Dive\TestSuite\Model;
 
 use Dive\Collection\RecordCollection;
-use Dive\Record;
+use Dive\TestSuite\Record\Record;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>

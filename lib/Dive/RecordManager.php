@@ -75,6 +75,15 @@ class RecordManager
 
 
     /**
+     * @return Event\DispatcherInterface
+     */
+    public function getEventDispatcher()
+    {
+        return $this->conn->getEventDispatcher();
+    }
+
+
+    /**
      * @return \Dive\Schema\Schema
      */
     public function getSchema()

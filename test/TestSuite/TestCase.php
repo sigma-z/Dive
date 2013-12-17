@@ -6,7 +6,7 @@ use Dive\Connection\Connection;
 use Dive\Connection\ConnectionRowChangeEvent;
 use Dive\Event\Dispatcher;
 use Dive\Event\Event;
-use Dive\Record;
+use Dive\TestSuite\Record\Record;
 use Dive\Record\Generator\RecordGenerator;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
@@ -137,7 +137,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         if ($definition === null) {
             $definition = self::getSchemaDefinition();
         }
-        return new Schema($definition);
+        $schema = new Schema($definition);
+        $schema->setRecordBaseClass('\Dive\TestSuite\Record');
+        return $schema;
     }
 
 

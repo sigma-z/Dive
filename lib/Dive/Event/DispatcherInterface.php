@@ -6,16 +6,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  zeidler
- * @created 18.03.13
- */
 
 namespace Dive\Event;
 
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-
+/**
+ * @author  zeidler
+ * @created 18.03.13
+ */
 interface DispatcherInterface extends EventDispatcherInterface
 {
 }

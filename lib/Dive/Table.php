@@ -187,6 +187,15 @@ class Table
 
 
     /**
+     * @return Event\DispatcherInterface
+     */
+    public function getEventDispatcher()
+    {
+        return $this->rm->getEventDispatcher();
+    }
+
+
+    /**
      * Gets fields (keys: field names, values: field definition as array)
      *
      * @return array

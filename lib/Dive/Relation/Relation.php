@@ -416,7 +416,7 @@ class Relation
         foreach ($identifierFields as &$idField) {
             $idField = $connection->quoteIdentifier("$alias.$idField");
         }
-        return 'CONCAT(' . implode(", '" . Record::COMPOSITE_ID_SEPARATOR . "', ", $identifierFields) . ')';
+        return implode(" || '" . Record::COMPOSITE_ID_SEPARATOR . "' || ", $identifierFields);
     }
 
 

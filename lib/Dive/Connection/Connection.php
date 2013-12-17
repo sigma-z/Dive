@@ -78,7 +78,7 @@ class Connection
      */
     protected $dsn = '';
     /**
-     * @var \Dive\Event\DispatcherInterface|\Dive\Event\Dispatcher
+     * @var DispatcherInterface|Dispatcher
      */
     protected $eventDispatcher = null;
     /**
@@ -96,7 +96,7 @@ class Connection
      * @param   string                  $dsn
      * @param   string                  $user
      * @param   string                  $password
-     * @param   \Dive\Event\DispatcherInterface|\Dive\Event\Dispatcher $eventDispatcher
+     * @param   DispatcherInterface|Dispatcher $eventDispatcher
      */
     public function __construct(
         Driver\DriverInterface $driver,
@@ -156,9 +156,20 @@ class Connection
 
 
     /**
-     * gets event dispatcher
+     * Sets event dispatcher
      *
-     * @return \Dive\Event\Dispatcher|\Dive\Event\DispatcherInterface
+     * @param DispatcherInterface $eventDispatcher
+     */
+    public function setEventDispatcher(DispatcherInterface $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
+    }
+
+
+    /**
+     * Gets event dispatcher
+     *
+     * @return Dispatcher|DispatcherInterface
      */
     public function getEventDispatcher()
     {

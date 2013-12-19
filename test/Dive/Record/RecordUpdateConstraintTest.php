@@ -264,6 +264,21 @@ class RecordUpdateConstraintTest extends TestCase
             'expectedCountScheduledForSave' => 9
         );
 
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordKey' => 'JamieTK',
+            'relationsToLoad' => array(
+                'Author' => array(
+                    'Article' => array(
+                        'Comment' => array(),
+                        'Article2tagHasMany' => array()
+                    )
+                )
+            ),
+            'constraints' => array(PlatformInterface::CASCADE),
+            'expectedCountScheduledForSave' => 9
+        );
+
         return $testCases;
     }
 

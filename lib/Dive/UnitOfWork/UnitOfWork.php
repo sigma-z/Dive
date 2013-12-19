@@ -226,7 +226,8 @@ class UnitOfWork
         }
 
         $owningFieldName = $owningRelation->getOwningField();
-        if ($owningRecord->isFieldModified($owningFieldName)) {
+        if ($owningRecord->isFieldModified($owningFieldName) && !$this->isRecordScheduledForCommit($owningRecord)) {
+            $this->scheduleSave($owningRecord);
             return;
         }
 

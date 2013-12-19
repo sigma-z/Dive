@@ -45,67 +45,6 @@ class RecordUpdateConstraintTest extends TestCase
     }
 
 
-//    /**
-//     * @param string $tableName
-//     * @throws \Exception
-//     * @dataProvider provideSaveOnNonSavedRecords
-//     */
-//    public function testSaveOnNonSavedRecords($tableName)
-//    {
-//        $rm = self::createDefaultRecordManager();
-//
-//        $userTable = $rm->getTable('user');
-//        /** @var User $user */
-//        $user = $this->getRecordWithRandomData($userTable, array('username' => 'CliffE'));
-//
-//        $authorTable = $rm->getTable('author');
-//        /** @var Author $author */
-//        $author = $this->getRecordWithRandomData($authorTable, array('firstname' => 'Cliff', 'lastname' => 'Eastwood'));
-//
-//        $articleTable = $rm->getTable('article');
-//        /** @var Article $article */
-//        $article = $this->getRecordWithRandomData($articleTable, array('title' => 'Cliff was here'));
-//
-//        $author->Article[] = $article;
-//        $user->Author = $author;
-//
-//        switch ($tableName) {
-//            case 'user':
-//                $recordToSave = $user;
-//                break;
-//
-//            case 'author':
-//                $recordToSave = $author;
-//                break;
-//
-//            case 'article':
-//                $recordToSave = $article;
-//                break;
-//
-//            default:
-//                throw new \Exception("Test for $tableName is not supported!");
-//        }
-//
-//        $rm->save($recordToSave);
-//        $this->assertRecordIsScheduledForSave($user);
-//        $this->assertRecordIsScheduledForSave($author);
-//        $this->assertRecordIsScheduledForSave($article);
-//    }
-
-
-    /**
-     * @return array
-     */
-    public function provideSaveOnNonSavedRecords()
-    {
-        return array(
-            array('user'),
-            array('author'),
-            array('article'),
-        );
-    }
-
-
     /**
      * @dataProvider provideUpdateRestrictedConstraint
      * @param string $tableName
@@ -177,14 +116,13 @@ class RecordUpdateConstraintTest extends TestCase
      * @param string $tableName
      * @param string $recordKey
      * @param array  $relationsToLoad
-     * @param array  $constraints
      * @param int    $expectedCountScheduledForSave
      */
     public function testUpdateCascadeConstraint(
-        $tableName, $recordKey, array $relationsToLoad, array $constraints, $expectedCountScheduledForSave
+        $tableName, $recordKey, array $relationsToLoad, $expectedCountScheduledForSave
     )
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
+        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, array(PlatformInterface::CASCADE));
         // clean event dispatcher with no listeners
         $rm->getConnection()->setEventDispatcher(new Dispatcher());
         $eventDispatcher = $rm->getEventDispatcher();
@@ -228,7 +166,6 @@ class RecordUpdateConstraintTest extends TestCase
             'tableName' => 'user',
             'recordKey' => 'JohnD',
             'relationsToLoad' => array('Author' => array()),
-            'constraints' => array(PlatformInterface::CASCADE),
             'expectedCountScheduledForSave' => 4
         );
 
@@ -236,7 +173,6 @@ class RecordUpdateConstraintTest extends TestCase
             'tableName' => 'user',
             'recordKey' => 'JohnD',
             'relationsToLoad' => array(),
-            'constraints' => array(PlatformInterface::CASCADE),
             'expectedCountScheduledForSave' => 2
         );
 
@@ -248,7 +184,6 @@ class RecordUpdateConstraintTest extends TestCase
                     'Article' => array()
                 )
             ),
-            'constraints' => array(PlatformInterface::CASCADE),
             'expectedCountScheduledForSave' => 7
         );
 
@@ -260,7 +195,6 @@ class RecordUpdateConstraintTest extends TestCase
                     'Article' => array()
                 )
             ),
-            'constraints' => array(PlatformInterface::CASCADE),
             'expectedCountScheduledForSave' => 9
         );
 
@@ -275,7 +209,6 @@ class RecordUpdateConstraintTest extends TestCase
                     )
                 )
             ),
-            'constraints' => array(PlatformInterface::CASCADE),
             'expectedCountScheduledForSave' => 9
         );
 
@@ -283,73 +216,69 @@ class RecordUpdateConstraintTest extends TestCase
     }
 
 
-//    /**
-//     * @dataProvider provideSave
-//     * @param string $tableName
-//     * @param array  $saveGraph
-//     * @param array  $constraints
-//     */
-//    public function testSave($tableName, array $saveGraph, array $constraints)
-//    {
-//        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
-//        $table = $rm->getTable($tableName);
-//        $record = $this->getRecordBySaveGraph($table, $saveGraph);
-//
-//        $rm->save($record);
-//    }
-
-
     /**
-     * NOTE records are referenced by TableRowsProvider::provideTableRows()
-     *
-     * @return array[]
+     * @dataProvider provideUpdateSetNullConstraint
+     * @param string $tableName
+     * @param string $recordKey
+     * @param array  $relationsToLoad
+     * @param array  $constraints
+     * @param int    $expectedCountScheduledForSave
      */
-    public function provideSave()
+    public function testUpdateSetNullConstraint(
+        $tableName, $recordKey, array $relationsToLoad, array $constraints, $expectedCountScheduledForSave
+    )
     {
-        $testCases = array();
+        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
+        // clean event dispatcher with no listeners
+        $rm->getConnection()->setEventDispatcher(new Dispatcher());
+        $eventDispatcher = $rm->getEventDispatcher();
+        $table = $rm->getTable($tableName);
 
-        $testCases[] = array(
-            'tableName' => 'user',
-            'saveGraph' => array(
-                'recordKey' => 'JohnD',
-                'Author' => array(
-                    'recordKey' => 'John Doe',
-                    'email' => 'Johnny@example.com'
-                )
-            )
-        );
+        $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
+        $record->loadReferences($relationsToLoad);
+        $this->modifyRecordGraphConstraintFields($record);
 
-        $combinedTestCases = array();
-        $combinedConstraints = $this->getCombinedConstraints();
-        foreach ($testCases as $testCase) {
-            foreach ($combinedConstraints as $constraintCombination) {
-                $testCase['constraints'] = $constraintCombination;
-                $combinedTestCases[] = $testCase;
+        $fieldValueChangeListener = function (FieldValueChangeEvent $event) {
+            /** @var Record $record */
+            $record = $event->getRecord();
+            $record->markFieldAsModified($event->getFieldName());
+        };
+        $eventDispatcher->addListener(Record::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeListener);
+
+        $rm->save($record);
+
+        /** @var UnitOfWork $unitOfWork */
+        $unitOfWork = self::readAttribute($rm, 'unitOfWork');
+        /** @var string[] $scheduledForCommit */
+        $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
+        $actualCountScheduledForSave = 0;
+        foreach ($scheduledForCommit as $operation) {
+            if ($operation == UnitOfWork::OPERATION_SAVE) {
+                $actualCountScheduledForSave++;
             }
         }
-        return $combinedTestCases;
+        $this->assertEquals($expectedCountScheduledForSave, $actualCountScheduledForSave);
     }
 
 
     /**
      * @return array[]
      */
-    public function getCombinedConstraints()
+    public function provideUpdateSetNullConstraint()
     {
-        $constraints = array(
-            PlatformInterface::CASCADE,
-            PlatformInterface::SET_NULL,
-            //PlatformInterface::NO_ACTION,
-            PlatformInterface::RESTRICT
+        $testCases = array();
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordKey' => 'JamieTK',
+            'relationsToLoad' => array(
+                'Author' => array()
+            ),
+            'constraints' => array(PlatformInterface::CASCADE, PlatformInterface::SET_NULL),
+            'expectedCountScheduledForSave' => 5
         );
 
-        $combinedConstraints = array();
-        foreach ($constraints as $constraint) {
-            foreach ($constraints as $nestedConstraint) {
-                $combinedConstraints[] = array($constraint, $nestedConstraint);
-            }
-        }
-        return $combinedConstraints;
+        return $testCases;
     }
 
 
@@ -362,7 +291,11 @@ class RecordUpdateConstraintTest extends TestCase
     {
         $schemaDefinition = self::getSchemaDefinition();
         self::processSchemaConstraints($schemaDefinition, $tableName, 'onUpdate', $constraints);
-        return self::createDefaultRecordManager($schemaDefinition);
+        $rm = self::createDefaultRecordManager($schemaDefinition);
+
+
+
+        return $rm;
     }
 
 
@@ -401,202 +334,6 @@ class RecordUpdateConstraintTest extends TestCase
             }
         }
     }
-
-
-//    /**
-//     * @param  Table $table
-//     * @param  array $saveGraph
-//     * @return Record
-//     */
-//    private function getRecordBySaveGraph(Table $table, array $saveGraph)
-//    {
-//        $rm = $table->getRecordManager();
-//        if (isset($saveGraph['recordKey'])) {
-//            $tableName = $table->getTableName();
-//            $record = $this->getGeneratedRecord($rm, $tableName, $saveGraph['recordKey']);
-//        }
-//        else {
-//            $record = $table->createRecord();
-//        }
-//
-//        foreach ($saveGraph as $key => $value) {
-//            if ($table->hasField($key)) {
-//                $record->set($key, $value);
-//            }
-//            else if ($table->hasRelation($key)) {
-//                $relation = $table->getRelation($key);
-//                $relatedTable = $relation->getJoinTable($rm, $key);
-//
-//                // to-one
-//                if ($relation->isReferencedSide($key) || $relation->isOneToOne()) {
-//                    $value = $value !==  null ? $this->getRecordBySaveGraph($relatedTable, $value) : $value;
-//                    $record->set($key, $value);
-//                }
-//                // to-many
-//                else if (!empty($value)) {
-//                    $relatedCollection = new RecordCollection($relatedTable);
-//                    foreach ($value as $related) {
-//                        $relatedCollection->add($this->getRecordBySaveGraph($relatedTable, $related));
-//                    }
-//                }
-//                // to-many empty value
-//                else {
-//                    $record->set($key, new RecordCollection($relatedTable));
-//                }
-//            }
-//        }
-//        return $record;
-//    }
-
-
-    /**
-     * @param  string $constraint
-     * @return bool
-     */
-    private static function isRestrictedConstraint($constraint)
-    {
-        return in_array($constraint, array(PlatformInterface::RESTRICT, PlatformInterface::NO_ACTION));
-    }
-
-
-    /**
-     * @param Record $record
-     * @param string $message
-     */
-    protected function assertRecordIsScheduledForSave(Record $record, $message = '')
-    {
-        self::assertThat($record, self::isScheduledFor(UnitOfWork::OPERATION_SAVE), $message);
-    }
-
-
-    /**
-     * @param  string $operation
-     * @return RecordScheduleConstraint
-     */
-    private static function isScheduledFor($operation)
-    {
-        return new RecordScheduleConstraint($operation);
-    }
-
-
-    /**
-     * @param Record $record
-     * @param string $message
-     */
-    protected function assertRecordIsNotScheduledForSave(Record $record, $message = '')
-    {
-        self::assertThat($record, self::logicalNot(self::isScheduledFor(UnitOfWork::OPERATION_SAVE)), $message);
-    }
-//
-//
-//    /**
-//     * @param array         $constraints
-//     * @param array         $deleteGraph
-//     * @param RecordManager $rm
-//     * @param string        $message
-//     * @throws \PHPUnit_Framework_Exception
-//     */
-//    protected function assertScheduledOperationsForCommit(
-//        array $constraints, array $deleteGraph, RecordManager $rm, $message
-//    )
-//    {
-//        $expectedScheduledForCommit = self::getExpectedScheduledOperationsForCommit($rm, $constraints, $deleteGraph);
-//        if (empty($expectedScheduledForCommit)) {
-//            throw \PHPUnit_Util_InvalidArgumentHelper::factory(1, 'not empty array');
-//        }
-//
-//        /** @var UnitOfWork $unitOfWork */
-//        $unitOfWork = self::readAttribute($rm, 'unitOfWork');
-//        /** @var string[] $scheduledForCommit */
-//        $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
-//
-//        $actualScheduledForCommit = array(
-//            UnitOfWork::OPERATION_DELETE => array(),
-//            UnitOfWork::OPERATION_SAVE => array()
-//        );
-//        foreach ($scheduledForCommit as $oid => $operation) {
-//            $actualScheduledForCommit[$operation][] = $oid;
-//        }
-//
-//        sort($expectedScheduledForCommit[UnitOfWork::OPERATION_DELETE]);
-//        sort($actualScheduledForCommit[UnitOfWork::OPERATION_DELETE]);
-//        sort($expectedScheduledForCommit[UnitOfWork::OPERATION_SAVE]);
-//        sort($actualScheduledForCommit[UnitOfWork::OPERATION_SAVE]);
-//        $this->assertEquals($expectedScheduledForCommit, $actualScheduledForCommit, $message);
-//    }
-//
-//
-//    /**
-//     * @param \Dive\RecordManager $rm
-//     * @param  array              $constraints
-//     * @param  array              $deleteGraph
-//     * @return array
-//     */
-//    private function getExpectedScheduledOperationsForCommit(RecordManager $rm, array $constraints, array $deleteGraph)
-//    {
-//        $expected = array(
-//            UnitOfWork::OPERATION_DELETE => array(),
-//            UnitOfWork::OPERATION_SAVE => array()
-//        );
-//
-//        foreach ($deleteGraph as $level => $tableReferences) {
-//            foreach ($tableReferences as $tableName => $recordKeys) {
-//                foreach ($recordKeys as $recordKey) {
-//                    $record = $this->getGeneratedRecord($rm, $tableName, $recordKey);
-//                    $operation = self::getExpectedScheduleOperation($level, $constraints);
-//                    if ($operation) {
-//                        $expected[$operation][] = $record->getOid();
-//                    }
-//                }
-//            }
-//        }
-//        return $expected;
-//    }
-//
-//
-//    /**
-//     * @param  string $level
-//     * @param  array  $constraints
-//     * @return bool|string
-//     */
-//    private static function getExpectedScheduleOperation($level, array $constraints)
-//    {
-//        if ($level == 0) {
-//            return UnitOfWork::OPERATION_DELETE;
-//        }
-//
-//        $constraintPathIsCascade = self::isCascadingConstraintPath($level, $constraints);
-//        $constraint = $level > 1 ? $constraints[1] : $constraints[0];
-//
-//        if ($constraintPathIsCascade && $constraint == PlatformInterface::CASCADE) {
-//            return UnitOfWork::OPERATION_DELETE;
-//        }
-//        else if ($constraintPathIsCascade && $constraint == PlatformInterface::SET_NULL) {
-//            return UnitOfWork::OPERATION_SAVE;
-//        }
-//        return false;
-//    }
-//
-//
-//    /**
-//     * @param int   $level
-//     * @param array $constraints
-//     * @return array
-//     */
-//    private static function isCascadingConstraintPath($level, array $constraints)
-//    {
-//        if ($level == 0) {
-//            return true;
-//        }
-//
-//        $constraints = array_slice($constraints, 0, $level - 1);
-//        foreach ($constraints as $constraint) {
-//            if ($constraint != PlatformInterface::CASCADE) {
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
 
 
     /**

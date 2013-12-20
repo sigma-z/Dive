@@ -183,11 +183,15 @@ abstract class Importer implements ImporterInterface
             return $relation;
         }
 
-        $relation['owningAlias'] = CamelCase::toCamelCase($relation['refTable']);
-        $relation['refAlias'] = CamelCase::toCamelCase($relation['owningTable']);
+//        $relation['owningAlias'] = CamelCase::toCamelCase($relation['refTable']);
+//        $relation['refAlias'] = CamelCase::toCamelCase($relation['owningTable']);
+
+
+        $relation['owningAlias'] = CamelCase::toCamelCase($relation['owningTable']);
+        $relation['refAlias'] = CamelCase::toCamelCase($relation['refTable']);
 
         if (!$isOneToOne) {
-            $relation['refAlias'] .= 'HasMany';
+            $relation['owningAlias'] .= 'HasMany';
         }
         return $relation;
     }

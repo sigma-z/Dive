@@ -74,9 +74,10 @@ class MysqlImporter extends Importer
      */
     public function getTableIndexes($tableName)
     {
-        $query = 'SHOW INDEXES FROM ' . $this->conn->quoteIdentifier($tableName)
-            . ' WHERE Key_name <> ?';
-        $rows = $this->conn->query($query, array('PRIMARY'));
+        $query = 'SHOW INDEXES FROM ' . $this->conn->quoteIdentifier($tableName);
+//            . ' WHERE Key_name <> ?';
+//        $rows = $this->conn->query($query, array('PRIMARY'));
+        $rows = $this->conn->query($query);
         $indexes = array();
         foreach ($rows as $row) {
             $name = $row['Key_name'];
@@ -106,7 +107,6 @@ class MysqlImporter extends Importer
 
         $foreignKeys = array();
         $indexes = $this->getTableIndexes($tableName);
-
         foreach ($matches as $match) {
             //$constraint['fk_name'] = $match[1];
             $localField = $match[2];

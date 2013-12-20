@@ -9,16 +9,17 @@
 
 namespace Dive\Test\Schema\Import;
 
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 14.01.13
- */
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\Import\ImporterInterface;
 use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
 
+
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 14.01.13
+ */
 class ImportTest extends TestCase
 {
 

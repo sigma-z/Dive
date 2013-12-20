@@ -38,7 +38,11 @@ class SqliteImporter extends Importer
      */
     public function getTableFields($tableName)
     {
-        return $this->getFields($tableName);
+        if (!$this->hasCachedTableFields($tableName)) {
+            $fields = $this->getFields($tableName);
+            $this->cacheTableFields($tableName, $fields);
+        }
+        return $this->getCachedTableFields($tableName);
     }
 
 
@@ -84,40 +88,36 @@ class SqliteImporter extends Importer
      */
     public function getTableIndexes($tableName)
     {
-        $query = 'PRAGMA index_list(' . $this->conn->quoteIdentifier($tableName) . ')';
-        $rows = $this->conn->query($query);
-        $indexes = array();
-        foreach ($rows as $row) {
-            $name = $row['name'];
-            $query = 'PRAGMA index_info(' . $this->conn->quoteIdentifier($name) . ')';
-            $type = $row['unique'] === '1' ? PlatformInterface::UNIQUE : PlatformInterface::INDEX;
-            $indexes[$name] = array('type' => $type, 'fields' => array());
-            $indexRows = $this->conn->query($query);
-            foreach ($indexRows as $indexRow) {
-                $indexes[$name]['fields'][] = $indexRow['name'];
+        if (!$this->hasCachedTableIndexes($tableName)) {
+            $query = 'PRAGMA index_list(' . $this->conn->quoteIdentifier($tableName) . ')';
+            $rows = $this->conn->query($query);
+            $indexes = array();
+            foreach ($rows as $row) {
+                $name = $row['name'];
+                $query = 'PRAGMA index_info(' . $this->conn->quoteIdentifier($name) . ')';
+                $type = $row['unique'] === '1' ? PlatformInterface::UNIQUE : PlatformInterface::INDEX;
+                $indexes[$name] = array('type' => $type, 'fields' => array());
+                $indexRows = $this->conn->query($query);
+                foreach ($indexRows as $indexRow) {
+                    $indexes[$name]['fields'][] = $indexRow['name'];
+                }
             }
+            $this->cacheTableIndexes($tableName, $indexes);
         }
-        return $indexes;
+        return $this->getCachedTableIndexes($tableName);
     }
 
 
     /**
      * gets table foreign keys
      *
-     * @param  string       $tableName
-     * @param  array|string $pkFields
-     * @param  array        $indexes
+     * @param  string $tableName
      * @return array[]
      */
-    public function getTableForeignKeys($tableName, $pkFields = null, array $indexes = null)
+    public function getTableForeignKeys($tableName)
     {
-        if ($indexes === null) {
-            $indexes = $this->getTableIndexes($tableName);
-        }
-        if ($pkFields === null) {
-            $pkFields = $this->getPkFields($tableName);
-        }
-        $pkFields = (array)$pkFields;
+        $indexes = $this->getTableIndexes($tableName);
+        $pkFields = $this->getPkFields($tableName);
 
         $query = 'PRAGMA foreign_key_list(' . $this->conn->quoteIdentifier($tableName) . ')';
         $rows = $this->conn->query($query);

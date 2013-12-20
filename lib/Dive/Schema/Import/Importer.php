@@ -43,6 +43,13 @@ abstract class Importer implements ImporterInterface
         'relations' => array()
     );
 
+    /**
+     * @var array[]
+     * key: table name
+     * value array with keys 'indexes', 'fields', 'pkFields'
+     */
+    private $tableStructureCache = array();
+
 
     /**
      * constructor
@@ -64,6 +71,9 @@ abstract class Importer implements ImporterInterface
     }
 
 
+    /**
+     * @return DataTypeMapper
+     */
     public function getDataTypeMapper()
     {
         return $this->dataTypeMapper;
@@ -168,7 +178,7 @@ abstract class Importer implements ImporterInterface
             }
 
             $indexes = $this->getTableIndexes($tableName);
-            $relations = $this->getTableForeignKeys($tableName, null, null, $indexes);
+            $relations = $this->getTableForeignKeys($tableName, $indexes);
 
             // add foreign key name to field property 'foreign'
             foreach ($relations as $name => $relation) {
@@ -363,5 +373,86 @@ abstract class Importer implements ImporterInterface
         return $values;
     }
 
+
+    /**
+     * @param  string $tableName
+     * @return bool
+     */
+    protected function hasCachedTableIndexes($tableName)
+    {
+        return isset($this->tableStructureCache[$tableName]['indexes']);
+    }
+
+
+    /**
+     * @param string $tableName
+     * @param array  $indexes
+     */
+    protected function cacheTableIndexes($tableName, array $indexes)
+    {
+        $this->tableStructureCache[$tableName]['indexes'] = $indexes;
+    }
+
+
+    /**
+     * @param  string $tableName
+     * @return array[]
+     * @throws \Dive\Schema\SchemaException
+     */
+    protected function getCachedTableIndexes($tableName)
+    {
+        if ($this->hasCachedTableIndexes($tableName)) {
+            return $this->tableStructureCache[$tableName]['indexes'];
+        }
+        throw new SchemaException("No cached indexes for table '$tableName'!");
+    }
+
+
+    /**
+     * @param  string $tableName
+     * @return bool
+     */
+    protected function hasCachedTableFields($tableName)
+    {
+        return isset($this->tableStructureCache[$tableName]['fields']);
+    }
+
+
+    /**
+     * @param string $tableName
+     * @param array  $fields
+     */
+    protected function cacheTableFields($tableName, array $fields)
+    {
+        $this->tableStructureCache[$tableName]['fields'] = $fields;
+    }
+
+
+    /**
+     * @param  string $tableName
+     * @return array[]
+     * @throws \Dive\Schema\SchemaException
+     */
+    protected function getCachedTableFields($tableName)
+    {
+        if ($this->hasCachedTableFields($tableName)) {
+            return $this->tableStructureCache[$tableName]['fields'];
+        }
+        throw new SchemaException("No cached fields for table '$tableName'!");
+    }
+
+
+    /**
+     * @param string $tableName
+     */
+    public function resetTableCache($tableName = null)
+    {
+        if ($tableName) {
+            unset($this->tableStructureCache[$tableName]);
+        }
+        else {
+            $this->tableStructureCache = array();
+        }
+    }
 
 }

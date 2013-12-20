@@ -38,7 +38,11 @@ class MysqlImporter extends Importer
      */
     public function getTableFields($tableName)
     {
-        return $this->getFields($tableName);
+        if (!$this->hasCachedTableFields($tableName)) {
+            $fields = $this->getFields($tableName);
+            $this->cacheTableFields($tableName, $fields);
+        }
+        return $this->getCachedTableFields($tableName);
     }
 
 
@@ -74,46 +78,41 @@ class MysqlImporter extends Importer
      */
     public function getTableIndexes($tableName)
     {
-        $query = 'SHOW INDEXES FROM ' . $this->conn->quoteIdentifier($tableName)
-            . ' WHERE Key_name <> ?';
-        $rows = $this->conn->query($query, array('PRIMARY'));
-        $indexes = array();
-        foreach ($rows as $row) {
-            $name = $row['Key_name'];
-            if (!isset($indexes[$name])) {
-                $type = $row['Non_unique'] === '1' ? PlatformInterface::INDEX : PlatformInterface::UNIQUE;
-                $indexes[$name] = array('type' => $type, 'fields' => array());
+        if (!$this->hasCachedTableIndexes($tableName)) {
+            $query = 'SHOW INDEXES FROM ' . $this->conn->quoteIdentifier($tableName)
+                . ' WHERE Key_name <> ?';
+            $rows = $this->conn->query($query, array('PRIMARY'));
+            $indexes = array();
+            foreach ($rows as $row) {
+                $name = $row['Key_name'];
+                if (!isset($indexes[$name])) {
+                    $type = $row['Non_unique'] === '1' ? PlatformInterface::INDEX : PlatformInterface::UNIQUE;
+                    $indexes[$name] = array('type' => $type, 'fields' => array());
+                }
+                $indexes[$name]['fields'][] = $row['Column_name'];
             }
-            $indexes[$name]['fields'][] = $row['Column_name'];
+            $this->cacheTableIndexes($tableName, $indexes);
         }
-        return $indexes;
+        return $this->getCachedTableIndexes($tableName);
     }
 
 
     /**
      * gets table foreign keys
      *
-     * @param  string       $tableName
-     * @param  array|string $pkFields
-     * @param  array        $indexes
+     * @param  string $tableName
      * @return  array
      */
-    public function getTableForeignKeys($tableName, $pkFields = null, array $indexes = null)
+    public function getTableForeignKeys($tableName)
     {
-        if ($indexes === null) {
-            $indexes = $this->getTableIndexes($tableName);
-        }
-        if ($pkFields === null) {
-            $pkFields = $this->getPkFields($tableName);
-        }
-        $pkFields = (array)$pkFields;
-
         $createTableStmt = $this->conn->query('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
         $pattern = '/CONSTRAINT\s*`(\w+)`\s*FOREIGN KEY\s*\(`(\w+)`\)\s*REFERENCES\s*`(\w+)`\s*\(`(\w+)`\)\s*(.*)/';
         if (!preg_match_all($pattern, $createTableStmt[0]['Create Table'], $matches, PREG_SET_ORDER)) {
             return array();
         }
 
+        $indexes = $this->getTableIndexes($tableName);
+        $pkFields = $this->getPkFields($tableName);
         $foreignKeys = array();
         foreach ($matches as $match) {
             $localField = $match[2];

@@ -54,12 +54,10 @@ interface ImporterInterface
     /**
      * gets table foreign keys
      *
-     * @param  string       $tableName
-     * @param  array|string $pkFields
-     * @param  array        $indexes
+     * @param  string $tableName
      * @return array[]
      */
-    public function getTableForeignKeys($tableName, $pkFields = null, array $indexes = null);
+    public function getTableForeignKeys($tableName);
 
 
     /**

@@ -81,7 +81,7 @@ class QueryParser
         // query select
         $select = 'SELECT ' . $this->parseQuerySelect($query);
         // query from
-        $from   = '  FROM ' . implode("\n", $queryParts['from']);
+        $from   = '  FROM ' . implode("\n  ", $queryParts['from']);
         $sqlParts = array(
             'select' => $select,
             'from' => $from

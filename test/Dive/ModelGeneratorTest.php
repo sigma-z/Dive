@@ -82,6 +82,7 @@ class ModelGeneratorTest extends TestCase
      */
     public function testGetNeededModels(array $expectedNotExistingModels, array $expectedExistingModels)
     {
+        $this->markTestIncomplete();
         $schema = $this->getSchema();
 
         $actualNeededModels = $this->modelGenerator->getNeededModels($schema);
@@ -103,6 +104,7 @@ class ModelGeneratorTest extends TestCase
      */
     public function testCreateNeededModels(array $expectedNotExistingModels)
     {
+        $this->markTestIncomplete();
         $schema = $this->getSchema();
         $missingModels = $this->modelGenerator->getMissingModels($schema, self::$targetDirectory);
         $formatter = $this->getFormatter();

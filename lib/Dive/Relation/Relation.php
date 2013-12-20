@@ -375,19 +375,16 @@ class Relation
         $query = $relatedTable->createQuery('a');
         $query->distinct();
         if ($this->isReferencedSide($relationName)) {
-            $expression = $table->hasCompositePrimaryKey()
-                ? self::getCompositeIdentifierConcat($table, 'b')
-                : "b.$this->refField";
+            $expression = self::getCompositeIdentifierExpression($table, 'b');
             $query
                 ->leftJoin("a.$this->owningAlias b")
                 ->whereIn($expression, $identifiers);
         }
         else {
-            $expression = $table->hasCompositePrimaryKey()
-                ? self::getCompositeIdentifierConcat($table, 'a')
-                : "a.$this->owningField";
-
+            $connection = $table->getConnection();
+            $expression = $connection->quoteIdentifier("a.$this->owningField");
             $query->whereIn($expression, $identifiers);
+
             if ($this->isOneToMany() && $this->orderBy) {
                 if (false !== ($pos = strpos($this->orderBy, '.'))) {
                     list($orderByRelationAlias, $orderByField) = explode('.', $this->orderBy);
@@ -409,14 +406,17 @@ class Relation
      * @param  string $alias
      * @return string
      */
-    private static function getCompositeIdentifierConcat(Table $table, $alias)
+    private static function getCompositeIdentifierExpression(Table $table, $alias)
     {
         $connection = $table->getConnection();
         $identifierFields = $table->getIdentifierAsArray();
-        foreach ($identifierFields as &$idField) {
-            $idField = $connection->quoteIdentifier("$alias.$idField");
+        if ($table->hasCompositePrimaryKey()) {
+            foreach ($identifierFields as &$idField) {
+                $idField = $connection->quoteIdentifier("$alias.$idField");
+            }
+            return implode(" || '" . Record::COMPOSITE_ID_SEPARATOR . "' || ", $identifierFields);
         }
-        return implode(" || '" . Record::COMPOSITE_ID_SEPARATOR . "' || ", $identifierFields);
+        return $connection->quoteIdentifier($alias . '.' . $identifierFields[0]);
     }
 
 

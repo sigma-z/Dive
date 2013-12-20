@@ -10,6 +10,8 @@
 namespace Dive\Test\Relation;
 
 use Dive\Record;
+use Dive\TestSuite\Model\Author;
+use Dive\TestSuite\Model\User;
 
 require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 
@@ -29,8 +31,8 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
     public function testOneToOneReferencedSide($userExists, $authorExists)
     {
         /**
-         * @var Record $user
-         * @var Record $author
+         * @var User   $user
+         * @var Author $author
          */
         list($user, $author) = $this->createUserAndAuthor($userExists, $authorExists);
 
@@ -84,6 +86,9 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideOneToOne()
     {
         $testCases = array();
@@ -163,7 +168,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $relation = $authorTable->getRelation('User');
         $this->assertRelationReferenceMapIsEmpty($relation);
 
-        /** @var Record[] $authors */
+        /** @var Author[] $authors */
         $authors = $authorTable->createQuery()->fetchObjects();
         $authorOne = $authors[$authorOneId];
         $authorTwo = $authors[$authorTwoId];
@@ -206,6 +211,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
 
         $this->assertInstanceOf('\Dive\Record', $userOne->Author);
 
+        /** @var Author $newAuthor */
         $newAuthor = $authorTable->createRecord();
         $userOne->Author = $newAuthor;
 
@@ -233,7 +239,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $relation = $authorTable->getRelation('User');
         $this->assertRelationReferenceMapIsEmpty($relation);
 
-        /** @var Record[] $users */
+        /** @var User[] $users */
         $users = $userTable->createQuery()->fetchObjects();
         $userOne = $users[$userOneId];
         $userTwo = $users[$userTwoId];
@@ -275,6 +281,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
 
         $this->assertInstanceOf('\Dive\Record', $authorOne->User);
 
+        /** @var User $newUser */
         $newUser = $userTable->createRecord();
         $authorOne->User = $newUser;
         $this->assertNull($authorOne->user_id);

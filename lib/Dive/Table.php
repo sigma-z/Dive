@@ -338,7 +338,7 @@ class Table
      */
     public function hasCompositePrimaryKey()
     {
-        return count($this->identifier) > 1;
+        return isset($this->identifier[1]);
     }
 
 

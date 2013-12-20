@@ -6,16 +6,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 24.04.13
- */
 
 namespace Dive\Test\Relation;
 
 use Dive\RecordManager;
+use Dive\TestSuite\Model\Author;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 24.04.13
+ */
 abstract class RelationSetReferenceTestCase extends TestCase
 {
 
@@ -39,6 +41,10 @@ abstract class RelationSetReferenceTestCase extends TestCase
     }
 
 
+    /**
+     * @param  string $username
+     * @return User
+     */
     protected function createUser($username)
     {
         $table = $this->rm->getTable('user');
@@ -47,6 +53,10 @@ abstract class RelationSetReferenceTestCase extends TestCase
     }
 
 
+    /**
+     * @param  string $lastname
+     * @return Author
+     */
     protected function createAuthor($lastname)
     {
         $table = $this->rm->getTable('author');

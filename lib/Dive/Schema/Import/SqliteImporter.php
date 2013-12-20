@@ -9,13 +9,13 @@
 
 namespace Dive\Schema\Import;
 
+use Dive\Platform\PlatformInterface;
+use Dive\Relation\Relation;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 08.11.12
  */
-use Dive\Platform\PlatformInterface;
-use Dive\Relation\Relation;
-
 class SqliteImporter extends Importer
 {
 
@@ -104,18 +104,31 @@ class SqliteImporter extends Importer
     /**
      * gets table foreign keys
      *
-     * @param  string $tableName
+     * @param  string       $tableName
+     * @param  array|string $pkFields
+     * @param  array        $indexes
      * @return array[]
      */
-    public function getTableForeignKeys($tableName)
+    public function getTableForeignKeys($tableName, $pkFields = null, array $indexes = null)
     {
-        $indexes = $this->getTableIndexes($tableName);
+        if ($indexes === null) {
+            $indexes = $this->getTableIndexes($tableName);
+        }
+        if ($pkFields === null) {
+            $pkFields = $this->getPkFields($tableName);
+        }
+        $pkFields = (array)$pkFields;
+
         $query = 'PRAGMA foreign_key_list(' . $this->conn->quoteIdentifier($tableName) . ')';
         $rows = $this->conn->query($query);
         $foreignKeys = array();
         foreach ($rows as $row) {
             $localField = $row['from'];
             $name = $tableName  . '.' . $localField;
+            $relationType = $this->isFieldUnique($localField, $pkFields, $indexes)
+                ? Relation::ONE_TO_ONE
+                : Relation::ONE_TO_MANY;
+
             $foreignKey = array(
                 'owningTable' => $tableName,
                 'owningField' => $localField,
@@ -123,18 +136,8 @@ class SqliteImporter extends Importer
                 'refField' => $row['to'],
                 'onDelete' => $row['on_delete'],
                 'onUpdate' => $row['on_update'],
-                'type' => Relation::ONE_TO_MANY
+                'type' => $relationType
             );
-
-            foreach ($indexes as $index) {
-                if ($index['type'] == PlatformInterface::UNIQUE
-                    && count($index['fields']) == 1
-                    && $localField == $index['fields'][0])
-                {
-                    $foreignKey['type'] = Relation::ONE_TO_ONE;
-                    break;
-                }
-            }
 
             $foreignKeys[$name] = $foreignKey;
         }

@@ -116,7 +116,14 @@ abstract class Migration implements MigrationInterface
         if ($this->mode == self::ALTER_TABLE) {
             $this->columns = $importer->getTableFields($this->tableName);
             $this->indexes = $importer->getTableIndexes($this->tableName);
-            $this->foreignKeys = $importer->getTableForeignKeys($this->tableName);
+
+            $pkFields = array();
+            foreach ($this->columns as $fieldName => $column) {
+                if (isset($column['primary']) && $column['primary'] === true) {
+                    $pkFields[] = $fieldName;
+                }
+            }
+            $this->foreignKeys = $importer->getTableForeignKeys($this->tableName, $pkFields, $this->indexes);
         }
     }
 

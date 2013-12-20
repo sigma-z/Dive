@@ -74,10 +74,9 @@ class MysqlImporter extends Importer
      */
     public function getTableIndexes($tableName)
     {
-        $query = 'SHOW INDEXES FROM ' . $this->conn->quoteIdentifier($tableName);
-//            . ' WHERE Key_name <> ?';
-//        $rows = $this->conn->query($query, array('PRIMARY'));
-        $rows = $this->conn->query($query);
+        $query = 'SHOW INDEXES FROM ' . $this->conn->quoteIdentifier($tableName)
+            . ' WHERE Key_name <> ?';
+        $rows = $this->conn->query($query, array('PRIMARY'));
         $indexes = array();
         foreach ($rows as $row) {
             $name = $row['Key_name'];
@@ -94,11 +93,21 @@ class MysqlImporter extends Importer
     /**
      * gets table foreign keys
      *
-     * @param   string $tableName
+     * @param  string       $tableName
+     * @param  array|string $pkFields
+     * @param  array        $indexes
      * @return  array
      */
-    public function getTableForeignKeys($tableName)
+    public function getTableForeignKeys($tableName, $pkFields = null, array $indexes = null)
     {
+        if ($indexes === null) {
+            $indexes = $this->getTableIndexes($tableName);
+        }
+        if ($pkFields === null) {
+            $pkFields = $this->getPkFields($tableName);
+        }
+        $pkFields = (array)$pkFields;
+
         $createTableStmt = $this->conn->query('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
         $pattern = '/CONSTRAINT\s*`(\w+)`\s*FOREIGN KEY\s*\(`(\w+)`\)\s*REFERENCES\s*`(\w+)`\s*\(`(\w+)`\)\s*(.*)/';
         if (!preg_match_all($pattern, $createTableStmt[0]['Create Table'], $matches, PREG_SET_ORDER)) {
@@ -106,11 +115,13 @@ class MysqlImporter extends Importer
         }
 
         $foreignKeys = array();
-        $indexes = $this->getTableIndexes($tableName);
         foreach ($matches as $match) {
-            //$constraint['fk_name'] = $match[1];
             $localField = $match[2];
             $name = $tableName  . '.' . $localField;
+            $relationType = $this->isFieldUnique($localField, $pkFields, $indexes)
+                ? Relation::ONE_TO_ONE
+                : Relation::ONE_TO_MANY;
+
             $foreignKey = array(
                 'owningTable' => $tableName,
                 'owningField' => $localField,
@@ -118,18 +129,8 @@ class MysqlImporter extends Importer
                 'refField' => $match[4],
                 'onDelete' => PlatformInterface::RESTRICT,
                 'onUpdate' => PlatformInterface::RESTRICT,
-                'type' => Relation::ONE_TO_MANY
+                'type' => $relationType
             );
-
-            foreach ($indexes as $index) {
-                if ($index['type'] == PlatformInterface::UNIQUE
-                    && count($index['fields']) == 1
-                    && $localField == $index['fields'][0])
-                {
-                    $foreignKey['type'] = Relation::ONE_TO_ONE;
-                    break;
-                }
-            }
 
             $behavior = $match[5];
             $pattern = '/ON\s+(UPDATE|DELETE)\s+(CASCADE|SET NULL|NO ACTION|RESTRICT)/';

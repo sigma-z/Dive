@@ -10,6 +10,7 @@
 namespace Dive\Schema\Import;
 
 use Dive\Connection\Connection;
+use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Schema\SchemaException;
@@ -50,11 +51,8 @@ abstract class Importer implements ImporterInterface
      * @param DataTypeMapper    $dataTypeMapper
      * @param string            $recordNamespace
      */
-    public function __construct(
-        Connection $conn,
-        DataTypeMapper $dataTypeMapper = null,
-        $recordNamespace = '\\'
-    ) {
+    public function __construct(Connection $conn, DataTypeMapper $dataTypeMapper = null, $recordNamespace = '\\')
+    {
         $this->conn = $conn;
         $this->recordNamespace = $recordNamespace;
         if ($dataTypeMapper === null) {
@@ -80,6 +78,48 @@ abstract class Importer implements ImporterInterface
     public function getConnection()
     {
         return $this->conn;
+    }
+
+
+    /**
+     * Gets primary key fields
+     *
+     * @param string $tableName
+     * @return array
+     */
+    public function getPkFields($tableName)
+    {
+        $pkFields = array();
+        $fields = $this->getTableFields($tableName);
+        foreach ($fields as $fieldName => $field) {
+            if (isset($field['primary']) && $field['primary'] === true) {
+                $pkFields[] = $fieldName;
+            }
+        }
+        return $pkFields;
+    }
+
+
+    /**
+     * @param string $fieldName
+     * @param array  $pkFields
+     * @param array  $indexes
+     * @return bool
+     */
+    protected function isFieldUnique($fieldName, array $pkFields, array $indexes)
+    {
+        if (isset($pkFields[0]) && !isset($pkFields[1]) && $fieldName == $pkFields[0]) {
+            return true;
+        }
+        foreach ($indexes as $index) {
+            if ($index['type'] == PlatformInterface::UNIQUE
+                && !isset($index['fields'][1])
+                && $fieldName == $index['fields'][0])
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -128,7 +168,7 @@ abstract class Importer implements ImporterInterface
             }
 
             $indexes = $this->getTableIndexes($tableName);
-            $relations = $this->getTableForeignKeys($tableName);
+            $relations = $this->getTableForeignKeys($tableName, null, null, $indexes);
 
             // add foreign key name to field property 'foreign'
             foreach ($relations as $name => $relation) {
@@ -185,7 +225,6 @@ abstract class Importer implements ImporterInterface
 
 //        $relation['owningAlias'] = CamelCase::toCamelCase($relation['refTable']);
 //        $relation['refAlias'] = CamelCase::toCamelCase($relation['owningTable']);
-
 
         $relation['owningAlias'] = CamelCase::toCamelCase($relation['owningTable']);
         $relation['refAlias'] = CamelCase::toCamelCase($relation['refTable']);

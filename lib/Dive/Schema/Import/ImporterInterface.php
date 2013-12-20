@@ -25,6 +25,15 @@ interface ImporterInterface
 
 
     /**
+     * Gets primary key fields
+     *
+     * @param string $tableName
+     * @return array
+     */
+    public function getPkFields($tableName);
+
+
+    /**
      * gets table fields
      *
      * @param  string $tableName
@@ -45,10 +54,12 @@ interface ImporterInterface
     /**
      * gets table foreign keys
      *
-     * @param  string $tableName
+     * @param  string       $tableName
+     * @param  array|string $pkFields
+     * @param  array        $indexes
      * @return array[]
      */
-    public function getTableForeignKeys($tableName);
+    public function getTableForeignKeys($tableName, $pkFields = null, array $indexes = null);
 
 
     /**

@@ -15,7 +15,6 @@ namespace Dive\Test\Schema\Import;
  */
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
-use Dive\Schema\Import\Importer;
 use Dive\Schema\Import\ImporterInterface;
 use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;

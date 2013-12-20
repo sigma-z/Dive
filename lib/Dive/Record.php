@@ -662,9 +662,7 @@ class Record
                 }
                 return $reference;
             }
-            else {
-                return $related->toArray(true, $withMappedFields, $visited);
-            }
+            return $related->toArray(true, $withMappedFields, $visited);
         }
         return false;
     }

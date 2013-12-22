@@ -9,8 +9,8 @@
 
 namespace Dive\Connection;
 
-use Dive\Event\Dispatcher;
-use Dive\Event\DispatcherInterface;
+use Dive\Event\EventDispatcher;
+use Dive\Event\EventDispatcherInterface;
 use Dive\Expression;
 use Dive\Log\SqlLogger;
 use Dive\Platform\PlatformInterface;
@@ -49,46 +49,35 @@ class Connection
     const EVENT_POST_DELETE     = 'Dive.Connection.postDelete';
 
 
-    /**
-     * @var \PDO
-     */
+    /** @var \PDO */
     private $dbh = null;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     private $scheme = '';
-    /**
-     * @var string
-     */
+
+    /** @var string */
     private $user = '';
-    /**
-     * @var string
-     */
+
+    /** @var string */
     private $password = '';
-    /**
-     * @var Driver\DriverInterface
-     */
+
+    /** @var Driver\DriverInterface */
     protected $driver = null;
-    /**
-     * @var PlatformInterface
-     */
+
+    /** @var PlatformInterface */
     protected $platform = null;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     protected $dsn = '';
-    /**
-     * @var DispatcherInterface|Dispatcher
-     */
-    protected $eventDispatcher = null;
-    /**
-     * @var string
-     */
+
+    /** @var EventDispatcherInterface|EventDispatcher */
+    protected $eventDispatcher;
+
+    /** @var string */
     protected $encoding = PlatformInterface::ENC_UTF8;
-    /**
-     * @var SqlLogger
-     */
-    protected $sqlLogger = null;
+
+    /** @var SqlLogger */
+    protected $sqlLogger;
 
 
     /**
@@ -96,14 +85,14 @@ class Connection
      * @param   string                  $dsn
      * @param   string                  $user
      * @param   string                  $password
-     * @param   DispatcherInterface|Dispatcher $eventDispatcher
+     * @param   EventDispatcherInterface|EventDispatcher $eventDispatcher
      */
     public function __construct(
         Driver\DriverInterface $driver,
         $dsn,
         $user = '',
         $password = '',
-        DispatcherInterface $eventDispatcher = null
+        EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->driver   = $driver;
         $this->platform = $driver->getPlatform();
@@ -158,9 +147,9 @@ class Connection
     /**
      * Sets event dispatcher
      *
-     * @param DispatcherInterface $eventDispatcher
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function setEventDispatcher(DispatcherInterface $eventDispatcher)
+    public function setEventDispatcher(EventDispatcherInterface $eventDispatcher)
     {
         $this->eventDispatcher = $eventDispatcher;
     }
@@ -169,12 +158,12 @@ class Connection
     /**
      * Gets event dispatcher
      *
-     * @return Dispatcher|DispatcherInterface
+     * @return EventDispatcher|EventDispatcherInterface
      */
     public function getEventDispatcher()
     {
         if ($this->eventDispatcher === null) {
-            $this->eventDispatcher = new Dispatcher();
+            $this->eventDispatcher = new EventDispatcher();
         }
         return $this->eventDispatcher;
     }

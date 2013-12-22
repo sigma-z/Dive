@@ -9,41 +9,22 @@
 namespace Dive\Test\Record;
 
 use Dive\Platform\PlatformInterface;
-use Dive\Record\Generator\RecordGenerator;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\TestSuite\Constraint\RecordScheduleConstraint;
+use Dive\TestSuite\ConstraintTestCase;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
-use Dive\TestSuite\TableRowsProvider;
-use Dive\TestSuite\TestCase;
 use Dive\UnitOfWork\UnitOfWork;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 15.11.13
- * @TODO refactor class
+ * @TODO refactor tests like RecordUpdateConstrainTest
  */
-class RecordDeleteConstraintTest extends TestCase
+class RecordDeleteConstraintTest extends ConstraintTestCase
 {
-
-    /** @var array */
-    private static $tableRows = array();
-
-    /** @var RecordGenerator */
-    private static $recordGenerator;
-
-
-    public static function setUpBeforeClass()
-    {
-        parent::setUpBeforeClass();
-
-        self::$tableRows = TableRowsProvider::provideTableRows();
-        $rm = self::createDefaultRecordManager();
-        self::$recordGenerator = self::saveTableRows($rm, self::$tableRows);
-    }
-
 
     /**
      * @param string $tableName
@@ -109,7 +90,7 @@ class RecordDeleteConstraintTest extends TestCase
     {
         $tableName = key($deleteGraph[0]);
         $recordKey = $deleteGraph[0][$tableName][0];
-        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
+        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, 'onDelete', $constraints);
         $table = $rm->getTable($tableName);
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $constraint = $constraints[0];
@@ -295,19 +276,6 @@ class RecordDeleteConstraintTest extends TestCase
             }
         }
         return $combinedConstraints;
-    }
-
-
-    /**
-     * @param  string $tableName
-     * @param  array  $constraints
-     * @return \Dive\RecordManager
-     */
-    protected function getRecordManagerWithOverWrittenConstraints($tableName, array $constraints)
-    {
-        $schemaDefinition = self::getSchemaDefinition();
-        self::processSchemaConstraints($schemaDefinition, $tableName, 'onDelete', $constraints);
-        return self::createDefaultRecordManager($schemaDefinition);
     }
 
 

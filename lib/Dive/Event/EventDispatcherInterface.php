@@ -9,12 +9,12 @@
 
 namespace Dive\Event;
 
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface as SymfonyEventDispatcherInterface;
 
 /**
  * @author  zeidler
  * @created 18.03.13
  */
-interface DispatcherInterface extends EventDispatcherInterface
+interface EventDispatcherInterface extends SymfonyEventDispatcherInterface
 {
 }

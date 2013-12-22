@@ -75,7 +75,7 @@ class RecordManager
 
 
     /**
-     * @return Event\DispatcherInterface
+     * @return Event\EventDispatcherInterface
      */
     public function getEventDispatcher()
     {

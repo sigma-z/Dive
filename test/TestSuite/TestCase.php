@@ -4,7 +4,7 @@ namespace Dive\TestSuite;
 
 use Dive\Connection\Connection;
 use Dive\Connection\ConnectionRowChangeEvent;
-use Dive\Event\Dispatcher;
+use Dive\Event\EventDispatcher;
 use Dive\Event\Event;
 use Dive\TestSuite\Record\Record;
 use Dive\Record\Generator\RecordGenerator;
@@ -146,12 +146,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     /**
      * Adds mock listener via closure to event dispatcher
      *
-     * @param Dispatcher $eventDispatcher
+     * @param EventDispatcher $eventDispatcher
      * @param Event[] $events
      * @param array $expectedEventsCalled
      */
     protected function addMockListenerToEventDispatcher(
-        Dispatcher $eventDispatcher,
+        EventDispatcher $eventDispatcher,
         array $events,
         array &$expectedEventsCalled
     ) {

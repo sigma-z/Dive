@@ -9,41 +9,21 @@
 namespace Dive\Test\Record;
 
 use Dive\Collection\RecordCollection;
-use Dive\Event\Dispatcher;
+use Dive\Event\EventDispatcher;
 use Dive\Platform\PlatformInterface;
 use Dive\Record\FieldValueChangeEvent;
-use Dive\Record\Generator\RecordGenerator;
+use Dive\RecordManager;
 use Dive\Table;
-use Dive\TestSuite\Constraint\RecordScheduleConstraint;
+use Dive\TestSuite\ConstraintTestCase;
 use Dive\TestSuite\Record\Record;
-use Dive\TestSuite\TableRowsProvider;
-use Dive\TestSuite\TestCase;
 use Dive\UnitOfWork\UnitOfWork;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 05.12.13
- * @TODO refactor class
  */
-class RecordUpdateConstraintTest extends TestCase
+class RecordUpdateConstraintTest extends ConstraintTestCase
 {
-
-    /** @var array */
-    private static $tableRows = array();
-
-    /** @var RecordGenerator */
-    private static $recordGenerator;
-
-
-    public static function setUpBeforeClass()
-    {
-        parent::setUpBeforeClass();
-
-        self::$tableRows = TableRowsProvider::provideTableRows();
-        $rm = self::createDefaultRecordManager();
-        self::$recordGenerator = self::saveTableRows($rm, self::$tableRows);
-    }
-
 
     /**
      * @dataProvider provideUpdateRestrictedConstraint
@@ -54,7 +34,7 @@ class RecordUpdateConstraintTest extends TestCase
      */
     public function testUpdateRestrictedConstraint($tableName, $recordKey, array $relationsToLoad, array $constraints)
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
+        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, 'onUpdate', $constraints);
         $table = $rm->getTable($tableName);
 
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
@@ -122,22 +102,17 @@ class RecordUpdateConstraintTest extends TestCase
         $tableName, $recordKey, array $relationsToLoad, $expectedCountScheduledForSave
     )
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, array(PlatformInterface::CASCADE));
-        // clean event dispatcher with no listeners
-        $rm->getConnection()->setEventDispatcher(new Dispatcher());
-        $eventDispatcher = $rm->getEventDispatcher();
+        $rm = $this->getRecordManagerWithOverWrittenConstraints(
+            $tableName, 'onUpdate', array(PlatformInterface::CASCADE)
+        );
         $table = $rm->getTable($tableName);
 
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $record->loadReferences($relationsToLoad);
         $this->modifyRecordGraphConstraintFields($record);
 
-        $fieldValueChangeListener = function (FieldValueChangeEvent $event) {
-            /** @var Record $record */
-            $record = $event->getRecord();
-            $record->markFieldAsModified($event->getFieldName());
-        };
-        $eventDispatcher->addListener(Record::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeListener);
+        // clean event dispatcher with no listeners
+        $this->addPreFieldValueChangeEventListener($rm);
 
         $rm->save($record);
 
@@ -228,22 +203,15 @@ class RecordUpdateConstraintTest extends TestCase
         $tableName, $recordKey, array $relationsToLoad, array $constraints, $expectedCountScheduledForSave
     )
     {
-        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, $constraints);
-        // clean event dispatcher with no listeners
-        $rm->getConnection()->setEventDispatcher(new Dispatcher());
-        $eventDispatcher = $rm->getEventDispatcher();
+        $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, 'onUpdate', $constraints);
         $table = $rm->getTable($tableName);
 
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $record->loadReferences($relationsToLoad);
         $this->modifyRecordGraphConstraintFields($record);
 
-        $fieldValueChangeListener = function (FieldValueChangeEvent $event) {
-            /** @var Record $record */
-            $record = $event->getRecord();
-            $record->markFieldAsModified($event->getFieldName());
-        };
-        $eventDispatcher->addListener(Record::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeListener);
+        // clean event dispatcher with no listeners
+        $this->addPreFieldValueChangeEventListener($rm);
 
         $rm->save($record);
 
@@ -283,60 +251,6 @@ class RecordUpdateConstraintTest extends TestCase
 
 
     /**
-     * @param  string $tableName
-     * @param  array  $constraints
-     * @return \Dive\RecordManager
-     */
-    protected function getRecordManagerWithOverWrittenConstraints($tableName, array $constraints)
-    {
-        $schemaDefinition = self::getSchemaDefinition();
-        self::processSchemaConstraints($schemaDefinition, $tableName, 'onUpdate', $constraints);
-        $rm = self::createDefaultRecordManager($schemaDefinition);
-
-
-
-        return $rm;
-    }
-
-
-    /**
-     * @param array  $schemaDefinition
-     * @param string $tableName
-     * @param string $constraintType
-     * @param array  $constraints
-     * @param array  $processedTables
-     */
-    private static function processSchemaConstraints(
-        &$schemaDefinition,
-        $tableName,
-        $constraintType,
-        array $constraints,
-        array &$processedTables = array()
-    )
-    {
-        if (in_array($tableName, $processedTables) || empty($constraints)) {
-            return;
-        }
-
-        $constraint = array_shift($constraints);
-        if ($constraint == PlatformInterface::CASCADE && empty($constraints)) {
-            $constraints[] = PlatformInterface::CASCADE;
-        }
-        $processedTables[] = $tableName;
-        foreach ($schemaDefinition['relations'] as &$relation) {
-            if ($relation['refTable'] == $tableName) {
-                $relation[$constraintType] = $constraint;
-                if ($relation['owningTable'] != $tableName) {
-                    self::processSchemaConstraints(
-                        $schemaDefinition, $relation['owningTable'], $constraintType, $constraints, $processedTables
-                    );
-                }
-            }
-        }
-    }
-
-
-    /**
      * @param Record $record
      * @param array  $visited
      */
@@ -367,6 +281,23 @@ class RecordUpdateConstraintTest extends TestCase
         foreach ($idFields as $idField) {
             $record->markFieldAsModified($idField);
         }
+    }
+
+
+    /**
+     * @param RecordManager $rm
+     */
+    private function addPreFieldValueChangeEventListener(RecordManager $rm)
+    {
+        $fieldValueChangeListener = function (FieldValueChangeEvent $event) {
+            /** @var Record $record */
+            $record = $event->getRecord();
+            $record->markFieldAsModified($event->getFieldName());
+        };
+        // clean event dispatcher with no listeners
+        $rm->getConnection()->setEventDispatcher(new EventDispatcher());
+        $eventDispatcher = $rm->getEventDispatcher();
+        $eventDispatcher->addListener(Record::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeListener);
     }
 
 }

@@ -27,6 +27,8 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
 
     /**
      * @dataProvider provideUpdateRestrictedConstraint
+     * @expectedException \Dive\UnitOfWork\UnitOfWorkException
+     *
      * @param string $tableName
      * @param string $recordKey
      * @param array  $relationsToLoad
@@ -41,7 +43,6 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
         $record->loadReferences($relationsToLoad);
         $this->modifyRecordGraphConstraintFields($record);
 
-        $this->setExpectedException('\\Dive\\UnitOfWork\\UnitOfWorkException');
         $rm->save($record);
     }
 
@@ -93,6 +94,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
 
     /**
      * @dataProvider provideUpdateCascadeConstraint
+     *
      * @param string $tableName
      * @param string $recordKey
      * @param array  $relationsToLoad
@@ -193,6 +195,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
 
     /**
      * @dataProvider provideUpdateSetNullConstraint
+     *
      * @param string $tableName
      * @param string $recordKey
      * @param array  $relationsToLoad
@@ -235,6 +238,14 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
     public function provideUpdateSetNullConstraint()
     {
         $testCases = array();
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordKey' => 'JamieTK',
+            'relationsToLoad' => array(),
+            'constraints' => array(PlatformInterface::SET_NULL),
+            'expectedCountScheduledForSave' => 4
+        );
 
         $testCases[] = array(
             'tableName' => 'user',

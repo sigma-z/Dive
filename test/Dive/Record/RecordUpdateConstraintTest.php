@@ -16,7 +16,7 @@ use Dive\RecordManager;
 use Dive\Table;
 use Dive\TestSuite\ConstraintTestCase;
 use Dive\TestSuite\Record\Record;
-use Dive\UnitOfWork\UnitOfWork;
+
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -118,17 +118,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
 
         $rm->save($record);
 
-        /** @var UnitOfWork $unitOfWork */
-        $unitOfWork = self::readAttribute($rm, 'unitOfWork');
-        /** @var string[] $scheduledForCommit */
-        $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
-        $actualCountScheduledForSave = 0;
-        foreach ($scheduledForCommit as $operation) {
-            if ($operation == UnitOfWork::OPERATION_SAVE) {
-                $actualCountScheduledForSave++;
-            }
-        }
-        $this->assertEquals($expectedCountScheduledForSave, $actualCountScheduledForSave);
+        $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledForSave, 0);
     }
 
 
@@ -143,7 +133,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
             'tableName' => 'user',
             'recordKey' => 'JohnD',
             'relationsToLoad' => array('Author' => array()),
-            'expectedCountScheduledForSave' => 4
+            'expectedCountScheduledForSave' => 5
         );
 
         $testCases[] = array(
@@ -161,7 +151,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
                     'Article' => array()
                 )
             ),
-            'expectedCountScheduledForSave' => 7
+            'expectedCountScheduledForSave' => 8
         );
 
         $testCases[] = array(
@@ -218,17 +208,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
 
         $rm->save($record);
 
-        /** @var UnitOfWork $unitOfWork */
-        $unitOfWork = self::readAttribute($rm, 'unitOfWork');
-        /** @var string[] $scheduledForCommit */
-        $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
-        $actualCountScheduledForSave = 0;
-        foreach ($scheduledForCommit as $operation) {
-            if ($operation == UnitOfWork::OPERATION_SAVE) {
-                $actualCountScheduledForSave++;
-            }
-        }
-        $this->assertEquals($expectedCountScheduledForSave, $actualCountScheduledForSave);
+        $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledForSave, 0);
     }
 
 

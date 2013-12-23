@@ -10,12 +10,10 @@ namespace Dive\Test\Record;
 
 use Dive\Platform\PlatformInterface;
 use Dive\Record;
-use Dive\RecordManager;
 use Dive\TestSuite\ConstraintTestCase;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
-use Dive\UnitOfWork\UnitOfWork;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -160,7 +158,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $rm->delete($record);
 
-        $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledDeletes, 0);
+        $this->assertScheduledOperationsForCommit($rm, 0, $expectedCountScheduledDeletes);
     }
 
 
@@ -174,7 +172,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         $testCases[] = array(
             'tableName' => 'user',
             'recordKey' => 'JohnD',
-            'expectedCountScheduledDeletes' => 7
+            'expectedCountScheduledDeletes' => 8
         );
 
         $testCases[] = array(
@@ -223,7 +221,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $rm->delete($record);
 
-        $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledDeletes, $expectedCountScheduledSaves);
+        $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledSaves, $expectedCountScheduledDeletes);
     }
 
 
@@ -247,14 +245,14 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
             'recordKey' => 'JohnD',
             'constraints' => array(PlatformInterface::CASCADE, PlatformInterface::SET_NULL),
             'expectedCountScheduledDeletes' => 2,
-            'expectedCountScheduledSaves' => 2
+            'expectedCountScheduledSaves' => 3
         );
 
         $testCases[] = array(
             'tableName' => 'user',
             'recordKey' => 'JohnD',
             'constraints' => array(PlatformInterface::CASCADE, PlatformInterface::CASCADE, PlatformInterface::SET_NULL),
-            'expectedCountScheduledDeletes' => 4,
+            'expectedCountScheduledDeletes' => 5,
             'expectedCountScheduledSaves' => 3
         );
 
@@ -277,29 +275,4 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         return $testCases;
     }
 
-
-    /**
-     * @param RecordManager $rm
-     * @param int           $expectedCountScheduledDeletes
-     * @param int           $expectedCountScheduledSaves
-     */
-    private function assertScheduledOperationsForCommit($rm, $expectedCountScheduledDeletes, $expectedCountScheduledSaves)
-    {
-        /** @var UnitOfWork $unitOfWork */
-        $unitOfWork = self::readAttribute($rm, 'unitOfWork');
-        /** @var string[] $scheduledForCommit */
-        $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
-        $actualCountScheduledDeletes = 0;
-        $actualCountScheduledSaves = 0;
-        foreach ($scheduledForCommit as $operation) {
-            if ($operation == UnitOfWork::OPERATION_DELETE) {
-                $actualCountScheduledDeletes++;
-            }
-            else if ($operation == UnitOfWork::OPERATION_SAVE) {
-                $actualCountScheduledSaves++;
-            }
-        }
-        $this->assertEquals($expectedCountScheduledDeletes, $actualCountScheduledDeletes);
-        $this->assertEquals($expectedCountScheduledSaves, $actualCountScheduledSaves);
-    }
 }

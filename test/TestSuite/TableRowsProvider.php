@@ -72,7 +72,7 @@ class TableRowsProvider
                 'firstname' => 'Bart',
                 'lastname' => 'Simon',
                 'User' => 'BartS',
-                //'Editor' => 'John Doe'
+                'Editor' => 'John Doe'
             ),
         );
         $tableRows['tag'] = array('News', 'Release Notes', 'Feature', 'Documentation');

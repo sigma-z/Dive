@@ -15,6 +15,7 @@ use Dive\Table;
 use Dive\TestSuite\Constraint\OwningFieldMappingConstraint;
 use Dive\TestSuite\Constraint\ReferenceMapIsEmptyConstraint;
 use Dive\TestSuite\Constraint\RelationReferenceMapConstraint;
+use Dive\UnitOfWork\UnitOfWork;
 use Dive\Util\FieldValuesGenerator;
 
 /**
@@ -759,6 +760,34 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $relation = $record->getTable()->getRelation($relationName);
         $originalReferencedIds = $relation->getOriginalReferencedIds($record, $relationName);
         $this->assertEquals($expectedOriginalIds, $originalReferencedIds);
+    }
+
+
+    /**
+     * @param RecordManager $rm
+     * @param int           $expectedCountScheduledSaves
+     * @param int           $expectedCountScheduledDeletes
+     */
+    protected function assertScheduledOperationsForCommit(
+        RecordManager $rm, $expectedCountScheduledSaves, $expectedCountScheduledDeletes
+    )
+    {
+        /** @var UnitOfWork $unitOfWork */
+        $unitOfWork = self::readAttribute($rm, 'unitOfWork');
+        /** @var string[] $scheduledForCommit */
+        $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
+        $actualCountScheduledDeletes = 0;
+        $actualCountScheduledSaves = 0;
+        foreach ($scheduledForCommit as $operation) {
+            if ($operation == UnitOfWork::OPERATION_DELETE) {
+                $actualCountScheduledDeletes++;
+            }
+            else if ($operation == UnitOfWork::OPERATION_SAVE) {
+                $actualCountScheduledSaves++;
+            }
+        }
+        $this->assertEquals($expectedCountScheduledDeletes, $actualCountScheduledDeletes);
+        $this->assertEquals($expectedCountScheduledSaves, $actualCountScheduledSaves);
     }
 
 }

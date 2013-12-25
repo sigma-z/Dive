@@ -52,16 +52,23 @@ class RecordDeleteTest extends TestCase
         foreach ($expectedDeletedRecordKeys as $tableName => $deleteRecordKeys) {
             $table = $rm->getTable($tableName);
             foreach ($deleteRecordKeys as $deleteRecordKey) {
-                $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $deleteRecordKey);
-                $expectedDeletedRecords[] = $record;
+                $recordToDelete = $this->getGeneratedRecord(self::$recordGenerator, $table, $deleteRecordKey);
+                $expectedDeletedRecords[] = $recordToDelete;
             }
         }
         $rm->delete($record);
 
-        $this->markTestIncomplete();
         $this->assertScheduledOperationsForCommit($rm, 0, count($expectedDeletedRecords));
-//        $rm->commit();
 
+        $rm->commit();
+
+        $this->assertRecordsDeleted($expectedDeletedRecords);
+
+        // assert that no record is scheduled for commit anymore
+        $this->assertScheduledOperationsForCommit($rm, 0, 0);
+
+        // TODO fix reference maps and related record collections!
+        $this->markTestIncomplete("Fix reference maps and related record collections!");
     }
 
 
@@ -82,6 +89,22 @@ class RecordDeleteTest extends TestCase
         );
 
         return $testCases;
+    }
+
+
+    /**
+     * @param Record[] $expectedDeletedRecords
+     */
+    private function assertRecordsDeleted(array $expectedDeletedRecords)
+    {
+        foreach ($expectedDeletedRecords as $deletedRecord) {
+            $table = $deletedRecord->getTable();
+            $pkValues = $deletedRecord->getIdentifier();
+            $result = $table->findByPk($pkValues);
+            $message = "Record with id: " . (is_array($pkValues) ? implode(', ', $pkValues) : $pkValues)
+                . " was not deleted from table '" . $table->getTableName() . "'!";
+            $this->assertFalse($result, $message);
+        }
     }
 
 

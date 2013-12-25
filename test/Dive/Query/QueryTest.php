@@ -558,8 +558,13 @@ class QueryTest extends TestCase
     /**
      * @dataProvider provideSqlPartsDatabaseAware
      */
-    public function testFetchArray($database, array $operations, $expectedSql, $expectedNumOfRows)
-    {
+    public function testFetchArray(
+        $database,
+        array $operations,
+        /** @noinspection PhpUnusedParameterInspection */
+        $expectedSql,
+        $expectedNumOfRows
+    ) {
         // prepare
         $rm = self::createRecordManager($database);
         $query = $rm->createQuery('user', 'u');
@@ -582,8 +587,13 @@ class QueryTest extends TestCase
     /**
      * @dataProvider provideSqlPartsDatabaseAware
      */
-    public function testCount($database, array $operations, $expectedSql, $expectedNumOfRows)
-    {
+    public function testCount(
+        $database,
+        array $operations,
+        /** @noinspection PhpUnusedParameterInspection */
+        $expectedSql,
+        $expectedNumOfRows
+    ) {
         // prepare
         $rm = self::createRecordManager($database);
 
@@ -602,7 +612,7 @@ class QueryTest extends TestCase
     /**
      * @dataProvider provideSqlPartsDatabaseAware
      */
-    public function testCountByPk($database, array $operations, $expectedSql, $expectedNumOfRows)
+    public function testCountByPk($database, array $operations)
     {
         // prepare
         $rm = self::createRecordManager($database);
@@ -613,9 +623,16 @@ class QueryTest extends TestCase
         if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
             $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
         }
+        $query->removeQueryPart('groupBy');
+        $query->removeQueryPart('having');
+        $query->limitOffset(0, 0);
+
         $result = $query->countByPk();
         $this->assertInternalType('integer', $result);
-        $this->assertEquals($expectedNumOfRows, $result);
+
+        $expectedNumOfRows = $query->count();
+        $sql = $query->getSql();
+        $this->assertEquals($expectedNumOfRows, $result, "Expected $sql to return expected number of rows");
     }
 
 

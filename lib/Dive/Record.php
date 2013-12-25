@@ -210,7 +210,7 @@ class Record
             }
             $idValues[$fieldName] = $idValue;
         }
-        return count($idValues) == 1 ? $idValues[$identifier[0]] : $idValues;
+        return $this->_table->hasCompositePrimaryKey() ? $idValues : $idValues[$identifier[0]];
     }
 
 

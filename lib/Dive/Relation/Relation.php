@@ -375,7 +375,7 @@ class Relation
         $query = $relatedTable->createQuery('a');
         $query->distinct();
         if ($this->isReferencedSide($relationName)) {
-            $expression = self::getCompositeIdentifierExpression($table, 'b');
+            $expression = $table->getIdentifierQueryExpression('b');
             $query
                 ->leftJoin("a.$this->owningAlias b")
                 ->whereIn($expression, $identifiers);
@@ -398,25 +398,6 @@ class Relation
             }
         }
         return $query;
-    }
-
-
-    /**
-     * @param  Table $table
-     * @param  string $alias
-     * @return string
-     */
-    private static function getCompositeIdentifierExpression(Table $table, $alias)
-    {
-        $connection = $table->getConnection();
-        $identifierFields = $table->getIdentifierAsArray();
-        if ($table->hasCompositePrimaryKey()) {
-            foreach ($identifierFields as &$idField) {
-                $idField = $connection->quoteIdentifier("$alias.$idField");
-            }
-            return implode(" || '" . Record::COMPOSITE_ID_SEPARATOR . "' || ", $identifierFields);
-        }
-        return $connection->quoteIdentifier($alias . '.' . $identifierFields[0]);
     }
 
 

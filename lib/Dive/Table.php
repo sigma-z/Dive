@@ -594,6 +594,28 @@ class Table
     }
 
 
+    /**
+     * @param  string $queryAlias
+     * @return string
+     */
+    public function getIdentifierQueryExpression($queryAlias = '')
+    {
+        if ($queryAlias) {
+            $queryAlias .= '.';
+        }
+
+        $connection = $this->getConnection();
+        $identifierFields = $this->getIdentifierAsArray();
+        if ($this->hasCompositePrimaryKey()) {
+            foreach ($identifierFields as &$idField) {
+                $idField = $connection->quoteIdentifier($queryAlias . $idField);
+            }
+            return implode(" || '" . Record::COMPOSITE_ID_SEPARATOR . "' || ", $identifierFields);
+        }
+        return $connection->quoteIdentifier($queryAlias . $identifierFields[0]);
+    }
+
+
 //    public function findAll()
 //    {
 //        $query = $this->createQuery();

@@ -10,6 +10,7 @@
 namespace Dive\Test\Table;
 
 
+use Dive\Record;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
 
@@ -176,6 +177,61 @@ class TableTest extends TestCase
                 );
             }
         }
+        return $testCases;
+    }
+
+
+    /**
+     * @dataProvider provideGetIdentifierQueryExpression
+     *
+     * @param string $tableName
+     * @param string $queryAlias
+     * @param string $expected
+     */
+    public function testGetIdentifierQueryExpression($tableName, $queryAlias, $expected)
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable($tableName);
+        $actual = $table->getIdentifierQueryExpression($queryAlias);
+
+        $idQuote = $rm->getConnection()->getIdentifierQuote();
+        $actual = str_replace($idQuote, '', $actual);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideGetIdentifierQueryExpression()
+    {
+        $testCases = array();
+
+        $testCases[] = array(
+            'tableName' => 'article2tag',
+            'queryAlias' => 'a',
+            'expected' => "a.article_id || '" . Record::COMPOSITE_ID_SEPARATOR . "' || a.tag_id"
+        );
+
+        $testCases[] = array(
+            'tableName' => 'article2tag',
+            'queryAlias' => '',
+            'expected' => "article_id || '" . Record::COMPOSITE_ID_SEPARATOR . "' || tag_id"
+        );
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'queryAlias' => 'a',
+            'expected' => 'a.id'
+        );
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'queryAlias' => '',
+            'expected' => 'id'
+        );
+
         return $testCases;
     }
 

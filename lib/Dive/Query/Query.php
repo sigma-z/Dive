@@ -677,18 +677,18 @@ class Query implements QueryInterface, QueryHydrationInterface
 
 
     /**
-     * TODO solution is NOT nice and NOT fast, use CONCAT for composite primary keys (remind: database portability)
+     * return int
      */
     public function countByPk()
     {
-        $this->parse();
-
-        // build pdo statement
-        $stmt = $this->getConnection()->getStatement($this->sql, $this->getParamsFlattened());
-        $hydrator = $this->rm->getHydrator(RecordManager::FETCH_ARRAY);
-        $hydrator->setStatement($stmt);
-        $result = $hydrator->getResult();
-        return count($result);
+        $query = $this->copy();
+        $query->removeQueryPart('groupBy');
+        $query->removeQueryPart('having');
+        $query->limitOffset(0, 0);
+        $rootAlias = $query->getRootAlias();
+        $idExpression = $query->getRootTable()->getIdentifierQueryExpression($rootAlias);
+        $query->select("COUNT(DISTINCT $idExpression)");
+        return (int)$query->fetchSingleScalar();
     }
 
 
@@ -961,10 +961,15 @@ class Query implements QueryInterface, QueryHydrationInterface
      * Removes query part
      *
      * @param  string $part
+     * @throws QueryException
      * @return $this
      */
     public function removeQueryPart($part)
     {
+        if (!isset($this->queryParts[$part])) {
+            throw new QueryException("Query part '$part' is not defined/supported!");
+        }
+
         $default = in_array($part, array('forUpdate', 'distinct')) ? false : array();
         $this->queryParts[$part] = $default;
         unset($this->params[$part]);
@@ -986,7 +991,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         }
 
         $this->queryParts[$part] = array($partValue);
-        $this->params[$part] = $params;
+        $this->params[$part] = array_values($params);
         $this->isDirty = true;
     }
 
@@ -1005,7 +1010,7 @@ class Query implements QueryInterface, QueryHydrationInterface
 
         if (!empty($params)) {
             if (is_array($params)) {
-                $this->params[$part] = array_merge($this->params[$part], $params);
+                $this->params[$part] = array_merge($this->params[$part], array_values($params));
             }
             else {
                 $this->params[$part][] = $params;

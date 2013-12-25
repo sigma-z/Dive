@@ -623,6 +623,7 @@ class QueryTest extends TestCase
         if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
             $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
         }
+        $query->removeQueryPart('orderBy');
         $query->removeQueryPart('groupBy');
         $query->removeQueryPart('having');
         $query->limitOffset(0, 0);

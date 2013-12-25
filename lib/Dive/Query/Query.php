@@ -683,6 +683,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     {
         $query = $this->copy();
 
+        $query->removeQueryPart('orderBy');
         $query->removeQueryPart('groupBy');
         $query->removeQueryPart('having');
         $query->limitOffset(0, 0);
@@ -700,27 +701,23 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function count()
     {
-        $this->parse();
+        $query = $this->copy();
 
-        $sqlParts = $this->sqlParts;
-        $sqlParts['orderBy'] = '';
-        $params = $this->params;
-        unset($params['orderBy']);
+        $query->removeQueryPart('orderBy');
+        $query->limitOffset(0, 0);
 
-        // no grouping, then just replace select clause
-        if (empty($sqlParts['groupBy'])) {
-            unset($params['select']);
-            $sqlParts['select'] = 'SELECT COUNT(*)';
-            $sql = implode("\n", $sqlParts);
+        $queryParts = $query->getQueryParts();
+
+        if (empty($queryParts['groupBy'])) {
+            $query->select('COUNT(*)');
+            return (int)$query->fetchSingleScalar();
         }
-        // otherwise use sub query
-        else {
-            $sql = implode("\n", $sqlParts);
-            $sql = 'SELECT COUNT(*) FROM (' . $sql . ') __tmp';
-        }
+
+        $sql = $query->getSql();
+        $sql = 'SELECT COUNT(*) FROM (' . $sql . ') __tmp';
 
         // build pdo statement
-        $stmt = $this->getConnection()->getStatement($sql, $this->getParamsFlattened($params));
+        $stmt = $this->getConnection()->getStatement($sql, $query->getParamsFlattened());
         $hydrator = $this->rm->getHydrator(RecordManager::FETCH_SINGLE_SCALAR);
         $hydrator->setStatement($stmt);
         return (int)$hydrator->getResult();
@@ -908,7 +905,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function getParamsFlattened(array $params = null)
     {
-        if (null === $params) {
+        if ($params === null) {
             $params = $this->params;
         }
         $flattenParams = array();

@@ -11,6 +11,7 @@ namespace Dive\Test\Record;
 
 use Dive\Record;
 use Dive\Record\Generator\RecordGenerator;
+use Dive\RecordManager;
 use Dive\TestSuite\TableRowsProvider;
 use Dive\TestSuite\TestCase;
 
@@ -38,31 +39,27 @@ class RecordDeleteTest extends TestCase
     /**
      * @dataProvider provideDelete
      *
-     * @param string $tableName
-     * @param string $recordKey
-     * @param array  $expectedDeletedRecordKeys
+     * @param array $deleteRecordKeys
+     * @param array $expectedDeleteRecordKeys
+     * @param array $expectedSaveRecordKeys
      */
-    public function testDelete($tableName, $recordKey, array $expectedDeletedRecordKeys)
+    public function testDelete(array $deleteRecordKeys, array $expectedDeleteRecordKeys, array $expectedSaveRecordKeys)
     {
         $rm = self::createDefaultRecordManager();
-        $table = $rm->getTable($tableName);
-        $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
 
-        $expectedDeletedRecords = array($record);
-        foreach ($expectedDeletedRecordKeys as $tableName => $deleteRecordKeys) {
+        foreach ($deleteRecordKeys as $deleteRecordKey => $tableName) {
             $table = $rm->getTable($tableName);
-            foreach ($deleteRecordKeys as $deleteRecordKey) {
-                $recordToDelete = $this->getGeneratedRecord(self::$recordGenerator, $table, $deleteRecordKey);
-                $expectedDeletedRecords[] = $recordToDelete;
-            }
+            $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $deleteRecordKey);
+            $rm->delete($record);
         }
-        $rm->delete($record);
 
-        $this->assertScheduledOperationsForCommit($rm, 0, count($expectedDeletedRecords));
+        $expectedSaveRecords = $this->getRecordsForRecordKeys($rm, $expectedSaveRecordKeys);
+        $expectedDeleteRecords = $this->getRecordsForRecordKeys($rm, $expectedDeleteRecordKeys);
+        $this->assertScheduledRecordsForCommit($rm, $expectedSaveRecords, $expectedDeleteRecords);
 
         $rm->commit();
 
-        $this->assertRecordsDeleted($expectedDeletedRecords);
+        $this->assertRecordsDeleted($expectedDeleteRecords);
 
         // assert that no record is scheduled for commit anymore
         $this->assertScheduledOperationsForCommit($rm, 0, 0);
@@ -80,15 +77,43 @@ class RecordDeleteTest extends TestCase
         $testCases = array();
 
         $testCases[] = array(
-            'tableName' => 'article',
-            'recordKey' => 'DiveORM released',
-            'expectedDeletedRecordKeys' => array(
-                'article2tag' => array('DiveORM released#Release Notes', 'DiveORM released#News'),
-                'comment' => array('DiveORM released#1')
+            'deleteRecordKeys' => array(
+                'DiveORM released' => 'article',
+                'helloWorld' => 'article',
+                'JohnD' => 'user'
+            ),
+            'expectedDeleteRecordKeys' => array(
+                'DiveORM released#1' => 'comment',
+                'DiveORM released#News' => 'article2tag',
+                'DiveORM released#Release Notes' => 'article2tag',
+                'DiveORM released' => 'article',
+                'helloWorld' => 'article',
+                'John Doe' => 'author',
+                'JohnD' => 'user',
+            ),
+            'expectedSaveRecordKeys' => array(
+                'Bart Simon' => 'author'
             )
         );
 
         return $testCases;
+    }
+
+
+    /**
+     * @param  RecordManager $rm
+     * @param  array         $recordKeys keys: record keys; values: table names
+     * @return Record[]
+     */
+    private function getRecordsForRecordKeys(RecordManager $rm, array $recordKeys)
+    {
+        $records = array();
+        foreach ($recordKeys as $recordKey => $tableName) {
+            $table = $rm->getTable($tableName);
+            $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
+            $records[] = $record;
+        }
+        return $records;
     }
 
 

@@ -118,8 +118,8 @@ class UnitOfWork
         }
 
         $operation = self::OPERATION_DELETE;
-        $this->scheduleRecordForCommit($record, $operation);
         $this->handleDeleteConstraints($record);
+        $this->scheduleRecordForCommit($record, $operation);
     }
 
 
@@ -303,8 +303,11 @@ class UnitOfWork
 
             case PlatformInterface::RESTRICT:
             case PlatformInterface::NO_ACTION:
-                // TODO exception not specific enough?
-                throw new UnitOfWorkException("Delete record is restricted by onDelete!");
+                if (!$this->isRecordScheduledForDelete($owningRecord)) {
+                    // TODO exception not specific enough?
+                    throw new UnitOfWorkException("Delete record is restricted by onDelete!");
+                }
+                break;
         }
     }
 

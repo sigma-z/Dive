@@ -770,8 +770,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     protected function assertScheduledOperationsForCommit(
         RecordManager $rm, $expectedCountScheduledSaves, $expectedCountScheduledDeletes
-    )
-    {
+    ) {
         /** @var UnitOfWork $unitOfWork */
         $unitOfWork = self::readAttribute($rm, 'unitOfWork');
         /** @var string[] $scheduledForCommit */
@@ -786,8 +785,46 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
                 $actualCountScheduledSaves++;
             }
         }
-        $this->assertEquals($expectedCountScheduledDeletes, $actualCountScheduledDeletes);
         $this->assertEquals($expectedCountScheduledSaves, $actualCountScheduledSaves);
+        $this->assertEquals($expectedCountScheduledDeletes, $actualCountScheduledDeletes);
+    }
+
+
+    /**
+     * @param RecordManager $rm
+     * @param Record[]      $expectedRecordsForSave
+     * @param Record[]      $expectedRecordsForDelete
+     */
+    protected function assertScheduledRecordsForCommit(
+        RecordManager $rm, array $expectedRecordsForSave, array $expectedRecordsForDelete
+    ) {
+        $expectedOidsForSave = array();
+        foreach ($expectedRecordsForSave as $record) {
+            $expectedOidsForSave[] = $record->getOid();
+        }
+        $expectedOidsForDelete = array();
+        foreach ($expectedRecordsForDelete as $record) {
+            $expectedOidsForDelete[] = $record->getOid();
+        }
+
+        /** @var UnitOfWork $unitOfWork */
+        $unitOfWork = self::readAttribute($rm, 'unitOfWork');
+        /** @var string[] $scheduledForCommit */
+        $scheduledForCommit = self::readAttribute($unitOfWork, 'scheduledForCommit');
+
+        $actualOidsForDelete = array();
+        $actualOidsForSave = array();
+        foreach ($scheduledForCommit as $oid => $operation) {
+            if ($operation == UnitOfWork::OPERATION_DELETE) {
+                $actualOidsForDelete[] = $oid;
+            }
+            else if ($operation == UnitOfWork::OPERATION_SAVE) {
+                $actualOidsForSave[] = $oid;
+            }
+        }
+
+        $this->assertEquals($expectedOidsForSave, $actualOidsForSave);
+        $this->assertEquals($expectedOidsForDelete, $actualOidsForDelete);
     }
 
 }

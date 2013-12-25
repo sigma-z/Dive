@@ -682,11 +682,14 @@ class Query implements QueryInterface, QueryHydrationInterface
     public function countByPk()
     {
         $query = $this->copy();
+
         $query->removeQueryPart('groupBy');
         $query->removeQueryPart('having');
         $query->limitOffset(0, 0);
+
         $rootAlias = $query->getRootAlias();
         $idExpression = $query->getRootTable()->getIdentifierQueryExpression($rootAlias);
+
         $query->select("COUNT(DISTINCT $idExpression)");
         return (int)$query->fetchSingleScalar();
     }

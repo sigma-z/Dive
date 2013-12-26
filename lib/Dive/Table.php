@@ -359,17 +359,19 @@ class Table
 
 
     /**
+     * TODO remove, is unused
      * Gets identifier as array, if it is a composite primary key, otherwise as string
      *
      * @return array|string
      */
     public function getIdentifier()
     {
-        return count($this->identifier) == 1 ? $this->identifier[0] : $this->identifier;
+        return $this->hasCompositePrimaryKey() ? $this->identifier : $this->identifier[0];
     }
 
 
     /**
+     * TODO rename to getIdentifierFields()
      * Gets identifier as array
      *
      * @return array

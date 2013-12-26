@@ -197,33 +197,42 @@ class Record
      */
     public function getIdentifier()
     {
-        $identifier = $this->_table->getIdentifier();
-        if (!is_array($identifier)) {
-            $identifier = array($identifier);
+        $identifier = $this->getIdentifierFieldIndexed();
+        if ($identifier === null) {
+            return $identifier;
         }
-
-        $idValues = array();
-        foreach ($identifier as $fieldName) {
-            $idValue = $this->get($fieldName);
-            if (null === $idValue) {
-                return null;
-            }
-            $idValues[$fieldName] = $idValue;
-        }
-        return $this->_table->hasCompositePrimaryKey() ? $idValues : $idValues[$identifier[0]];
+        return $this->_table->hasCompositePrimaryKey() ? $identifier : current($identifier);
     }
 
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getIdentifierAsString()
     {
-        $identifier = $this->getIdentifier();
-        if (is_array($identifier)) {
-            return implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
+        $identifier = $this->getIdentifierFieldIndexed();
+        if ($identifier === null) {
+            return $identifier;
         }
-        return (string)$identifier;
+        return implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
+    }
+
+
+    /**
+     * @return array|null
+     */
+    public function getIdentifierFieldIndexed()
+    {
+        $identifierFields = $this->_table->getIdentifierAsArray();
+        $identifier = array();
+        foreach ($identifierFields as $fieldName) {
+            $idValue = $this->get($fieldName);
+            if ($idValue === null) {
+                return null;
+            }
+            $identifier[$fieldName] = $idValue;
+        }
+        return $identifier;
     }
 
 
@@ -283,6 +292,8 @@ class Record
                 $relation->updateRecordIdentifier($this, $oldIdentifier);
             }
         }
+
+        $this->_table->refreshRecordIdentityInRepository($this);
     }
 
 
@@ -469,6 +480,19 @@ class Record
             return $this->_modifiedFields[$fieldName];
         }
         return false;
+    }
+
+
+    /**
+     * @param  string $fieldName
+     * @return mixed|null|string
+     */
+    public function getOriginalFieldValue($fieldName)
+    {
+        if ($this->isFieldModified($fieldName)) {
+            return $this->getModifiedFieldValue($fieldName);
+        }
+        return $this->get($fieldName);
     }
 
 

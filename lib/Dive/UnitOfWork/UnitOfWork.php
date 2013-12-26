@@ -345,24 +345,23 @@ class UnitOfWork
      */
     private function doInsert(Record $record)
     {
+        $identifier = $record->getIdentifierFieldIndexed();
         $table = $record->getTable();
-        $pkFields = array();
         $data = array();
         foreach ($table->getFields() as $fieldName => $fieldDef) {
-            if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
-                $pkFields[] = $fieldName;
-            }
             $data[$fieldName] = $record->get($fieldName);
         }
         $conn = $table->getConnection();
         $conn->insert($table, $data);
 
-        // only one primary key field
-        if (!isset($pkFields[1])) {
-            $id = $conn->getLastInsertId($record->getTable()->getTableName());
-            $record->assignIdentifier($id);
-            $table->refreshRecordIdentityInRepository($record);
+        if (!$table->hasCompositePrimaryKey()) {
+            $id = $conn->getLastInsertId($table->getTableName());
+            $identifierFields = $table->getIdentifierAsArray();
+            $identifier = array($identifierFields[0] => $id);
         }
+
+        // assign record identifier
+        $record->assignIdentifier($identifier);
     }
 
 
@@ -372,18 +371,14 @@ class UnitOfWork
     private function doDelete(Record $record)
     {
         $table = $record->getTable();
-        $identifier = array();
-        foreach ($table->getFields() as $fieldName => $fieldDef) {
-            if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
-                $identifier[$fieldName] = $record->get($fieldName);
-            }
-        }
+        $identifier = $record->getIdentifierFieldIndexed();
         $conn = $table->getConnection();
         $conn->delete($table, $identifier);
     }
 
 
     /**
+     * TODO think about supporting updates on identifiers
      * @param Record $record
      */
     private function doUpdate(Record $record)

@@ -88,33 +88,71 @@ class RecordTest extends TestCase
     {
         $table = $this->rm->getTable('article2tag');
         $data = array(
-            'tag_id' => 11,
-            'article_id' => 2
+            'tag_id' => '11',
+            'article_id' => '2'
         );
         $record = $table->createRecord($data);
-        $expected = array('article_id' => 2, 'tag_id' => '11');
+        $expected = array('article_id' => '2', 'tag_id' => '11');
         $this->assertEquals($expected, $record->getIdentifier());
-    }
-
-
-    public function testGetIdentifier()
-    {
-        $record = $this->table->createRecord(array('id' => 1234));
-        $this->assertEquals(1234, $record->getIdentifier());
     }
 
 
     public function testGetInternalIdentifierForExistingRecord()
     {
-        $record = $this->table->createRecord(array('id' => 1234), true);
-        $this->assertEquals(1234, $record->getInternalId());
+        $record = $this->table->createRecord(array('id' => '1234'), true);
+        $this->assertEquals('1234', $record->getInternalId());
     }
 
 
     public function testGetInternalIdentifierForNewRecord()
     {
-        $record = $this->table->createRecord(array('id' => 1234), false);
+        $record = $this->table->createRecord(array('id' => '1234'), false);
         $this->assertEquals(Record::NEW_RECORD_ID_MARK . $record->getOid(), $record->getInternalId());
+    }
+
+
+    /**
+     * @dataProvider provideIdentifier
+     * @param string $idValue
+     * @param bool   $recordExists
+     */
+    public function testGetIdentifier($idValue, $recordExists)
+    {
+        $record = $this->table->createRecord(array('id' => $idValue), $recordExists);
+        $this->assertEquals($idValue, $record->getIdentifier());
+    }
+
+
+    /**
+     * @dataProvider provideIdentifier
+     * @param string $idValue
+     * @param bool   $recordExists
+     */
+    public function testGetIdentifierFieldIndexed($idValue, $recordExists)
+    {
+        $identifier = array('id' => $idValue);
+        $record = $this->table->createRecord($identifier, $recordExists);
+        $expected = $idValue === null ? null : $identifier;
+        $this->assertEquals($expected, $record->getIdentifierFieldIndexed());
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideIdentifier()
+    {
+        $idCombinations = array(null, '1234');
+        $recordExistsCombinations = array(true, false);
+        $testCases = array();
+        foreach ($idCombinations as $id) {
+            $testCase = array('idValue' => $id);
+            foreach ($recordExistsCombinations as $recordExists) {
+                $testCase['recordExists'] = $recordExists;
+                $testCases[] = $testCase;
+            }
+        }
+        return $testCases;
     }
 
 
@@ -164,6 +202,19 @@ class RecordTest extends TestCase
         $record = $this->table->createRecord(array(), $exists);
         $record->setData($data);
         $this->assertFalse($record->isModified());
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideIsModifiedThroughSetData()
+    {
+        $testCases = array(
+            array(array(), false),
+            array(array(), true),
+        );
+        return array_merge($testCases, $this->provideModifiedTestCases());
     }
 
 
@@ -230,30 +281,23 @@ class RecordTest extends TestCase
 
 
     /**
-     * @expectedException \Dive\Table\TableException
+     * @dataProvider provideModifiedTestCases
+     * @param array $data
+     * @param bool  $exists
      */
-    public function testIfFieldModifiedThrowsExceptionOnNonExistingField()
+    public function testGetOriginalFieldValue(array $data, $exists)
     {
-        $record = $this->table->createRecord();
-        $record->isFieldModified('not_existing_field');
+        $initialData = array('username' => 'David');
+        $record = $this->table->createRecord($initialData, $exists);
+        foreach ($data as $field => $value) {
+            $record->set($field, $value);
+        }
+        $this->assertEquals('David', $record->getOriginalFieldValue('username'));
     }
 
 
     /**
-     * @return array
-     */
-    public function provideIsModifiedThroughSetData()
-    {
-        $testCases = array(
-            array(array(), false),
-            array(array(), true),
-        );
-        return array_merge($testCases, $this->provideModifiedTestCases());
-    }
-
-
-    /**
-     * @return array
+     * @return array[]
      */
     public function provideModifiedTestCases()
     {
@@ -263,6 +307,16 @@ class RecordTest extends TestCase
             array(array('username' => 'David'), false, array()),
             array(array('username' => 'David'), true, array()),
         );
+    }
+
+
+    /**
+     * @expectedException \Dive\Table\TableException
+     */
+    public function testIfFieldModifiedThrowsExceptionOnNonExistingField()
+    {
+        $record = $this->table->createRecord();
+        $record->isFieldModified('not_existing_field');
     }
 
 

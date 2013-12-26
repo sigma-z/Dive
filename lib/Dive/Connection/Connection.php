@@ -611,10 +611,7 @@ class Connection
         }
         $this->throwExceptionIfIdentifierDoesNotMatchTableIdentifier($table, $identifier);
 
-        $identifierFields = $table->getIdentifier();
-        if (!is_array($identifierFields)) {
-            $identifierFields = array($identifierFields);
-        }
+        $identifierFields = $table->getIdentifierAsArray();
         foreach ($identifierFields as &$field) {
             $field = $this->quoteIdentifier($field);
         }
@@ -663,10 +660,7 @@ class Connection
         }
         $this->throwExceptionIfIdentifierDoesNotMatchTableIdentifier($table, $identifier);
 
-        $identifierFields = $table->getIdentifier();
-        if (!is_array($identifierFields)) {
-            $identifierFields = array($identifierFields);
-        }
+        $identifierFields = $table->getIdentifierAsArray();
         foreach ($identifierFields as &$field) {
             $field = $this->quoteIdentifier($field);
         }
@@ -689,10 +683,7 @@ class Connection
      */
     private static function throwExceptionIfIdentifierDoesNotMatchTableIdentifier(Table $table, array $identifier)
     {
-        $identifierFields = $table->getIdentifier();
-        if (!is_array($identifierFields)) {
-            $identifierFields = array($identifierFields);
-        }
+        $identifierFields = $table->getIdentifierAsArray();
         if (count($identifierFields) != count($identifier)) {
             throw new InvalidArgumentException(
                 "Identifier '" . implode(',', $identifier) . "'"

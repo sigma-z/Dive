@@ -497,6 +497,15 @@ class Record
 
 
     /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->_table->getTableName() . ' id:' . $this->getIdentifierAsString();
+    }
+
+
+    /**
      * @deprecated use RecordManager->saveRecord($record)->commit() instead
      */
     public function save()

@@ -376,6 +376,10 @@ class UnitOfWork
         $conn->delete($table, $identifier);
 
         $table->getRepository()->remove($record);
+        $relations = $table->getRelations();
+        foreach ($relations as $relationName => $relation) {
+            $relation->clearReferenceFor($record, $relationName);
+        }
     }
 
 

@@ -617,6 +617,16 @@ class Relation
 
 
     /**
+     * @param Record $record
+     * @param string $relationName
+     */
+    public function clearReferenceFor(Record $record, $relationName)
+    {
+        $this->map->unsetRecordReference($record, $relationName);
+    }
+
+
+    /**
      * Updates record references for given owning record and given referenced record
      *
      * @param Record $owningRecord

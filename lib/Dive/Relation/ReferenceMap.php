@@ -58,48 +58,48 @@ class ReferenceMap
     /**
      * True, if reference exists for record id
      *
-     * @param  string $id
+     * @param  string $refId
      * @return bool
      */
-    public function isReferenced($id)
+    public function isReferenced($refId)
     {
-        return $id && isset($this->references[$id]);
+        return $refId && isset($this->references[$refId]);
     }
 
 
     /**
-     * @param  string $id
+     * @param  string $refId
      * @return bool
      */
-    public function hasNullReference($id)
+    public function hasNullReference($refId)
     {
         if ($this->relation->isOneToMany()) {
             return false;
         }
-        return array_key_exists($id, $this->references) && $this->references[$id] === null;
+        return array_key_exists($refId, $this->references) && $this->references[$refId] === null;
     }
 
 
     /**
      * Gets owning side id (one-to-one) or owning side ids (one-to-many)
      *
-     * @param  string $id
+     * @param  string $refId
      * @return array|string
      */
-    public function getOwning($id)
+    public function getOwning($refId)
     {
-        return $this->references[$id];
+        return $this->references[$refId];
     }
 
 
     /**
      * Sets reference for a referenced id
      *
-     * @param  string       $id
+     * @param  string       $refId
      * @param  array|string $owningId
      * @throws \InvalidArgumentException
      */
-    public function setReference($id, $owningId)
+    public function setReference($refId, $owningId)
     {
         if ($this->relation->isOneToOne() && !is_string($owningId) && $owningId !== null) {
             throw new \InvalidArgumentException(
@@ -114,21 +114,21 @@ class ReferenceMap
             );
         }
 
-        $this->references[$id] = $owningId;
+        $this->references[$refId] = $owningId;
     }
 
 
     /**
      * Adds owning id for a referenced id
      *
-     * @param  string $id
+     * @param  string $refId
      * @param  string $owningId
      * @param  bool   $checkExistence
      */
-    public function addReference($id, $owningId, $checkExistence = true)
+    public function addReference($refId, $owningId, $checkExistence = true)
     {
-        if (!$checkExistence || !isset($this->references[$id]) || !in_array($owningId, $this->references[$id])) {
-            $this->references[$id][] = $owningId;
+        if (!$checkExistence || !isset($this->references[$refId]) || !in_array($owningId, $this->references[$refId])) {
+            $this->references[$refId][] = $owningId;
         }
     }
 
@@ -136,10 +136,10 @@ class ReferenceMap
     /**
      * Sets (one-to-one) or adds (one-to-many) a reference
      *
-     * @param string $owningId
      * @param string $refId
+     * @param string $owningId
      */
-    private function assignReference($owningId, $refId)
+    private function assignReference($refId, $owningId)
     {
         // add new referenced record id
         if ($this->relation->isOneToOne()) {
@@ -152,17 +152,71 @@ class ReferenceMap
 
 
     /**
-     * @param string $referencedId
+     * @param string $refId
      * @param string $owningId
      */
-    private function removeOwningReference($referencedId, $owningId)
+    private function removeOwningReference($refId, $owningId)
     {
-        if (!$this->isReferenced($referencedId)) {
+        if (!$this->isReferenced($refId)) {
             return;
         }
-        $pos = array_search($owningId, $this->references[$referencedId]);
+        $pos = array_search($owningId, $this->references[$refId]);
         if ($pos !== false) {
-            array_splice($this->references[$referencedId], $pos, 1);
+            unset($this->references[$refId][$pos]);
+        }
+    }
+
+
+    public function unsetRecordReference(Record $record, $relationName)
+    {
+        $isReferencedSide = $this->relation->isReferencedSide($relationName);
+        if ($isReferencedSide) {
+            $this->unsetOwningRecordReference($record);
+        }
+        else {
+            $this->unsetReferencedRecord($record);
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function unsetReferencedRecord(Record $record)
+    {
+        $refId = $record->getInternalId();
+        unset($this->references[$refId]);
+
+        $oid = $record->getOid();
+        unset($this->relatedCollections[$oid]);
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function unsetOwningRecordReference(Record $record)
+    {
+        $owningId = $record->getInternalId();
+        $isOneToMany = $this->relation->isOneToMany();
+        foreach ($this->references as $refId => $owningIds) {
+            if ($isOneToMany) {
+                $pos = array_search($owningId, $owningIds);
+                if ($pos !== false) {
+                    unset($this->references[$refId][$pos]);
+                }
+            }
+            else if ($owningIds == $owningId) {
+                unset($this->references[$refId]);
+            }
+        }
+
+        if ($isOneToMany) {
+            foreach ($this->relatedCollections as $collection) {
+                if ($collection->has($owningId)) {
+                    $collection->offsetUnset($owningId);
+                }
+            }
         }
     }
 
@@ -441,7 +495,7 @@ class ReferenceMap
         // link new reference
         if ($referencedRecord) {
             $owningId = $owningRecord ? $owningRecord->getInternalId() : null;
-            $this->assignReference($owningId, $referencedRecord->getInternalId());
+            $this->assignReference($referencedRecord->getInternalId(), $owningId);
             if ($owningId && $this->relation->isOneToMany()) {
                 $relatedCollection = $this->getRelatedCollection($referencedRecord->getOid());
                 // TODO exception, or if not set create one??
@@ -578,7 +632,7 @@ class ReferenceMap
                 }
             }
         }
-        $this->assignReference($id, $newId);
+        $this->assignReference($newId, $id);
     }
 
 
@@ -598,7 +652,7 @@ class ReferenceMap
         foreach ($ownerCollection as $refRecord) {
             $refId = $refRecord->get($owningField);
             $owningId = $refRecord->getInternalId();
-            $this->assignReference($owningId, $refId);
+            $this->assignReference($refId, $owningId);
         }
 
         foreach ($referencedCollection as $refRecord) {

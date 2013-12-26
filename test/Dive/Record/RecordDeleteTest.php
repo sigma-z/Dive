@@ -9,9 +9,11 @@
 
 namespace Dive\Test\Record;
 
+use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\Record\Generator\RecordGenerator;
 use Dive\RecordManager;
+use Dive\Relation\ReferenceMap;
 use Dive\TestSuite\TableRowsProvider;
 use Dive\TestSuite\TestCase;
 
@@ -50,22 +52,32 @@ class RecordDeleteTest extends TestCase
         foreach ($deleteRecordKeys as $deleteRecordKey => $tableName) {
             $table = $rm->getTable($tableName);
             $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $deleteRecordKey);
+
+            // load related references to test that the identifier is removed from references and related record collections
+            $relations = $table->getRelations();
+            $references = array_combine(array_keys($relations), array_fill(0, count($relations), true));
+            $record->loadReferences($references);
+
             $rm->delete($record);
         }
 
         $expectedSaveRecords = $this->getRecordsForRecordKeys($rm, $expectedSaveRecordKeys);
         $expectedDeleteRecords = $this->getRecordsForRecordKeys($rm, $expectedDeleteRecordKeys);
+        $deleteIdMap = array();
+        foreach ($expectedDeleteRecords as $deleteRecordKey => $deleteRecord) {
+            $deleteIdMap[$deleteRecordKey] = $deleteRecord->getInternalId();
+        }
         $this->assertScheduledRecordsForCommit($rm, $expectedSaveRecords, $expectedDeleteRecords);
 
         $rm->commit();
+
+        // TODO fix reference maps and related record collections!
+        $this->markTestIncomplete("Fix reference maps and related record collections!");
 
         $this->assertRecordsDeleted($expectedDeleteRecords);
 
         // assert that no record is scheduled for commit anymore
         $this->assertScheduledOperationsForCommit($rm, 0, 0);
-
-        // TODO fix reference maps and related record collections!
-        $this->markTestIncomplete("Fix reference maps and related record collections!");
     }
 
 
@@ -103,7 +115,7 @@ class RecordDeleteTest extends TestCase
     /**
      * @param  RecordManager $rm
      * @param  array         $recordKeys keys: record keys; values: table names
-     * @return Record[]
+     * @return Record[]      recordKey as keys
      */
     private function getRecordsForRecordKeys(RecordManager $rm, array $recordKeys)
     {
@@ -111,7 +123,7 @@ class RecordDeleteTest extends TestCase
         foreach ($recordKeys as $recordKey => $tableName) {
             $table = $rm->getTable($tableName);
             $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
-            $records[] = $record;
+            $records[$recordKey] = $record;
         }
         return $records;
     }
@@ -122,13 +134,81 @@ class RecordDeleteTest extends TestCase
      */
     private function assertRecordsDeleted(array $expectedDeletedRecords)
     {
-        foreach ($expectedDeletedRecords as $deletedRecord) {
-            $table = $deletedRecord->getTable();
-            $pkValues = $deletedRecord->getIdentifier();
-            $result = $table->findByPk($pkValues);
-            $message = "Record with id: " . (is_array($pkValues) ? implode(', ', $pkValues) : $pkValues)
+        foreach ($expectedDeletedRecords as $record) {
+            $table = $record->getTable();
+            $identifier = $record->getIdentifier();
+            $result = $table->findByPk($identifier);
+            $message = "Record with id: " . (is_array($identifier) ? implode(', ', $identifier) : $identifier)
                 . " was not deleted from table '" . $table->getTableName() . "'!";
             $this->assertFalse($result, $message);
+
+            $identifierAsString = $record->getIdentifierAsString();
+            $this->assertFalse($table->isInRepository($identifierAsString));
+
+            $this->assertRecordNotReferenced($record);
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function assertRecordNotReferenced(Record $record)
+    {
+        $internalId = $record->getInternalId();
+        $table = $record->getTable();
+        $relations = $table->getRelations();
+        $message = "Record with id '$internalId' in table '" . $table->getTableName() . "'";
+        foreach ($relations as $relationName => $relation) {
+            $this->assertRecordNotReferencedByRelation($record, $relationName, $message);
+        }
+    }
+
+
+    /**
+     * TODO assert that owningFieldOidMapping is not referenced, too
+     *
+     * @param Record $record
+     * @param string $relationName
+     * @param string $message
+     */
+    private function assertRecordNotReferencedByRelation(Record $record, $relationName, $message = '')
+    {
+        $oid = $record->getOid();
+        $internalId = $record->getInternalId();
+        $relation = $record->getTableRelation($relationName);
+        $isOwningSide = $relation->isOwningSide($record, $relationName);
+        /** @var ReferenceMap $referenceMap */
+        $referenceMap = self::readAttribute($relation, 'map');
+
+        /** @var RecordCollection[] $relatedCollections */
+        $relatedCollections = self::readAttribute($referenceMap, 'relatedCollections');
+
+        $references = $referenceMap->getMapping();
+        $referencedMessage = $message . " expected not be referenced (relation '$relationName')";
+        $relatedCollectionMessage = $message
+            . " expected not to be by a related collection (relation '$relationName')";
+
+        if ($isOwningSide) {
+            $isOneToMany = $relation->isOneToMany();
+            foreach ($references as $owningIds) {
+                if ($isOneToMany) {
+                    $this->assertFalse(in_array($internalId, $owningIds), $referencedMessage);
+                }
+                else {
+                    $this->assertNotEquals($internalId, $owningIds, $referencedMessage);
+                }
+            }
+
+            if ($isOneToMany) {
+                foreach ($relatedCollections as $relatedCollection) {
+                    $this->assertFalse($relatedCollection->has($internalId), $relatedCollectionMessage);
+                }
+            }
+        }
+        else {
+            $this->assertArrayNotHasKey($internalId, $references, $referencedMessage);
+            $this->assertArrayNotHasKey($oid, $relatedCollections, $relatedCollectionMessage);
         }
     }
 

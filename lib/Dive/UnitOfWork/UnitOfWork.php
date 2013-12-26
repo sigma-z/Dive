@@ -374,6 +374,8 @@ class UnitOfWork
         $identifier = $record->getIdentifierFieldIndexed();
         $conn = $table->getConnection();
         $conn->delete($table, $identifier);
+
+        $table->getRepository()->remove($record);
     }
 
 

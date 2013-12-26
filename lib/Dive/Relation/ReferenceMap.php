@@ -19,10 +19,9 @@ use Dive\Record;
 class ReferenceMap
 {
 
-    /**
-     * @var Relation
-     */
-    protected $relation = null;
+    /** @var Relation */
+    protected $relation;
+
     /**
      * @var array
      * keys:   referenced ids,
@@ -31,11 +30,13 @@ class ReferenceMap
      *     one-to-one:  owning id as string
      */
     private $references = array();
+
     /**
      * @var RecordCollection[]
      * keys:  oid (referenced record)
      */
     private $relatedCollections = array();
+
     /**
      * owning field references
      * @var array
@@ -470,7 +471,6 @@ class ReferenceMap
 
                 foreach ($owningIds as $owningId) {
                     $owningRecord = $owningRepository->getByInternalId($owningId);
-                    // TODO will probably cause an infinity recursion
                     $owningRecord->set($this->relation->getOwningField(), $referenceId);
                     unset($this->owningFieldOidMapping[$owningRecord->getOid()]);
                 }

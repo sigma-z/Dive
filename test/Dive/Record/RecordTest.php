@@ -13,7 +13,7 @@ use Dive\Log\SqlLogger;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
-use Dive\Table\TableException;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -332,8 +332,8 @@ class RecordTest extends TestCase
 
 
     /**
-     * @param RecordManager $rm
-     * @return Record
+     * @param  RecordManager $rm
+     * @return User
      */
     private function createUserRecord(RecordManager $rm)
     {

@@ -81,7 +81,7 @@ class UnitOfWork
      */
     private function getIdentifierFromData(Table $table, array $data)
     {
-        $identifierFields = $table->getIdentifierAsArray();
+        $identifierFields = $table->getIdentifierFields();
         $identifier = array();
         foreach ($identifierFields as $fieldName) {
             if (!isset($data[$fieldName])) {
@@ -356,7 +356,7 @@ class UnitOfWork
 
         if (!$table->hasCompositePrimaryKey()) {
             $id = $conn->getLastInsertId($table->getTableName());
-            $identifierFields = $table->getIdentifierAsArray();
+            $identifierFields = $table->getIdentifierFields();
             $identifier = array($identifierFields[0] => $id);
         }
 

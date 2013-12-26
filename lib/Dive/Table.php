@@ -21,48 +21,43 @@ use Dive\Table\TableException;
 class Table
 {
 
-    /**
-     * @var RecordManager
-     */
+    /** @var RecordManager */
     protected $rm;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     protected $tableName;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     protected $recordClass;
+
+    /** @var array */
+    protected $identifierFields = array();
+
     /**
-     * @TODO rename to identifierFields
      * @var array
-     */
-    protected $identifier = array();
-    /**
-     * @var array associative (keys: field names, values: array with field structure)
+     * associative (keys: field names, values: array with field structure)
      */
     protected $fields = array();
-    /**
-     * @var \Dive\Relation\Relation[]
-     */
+
+    /** @var \Dive\Relation\Relation[] */
     protected $relations = array();
+
     /**
      * @var \Dive\Relation\Relation[]
      * indexed by owning field
      */
     protected $owningRelations = null;
+
     /**
      * @var \Dive\Relation\Relation[]
      * indexed by relation name
      */
     protected $referencedRelations = null;
-    /**
-     * @var array
-     */
+
+    /** @var array */
     protected $indexes = array();
-    /**
-     * @var Repository
-     */
+
+    /** @var Repository */
     private $repository = null;
 
 
@@ -112,7 +107,7 @@ class Table
         }
 
         $this->fields = $fields;
-        $this->identifier = $identifier;
+        $this->identifierFields = $identifier;
     }
 
 
@@ -338,7 +333,7 @@ class Table
      */
     public function hasCompositePrimaryKey()
     {
-        return isset($this->identifier[1]);
+        return isset($this->identifierFields[1]);
     }
 
 
@@ -354,31 +349,18 @@ class Table
             return $pk;
         }
         $pkValues = explode(Record::COMPOSITE_ID_SEPARATOR, $pk);
-        return array_combine($this->identifier, $pkValues);
+        return array_combine($this->identifierFields, $pkValues);
     }
 
 
     /**
-     * TODO remove, is unused
-     * Gets identifier as array, if it is a composite primary key, otherwise as string
-     *
-     * @return array|string
-     */
-    public function getIdentifier()
-    {
-        return $this->hasCompositePrimaryKey() ? $this->identifier : $this->identifier[0];
-    }
-
-
-    /**
-     * TODO rename to getIdentifierFields()
-     * Gets identifier as array
+     * Gets identifier fields as array
      *
      * @return array
      */
-    public function getIdentifierAsArray()
+    public function getIdentifierFields()
     {
-        return $this->identifier;
+        return $this->identifierFields;
     }
 
 
@@ -390,7 +372,7 @@ class Table
      */
     public function isFieldIdentifier($name)
     {
-        return in_array($name, $this->identifier);
+        return in_array($name, $this->identifierFields);
     }
 
 
@@ -588,7 +570,7 @@ class Table
         if (!is_array($id)) {
             $id = array($id);
         }
-        $identifier = $this->getIdentifierAsArray();
+        $identifier = $this->getIdentifierFields();
         $this->throwExceptionIfIdentifierDoesNotMatchFields($id);
 
         $query->where(implode(' = ? AND ', $identifier) . ' = ?', $id);
@@ -607,7 +589,7 @@ class Table
         }
 
         $connection = $this->getConnection();
-        $identifierFields = $this->getIdentifierAsArray();
+        $identifierFields = $this->getIdentifierFields();
         if ($this->hasCompositePrimaryKey()) {
             foreach ($identifierFields as &$idField) {
                 $idField = $connection->quoteIdentifier($queryAlias . $idField);
@@ -688,9 +670,9 @@ class Table
      */
     public function throwExceptionIfIdentifierDoesNotMatchFields(array $id)
     {
-        if (count($id) != count($this->identifier)) {
+        if (count($id) != count($this->identifierFields)) {
             throw new TableException(
-                'Id does not match identifier fields: ' . implode(', ', $this->identifier)
+                'Id does not match identifier fields: ' . implode(', ', $this->identifierFields)
                     . ' (you gave me: ' . implode(', ', $id) . ')!'
             );
         }

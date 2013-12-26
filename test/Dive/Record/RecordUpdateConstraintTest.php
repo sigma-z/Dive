@@ -268,7 +268,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
             }
         }
 
-        $idFields = $table->getIdentifierAsArray();
+        $idFields = $table->getIdentifierFields();
         foreach ($idFields as $idField) {
             $record->markFieldAsModified($idField);
         }

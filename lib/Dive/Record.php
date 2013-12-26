@@ -223,7 +223,7 @@ class Record
      */
     public function getIdentifierFieldIndexed()
     {
-        $identifierFields = $this->_table->getIdentifierAsArray();
+        $identifierFields = $this->_table->getIdentifierFields();
         $identifier = array();
         foreach ($identifierFields as $fieldName) {
             $idValue = $this->get($fieldName);
@@ -267,7 +267,7 @@ class Record
      */
     public function assignIdentifier($identifier)
     {
-        $identifierFields = $this->_table->getIdentifierAsArray();
+        $identifierFields = $this->_table->getIdentifierFields();
         if (!is_array($identifier)) {
             $identifier = array($identifierFields[0] => $identifier);
         }

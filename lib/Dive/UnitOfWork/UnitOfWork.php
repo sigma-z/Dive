@@ -34,10 +34,16 @@ class UnitOfWork
     /** @var RecordManager */
     private $rm = null;
 
-    /** @var array */
+    /**
+     * @var string[]
+     * keys: record oid's
+     */
     private $scheduledForCommit = array();
 
-    /** @var Record[] */
+    /**
+     * @var Record[]
+     * keys: record oid's
+     */
     private $recordIdentityMap = array();
 
 
@@ -314,7 +320,7 @@ class UnitOfWork
 
     public function commitChanges()
     {
-        foreach ($this->recordIdentityMap as $record) {
+        foreach ($this->recordIdentityMap as $oid => $record) {
             $recordExists = $record->exists();
             if ($this->isRecordScheduledForSave($record)) {
                 if ($recordExists) {
@@ -324,12 +330,33 @@ class UnitOfWork
                     $this->doInsert($record);
                 }
             }
-            else if ($recordExists) {
-                $this->doDelete($record);
+            else {
+                if ($recordExists) {
+                    $this->doDelete($record);
+                }
+                else {
+                    // remove record from schedule, so record references do not have to be updated
+                    $this->recordIdentityMap[$oid];
+                    $this->scheduledForCommit[$oid];
+                }
             }
         }
 
+        $this->updateReferencesForChangedRecords();
         $this->resetScheduled();
+    }
+
+
+    private function updateReferencesForChangedRecords()
+    {
+        foreach ($this->recordIdentityMap as $record) {
+            if ($this->isRecordScheduledForSave($record)) {
+                // TODO $this->updateRecordReferences($record);
+            }
+            else {
+                $this->deleteRecordReferences($record);
+            }
+        }
     }
 
 
@@ -374,7 +401,15 @@ class UnitOfWork
         $identifier = $record->getIdentifierFieldIndexed();
         $conn = $table->getConnection();
         $conn->delete($table, $identifier);
+    }
 
+
+    /**
+     * @param Record $record
+     */
+    private function deleteRecordReferences(Record $record)
+    {
+        $table = $record->getTable();
         $table->getRepository()->remove($record);
         $relations = $table->getRelations();
         foreach ($relations as $relationName => $relation) {

@@ -167,6 +167,10 @@ class ReferenceMap
     }
 
 
+    /**
+     * @param Record $record
+     * @param string $relationName
+     */
     public function unsetRecordReference(Record $record, $relationName)
     {
         $isReferencedSide = $this->relation->isReferencedSide($relationName);

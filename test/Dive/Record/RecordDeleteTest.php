@@ -81,7 +81,7 @@ class RecordDeleteTest extends TestCase
 
         $rm->commit();
 
-        // assert that record is deleted and all references to it are unset
+        // assert that records has been deleted and all references to them are unset
         $this->assertRecordsDeleted($expectedDeleteRecords);
 
         // assert that no record is scheduled for commit anymore

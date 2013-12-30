@@ -171,10 +171,10 @@ class ReferenceMap
     {
         $isReferencedSide = $this->relation->isReferencedSide($relationName);
         if ($isReferencedSide) {
-            $this->unsetOwningRecordReference($record);
+            $this->unsetReferenceForOwningRecord($record);
         }
         else {
-            $this->unsetReferencedRecord($record);
+            $this->unsetReferenceForReferencedRecord($record);
         }
     }
 
@@ -182,7 +182,7 @@ class ReferenceMap
     /**
      * @param Record $record
      */
-    private function unsetReferencedRecord(Record $record)
+    private function unsetReferenceForReferencedRecord(Record $record)
     {
         $refId = $record->getInternalId();
         unset($this->references[$refId]);
@@ -195,28 +195,32 @@ class ReferenceMap
     /**
      * @param Record $record
      */
-    private function unsetOwningRecordReference(Record $record)
+    private function unsetReferenceForOwningRecord(Record $record)
     {
-        $owningId = $record->getInternalId();
-        $isOneToMany = $this->relation->isOneToMany();
-        foreach ($this->references as $refId => $owningIds) {
-            if ($isOneToMany) {
-                $pos = array_search($owningId, $owningIds);
-                if ($pos !== false) {
-                    unset($this->references[$refId][$pos]);
-                }
-            }
-            else if ($owningIds == $owningId) {
-                unset($this->references[$refId]);
-            }
+        $referencedAlias = $this->relation->getReferencedAlias();
+        if (!$this->relation->hasReferenceLoadedFor($record, $referencedAlias)) {
+            return;
+        }
+        $referencedRecord = $this->relation->getReferenceFor($record, $referencedAlias);
+        if ($referencedRecord === null) {
+            return;
         }
 
+        $isOneToMany = $this->relation->isOneToMany();
+        $owningId = $record->getInternalId();
+        $refId = $referencedRecord->getInternalId();
         if ($isOneToMany) {
-            foreach ($this->relatedCollections as $collection) {
-                if ($collection->has($owningId)) {
-                    $collection->offsetUnset($owningId);
-                }
+            $pos = array_search($owningId, $this->references[$refId]);
+            if ($pos !== false) {
+                unset($this->references[$refId][$pos]);
             }
+            $refOid = $referencedRecord->getOid();
+            if (isset($this->relatedCollections[$refOid])) {
+                $this->relatedCollections[$refOid]->offsetUnset($owningId);
+            }
+        }
+        else if ($owningId == $this->references[$refId]) {
+            unset($this->references[$refId]);
         }
     }
 

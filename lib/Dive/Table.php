@@ -377,6 +377,21 @@ class Table
 
 
     /**
+     * @TODO rename hasInsertTrigger(), but then we should support portable insert trigger, like sequences and so on
+     * @return bool
+     */
+    public function hasAutoIncrementTrigger()
+    {
+        foreach ($this->identifierFields as $idFieldName) {
+            $idField = $this->fields[$idFieldName];
+            if (isset($idField['autoIncrement']) && $idField['autoIncrement'] == true) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Gets field definition
      *
      * @param  string $name

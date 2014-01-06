@@ -9,6 +9,7 @@
 
 namespace Dive\UnitOfWork;
 
+use Dive\Collection\RecordCollection;
 use Dive\Exception;
 use Dive\Platform\PlatformInterface;
 use Dive\Record;
@@ -106,10 +107,13 @@ class UnitOfWork
     {
         $operation = self::OPERATION_SAVE;
         $this->throwAlreadyScheduledAsDeleteException($record, $operation);
+        $this->handleReferencedInserts($record);
 
         if (!$record->exists() || $record->isModified()) {
             $this->scheduleRecordForCommit($record, $operation);
         }
+
+        $this->handleOwningInserts($record);
         $this->handleUpdateConstraints($record);
     }
 
@@ -258,6 +262,51 @@ class UnitOfWork
             case PlatformInterface::NO_ACTION:
                 // TODO exception not specific enough?
                 throw new UnitOfWorkException("Update record is restricted by onUpdate!");
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function handleReferencedInserts(Record $record)
+    {
+        $table = $record->getTable();
+        if (!$table->hasAutoIncrementTrigger()) {
+            return;
+        }
+
+        $relations = $table->getReferencedRelationsIndexedByOwningField();
+        foreach ($relations as $relation) {
+            $relationName = $relation->getReferencedAlias();
+            if ($relation->hasReferenceLoadedFor($record, $relationName)) {
+                $referencedRecord = $relation->getReferenceFor($record, $relationName);
+                if ($referencedRecord) {
+                    $this->scheduleSave($referencedRecord);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function handleOwningInserts(Record $record)
+    {
+        $owningRelations = $record->getTable()->getOwningRelations();
+        foreach ($owningRelations as $relationName => $relation) {
+            if ($relation->hasReferenceLoadedFor($record, $relationName)) {
+                $related = $relation->getReferenceFor($record, $relationName);
+                if ($related instanceof RecordCollection) {
+                    foreach ($related as $relatedRecord) {
+                        $this->scheduleSave($relatedRecord);
+                    }
+                }
+                else if ($related instanceof Record) {
+                    $this->scheduleSave($related);
+                }
+            }
         }
     }
 

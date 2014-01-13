@@ -32,6 +32,7 @@ class UnitOfWork
     const OPERATION_SAVE = 'save';
     const OPERATION_DELETE = 'delete';
 
+
     /** @var RecordManager */
     private $rm = null;
 
@@ -46,6 +47,11 @@ class UnitOfWork
      * keys: record oid's
      */
     private $recordIdentityMap = array();
+
+    /**
+     * @var array
+     */
+    private $visitedSaveRecords = array();
 
 
     /**
@@ -102,9 +108,20 @@ class UnitOfWork
 
     /**
      * @param Record $record
+     * @param bool   $resetVisited
      */
-    public function scheduleSave(Record $record)
+    public function scheduleSave(Record $record, $resetVisited = false)
     {
+        $oid = $record->getOid();
+
+        if ($resetVisited) {
+            $this->visitedSaveRecords = array($oid);
+        }
+        else if (in_array($oid, $this->visitedSaveRecords)) {
+            return;
+        }
+        $this->visitedSaveRecords[] = $oid;
+
         $operation = self::OPERATION_SAVE;
         $this->throwAlreadyScheduledAsDeleteException($record, $operation);
         $this->handleReferencedInserts($record);
@@ -434,6 +451,22 @@ class UnitOfWork
             $id = $conn->getLastInsertId($table->getTableName());
             $identifierFields = $table->getIdentifierFields();
             $identifier = array($identifierFields[0] => $id);
+
+            // FIXME RecordSaveTest
+//            $owningRelations = $table->getOwningRelations();
+//            foreach ($owningRelations as $relationName => $relation) {
+//                $owningField = $relation->getOwningField();
+//                /** @var Record|Record[] $related */
+//                $related = $record->get($relationName);
+//                if ($related instanceof RecordCollection) {
+//                    foreach ($related as $relatedRecord) {
+//                        $relatedRecord->set($owningField, $id);
+//                    }
+//                }
+//                else if ($related instanceof Record) {
+//                    $related->set($owningField, $id);
+//                }
+//            }
         }
 
         // assign record identifier

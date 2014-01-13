@@ -794,9 +794,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param RecordManager $rm
      * @param Record[]      $expectedRecordsForSave
      * @param Record[]      $expectedRecordsForDelete
+     * @param bool          $checkOrder
      */
     protected function assertScheduledRecordsForCommit(
-        RecordManager $rm, array $expectedRecordsForSave, array $expectedRecordsForDelete
+        RecordManager $rm, array $expectedRecordsForSave, array $expectedRecordsForDelete, $checkOrder = true
     ) {
         $expectedOidsForSave = array();
         foreach ($expectedRecordsForSave as $record) {
@@ -821,6 +822,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             else if ($operation == UnitOfWork::OPERATION_SAVE) {
                 $actualOidsForSave[] = $oid;
             }
+        }
+
+        if (!$checkOrder) {
+            sort($expectedOidsForSave);
+            sort($expectedOidsForDelete);
+            sort($actualOidsForSave);
+            sort($actualOidsForDelete);
         }
 
         $this->assertEquals($expectedOidsForSave, $actualOidsForSave);

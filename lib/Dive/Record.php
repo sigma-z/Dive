@@ -279,19 +279,20 @@ class Record
             );
         }
 
-        $oldIdentifier = $this->getInternalId();
+        // TODO let UnitOfWork deal with identifier updates
+//        $oldIdentifier = $this->getInternalId();
         foreach ($identifier as $fieldName => $id) {
             $this->_data[$fieldName] = $id;
         }
         $this->_modifiedFields = array();
         $this->_exists = true;
 
-        $relations = $this->_table->getRelations();
-        foreach ($relations as $relationName => $relation) {
-            if ($relation->isOwningSide($relationName)) {
-                $relation->updateRecordIdentifier($this, $oldIdentifier);
-            }
-        }
+//        $relations = $this->_table->getRelations();
+//        foreach ($relations as $relationName => $relation) {
+//            if ($relation->isOwningSide($relationName)) {
+//                $relation->updateRecordIdentifier($this, $oldIdentifier);
+//            }
+//        }
 
         $this->_table->refreshRecordIdentityInRepository($this);
     }

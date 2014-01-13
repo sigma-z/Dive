@@ -13,6 +13,7 @@ require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 
 use Dive\Collection\RecordCollection;
 use Dive\Record;
+use Dive\TestSuite\Model\Author;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -32,9 +33,9 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     public function testOneToManyReferencedSide($authorExists, $editorExists)
     {
         list($user, $userEditor) = $this->createAuthorEditorUsers($authorExists, $editorExists);
-        /** @var Record $author */
+        /** @var Author $author */
         $author = $user->Author;
-        /** @var Record $editor */
+        /** @var Author $editor */
         $editor = $userEditor->Author;
 
         // setting reference
@@ -63,9 +64,9 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     public function testOneToManyOwningSide($authorExists, $editorExists)
     {
         list($user, $userEditor) = $this->createAuthorEditorUsers($authorExists, $editorExists);
-        /** @var Record $author */
+        /** @var Author $author */
         $author = $user->Author;
-        /** @var Record $editor */
+        /** @var Author $editor */
         $editor = $userEditor->Author;
 
         // setting reference
@@ -175,7 +176,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     /**
      * @param  string $name
      *
-     * @return Record
+     * @return Author
      */
     private function createAuthorWithUser($name)
     {

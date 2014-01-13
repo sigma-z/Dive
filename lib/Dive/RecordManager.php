@@ -256,7 +256,7 @@ class RecordManager
      */
     public function save(Record $record)
     {
-        $this->unitOfWork->scheduleSave($record);
+        $this->unitOfWork->scheduleSave($record, true);
         return $this;
     }
 

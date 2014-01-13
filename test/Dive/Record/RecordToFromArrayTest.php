@@ -9,7 +9,6 @@
 
 namespace Dive\Test\Record;
 
-use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -33,6 +32,9 @@ class RecordToFromArrayTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideToFromArray()
     {
         $testCases = array();
@@ -42,6 +44,9 @@ class RecordToFromArrayTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     private function provideToFromArrayOneToOneTestCases()
     {
         $authorDefaultFields = self::getDefaultFields('author');
@@ -261,6 +266,10 @@ class RecordToFromArrayTest extends TestCase
     }
 
 
+    /**
+     * @param  string $tableName
+     * @return array
+     */
     private static function getDefaultFields($tableName)
     {
         $schema = self::getSchema();

@@ -61,16 +61,19 @@ class TableRowsProvider
             'John Doe' => array(
                 'firstname' => 'John',
                 'lastname' => 'Doe',
+                'email' => 'j.doe@example.com',
                 'User' => 'JohnD'
             ),
             'Jamie T. Kirk' => array(
                 'firstname' => 'Jamie T',
                 'lastname' => 'Kirk',
+                'email' => 'j.t.kirk@example.com',
                 'User' => 'JamieTK'
             ),
             'Bart Simon' => array(
                 'firstname' => 'Bart',
                 'lastname' => 'Simon',
+                'email' => 'b.simon@example.com',
                 'User' => 'BartS',
                 'Editor' => 'John Doe'
             ),

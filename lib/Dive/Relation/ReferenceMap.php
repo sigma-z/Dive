@@ -601,7 +601,7 @@ class ReferenceMap
             $owningId = $record->getInternalId();
             $this->removeOwningReference($referencedId, $owningId);
 
-            $refRepository = $this->getRefRepository($record, $this->relation->getOwningAlias());
+            $refRepository = $this->getRefRepository($record, $this->relation->getReferencedAlias());
             $oldRefRecord = $refRepository->getByInternalId($referencedId);
             if ($oldRefRecord) {
                 $relatedCollection = $this->getRelatedCollection($oldRefRecord->getOid());

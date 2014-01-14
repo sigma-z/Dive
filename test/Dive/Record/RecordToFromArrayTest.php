@@ -9,6 +9,7 @@
 
 namespace Dive\Test\Record;
 
+use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -143,6 +144,9 @@ class RecordToFromArrayTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     private function provideToFromArrayOneToManyTestCases()
     {
         $authorDefaultFields = self::getDefaultFields('author');
@@ -260,6 +264,92 @@ class RecordToFromArrayTest extends TestCase
                     array_merge($authorDefaultFields, $authorThreeFields, $authorThreeMappedFields)
                 )
             )
+        );
+
+        return $testCases;
+    }
+
+
+    /**
+     * @dataProvider provideFromArrayOneToOneNoneExistingRecords
+     * @param string $tableName
+     * @param array  $recordGraph
+     * @param string $relationName
+     */
+    public function testFromArrayOneToOneNoneExistingRecords($tableName, array $recordGraph, $relationName)
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable($tableName);
+        /** @var Record $record */
+        $record = $table->createRecord();
+        $record->fromArray($recordGraph);
+
+        $relation = $table->getRelation($relationName);
+        $expectedNotNull = isset($recordGraph[$relationName]);
+        $relatedByRelation = $relation->getReferenceFor($record, $relationName);
+        $relatedByRecord = $record->get($relationName);
+
+        $this->assertNotNull($expectedNotNull);
+        $this->assertEquals($relatedByRelation, $relatedByRecord);
+
+        if ($expectedNotNull) {
+            $this->assertRelationReferences($record, $relationName, array($relatedByRelation));
+        }
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideFromArrayOneToOneNoneExistingRecords()
+    {
+        $testCases = array();
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordGraph' => array(
+                'username' => 'CarlH',
+                'password' => 'my-secret',
+                'Author' => array(
+                    'firstname' => 'Carl',
+                    'lastname' => 'Hanson',
+                    'email' => 'c.hanson@example.com'
+                )
+            ),
+            'relationName' => 'Author'
+        );
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordGraph' => array(
+                'username' => 'CarlH',
+                'password' => 'my-secret',
+                'Author' => array(
+                    'firstname' => 'Carl',
+                    'lastname' => 'Hanson',
+                    'email' => 'c.hanson@example.com'
+                )
+            ),
+            'relationName' => 'Author'
+        );
+
+        $testCases[] = array(
+            'tableName' => 'author',
+            'recordGraph' => array(
+                'firstname' => 'Carl',
+                'lastname' => 'Hanson',
+                'email' => 'c.hanson@example.com'
+            ),
+            'relationName' => 'User'
+        );
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'recordGraph' => array(
+                'username' => 'CarlH',
+                'password' => 'my-secret'
+            ),
+            'relationName' => 'Author'
         );
 
         return $testCases;

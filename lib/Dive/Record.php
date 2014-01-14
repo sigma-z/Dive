@@ -367,39 +367,39 @@ class Record
      */
     protected function setFieldValue($fieldName, $value)
     {
-        $actualValue = $this->get($fieldName);
+        $oldValue = $this->get($fieldName);
 
-        $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $actualValue);
+        $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $oldValue);
         $this->getEventDispatcher()->dispatch(self::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeEvent);
         if ($fieldValueChangeEvent->isPropagationStopped()) {
             return;
         }
 
-        if ($value != $actualValue) {
+        if ($value != $oldValue) {
             $fieldIsModified = array_key_exists($fieldName, $this->_modifiedFields);
             if ($fieldIsModified && $this->_modifiedFields[$fieldName] == $value) {
                 unset($this->_modifiedFields[$fieldName]);
             }
             else if (!$fieldIsModified) {
-                $this->_modifiedFields[$fieldName] = $actualValue;
+                $this->_modifiedFields[$fieldName] = $oldValue;
             }
             $this->_data[$fieldName] = $value;
         }
-        $this->handleOwningFieldRelation($fieldName);
+        $this->handleOwningFieldRelation($fieldName, $oldValue);
 
-        $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $actualValue);
+        $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $oldValue);
         $this->getEventDispatcher()->dispatch(self::EVENT_POST_FIELD_VALUE_CHANGE, $fieldValueChangeEvent);
     }
 
 
     /**
      * @param string $fieldName
+     * @param string $oldValue
      */
-    private function handleOwningFieldRelation($fieldName)
+    private function handleOwningFieldRelation($fieldName, $oldValue)
     {
         $referencedRelations = $this->_table->getReferencedRelationsIndexedByOwningField();
         if (isset($referencedRelations[$fieldName])) {
-            $oldValue = $this->getModifiedFieldValue($fieldName);
             $newValue = $this->_data[$fieldName];
             $referencedRelations[$fieldName]->updateOwningReferenceByForeignKey($this, $newValue, $oldValue);
         }

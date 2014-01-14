@@ -304,6 +304,7 @@ class Relation
 
     /**
      * Gets join condition
+     *
      * @param  string $relationAlias
      * @param  string $refTabAlias
      * @param  string $tabAlias
@@ -345,6 +346,13 @@ class Relation
         $id = $record->getInternalId();
         $isReferenceSide = $this->isReferencedSide($relationName);
         if ($isReferenceSide) {
+            $owningOid = $record->getOid();
+            if ($this->map->hasFieldMapping($owningOid)) {
+                $refOid = $this->map->getFieldMapping($owningOid);
+                if ($refOid) {
+                    return Record::NEW_RECORD_ID_MARK . $refOid;
+                }
+            }
             return $record->get($this->owningField);
         }
         else if (!$this->map->isReferenced($id) && !$this->map->hasNullReference($id)) {

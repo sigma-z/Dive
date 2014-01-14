@@ -61,7 +61,7 @@ class RecordSaveTest extends TestCase
         }
         $this->assertScheduledRecordsForCommit($rm, $expectedRecordsForSave, array(), false);
 
-        $this->markTestIncomplete('TODO: Setting foreign key fields and updating identifiers in reference map');
+        //$this->markTestIncomplete('TODO: Setting foreign key fields and updating identifiers in reference map');
 
         $rm->commit();
 
@@ -151,7 +151,6 @@ class RecordSaveTest extends TestCase
         $relations = $table->getRelations();
         foreach ($relations as $relationName => $relation) {
             if ($relation->hasReferenceLoadedFor($record, $relationName)) {
-                // FIXME does not retrieve one-to-one related record set via fromArray() (test case 2)!!!
                 $related = $relation->getReferenceFor($record, $relationName);
                 if ($related) {
                     if ($related instanceof RecordCollection) {

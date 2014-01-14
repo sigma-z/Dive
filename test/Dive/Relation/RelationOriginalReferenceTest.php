@@ -13,6 +13,7 @@ use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Table;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -76,7 +77,8 @@ class RelationOriginalReferenceTest extends TestCase
         $fromRecord = $isOwningSide ? $user : $user->Author;
         $originalReferencedRecord = !$isOwningSide ? $user : $user->Author;
 
-        $joinTable = $relation->getJoinTable($this->rm, $relationNameTo);
+        $rm = $user->getRecordManager();
+        $joinTable = $relation->getJoinTable($rm, $relationNameTo);
 
         if ($referenceExists) {
             $newUser = $this->createUserWithAuthor('SallyK', false);
@@ -118,6 +120,7 @@ class RelationOriginalReferenceTest extends TestCase
 
         $author->user_id = 42;
         $this->assertEquals($author->user_id, 42);
+        // TODO what to expect FALSE, NULL or Exception??
         $this->assertFalse($author->User);
 
         $expectedOriginalIds = array($user->getInternalId());
@@ -156,7 +159,9 @@ class RelationOriginalReferenceTest extends TestCase
     {
         $user = $this->createUserWithAuthor('JohnD', true);
         $author = $user->Author;
-        $authorTable = $this->rm->getTable('author');
+
+        $rm = $user->getRecordManager();
+        $authorTable = $rm->getTable('author');
         $relation = $authorTable->getRelation('Article');
 
         // assert before change
@@ -166,8 +171,6 @@ class RelationOriginalReferenceTest extends TestCase
 
         // do change, and assert that collection has changed
         $articleToModify = $articles->getIterator()->current();
-        // TODO
-        $this->markTestIncomplete();
         $articleToModify->author_id = null;
         $this->assertCount(2, $articles);
         $this->assertFalse($articles->has($articleToModify->getInternalId()));
@@ -182,10 +185,12 @@ class RelationOriginalReferenceTest extends TestCase
     {
         $user = $this->createUserWithAuthor('JohnD', true);
         $author = $user->Author;
-        $authorTable = $this->rm->getTable('author');
+
+        $rm = $user->getRecordManager();
+        $authorTable = $rm->getTable('author');
         $relation = $authorTable->getRelation('Article');
 
-        $newArticle = $this->rm->getTable('article')->createRecord();
+        $newArticle = $rm->getTable('article')->createRecord();
 
         // assert before change
         /** @var RecordCollection $articles */
@@ -208,7 +213,9 @@ class RelationOriginalReferenceTest extends TestCase
     {
         $user = $this->createUserWithAuthor('JohnD', true);
         $author = $user->Author;
-        $authorTable = $this->rm->getTable('author');
+
+        $rm = $user->getRecordManager();
+        $authorTable = $rm->getTable('author');
         $relation = $authorTable->getRelation('Article');
 
         // assert before change
@@ -234,7 +241,9 @@ class RelationOriginalReferenceTest extends TestCase
     {
         $user = $this->createUserWithAuthor('JohnD', true);
         $author = $user->Author;
-        $authorTable = $this->rm->getTable('author');
+
+        $rm = $user->getRecordManager();
+        $authorTable = $rm->getTable('author');
         $relation = $authorTable->getRelation('Article');
 
         // assert before change
@@ -243,7 +252,7 @@ class RelationOriginalReferenceTest extends TestCase
         $this->assertCount(3, $articles);
 
         // do change, and assert that collection has changed
-        $articleTable = $this->rm->getTable('article');
+        $articleTable = $rm->getTable('article');
         $newRecordCollection = new RecordCollection($articleTable);
         $newRecordCollection->add($articleTable->createRecord());
 
@@ -260,7 +269,9 @@ class RelationOriginalReferenceTest extends TestCase
     {
         $user = $this->createUserWithAuthor('JohnD', true);
         $author = $user->Author;
-        $authorTable = $this->rm->getTable('author');
+
+        $rm = $user->getRecordManager();
+        $authorTable = $rm->getTable('author');
         $relation = $authorTable->getRelation('Article');
 
         // assert before change
@@ -270,8 +281,6 @@ class RelationOriginalReferenceTest extends TestCase
 
         // do change, and assert that collection has changed
         $articleToModify = $articles->getIterator()->current();
-        // TODO
-        $this->markTestIncomplete();
         $articleToModify->Author = null;
         $this->assertCount(2, $articles);
         $this->assertFalse($articles->has($articleToModify->getInternalId()));
@@ -284,9 +293,9 @@ class RelationOriginalReferenceTest extends TestCase
 
     /**
      * @param string $username
-     * @param bool $withArticles
+     * @param bool   $withArticles
      *
-     * @return array|bool|Record
+     * @return User
      */
     private function createUserWithAuthor($username, $withArticles)
     {
@@ -295,15 +304,14 @@ class RelationOriginalReferenceTest extends TestCase
             unset($tablesRows['articles']);
         }
 
-        $recordGenerator = $this->createRecordGenerator($this->rm);
-        $recordGenerator
-            ->setTablesMapField(array('user' => 'username'))
-            ->setTablesRows($tablesRows)
-            ->generate();
-
+        $rm = self::createDefaultRecordManager();
+        $recordGenerator = self::saveTableRows($rm, $tablesRows);
         $userId = $recordGenerator->getRecordIdFromMap('user', $username);
         $this->assertNotEmpty($userId);
+
+        // fetching user from database
         $userTable = $this->rm->getTable('user');
+        /** @var User $user */
         $user = $userTable->findByPk($userId);
 
         $this->assertInstanceOf('\Dive\Record', $user);

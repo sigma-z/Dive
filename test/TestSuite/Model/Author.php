@@ -9,6 +9,7 @@
 
 namespace Dive\TestSuite\Model;
 
+use Dive\Collection\RecordCollection;
 use Dive\TestSuite\Record\Record;
 
 /**
@@ -21,9 +22,9 @@ use Dive\TestSuite\Record\Record;
  * @property string $email
  * @property string $user_id
  * @property string $editor_id
- * @property Author[] $Author
+ * @property RecordCollection|Author[] $Author
  * @property Author $Editor
- * @property Article[] $Article
+ * @property RecordCollection|Article[] $Article
  * @property User $User
  */
 class Author extends Record

@@ -446,6 +446,7 @@ class UnitOfWork
         }
         $conn = $table->getConnection();
         $conn->insert($table, $data);
+        $oldIdentifier = $record->getInternalId();
 
         if (!$table->hasCompositePrimaryKey()) {
             $id = $conn->getLastInsertId($table->getTableName());
@@ -469,7 +470,7 @@ class UnitOfWork
         }
 
         // assign record identifier
-        $record->assignIdentifier($identifier);
+        $record->assignIdentifier($identifier, $oldIdentifier);
     }
 
 

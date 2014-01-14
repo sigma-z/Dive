@@ -6,18 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 27.03.13
- */
-
 
 namespace Dive\Table;
 
 use Dive\Record;
 use Dive\Table;
 
-
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 27.03.13
+ */
 class Repository
 {
 
@@ -182,8 +180,9 @@ class Repository
      * Refreshes record identity in repository
      *
      * @param Record $record
+     * @param string $oldInternalIdentifier
      */
-    public function refreshIdentity(Record $record)
+    public function refreshIdentity(Record $record, $oldInternalIdentifier = null)
     {
         $oid = $record->getOid();
         if (!$this->has($oid)) {
@@ -191,6 +190,9 @@ class Repository
         }
         $id = $record->getIdentifierAsString();
         if ($record->exists()) {
+            if ($oldInternalIdentifier) {
+                unset($this->identityMap[$oldInternalIdentifier]);
+            }
             $this->identityMap[$id] = $record->getOid();
         }
         else {

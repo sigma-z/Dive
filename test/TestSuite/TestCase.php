@@ -824,15 +824,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
         }
 
-        if (!$checkOrder) {
-            sort($expectedOidsForSave);
-            sort($expectedOidsForDelete);
-            sort($actualOidsForSave);
-            sort($actualOidsForDelete);
-        }
-
-        $this->assertEquals($expectedOidsForSave, $actualOidsForSave);
-        $this->assertEquals($expectedOidsForDelete, $actualOidsForDelete);
+        $this->assertEquals($expectedOidsForSave, $actualOidsForSave, '', 0, 10, !$checkOrder);
+        $this->assertEquals($expectedOidsForDelete, $actualOidsForDelete, '', 0, 10, !$checkOrder);
     }
 
 }

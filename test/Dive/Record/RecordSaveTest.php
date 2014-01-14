@@ -12,6 +12,7 @@ namespace Dive\Test\Record;
 use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\Record\Generator\RecordGenerator;
+use Dive\Relation\ReferenceMap;
 use Dive\Table;
 use Dive\TestSuite\TableRowsProvider;
 use Dive\TestSuite\TestCase;
@@ -53,12 +54,15 @@ class RecordSaveTest extends TestCase
         $record->fromArray($saveGraph);
 
         $recordsToInsert = self::getRecordsToInsertFromGraph($record);
-        $rm->save($record);
+        $recordReferenceMaps = self::getRecordsToInsertReferenceMaps($recordsToInsert);
 
         $expectedRecordsForSave = $recordsToInsert;
         if ($record->exists() && $record->isModified()) {
-            $expectedRecordsForSave[] = $record;
+            $expectedRecordsForSave[$record->getInternalId()] = $record;
         }
+
+        $rm->save($record);
+
         $this->assertScheduledRecordsForCommit($rm, $expectedRecordsForSave, array(), false);
 
         //$this->markTestIncomplete('TODO: Setting foreign key fields and updating identifiers in reference map');
@@ -66,7 +70,7 @@ class RecordSaveTest extends TestCase
         $rm->commit();
 
         // TODO assert that records has been saved and all references to them are updated
-        //$this->assertRecordsSaved($expectedRecordsForSave);
+        $this->assertRecordsInserted($recordsToInsert, $recordReferenceMaps);
 
         // assert that no record is scheduled for commit anymore
         $this->assertScheduledOperationsForCommit($rm, 0, 0);
@@ -144,7 +148,7 @@ class RecordSaveTest extends TestCase
 
         $recordsToInsert = array();
         if (!$record->exists()) {
-            $recordsToInsert[] = $record;
+            $recordsToInsert[$record->getInternalId()] = $record;
         }
 
         $table = $record->getTable();
@@ -167,6 +171,50 @@ class RecordSaveTest extends TestCase
             }
         }
         return $recordsToInsert;
+    }
+
+
+    /**
+     * @param  Record[] $recordsToInsert
+     * @return array[]
+     */
+    private static function getRecordsToInsertReferenceMaps(array $recordsToInsert)
+    {
+        $recordReferencesMap = array();
+        foreach ($recordsToInsert as $record) {
+            $recordReferencesMap[$record->getOid()] = self::getRecordReferences($record);
+        }
+        return $recordReferencesMap;
+    }
+
+
+    /**
+     * @param Record $record
+     * @return array
+     */
+    private static function getRecordReferences(Record $record)
+    {
+        $map = array();
+        $table = $record->getTable();
+        $relations = $table->getRelations();
+        foreach ($relations as $relationName => $relation) {
+            if ($relation->hasReferenceLoadedFor($record, $relationName)) {
+                /** @var RecordCollection|Record[]|Record $related */
+                $related = $relation->getReferenceFor($record, $relationName);
+                if ($related) {
+                    if ($related instanceof RecordCollection) {
+                        $map[$relationName] = array();
+                        foreach ($related as $relatedRecord) {
+                            $map[$relationName][] = $relatedRecord->getOid();
+                        }
+                    }
+                    else if ($related instanceof Record) {
+                        $map[$relationName] = $related->getOid();
+                    }
+                }
+            }
+        }
+        return $map;
     }
 
 
@@ -199,4 +247,64 @@ class RecordSaveTest extends TestCase
             }
         }
     }
+
+
+    /**
+     * @param Record[] $recordsInserted
+     * @param array[]  $recordReferenceMaps
+     */
+    private function assertRecordsInserted(array $recordsInserted, array $recordReferenceMaps)
+    {
+        foreach ($recordsInserted as $oldIdentifier => $record) {
+            $this->assertIdentifierUpdatedInRepository($record);
+            $oid = $record->getOid();
+            $this->assertRecordReferenceMap($record, $recordReferenceMaps[$oid]);
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function assertIdentifierUpdatedInRepository(Record $record)
+    {
+        $repository = $record->getTable()->getRepository();
+        $this->assertTrue($repository->hasByInternalId($record->getInternalId()));
+    }
+
+
+    /**
+     * @param Record $record
+     * @param array  $referenceMap
+     */
+    private function assertRecordReferenceMap(Record $record, array $referenceMap)
+    {
+
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $oldIdentifier
+     */
+    private function assertIdentifierUpdatedInReferences(Record $record, $oldIdentifier)
+    {
+        $relations = $record->getTableRelations();
+        foreach ($relations as $relationName => $relation) {
+            $isReferencedSide = $relation->isReferencedSide($relationName);
+            $identifier = $record->getIdentifier();
+
+            /** @var ReferenceMap $referenceMap */
+            $referenceMap = self::readAttribute($relation, 'map');
+
+            if ($isReferencedSide) {
+
+            }
+            else {
+                $this->assertFalse($referenceMap->isReferenced($oldIdentifier));
+                $this->assertTrue($referenceMap->isReferenced($identifier));
+            }
+        }
+    }
+
 }

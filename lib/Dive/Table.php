@@ -301,15 +301,6 @@ class Table
     }
 
 
-    /**
-     * @param Record $record
-     */
-    public function refreshRecordIdentityInRepository(Record $record)
-    {
-        $this->getRepository()->refreshIdentity($record);
-    }
-
-
     private function clearRelationReferences()
     {
         foreach ($this->relations as $relation) {

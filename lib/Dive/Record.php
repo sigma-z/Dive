@@ -263,9 +263,10 @@ class Record
 
     /**
      * @param  array|string $identifier
+     * @param  string       $oldInternalIdentifier
      * @throws Record\RecordException
      */
-    public function assignIdentifier($identifier)
+    public function assignIdentifier($identifier, $oldInternalIdentifier = null)
     {
         $identifierFields = $this->_table->getIdentifierFields();
         if (!is_array($identifier)) {
@@ -294,7 +295,8 @@ class Record
 //            }
 //        }
 
-        $this->_table->refreshRecordIdentityInRepository($this);
+        $repository = $this->_table->getRepository();
+        $repository->refreshIdentity($this, $oldInternalIdentifier);
     }
 
 

@@ -21,7 +21,7 @@ class DriverFactory
      * @throws DriverException
      * @return DriverInterface
      */
-    public static function createBySchema($scheme)
+    public static function createByScheme($scheme)
     {
         $className = '\\Dive\\Connection\Driver\\' . ucfirst($scheme) . 'Driver';
         if (class_exists($className)) {
@@ -43,7 +43,7 @@ class DriverFactory
             throw new DriverException("Could not load driver for data source name (dsn) '$dsn'!");
         }
         $scheme = substr($dsn, 0, $length);
-        return self::createBySchema($scheme);
+        return self::createByScheme($scheme);
     }
 
 }

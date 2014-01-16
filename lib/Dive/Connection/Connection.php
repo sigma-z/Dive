@@ -399,6 +399,16 @@ class Connection
     {
         $stmt = $this->getStatement($sql, $params);
         $return = $stmt->fetch($pdoFetchMode);
+        $stmt->closeCursor();
+        return $return;
+    }
+
+
+    public function querySingleScalar($sql, array $params = array())
+    {
+        $stmt = $this->getStatement($sql, $params);
+        $return = $stmt->fetch(\PDO::FETCH_COLUMN);
+        $stmt->closeCursor();
         return $return;
     }
 

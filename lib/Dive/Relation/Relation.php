@@ -648,11 +648,18 @@ class Relation
 
     /**
      * @param Record $referencedRecord
-     * @param string $oldReferencedId
+     * @param string $relationName
+     * @param string $newIdentifier
+     * @param string $oldIdentifier
      */
-    public function updateRecordIdentifier(Record $referencedRecord, $oldReferencedId)
+    public function updateRecordIdentifier(Record $referencedRecord, $relationName, $newIdentifier, $oldIdentifier)
     {
-        $this->map->updateRecordIdentifier($referencedRecord, $oldReferencedId);
+        if ($this->isOwningSide($relationName)) {
+            $this->map->updateReferencedIdentifier($referencedRecord, $newIdentifier, $oldIdentifier);
+        }
+        else {
+            $this->map->updateOwningIdentifier($referencedRecord, $newIdentifier, $oldIdentifier);
+        }
     }
 
 

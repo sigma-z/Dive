@@ -263,10 +263,10 @@ class Record
 
     /**
      * @param  array|string $identifier
-     * @param  string       $oldInternalIdentifier
+     * @param  string       $oldIdentifier
      * @throws Record\RecordException
      */
-    public function assignIdentifier($identifier, $oldInternalIdentifier = null)
+    public function assignIdentifier($identifier, $oldIdentifier = null)
     {
         $identifierFields = $this->_table->getIdentifierFields();
         if (!is_array($identifier)) {
@@ -280,23 +280,21 @@ class Record
             );
         }
 
-        // TODO let UnitOfWork deal with identifier updates
-//        $oldIdentifier = $this->getInternalId();
         foreach ($identifier as $fieldName => $id) {
             $this->_data[$fieldName] = $id;
         }
+
+        $newIdentifier = implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
+        $relations = $this->_table->getRelations();
+        foreach ($relations as $relationName => $relation) {
+            $relation->updateRecordIdentifier($this, $relationName, $newIdentifier, $oldIdentifier);
+        }
+
         $this->_modifiedFields = array();
         $this->_exists = true;
 
-//        $relations = $this->_table->getRelations();
-//        foreach ($relations as $relationName => $relation) {
-//            if ($relation->isOwningSide($relationName)) {
-//                $relation->updateRecordIdentifier($this, $oldIdentifier);
-//            }
-//        }
-
         $repository = $this->_table->getRepository();
-        $repository->refreshIdentity($this, $oldInternalIdentifier);
+        $repository->refreshIdentity($this, $oldIdentifier);
     }
 
 

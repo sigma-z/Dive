@@ -453,20 +453,7 @@ class UnitOfWork
             $identifierFields = $table->getIdentifierFields();
             $identifier = array($identifierFields[0] => $id);
 
-            $owningRelations = $table->getOwningRelations();
-            foreach ($owningRelations as $relationName => $relation) {
-                $owningField = $relation->getOwningField();
-                /** @var Record|Record[] $related */
-                $related = $record->get($relationName);
-                if ($related instanceof RecordCollection) {
-                    foreach ($related as $relatedRecord) {
-                        $relatedRecord->set($owningField, $id);
-                    }
-                }
-                else if ($related instanceof Record) {
-                    $related->set($owningField, $id);
-                }
-            }
+            $this->setForeignKeyFieldOfRelatedRecords($record, $id);
         }
 
         // assign record identifier
@@ -520,6 +507,30 @@ class UnitOfWork
 
         $conn = $table->getConnection();
         $conn->update($table, $modifiedFields, $identifier);
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $id
+     */
+    private function setForeignKeyFieldOfRelatedRecords(Record $record, $id)
+    {
+        $table = $record->getTable();
+        $owningRelations = $table->getOwningRelations();
+        foreach ($owningRelations as $relationName => $relation) {
+            $owningField = $relation->getOwningField();
+            /** @var Record|Record[] $related */
+            $related = $relation->getReferenceFor($record, $relationName);
+            if ($related instanceof RecordCollection) {
+                foreach ($related as $relatedRecord) {
+                    $relatedRecord->set($owningField, $id);
+                }
+            }
+            else if ($related instanceof Record) {
+                $related->set($owningField, $id);
+            }
+        }
     }
 
 }

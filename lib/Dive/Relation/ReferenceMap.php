@@ -517,25 +517,45 @@ class ReferenceMap
 
     /**
      * @param Record $referencedRecord
-     * @param string $oldReferencedId
+     * @param string $newIdentifier
+     * @param string $oldIdentifier
      */
-    public function updateRecordIdentifier(Record $referencedRecord, $oldReferencedId)
+    public function updateReferencedIdentifier(Record $referencedRecord, $newIdentifier, $oldIdentifier)
     {
         $oid = $referencedRecord->getOid();
-        if (isset($this->relatedCollections[$oid][$oldReferencedId])) {
+        if (isset($this->relatedCollections[$oid][$oldIdentifier])) {
             // TODO change collection identifier
         }
-        if ($this->isReferenced($oldReferencedId)) {
-            $owningIds = (array)$this->getOwning($oldReferencedId);
-            if (!empty($owningIds)) {
-                $referenceId = $referencedRecord->getIdentifier();
-                $owningRepository = $this->getRefRepository($referencedRecord, $this->relation->getReferencedAlias());
+        if (array_key_exists($oldIdentifier, $this->references)) {
+            $this->references[$newIdentifier] = $this->references[$oldIdentifier];
+            unset($this->references[$oldIdentifier]);
+        }
+    }
 
-                foreach ($owningIds as $owningId) {
-                    $owningRecord = $owningRepository->getByInternalId($owningId);
-                    $owningRecord->set($this->relation->getOwningField(), $referenceId);
-                    unset($this->owningFieldOidMapping[$owningRecord->getOid()]);
+
+    /**
+     * @param Record $owningRecord
+     * @param string $newIdentifier
+     * @param string $oldIdentifier
+     */
+    public function updateOwningIdentifier(Record $owningRecord, $newIdentifier, $oldIdentifier)
+    {
+        $relationName = $this->relation->getReferencedAlias();
+        if (!$this->relation->hasReferenceLoadedFor($owningRecord, $relationName)) {
+            return;
+        }
+
+        $referencedRecord = $this->relation->getReferenceFor($owningRecord, $relationName);
+        if ($referencedRecord) {
+            $refId = $referencedRecord->getInternalId();
+            if ($this->relation->isOneToMany()) {
+                $pos = array_search($oldIdentifier, $this->references[$refId]);
+                if ($pos !== false) {
+                    array_splice($this->references[$refId], $pos, 1, $newIdentifier);
                 }
+            }
+            else {
+                $this->references[$refId] = $newIdentifier;
             }
         }
     }

@@ -13,6 +13,7 @@ use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\Record\Generator\RecordGenerator;
 use Dive\Relation\ReferenceMap;
+use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\TestSuite\TableRowsProvider;
 use Dive\TestSuite\TestCase;
@@ -58,7 +59,7 @@ class RecordSaveTest extends TestCase
 
         $expectedRecordsForSave = $recordsToInsert;
         if ($record->exists() && $record->isModified()) {
-            $expectedRecordsForSave[$record->getInternalId()] = $record;
+            $expectedRecordsForSave[] = $record;
         }
 
         $rm->save($record);
@@ -148,7 +149,7 @@ class RecordSaveTest extends TestCase
 
         $recordsToInsert = array();
         if (!$record->exists()) {
-            $recordsToInsert[$record->getInternalId()] = $record;
+            $recordsToInsert[] = $record;
         }
 
         $table = $record->getTable();
@@ -255,7 +256,7 @@ class RecordSaveTest extends TestCase
      */
     private function assertRecordsInserted(array $recordsInserted, array $recordReferenceMaps)
     {
-        foreach ($recordsInserted as $oldIdentifier => $record) {
+        foreach ($recordsInserted as $record) {
             $this->assertIdentifierUpdatedInRepository($record);
             $oid = $record->getOid();
             $this->assertRecordReferenceMap($record, $recordReferenceMaps[$oid]);
@@ -279,32 +280,59 @@ class RecordSaveTest extends TestCase
      */
     private function assertRecordReferenceMap(Record $record, array $referenceMap)
     {
+        if (empty($referenceMap)) {
+            return;
+        }
 
+//        $rm = $record->getRecordManager();
+//        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $record->getOid();
+//        $newIdentifier = $record->getInternalId();
+//        echo "\n" . 'old: ' . $oldIdentifier . "\n";
+//        echo 'new: ' . $newIdentifier . "\n";
+//        var_dump($referenceMap);
+
+        foreach ($referenceMap as $relationName => $refObjectIds) {
+            $relation = $record->getTableRelation($relationName);
+            $isOwningRelation = $relation->isOwningSide($relationName);
+            if ($isOwningRelation) {
+                $this->assertOwningRelatedReferences($record, $relation, $refObjectIds);
+            }
+            else {
+
+            }
+        }
     }
 
 
     /**
-     * @param Record $record
-     * @param string $oldIdentifier
+     * @param Record        $record
+     * @param Relation      $relation
+     * @param string|array  $refObjectIds
      */
-    private function assertIdentifierUpdatedInReferences(Record $record, $oldIdentifier)
+    private function assertOwningRelatedReferences(Record $record, Relation $relation, $refObjectIds)
     {
-        $relations = $record->getTableRelations();
-        foreach ($relations as $relationName => $relation) {
-            $isReferencedSide = $relation->isReferencedSide($relationName);
-            $identifier = $record->getIdentifier();
+        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $record->getOid();
+        $newIdentifier = $record->getInternalId();
+        $rm = $record->getRecordManager();
 
-            /** @var ReferenceMap $referenceMap */
-            $referenceMap = self::readAttribute($relation, 'map');
+        $referenceMap = self::readAttribute($relation, 'map');
+        $referenceMapping = $referenceMap->getMapping();
+        $this->assertArrayNotHasKey($oldIdentifier, $referenceMapping);
+        $this->assertArrayHasKey($newIdentifier, $referenceMapping);
+        $refTable = $relation->getJoinTable($rm, $relation->getOwningAlias());
+        $refTableRepository = $refTable->getRepository();
 
-            if ($isReferencedSide) {
-
-            }
-            else {
-                $this->assertFalse($referenceMap->isReferenced($oldIdentifier));
-                $this->assertTrue($referenceMap->isReferenced($identifier));
+        if ($relation->isOneToMany()) {
+            $expectedOwningIds = array();
+            foreach ($refObjectIds as $refObjectId) {
+                $expectedOwningIds[] = $refTableRepository->getByOid($refObjectId)->getInternalId();
             }
         }
+        else {
+            $expectedOwningIds = $refTableRepository->getByOid($refObjectIds)->getInternalId();
+        }
+        $this->assertEquals($expectedOwningIds, $referenceMapping[$newIdentifier]);
+
     }
 
 }

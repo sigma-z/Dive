@@ -16,7 +16,7 @@ use Dive\Table;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 27.03.13
  */
-class Repository
+class Repository implements \Countable
 {
 
     /**

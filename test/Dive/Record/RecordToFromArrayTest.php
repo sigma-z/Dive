@@ -356,6 +356,64 @@ class RecordToFromArrayTest extends TestCase
     }
 
 
+    public function testFromArrayExistingRecords()
+    {
+        $tableRows = array();
+        $tableRows['user'] = array('JohnD', 'BartS');
+        $tableRows['author'] = array(
+            'John Doe' => array(
+                'firstname' => 'John',
+                'lastname' => 'Doe',
+                'email' => 'j.doe@example.com',
+                'User' => 'JohnD'
+            ),
+        );
+        $tableRows['article'] = array(
+            'DiveORM released' => array(
+                'title' => 'Dive ORM Framework released',
+                'Author' => 'John Doe',
+                'is_published' => true,
+                'datetime' => '2013-01-10 13:48:00',
+                'Comment' => array(
+                    'DiveORM released#1' => array(
+                        'title' => 'Can\'t wait to see more of this...',
+                        'User' => 'BartS',
+                        'datetime' => '2013-01-15 17:25:00'
+                    )
+                )
+            )
+        );
+
+        $rm = self::createDefaultRecordManager();
+        $recordGenerator = self::saveTableRows($rm, $tableRows);
+
+        $recordGraph = array(
+            Record::FROM_ARRAY_EXISTS_KEY => true,
+            'id' => $recordGenerator->getRecordIdFromMap('article', 'DiveORM released'),
+            'Author' => array(
+                Record::FROM_ARRAY_EXISTS_KEY => true,
+                'id' => $recordGenerator->getRecordIdFromMap('author', 'John Doe'),
+            ),
+            'Comment' => array(
+                array(
+                    Record::FROM_ARRAY_EXISTS_KEY => true,
+                    'id' => $recordGenerator->getRecordIdFromMap('comment', 'DiveORM released#1'),
+                )
+            )
+        );
+
+        $rm = self::createDefaultRecordManager();
+        $articleTable = $rm->getTable('article');
+        $article = $articleTable->createRecord();
+        $article->fromArray($recordGraph);
+
+        $this->assertCount(1, $articleTable->getRepository());
+        $this->assertCount(0, $rm->getTable('user')->getRepository());
+        $this->assertCount(1, $rm->getTable('author')->getRepository());
+        $this->assertCount(1, $rm->getTable('comment')->getRepository());
+    }
+
+
     /**
      * @param  string $tableName
      * @return array

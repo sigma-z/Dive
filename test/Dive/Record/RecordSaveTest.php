@@ -51,27 +51,16 @@ class RecordSaveTest extends TestCase
         $table = $rm->getTable($tableName);
         $this->translateRecordKeysToIdentifiersInSaveGraph($table, $saveGraph);
 
-        $exists = isset($saveGraph[Record::FROM_ARRAY_EXISTS_KEY]) && $saveGraph[Record::FROM_ARRAY_EXISTS_KEY] === true;
-        $record = $table->createRecord(array(), $exists);
+        $record = $table->createRecord();
         $record->fromArray($saveGraph);
 
         $recordsToInsert = self::getRecordsToInsertFromGraph($record);
         $recordReferenceMaps = self::getRecordsToInsertReferenceMaps($recordsToInsert);
 
-        $expectedRecordsForSave = $recordsToInsert;
-        if ($record->exists() && $record->isModified() && !in_array($record, $recordsToInsert)) {
-            $expectedRecordsForSave[] = $record;
-        }
-
         $rm->save($record);
-
-        // TODO check why actual more records are marked as changed
-        $this->markTestIncomplete('TODO: check why actual more records are marked as changed and updating identifiers in reference map');
-        $this->assertScheduledRecordsForCommit($rm, $expectedRecordsForSave, array(), false);
-
         $rm->commit();
 
-        // TODO assert that records has been saved and all references to them are updated
+        // TODO assert that all references are updated
         $this->assertRecordsInserted($recordsToInsert, $recordReferenceMaps);
 
         // assert that no record is scheduled for commit anymore
@@ -142,6 +131,31 @@ class RecordSaveTest extends TestCase
                     array('recordKey' => 'DiveORM released#1'),
                     array(
                         'title' => 'Still waiting to see more of it...',
+                        'text' => 'I really can NOT wait any longer!',
+                        'User' => array(
+                            'recordKey' => 'BartS'
+                        ),
+                        'datetime' => '2014-01-17 14:31:00'
+                    )
+                )
+            )
+        );
+
+        $testCases[] = array(
+            'tableName' => 'article',
+            'saveGraph' => array(
+                'title' => 'test article',
+                'teaser' => 'test article',
+                'text' => 'test article',
+                'changed_on' => '2014-01-17 22:04:00',
+                'Author' => array(
+                    'recordKey' => 'Jamie T. Kirk'
+                ),
+                'Comment' => array(
+                    array('recordKey' => 'DiveORM released#1'),
+                    array(
+                        'title' => 'Still waiting to see more of it...',
+                        'text' => 'I really can NOT wait any longer!',
                         'User' => array(
                             'recordKey' => 'BartS'
                         ),
@@ -318,7 +332,7 @@ class RecordSaveTest extends TestCase
                 $this->assertOwningRelatedReferences($record, $relation, $refObjectIds);
             }
             else {
-
+                $this->assertReferencedRelatedReferences($record, $relation, $refObjectIds);
             }
         }
     }
@@ -338,11 +352,13 @@ class RecordSaveTest extends TestCase
         /** @var ReferenceMap $referenceMap */
         $referenceMap = self::readAttribute($relation, 'map');
         $referenceMapping = $referenceMap->getMapping();
+        // assert that references exists
         $this->assertArrayNotHasKey($oldIdentifier, $referenceMapping);
         $this->assertArrayHasKey($newIdentifier, $referenceMapping);
+
+        // assert that correct references exists
         $refTable = $relation->getJoinTable($rm, $relation->getOwningAlias());
         $refTableRepository = $refTable->getRepository();
-
         if ($relation->isOneToMany()) {
             $expectedOwningIds = array();
             foreach ($refObjectIds as $refObjectId) {
@@ -354,12 +370,49 @@ class RecordSaveTest extends TestCase
         }
         $this->assertEquals($expectedOwningIds, $referenceMapping[$newIdentifier]);
 
+        // assert record collection
         if ($relation->isOneToMany()) {
-            $recordCollection = $referenceMap->getRelatedCollection($newIdentifier);
+            $recordCollection = $referenceMap->getRelatedCollection($record->getOid());
             $this->assertNotNull($recordCollection);
             $this->assertCount(count($refObjectIds), $recordCollection);
-            $this->assertNull($referenceMap->getRelatedCollection($oldIdentifier));
         }
     }
 
+
+    /**
+     * @param Record    $record
+     * @param Relation  $relation
+     * @param string    $refObjectId
+     */
+    private function assertReferencedRelatedReferences(Record $record, Relation $relation, $refObjectId)
+    {
+        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $record->getOid();
+        $newIdentifier = $record->getInternalId();
+        $rm = $record->getRecordManager();
+
+        /** @var ReferenceMap $referenceMap */
+        $referenceMap = self::readAttribute($relation, 'map');
+        $referenceMapping = $referenceMap->getMapping();
+
+        $refTable = $relation->getJoinTable($rm, $relation->getReferencedAlias());
+        $refTableRepository = $refTable->getRepository();
+        $referencedRecord = $refTableRepository->getByOid($refObjectId);
+        $refId = $referencedRecord->getInternalId();
+
+        $this->assertArrayHasKey($refId, $referenceMapping);
+        if ($relation->isOneToMany()) {
+            $this->assertContains($newIdentifier, $referenceMapping[$refId]);
+        }
+        else {
+            $this->assertEquals($newIdentifier, $referenceMapping[$refId]);
+        }
+
+        // assert record collection
+        if ($relation->isOneToMany()) {
+            $recordCollection = $referenceMap->getRelatedCollection($referencedRecord->getOid());
+            $this->assertNotNull($recordCollection);
+            $this->assertFalse($recordCollection->has($oldIdentifier));
+            $this->assertTrue($recordCollection->has($newIdentifier));
+        }
+    }
 }

@@ -324,14 +324,14 @@ class RecordGenerator
 
 
     /**
-     * @param  string $table
+     * @param  string $tableName
      * @param  string $alias
      * @return bool|string
      */
-    public function getRecordIdFromMap($table, $alias)
+    public function getRecordIdFromMap($tableName, $alias)
     {
-        if ($this->isInRecordMap($table, $alias)) {
-            return $this->recordAliasIdMap[$table][$alias];
+        if ($this->isInRecordMap($tableName, $alias)) {
+            return $this->recordAliasIdMap[$tableName][$alias];
         }
         return false;
     }

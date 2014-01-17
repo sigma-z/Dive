@@ -154,6 +154,20 @@ class RecordCollection extends Collection
     }
 
 
+    /**
+     * @param string $newIdentifier
+     * @param string $oldIdentifier
+     */
+    public function updateIdentifier($newIdentifier, $oldIdentifier)
+    {
+        $this->throwExceptionIfIdDoesNotExists($oldIdentifier);
+
+        $record = $this->get($oldIdentifier);
+        $this->offsetUnset($oldIdentifier);
+        $this->items[$newIdentifier] = $record;
+    }
+
+
     public function snapshotIdentifiers()
     {
         $this->snapshotIdentifiers = $this->keys();
@@ -195,7 +209,7 @@ class RecordCollection extends Collection
      * @param  mixed $record
      * @throws CollectionException
      */
-    private function throwExceptionIfRecordDoesNotMatchTable($record)
+    protected function throwExceptionIfRecordDoesNotMatchTable($record)
     {
         if (!($record instanceof Record)) {
             throw new CollectionException(
@@ -209,6 +223,19 @@ class RecordCollection extends Collection
                     . ' Expected: ' . $this->table->getTableName()
                     . ' You gave me: ' . $record->getTable()->getTableName()
             );
+        }
+    }
+
+
+    /**
+     * @param  string $id
+     * @throws CollectionException
+     */
+    protected function throwExceptionIfIdDoesNotExists($id)
+    {
+        if (!$this->has($id)) {
+            var_dump($this->keys());
+            throw new CollectionException("Id '$id' does not exists in collection!");
         }
     }
 

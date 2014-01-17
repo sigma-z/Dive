@@ -522,10 +522,6 @@ class ReferenceMap
      */
     public function updateReferencedIdentifier(Record $referencedRecord, $newIdentifier, $oldIdentifier)
     {
-        $oid = $referencedRecord->getOid();
-        if (isset($this->relatedCollections[$oid][$oldIdentifier])) {
-            // TODO change collection identifier
-        }
         if (array_key_exists($oldIdentifier, $this->references)) {
             $this->references[$newIdentifier] = $this->references[$oldIdentifier];
             unset($this->references[$oldIdentifier]);
@@ -552,6 +548,10 @@ class ReferenceMap
                 $pos = array_search($oldIdentifier, $this->references[$refId]);
                 if ($pos !== false) {
                     array_splice($this->references[$refId], $pos, 1, $newIdentifier);
+                    $refOid = $referencedRecord->getOid();
+                    if (isset($this->relatedCollections[$refOid])) {
+                        $this->relatedCollections[$refOid]->updateIdentifier($newIdentifier, $oldIdentifier);
+                    }
                 }
             }
             else {

@@ -404,6 +404,13 @@ class Connection
     }
 
 
+    /**
+     * TODO unittest!
+     *
+     * @param  string $sql
+     * @param  array  $params
+     * @return string|bool
+     */
     public function querySingleScalar($sql, array $params = array())
     {
         $stmt = $this->getStatement($sql, $params);

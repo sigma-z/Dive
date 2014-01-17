@@ -502,7 +502,7 @@ class Record
      */
     public function __toString()
     {
-        return $this->_table->getTableName() . ' id:' . $this->getIdentifierAsString();
+        return $this->_table->getTableName() . ' id: ' . $this->getIdentifierAsString();
     }
 
 
@@ -603,34 +603,16 @@ class Record
      */
     public function fromArray(array $data, $deep = true, $mapVirtualFields = false)
     {
-        $exists = false;
-        $rm = $this->getRecordManager();
+        $exists = isset($data[self::FROM_ARRAY_EXISTS_KEY]) && $data[self::FROM_ARRAY_EXISTS_KEY] === true;
+        $relationReferences = array();
         foreach ($data as $name => $value) {
             if ($this->_table->hasField($name)) {
                 $this->set($name, $value);
             }
             else if ($this->_table->hasRelation($name)) {
                 if ($deep) {
-                    $relation = $this->_table->getRelation($name);
-                    $relatedTable = $relation->getJoinTable($rm, $name);
-                    if ($relation->isOneToMany() && $relation->isOwningSide($name)) {
-                        $collection = new RecordCollection($relatedTable, $this, $relation);
-                        foreach ($value as $relatedData) {
-                            $relatedRecord = $relatedTable->createRecord();
-                            $relatedRecord->fromArray($relatedData, $deep, $mapVirtualFields);
-                            $collection[$relatedRecord->getInternalId()] = $relatedRecord;
-                        }
-                        $this->set($name, $collection);
-                    }
-                    else {
-                        $relatedRecord = $relatedTable->createRecord();
-                        $relatedRecord->fromArray($value, $deep, $mapVirtualFields);
-                        $this->set($name, $relatedRecord);
-                    }
+                    $relationReferences[$name] = $value;
                 }
-            }
-            else if ($name == self::FROM_ARRAY_EXISTS_KEY) {
-                $exists = true;
             }
             else if ($mapVirtualFields) {
                 $this->mapValue($name, $value);
@@ -640,6 +622,33 @@ class Record
         if ($exists) {
             $this->_exists = true;
             $this->refresh();
+        }
+
+        if ($relationReferences) {
+            $rm = $this->getRecordManager();
+            foreach ($relationReferences as $relationName => $related) {
+                $relation = $this->_table->getRelation($relationName);
+                $relatedTableName = $relation->getJoinTableName($relationName);
+                $relatedTable = $relation->getJoinTable($rm, $relationName);
+                if ($relation->isOneToMany() && $relation->isOwningSide($relationName)) {
+                    $collection = new RecordCollection($relatedTable, $this, $relation);
+                    foreach ($related as $relatedData) {
+                        $relatedExists = isset($relatedData[self::FROM_ARRAY_EXISTS_KEY])
+                            && $relatedData[self::FROM_ARRAY_EXISTS_KEY] === true;
+                        $relatedRecord = $rm->getRecord($relatedTableName, $relatedData, $relatedExists);
+                        $relatedRecord->fromArray($relatedData, $deep, $mapVirtualFields);
+                        $collection[$relatedRecord->getInternalId()] = $relatedRecord;
+                    }
+                    $this->set($relationName, $collection);
+                }
+                else {
+                    $relatedExists = isset($related[self::FROM_ARRAY_EXISTS_KEY])
+                        && $related[self::FROM_ARRAY_EXISTS_KEY] === true;
+                    $relatedRecord = $rm->getRecord($relatedTableName, $related, $relatedExists);
+                    $relatedRecord->fromArray($related, $deep, $mapVirtualFields);
+                    $this->set($relationName, $relatedRecord);
+                }
+            }
         }
     }
 

@@ -824,6 +824,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
         }
 
+//        /** @var Record[] $recordIdentityMap */
+//        $recordIdentityMap = self::readAttribute($unitOfWork, 'recordIdentityMap');
+//        foreach ($recordIdentityMap as $oid => $record) {
+//            echo $oid . ' : ' . $record . "\n";
+//        }
+
         $this->assertEquals($expectedOidsForSave, $actualOidsForSave, '', 0, 10, !$checkOrder);
         $this->assertEquals($expectedOidsForDelete, $actualOidsForDelete, '', 0, 10, !$checkOrder);
     }

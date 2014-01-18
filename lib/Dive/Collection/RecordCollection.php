@@ -17,31 +17,31 @@ use Dive\Table;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 11.02.13
  *
- * @property \Dive\Record[] $items
+ * @property Record[] $items
  */
 class RecordCollection extends Collection
 {
 
-    /**
-     * @var Table
-     */
+    /** @var array */
+    private $identifiers = null;
+
+    /** @var Table */
     protected $table = null;
 
     /**
-     * @var \Dive\Record
+     * referenced record, referenced by all the records in this collection
+     * @var Record
      */
     private $refRecord = null;
 
-    /**
-     * @var \Dive\Relation\Relation
-     */
+    /** @var Relation */
     private $relation = null;
 
 
     /**
-     * @param \Dive\Table             $table
-     * @param \Dive\Record            $record
-     * @param \Dive\Relation\Relation $relation
+     * @param Table     $table
+     * @param Record    $record
+     * @param Relation  $relation
      */
     public function __construct(Table $table, Record $record = null, Relation $relation = null)
     {
@@ -52,7 +52,7 @@ class RecordCollection extends Collection
 
 
     /**
-     * @return \Dive\Table
+     * @return Table
      */
     public function getTable()
     {
@@ -61,7 +61,17 @@ class RecordCollection extends Collection
 
 
     /**
-     * @param  \Dive\Record $item
+     * @param  Record $item
+     * @return bool
+     */
+    public function has($item)
+    {
+        return in_array($item, $this->items, true);
+    }
+
+
+    /**
+     * @param  Record $item
      * @param  string $id
      * @throws CollectionException
      * @return $this
@@ -70,14 +80,17 @@ class RecordCollection extends Collection
     {
         $this->throwExceptionIfRecordDoesNotMatchTable($item);
 
-        if (null === $id) {
-            $id = $item->getInternalId();
-        }
         // TODO throw exception record already added??
-        $has = $this->has($id);
-        parent::offsetSet($id, $item);
+        if ($this->has($item)) {
+            return $this;
+        }
 
-        if (!$has && $this->refRecord && $this->relation) {
+        $this->items[] = $item;
+        if ($this->identifiers !== null) {
+            $this->identifiers[] = $item->getInternalId();
+        }
+
+        if ($this->refRecord && $this->relation) {
             $this->relation->updateRecordReference($item, $this->refRecord);
         }
         return $this;
@@ -89,8 +102,8 @@ class RecordCollection extends Collection
      *
      * @overridden
      *
-     * @param  string       $offset
-     * @param  \Dive\Record $value
+     * @param  string $offset
+     * @param  Record $value
      */
     public function offsetSet($offset, $value)
     {
@@ -99,22 +112,30 @@ class RecordCollection extends Collection
 
 
     /**
-     * removes item for the given $id
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset)
+    {
+        parent::offsetUnset($offset);
+        unset($this->identifiers[$offset]);
+    }
+
+
+    /**
+     * TODO unit test
      *
      * @param  string $id
-     * @return bool
+     * @throws CollectionException
+     * @return Record
      */
-    public function remove($id)
+    public function getById($id)
     {
-        $removed = false;
-        if ($this->has($id)) {
-            $recordToBeRemoved = $this->get($id);
-            $removed = parent::remove($id);
-            if ($this->refRecord && $this->relation) {
-                $this->relation->updateRecordReference($recordToBeRemoved, null);
+        foreach ($this->items as $record) {
+            if ($record->getInternalId() == $id) {
+                return $record;
             }
         }
-        return $removed;
+        throw new CollectionException("Could not find record in collection with ID '$id'!");
     }
 
 
@@ -126,40 +147,58 @@ class RecordCollection extends Collection
      */
     public function unlinkRecord(Record $record)
     {
-        return $this->remove($record->getInternalId());
+        $key = $this->key($record);
+        if ($key === false) {
+            return false;
+        }
+        $this->offsetUnset($key);
+        if ($this->refRecord && $this->relation) {
+            $this->relation->updateRecordReference($record, null);
+        }
+        return true;
+    }
+
+
+    /**
+     * @param  Record $record
+     * @return int|bool FALSE if not found
+     */
+    public function key(Record $record)
+    {
+        return array_search($record, $this->items, true);
     }
 
 
     /**
      * deletes record from collection
      *
-     * @param \Dive\Record $record
+     * @param  Record $record
      * @throws CollectionException
      * @return bool
      */
     public function deleteRecord(Record $record)
     {
-        $id = $record->getInternalId();
-        if (!$this->has($id)) {
+        if (!$this->has($record)) {
+            $id = $record->getInternalId();
             throw new CollectionException("$id is not in collection!");
         }
         $this->table->getRecordManager()->delete($record);
-        return $this->remove($id);
+        return $this->unlinkRecord($record);
     }
 
 
-    /**
-     * @param string $newIdentifier
-     * @param string $oldIdentifier
-     */
-    public function updateIdentifier($newIdentifier, $oldIdentifier)
-    {
-        $this->throwExceptionIfIdDoesNotExists($oldIdentifier);
-
-        $record = $this->get($oldIdentifier);
-        $this->offsetUnset($oldIdentifier);
-        $this->items[$newIdentifier] = $record;
-    }
+//    /**
+//     * @param string $newIdentifier
+//     * @param string $oldIdentifier
+//     */
+//    public function updateIdentifier($newIdentifier, $oldIdentifier)
+//    {
+//        $this->throwExceptionIfIdDoesNotExists($oldIdentifier);
+//
+//        $record = $this->get($oldIdentifier);
+//        $this->offsetUnset($oldIdentifier);
+//        $this->items[$newIdentifier] = $record;
+//    }
 
 
     /**
@@ -169,7 +208,13 @@ class RecordCollection extends Collection
      */
     public function getIdentifiers()
     {
-        return $this->keys();
+        if ($this->identifiers === null) {
+            $this->identifiers = array();
+            foreach ($this->items as $owningRecord) {
+                $this->identifiers[] = $owningRecord->getInternalId();
+            }
+        }
+        return $this->identifiers;
     }
 
 
@@ -180,8 +225,8 @@ class RecordCollection extends Collection
     public function toArray($deep = false)
     {
         $data = array();
-        foreach ($this->items as $id => $record) {
-            $data[$id] = $record->toArray($deep);
+        foreach ($this->items as $record) {
+            $data[] = $record->toArray($deep);
         }
         return $data;
     }
@@ -208,17 +253,16 @@ class RecordCollection extends Collection
         }
     }
 
-
-    /**
-     * @param  string $id
-     * @throws CollectionException
-     */
-    protected function throwExceptionIfIdDoesNotExists($id)
-    {
-        if (!$this->has($id)) {
-            var_dump($this->keys());
-            throw new CollectionException("Id '$id' does not exists in collection!");
-        }
-    }
+//    /**
+//     * @param  string $id
+//     * @throws CollectionException
+//     */
+//    protected function throwExceptionIfIdDoesNotExists($id)
+//    {
+//        if (!$this->has($id)) {
+//            var_dump($this->keys());
+//            throw new CollectionException("Id '$id' does not exists in collection!");
+//        }
+//    }
 
 }

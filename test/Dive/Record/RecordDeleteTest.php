@@ -241,7 +241,7 @@ class RecordDeleteTest extends TestCase
 
             if ($isOneToMany) {
                 foreach ($relatedCollections as $relatedCollection) {
-                    $this->assertFalse($relatedCollection->has($internalId), $relatedCollectionMessage);
+                    $this->assertFalse($relatedCollection->has($record), $relatedCollectionMessage);
                 }
             }
 

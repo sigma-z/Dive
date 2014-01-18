@@ -164,10 +164,11 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $relation = $authorTable->getRelation('User');
         $this->assertRelationReferenceMapIsEmpty($relation);
 
-        /** @var Author[] $authors */
         $authors = $authorTable->createQuery()->fetchObjects();
-        $authorOne = $authors[$authorOneId];
-        $authorTwo = $authors[$authorTwoId];
+        /** @var Author $authorOne */
+        $authorOne = $authors->getById($authorOneId);
+        /** @var Author $authorTwo */
+        $authorTwo = $authors->getById($authorTwoId);
 
         // loading references for 'User' (for the the other author records, too)
         $authorOne->User;
@@ -181,8 +182,12 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $this->assertNotNull($authorTwo->User);
 
         $users = $userTable->createQuery()->fetchObjects();
-        $this->assertRelationReference($authorOne, 'User', $users[$userOneId]);
-        $this->assertRelationReference($authorTwo, 'User', $users[$userTwoId]);
+        /** @var User $userOne */
+        $userOne = $users->getById($userOneId);
+        $this->assertRelationReference($authorOne, 'User', $userOne);
+        /** @var User $userTwo */
+        $userTwo = $users->getById($userTwoId);
+        $this->assertRelationReference($authorTwo, 'User', $userTwo);
 
         // user of author two gets lost when setting it to user of author one
         $authorOne->User = $authorTwo->User;
@@ -190,7 +195,8 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $this->assertNull($authorTwo->User);
         $this->assertNotEquals($authorOne->User, $authorTwo->User);
 
-        $this->assertRelationReference($authorOne, 'User', $users[$userTwoId]);
+        $userTwo = $users->getById($userTwoId);
+        $this->assertRelationReference($authorOne, 'User', $userTwo);
     }
 
 
@@ -234,10 +240,11 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $relation = $authorTable->getRelation('User');
         $this->assertRelationReferenceMapIsEmpty($relation);
 
-        /** @var User[] $users */
         $users = $userTable->createQuery()->fetchObjects();
-        $userOne = $users[$userOneId];
-        $userTwo = $users[$userTwoId];
+        /** @var User $userOne */
+        $userOne = $users->getById($userOneId);
+        /** @var User $userTwo */
+        $userTwo = $users->getById($userTwoId);
 
         // loading references for 'Author' (for the whole collection)
         $authorOne = $userOne->Author;

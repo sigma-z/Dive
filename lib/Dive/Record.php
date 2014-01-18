@@ -630,7 +630,7 @@ class Record
                             && $relatedData[self::FROM_ARRAY_EXISTS_KEY] === true;
                         $relatedRecord = $rm->getRecord($relatedTableName, $relatedData, $relatedExists);
                         $relatedRecord->fromArray($relatedData, $deep, $mapVirtualFields);
-                        $collection[$relatedRecord->getInternalId()] = $relatedRecord;
+                        $collection[] = $relatedRecord;
                     }
                     $this->set($relationName, $collection);
                 }

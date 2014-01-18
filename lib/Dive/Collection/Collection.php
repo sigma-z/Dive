@@ -35,37 +35,37 @@ class Collection implements CollectionInterface
     /**
      * check, if item does exist for the given $id
      *
-     * @param  string $id
+     * @param  string $key
      * @return bool
      */
-    public function has($id)
+    public function has($key)
     {
-        return $this->offsetExists($id);
+        return $this->offsetExists($key);
     }
 
 
     /**
      * gets item for the given $id
      *
-     * @param  string $id
-     * @return \Dive\Record
+     * @param  string $key
+     * @return mixed
      */
-    public function get($id)
+    public function get($key)
     {
-        return $this->offsetGet($id);
+        return $this->offsetGet($key);
     }
 
 
     /**
      * removes item for the given $id
      *
-     * @param  string $id
+     * @param  string $key
      * @return bool
      */
-    public function remove($id)
+    public function remove($key)
     {
-        if ($this->has($id)) {
-            $this->offsetUnset($id);
+        if ($this->has($key)) {
+            $this->offsetUnset($key);
             return true;
         }
         return false;
@@ -119,7 +119,12 @@ class Collection implements CollectionInterface
      */
     public function offsetSet($offset, $value)
     {
-        $this->items[$offset] = $value;
+        if ($offset !== null) {
+            $this->items[$offset] = $value;
+        }
+        else {
+            $this->items[] = $value;
+        }
     }
 
 
@@ -166,12 +171,12 @@ class Collection implements CollectionInterface
 
     /**
      * @param array|\Dive\Record $item
-     * @param null $id
+     * @param int $key
      * @return Collection
      */
-    public function add($item, $id = null)
+    public function add($item, $key = null)
     {
-        $this->offsetSet($id, $item);
+        $this->offsetSet($key, $item);
         return $this;
     }
 

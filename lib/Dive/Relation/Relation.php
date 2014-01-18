@@ -664,6 +664,7 @@ class Relation
 
 
     /**
+     * TODO think about removing this method, so that there is no public access to the reference mapping outside from this class
      * Gets references
      *
      * @return array

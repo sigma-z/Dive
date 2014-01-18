@@ -685,7 +685,7 @@ class QueryTest extends TestCase
                 $expectedTmp = $expected;
                 $expected = array();
                 foreach ($userIds as $index => $id) {
-                    $expected[$id] = array('id' => $id) + $expectedTmp[$index];
+                    $expected[] = array('id' => $id) + $expectedTmp[$index];
                 }
             }
         }

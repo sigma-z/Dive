@@ -6,16 +6,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Dive\Query;
+
+use Dive\Util\StringExplode;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 22.02.13
  */
-
-namespace Dive\Query;
-
-
-use Dive\Util\StringExplode;
-
 class QueryParser
 {
 
@@ -64,7 +63,7 @@ class QueryParser
     /**
      * Parses query
      *
-     * @param  \Dive\Query\QueryInterface $query
+     * @param  QueryInterface $query
      * @return string
      */
     public function parseQuery(QueryInterface $query)
@@ -73,6 +72,10 @@ class QueryParser
     }
 
 
+    /**
+     * @param  QueryInterface $query
+     * @return array
+     */
     protected function getSqlParts(QueryInterface $query)
     {
         // query parts

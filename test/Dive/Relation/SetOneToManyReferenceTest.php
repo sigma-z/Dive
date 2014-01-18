@@ -51,7 +51,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $user->Author = $author;
         $userEditor->Author = $editor;
 
-        $this->assertEquals($user, $userEditor->Author->Author[$author->getInternalId()]->User);
+        $this->assertEquals($user, $userEditor->Author->Author[0]->User);
     }
 
 
@@ -127,7 +127,8 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
 
         $authorTable = $this->rm->getTable('author');
         $authors = $authorTable->createQuery()->fetchObjects();
-        $authorOne = $authors[$authorOneId];
+        /** @var Author $authorOne */
+        $authorOne = $authors->getById($authorOneId);
         $authorOne->Editor = $editorTwo;
         $this->assertRelationReferences($editorTwo, 'Author', $authorOne);
 
@@ -163,8 +164,10 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
 
         $authorTable = $this->rm->getTable('author');
         $authors = $authorTable->createQuery()->fetchObjects();
-        $editorOne = $authors[$editorOneId];
-        $editorTwo = $authors[$editorTwoId];
+        /** @var Author $editorOne */
+        $editorOne = $authors->getById($editorOneId);
+        /** @var Author $editorTwo */
+        $editorTwo = $authors->getById($editorTwoId);
 
         $editorOne->Author[] = $editorTwo;
         $this->assertRelationReferences($editorOne, 'Author', array($authorOne, $authorTwo, $editorTwo));

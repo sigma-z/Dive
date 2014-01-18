@@ -394,6 +394,7 @@ class RecordSaveTest extends TestCase
         // assert that owning record id is mapped for referenced record
         $this->assertArrayHasKey($refId, $referenceMapping);
         if ($relation->isOneToMany()) {
+            $this->assertNotContains($oldIdentifier, $referenceMapping[$refId]);
             $this->assertContains($newIdentifier, $referenceMapping[$refId]);
         }
         else {
@@ -407,8 +408,7 @@ class RecordSaveTest extends TestCase
         if ($relation->isOneToMany()) {
             $recordCollection = $referenceMap->getRelatedCollection($referencedRecord->getOid());
             $this->assertNotNull($recordCollection);
-            $this->assertFalse($recordCollection->has($oldIdentifier));
-            $this->assertTrue($recordCollection->has($newIdentifier));
+            $this->assertTrue($recordCollection->has($owningRecord));
         }
     }
 }

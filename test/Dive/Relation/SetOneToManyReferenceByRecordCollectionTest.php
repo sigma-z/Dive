@@ -12,7 +12,7 @@ namespace Dive\Test\Relation;
 require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 
 use Dive\Collection\RecordCollection;
-use Dive\Record;
+use Dive\TestSuite\Model\Author;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -22,15 +22,15 @@ class SetOneToManyReferenceByRecordCollectionTest extends RelationSetReferenceTe
 {
 
     /**
-     * @var Record
+     * @var Author
      */
     private $editor = null;
     /**
-     * @var Record
+     * @var Author
      */
     private $authorOne = null;
     /**
-     * @var Record
+     * @var Author
      */
     private $authorTwo = null;
 
@@ -63,7 +63,7 @@ class SetOneToManyReferenceByRecordCollectionTest extends RelationSetReferenceTe
         $this->editor->Author[] = $this->authorOne;
         $this->editor->Author[] = $this->authorTwo;
 
-        $this->editor->Author->remove($this->authorOne->getInternalId());
+        $this->editor->Author->unlinkRecord($this->authorOne);
 
         $this->assertNoRelationReferences($this->editor, 'Author', $this->authorOne);
         $this->assertRelationReferences($this->editor, 'Author', $this->authorTwo);

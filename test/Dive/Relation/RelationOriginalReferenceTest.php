@@ -173,7 +173,7 @@ class RelationOriginalReferenceTest extends TestCase
         $articleToModify = $articles->getIterator()->current();
         $articleToModify->author_id = null;
         $this->assertCount(2, $articles);
-        $this->assertFalse($articles->has($articleToModify->getInternalId()));
+        $this->assertFalse($articles->has($articleToModify));
 
         // assert original references
         $originalReferencedIds = $relation->getOriginalReferencedIds($author, 'Article');
@@ -198,10 +198,10 @@ class RelationOriginalReferenceTest extends TestCase
         $this->assertCount(3, $articles);
 
         // do change, and assert that collection has changed
-        $this->assertFalse($articles->has($newArticle->getInternalId()));
+        $this->assertFalse($articles->has($newArticle));
         $articles->add($newArticle);
         $this->assertCount(4, $articles);
-        $this->assertTrue($articles->has($newArticle->getInternalId()));
+        $this->assertTrue($articles->has($newArticle));
 
         // assert original references
         $originalReferencedIds = $relation->getOriginalReferencedIds($author, 'Article');
@@ -226,10 +226,10 @@ class RelationOriginalReferenceTest extends TestCase
         // do change, and assert that collection has changed
         /** @var Record $unlinkArticle */
         $unlinkArticle = $articles->getIterator()->current();
-        $this->assertTrue($articles->has($unlinkArticle->getInternalId()));
+        $this->assertTrue($articles->has($unlinkArticle));
         $articles->unlinkRecord($unlinkArticle);
         $this->assertCount(2, $articles);
-        $this->assertFalse($articles->has($unlinkArticle->getInternalId()));
+        $this->assertFalse($articles->has($unlinkArticle));
 
         // assert original references
         $originalReferencedIds = $relation->getOriginalReferencedIds($author, 'Article');
@@ -283,7 +283,7 @@ class RelationOriginalReferenceTest extends TestCase
         $articleToModify = $articles->getIterator()->current();
         $articleToModify->Author = null;
         $this->assertCount(2, $articles);
-        $this->assertFalse($articles->has($articleToModify->getInternalId()));
+        $this->assertFalse($articles->has($articleToModify));
 
         // assert original references
         $originalReferencedIds = $relation->getOriginalReferencedIds($author, 'Article');

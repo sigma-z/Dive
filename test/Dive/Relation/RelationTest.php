@@ -11,6 +11,7 @@ namespace Dive\Test\Relation;
 
 use Dive\RecordManager;
 use Dive\Relation\Relation;
+use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\TestCase;
 use InvalidArgumentException;
 
@@ -153,18 +154,26 @@ class RelationTest extends TestCase
     public function testReferenceMapOneToManySet($isOwningSide)
     {
         $authorTable = $this->rm->getTable('author');
+        /** @var Author $author */
         $author = $authorTable->createRecord();
+        /** @var Author $editor */
         $editor = $authorTable->createRecord();
         $relation = $authorTable->getRelation('Author');
 
         if ($isOwningSide) {
             $author->Editor = $editor;
-            $this->assertTrue($relation->hasReferenceLoadedFor($author, 'Editor'), 'Reference to author->Editor is not set!');
+            $this->assertTrue(
+                $relation->hasReferenceLoadedFor($author, 'Editor'),
+                'Reference to author->Editor is not set!'
+            );
         }
         else {
             $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author);
             $editor->Author[] = $author;
-            $this->assertTrue($relation->hasReferenceLoadedFor($editor, 'Author'), 'Reference to editor->Author is not set!');
+            $this->assertTrue(
+                $relation->hasReferenceLoadedFor($editor, 'Author'),
+                'Reference to editor->Author is not set!'
+            );
         }
 
         $this->assertRelationReferences($editor, 'Author', $author);

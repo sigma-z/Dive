@@ -220,7 +220,10 @@ class ReferenceMap
             }
             $refOid = $referencedRecord->getOid();
             if (isset($this->relatedCollections[$refOid])) {
-                $this->relatedCollections[$refOid]->offsetUnset($owningId);
+                $pos = $this->relatedCollections[$refOid]->key($record);
+                if ($pos !== false) {
+                    $this->relatedCollections[$refOid]->offsetUnset($pos);
+                }
             }
         }
         else if ($owningId == $this->references[$refId]) {
@@ -360,7 +363,7 @@ class ReferenceMap
                 return false;
             }
             $relatedRecord = $refTable->getFromRepository($refId);
-            $collection->add($relatedRecord, $refId);
+            $collection->add($relatedRecord);
         }
         $this->setRelatedCollection($oid, $collection);
         return $collection;
@@ -549,11 +552,7 @@ class ReferenceMap
             if ($this->relation->isOneToMany()) {
                 $pos = array_search($oldIdentifier, $this->references[$refId]);
                 if ($pos !== false) {
-                    array_splice($this->references[$refId], $pos, 1, $newIdentifier);
-                    $refOid = $referencedRecord->getOid();
-                    if (isset($this->relatedCollections[$refOid])) {
-                        $this->relatedCollections[$refOid]->updateIdentifier($newIdentifier, $oldIdentifier);
-                    }
+                    $this->references[$refId][$pos] = $newIdentifier;
                 }
             }
             else {
@@ -629,7 +628,7 @@ class ReferenceMap
                 $relatedCollection = $this->getRelatedCollection($oldRefRecord->getOid());
                 // TODO exception, or if not set create one??
                 if ($relatedCollection) {
-                    $relatedCollection->remove($owningId);
+                    $relatedCollection->unlinkRecord($record);
                 }
             }
         }

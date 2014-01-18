@@ -79,8 +79,6 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $this->assertEquals($author, $user->Author);
         $this->assertEquals($user, $user->Author->User);
 
-        // FIXME identifier update in references
-        $this->markTestIncomplete("References and owningFieldMapping have to be updated by UnitOfWork->commitChanges()");
         $this->assertRelationReferences($user, 'Author', $author);
     }
 
@@ -151,7 +149,6 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
 
 
     /**
-     * @TODO refactor after UnitOfWork has been implemented for saving references
      */
     public function testOneToOneOwningSideSetForExistingRecords()
     {
@@ -222,7 +219,6 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
 
 
     /**
-     * @TODO refactor after UnitOfWork has been implemented for saving references
      */
     public function testOneToOneReferencingSideSetForExistingRecords()
     {
@@ -305,7 +301,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         }
         $author = $this->createAuthor('AuthorOne');
         if ($userExists) {
-            $author->user_id = $user->id;   // TODO foreign key should be set through Record::save()
+            $author->User = $user;
         }
         if ($authorExists) {
             $this->rm->save($author)->commit();

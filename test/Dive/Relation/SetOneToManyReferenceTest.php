@@ -109,7 +109,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
 
         $authorOne = $this->createAuthorWithUser('One');
         $this->assertNull($authorOne->Editor);
-        $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $authorOne->Editor = $editorOne;
         $this->assertEquals($editorOne->id, $authorOne->Editor->id);
         $this->assertNull($authorOne->getModifiedFieldValue('editor_id'));
 
@@ -119,7 +119,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $authorOneId = $authorOne->id;
 
         $authorTwo = $this->createAuthorWithUser('Two');
-        $authorTwo->editor_id = $editorTwo->id; // TODO should be done through UnitOfWork
+        $authorTwo->Editor = $editorTwo;
         $this->rm->save($authorTwo)->commit();
         $this->assertRelationReferences($editorTwo, 'Author', $authorTwo);
 
@@ -147,7 +147,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $authorOne = $this->createAuthorWithUser('One');
 
         $this->assertNotEquals($authorOne->editor_id, $editorOne->id);
-        $authorOne->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $authorOne->Editor = $editorOne;
 
         $this->rm->save($authorOne)->commit();
         $this->assertRelationReferences($editorOne, 'Author', $authorOne);
@@ -155,7 +155,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $this->assertNoRelationReferences($authorOne, 'Editor', array($authorOne, $editorTwo));
 
         $authorTwo = $this->createAuthorWithUser('Two');
-        $authorTwo->editor_id = $editorOne->id; // TODO should be done through UnitOfWork
+        $authorTwo->Editor = $editorOne;
         $this->rm->save($authorTwo)->commit();
         $this->assertRelationReferences($editorOne, 'Author', array($authorOne, $authorTwo));
 
@@ -181,9 +181,8 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     private function createAuthorWithUser($name)
     {
         $user = $this->createUser('User' . $name);
-        $this->rm->save($user)->commit();
         $author  = $this->createAuthor('Author' . $name);
-        $author->user_id = $user->id;// TODO should be done through UnitOfWork
+        $author->User = $user;
         $this->rm->save($author)->commit();
         return $author;
     }

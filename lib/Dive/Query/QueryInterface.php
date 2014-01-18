@@ -6,6 +6,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Dive\Query;
+
+use Dive\RecordManager;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 10.02.13
@@ -14,12 +19,6 @@
  * Should we rather provide a reset(Part*)() method and not provide add(Part*) methods?
  * Should we split this interface? And how?
  */
-
-namespace Dive\Query;
-
-
-use Dive\RecordManager;
-
 interface QueryInterface
 {
 

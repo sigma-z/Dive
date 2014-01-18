@@ -12,6 +12,8 @@ namespace Dive\Test\Connection;
 use Dive\Connection\Connection;
 use Dive\Connection\ConnectionEvent;
 use Dive\Log\SqlLogger;
+use Dive\RecordManager;
+use Dive\Relation\Relation;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -478,4 +480,37 @@ class ConnectionTest extends TestCase
         $tableNameTestCases = $this->provideTableNameTestCases(false); // TODO: workaround until all cleanups working...
         return self::combineTestCases($databases, $tableNameTestCases);
     }
+
+
+    /**
+     * @param RecordManager $rm
+     * @param Relation      $relation
+     * @return string
+     */
+    protected function insertRequiredLocalRelationGraph(RecordManager $rm, Relation $relation)
+    {
+        $randomGenerator    = $this->getRandomRecordDataGenerator();
+        $conn               = $rm->getConnection();
+
+        $refTableName       = $relation->getReferencedTable();
+        $refTable           = $rm->getTable($refTableName);
+        $refFields          = $refTable->getFields();
+
+        $data = array();
+        // recursion: walk through all local relations that are required and handle this by calling this method with
+        //  next relation
+        $owningRelations = $refTable->getReferencedRelationsIndexedByOwningField();
+        foreach ($owningRelations as $owningField => $owningRelation) {
+            // check if field is required (default of matchType) and insert required related data
+            if ($randomGenerator->matchType($refFields[$owningField])) {
+                $data[$owningField] = $this->insertRequiredLocalRelationGraph($rm, $owningRelation);
+            }
+        }
+
+        // insert a record and return its id
+        $data = $randomGenerator->getRandomRecordData($refFields, $data);
+        $conn->insert($refTable, $data);
+        return $conn->getLastInsertId($refTableName);
+    }
+
 }

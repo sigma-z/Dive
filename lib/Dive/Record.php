@@ -23,7 +23,6 @@ use Dive\Relation\Relation;
  *
  * TODO!!!!!
  * Should we keep the identifier values in a special array??
- * What should happen with the record references, if identifier values had been changed??
  * When should a record be marked as modified??
  *   case: new record - no data changed                         -> not modified
  *   case: new record - data changed                            -> if data differs from defaults, than it's modified    // different from implementation
@@ -31,12 +30,6 @@ use Dive\Relation\Relation;
  *   case: record exists, not/partial loaded - data changed     -> if loaded data, has been changed, than it's modified
  *   case: record exists, fully loaded - no data changed        -> not modified
  *   case: record exists, fully loaded - data changed           -> modified
- * Should we handle partial loaded records? How to mark fields as not loaded, yet?
- * UnitOfWork for performing saves and deletes?
- *   Idea:
- *     - RecordManager should hold a UnitOfWork, which handles changes provided by the object graph.
- *     - UnitOfWork should calculate by iterating through the object graphs, if records has to been inserted,
- *       updated, and deleted.
  */
 class Record
 {

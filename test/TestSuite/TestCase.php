@@ -634,7 +634,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     public static function provideTableNameTestCases($testFullSchema = true)
     {
         $schema = self::getSchema();
-        $tableNames = $testFullSchema ? $schema->getTableNames() : array('author'); // TODO: workaround until all cleanups working...
+        // TODO: workaround until all cleanups working...
+        $tableNames = $testFullSchema ? $schema->getTableNames() : array('author');
         $tableNameTestCases = array();
         foreach ($tableNames as $tableName) {
             $tableNameTestCases[] = array($tableName);
@@ -693,40 +694,6 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
-    // TODO: helper - move to record-data-generator?
-    /**
-     * @param RecordManager $rm
-     * @param Relation      $relation
-     * @return string
-     */
-    protected function insertRequiredLocalRelationGraph(RecordManager $rm, Relation $relation)
-    {
-        $randomGenerator    = $this->getRandomRecordDataGenerator();
-        $conn               = $rm->getConnection();
-
-        $refTableName       = $relation->getReferencedTable();
-        $refTable           = $rm->getTable($refTableName);
-        $refFields          = $refTable->getFields();
-
-        $data = array();
-        // recursion: walk through all local relations that are required and handle this by calling this method with
-        //  next relation
-        $owningRelations = $refTable->getReferencedRelationsIndexedByOwningField();
-        foreach ($owningRelations as $owningField => $owningRelation) {
-            // check if field is required (default of matchType) and insert required related data
-            if ($randomGenerator->matchType($refFields[$owningField])) {
-                $data[$owningField] = $this->insertRequiredLocalRelationGraph($rm, $owningRelation);
-            }
-        }
-
-        // insert a record and return its id
-        $data = $randomGenerator->getRandomRecordData($refFields, $data);
-        $conn->insert($refTable, $data);
-        return $conn->getLastInsertId($refTableName);
-    }
-
-
-    // TODO: helper function - right place?
     /**
      * iterates through both test-case arrays and combines with each-to-each
      * @example input:  [['a'],['b']]    and    [['1'],['2']]

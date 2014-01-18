@@ -408,22 +408,9 @@ class UnitOfWork
             }
         }
 
-        $this->updateReferencesForChangedRecords();
         $this->resetScheduled();
     }
 
-
-    private function updateReferencesForChangedRecords()
-    {
-        foreach ($this->recordIdentityMap as $record) {
-            if ($this->isRecordScheduledForSave($record)) {
-                // TODO $this->updateRecordReferences($record);
-            }
-            else {
-                $this->deleteRecordReferences($record);
-            }
-        }
-    }
 
 
     public function resetScheduled()
@@ -470,13 +457,16 @@ class UnitOfWork
         $identifier = $record->getIdentifierFieldIndexed();
         $conn = $table->getConnection();
         $conn->delete($table, $identifier);
+
+        // remove record from it's references
+        $this->removeRecordReferences($record);
     }
 
 
     /**
      * @param Record $record
      */
-    private function deleteRecordReferences(Record $record)
+    private function removeRecordReferences(Record $record)
     {
         $table = $record->getTable();
         $table->getRepository()->remove($record);

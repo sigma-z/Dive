@@ -119,7 +119,7 @@ class FieldValuesGenerator
      *
      * @param array $fieldDefinition
      * @throws UnsupportedTypeException
-     * @return string|int|float|null
+     * @return string|int|float
      */
     public function getRandomFieldValue(array $fieldDefinition)
     {
@@ -127,11 +127,14 @@ class FieldValuesGenerator
         switch ($type) {
             case 'datetime':
                 return date('Y-m-d h:s:i');
+
             // TODO: create float/int really from supported interval with supported decimals
             case 'float':
-                return (float) mt_rand(0, 100000000);
+                return (float)mt_rand(0, 100000000);
+
             case 'integer':
                 return mt_rand(0, 100000000);
+
             case 'string':
                 // used chars - TODO: check more e.g. chars, that have to be quoted by inserting
                 $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321';

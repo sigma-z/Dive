@@ -206,8 +206,6 @@ class RecordDeleteTest extends TestCase
 
 
     /**
-     * TODO assert that owningFieldOidMapping is not referenced, too
-     *
      * @param Record $record
      * @param string $relationName
      * @param string $message
@@ -229,13 +227,12 @@ class RecordDeleteTest extends TestCase
         $relatedCollectionMessage = $message
             . " expected not to be in a related collection (relation '$relationName')";
 
-        //var_dump($relationName, $references);
-
+        $oid = $record->getOid();
         if ($isReferencedSide) {
             $isOneToMany = $relation->isOneToMany();
             foreach ($references as $owningIds) {
                 if ($isOneToMany) {
-                    $this->assertFalse(in_array($internalId, $owningIds), $referencedMessage);
+                    $this->assertNotContains($internalId, $owningIds, $referencedMessage);
                 }
                 else {
                     $this->assertNotEquals($internalId, $owningIds, $referencedMessage);
@@ -247,10 +244,12 @@ class RecordDeleteTest extends TestCase
                     $this->assertFalse($relatedCollection->has($internalId), $relatedCollectionMessage);
                 }
             }
+
+            $this->assertFalse($referenceMap->hasFieldMapping($oid));
         }
         else {
             $this->assertArrayNotHasKey($internalId, $references, $referencedMessage);
-            $this->assertArrayNotHasKey($record->getOid(), $relatedCollections, $relatedCollectionMessage);
+            $this->assertArrayNotHasKey($oid, $relatedCollections, $relatedCollectionMessage);
         }
     }
 

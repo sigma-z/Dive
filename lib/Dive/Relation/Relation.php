@@ -655,10 +655,10 @@ class Relation
     public function updateRecordIdentifier(Record $referencedRecord, $relationName, $newIdentifier, $oldIdentifier)
     {
         if ($this->isOwningSide($relationName)) {
-            $this->map->updateReferencedIdentifier($referencedRecord, $newIdentifier, $oldIdentifier);
+            $this->map->updateReferencedIdentifier($newIdentifier, $oldIdentifier);
         }
         else {
-            $this->map->updateOwningIdentifier($referencedRecord, $newIdentifier, $oldIdentifier);
+            $this->map->updateOwningIdentifier($newIdentifier, $oldIdentifier, $referencedRecord);
         }
     }
 

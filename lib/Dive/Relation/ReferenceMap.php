@@ -516,11 +516,10 @@ class ReferenceMap
 
 
     /**
-     * @param Record $referencedRecord
      * @param string $newIdentifier
      * @param string $oldIdentifier
      */
-    public function updateReferencedIdentifier(Record $referencedRecord, $newIdentifier, $oldIdentifier)
+    public function updateReferencedIdentifier($newIdentifier, $oldIdentifier)
     {
         if (array_key_exists($oldIdentifier, $this->references)) {
             $this->references[$newIdentifier] = $this->references[$oldIdentifier];
@@ -530,16 +529,19 @@ class ReferenceMap
 
 
     /**
-     * @param Record $owningRecord
      * @param string $newIdentifier
      * @param string $oldIdentifier
+     * @param Record $owningRecord
      */
-    public function updateOwningIdentifier(Record $owningRecord, $newIdentifier, $oldIdentifier)
+    public function updateOwningIdentifier($newIdentifier, $oldIdentifier, Record $owningRecord)
     {
         $relationName = $this->relation->getReferencedAlias();
         if (!$this->relation->hasReferenceLoadedFor($owningRecord, $relationName)) {
             return;
         }
+
+        // unset mapping, because it is only for records, that does not exists, yet
+        unset($this->owningFieldOidMapping[$owningRecord->getOid()]);
 
         $referencedRecord = $this->relation->getReferenceFor($owningRecord, $relationName);
         if ($referencedRecord) {

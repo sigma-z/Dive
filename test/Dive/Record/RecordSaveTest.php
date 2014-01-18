@@ -60,7 +60,6 @@ class RecordSaveTest extends TestCase
         $rm->save($record);
         $rm->commit();
 
-        // TODO assert that all references are updated
         $this->assertRecordsInserted($recordsToInsert, $recordReferenceMaps);
 
         // assert that no record is scheduled for commit anymore
@@ -174,7 +173,7 @@ class RecordSaveTest extends TestCase
      * @param  array  $visited
      * @return Record[]
      */
-    private static function getRecordsToInsertFromGraph(Record $record, array &$visited = array())
+    private static function getRecordsToInsertFromGraph(Record $record, array $visited = array())
     {
         $oid = $record->getOid();
         if (in_array($oid, $visited)) {
@@ -319,13 +318,6 @@ class RecordSaveTest extends TestCase
             return;
         }
 
-//        $rm = $record->getRecordManager();
-//        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $record->getOid();
-//        $newIdentifier = $record->getInternalId();
-//        echo "\n" . 'old: ' . $oldIdentifier . "\n";
-//        echo 'new: ' . $newIdentifier . "\n";
-//        var_dump($referenceMap);
-
         foreach ($referenceMap as $relationName => $refObjectIds) {
             $relation = $record->getTableRelation($relationName);
             if ($relation->isOwningSide($relationName)) {
@@ -339,15 +331,15 @@ class RecordSaveTest extends TestCase
 
 
     /**
-     * @param Record        $record
+     * @param Record        $referencedRecord
      * @param Relation      $relation
      * @param string|array  $refObjectIds
      */
-    private function assertOwningRelatedReferences(Record $record, Relation $relation, $refObjectIds)
+    private function assertOwningRelatedReferences(Record $referencedRecord, Relation $relation, $refObjectIds)
     {
-        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $record->getOid();
-        $newIdentifier = $record->getInternalId();
-        $rm = $record->getRecordManager();
+        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $referencedRecord->getOid();
+        $newIdentifier = $referencedRecord->getInternalId();
+        $rm = $referencedRecord->getRecordManager();
 
         /** @var ReferenceMap $referenceMap */
         $referenceMap = self::readAttribute($relation, 'map');
@@ -372,7 +364,7 @@ class RecordSaveTest extends TestCase
 
         // assert record collection
         if ($relation->isOneToMany()) {
-            $recordCollection = $referenceMap->getRelatedCollection($record->getOid());
+            $recordCollection = $referenceMap->getRelatedCollection($referencedRecord->getOid());
             $this->assertNotNull($recordCollection);
             $this->assertCount(count($refObjectIds), $recordCollection);
         }
@@ -380,15 +372,15 @@ class RecordSaveTest extends TestCase
 
 
     /**
-     * @param Record    $record
+     * @param Record    $owningRecord
      * @param Relation  $relation
      * @param string    $refObjectId
      */
-    private function assertReferencedRelatedReferences(Record $record, Relation $relation, $refObjectId)
+    private function assertReferencedRelatedReferences(Record $owningRecord, Relation $relation, $refObjectId)
     {
-        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $record->getOid();
-        $newIdentifier = $record->getInternalId();
-        $rm = $record->getRecordManager();
+        $oldIdentifier = Record::NEW_RECORD_ID_MARK . $owningRecord->getOid();
+        $newIdentifier = $owningRecord->getInternalId();
+        $rm = $owningRecord->getRecordManager();
 
         /** @var ReferenceMap $referenceMap */
         $referenceMap = self::readAttribute($relation, 'map');
@@ -399,6 +391,7 @@ class RecordSaveTest extends TestCase
         $referencedRecord = $refTableRepository->getByOid($refObjectId);
         $refId = $referencedRecord->getInternalId();
 
+        // assert that owning record id is mapped for referenced record
         $this->assertArrayHasKey($refId, $referenceMapping);
         if ($relation->isOneToMany()) {
             $this->assertContains($newIdentifier, $referenceMapping[$refId]);
@@ -406,6 +399,9 @@ class RecordSaveTest extends TestCase
         else {
             $this->assertEquals($newIdentifier, $referenceMapping[$refId]);
         }
+
+        // assert FALSE, because object field mapping is only for records, that are not stored in database, yet
+        $this->assertFalse($referenceMap->hasFieldMapping($owningRecord->getOid()));
 
         // assert record collection
         if ($relation->isOneToMany()) {

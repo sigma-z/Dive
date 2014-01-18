@@ -110,19 +110,11 @@ class RecordCollectionTest extends TestCase
 
     public function testGetIdentifiers()
     {
-        $this->userColl->snapshotIdentifiers();
-        $actualSnapshotIdentifiers = $this->userColl->getSnapshotIdentifiers();
-        $this->assertInternalType('array', $actualSnapshotIdentifiers);
-        $this->assertEmpty($actualSnapshotIdentifiers);
-
-        $user = $this->addRecordToCollection();
-        $expected = array($user->getInternalId());
+        $userOne = $this->addRecordToCollection();
+        $userTwo = $this->addRecordToCollection();
+        $expected = array($userOne->getInternalId(), $userTwo->getInternalId());
         $actual = $this->userColl->getIdentifiers();
         $this->assertEquals($expected, $actual);
-
-        $this->userColl->snapshotIdentifiers();
-
-        $this->assertCount(1, $this->userColl->getSnapshotIdentifiers());
     }
 
 

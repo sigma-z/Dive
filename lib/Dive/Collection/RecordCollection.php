@@ -23,12 +23,6 @@ class RecordCollection extends Collection
 {
 
     /**
-     * TODO find a better name?
-     * @var array
-     */
-    private $snapshotIdentifiers = array();
-
-    /**
      * @var Table
      */
     protected $table = null;
@@ -165,18 +159,6 @@ class RecordCollection extends Collection
         $record = $this->get($oldIdentifier);
         $this->offsetUnset($oldIdentifier);
         $this->items[$newIdentifier] = $record;
-    }
-
-
-    public function snapshotIdentifiers()
-    {
-        $this->snapshotIdentifiers = $this->keys();
-    }
-
-
-    public function getSnapshotIdentifiers()
-    {
-        return $this->snapshotIdentifiers;
     }
 
 

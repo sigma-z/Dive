@@ -116,7 +116,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $user->Author = null;
 
         $expectedReferences = array($user->getInternalId() => null);
-        $actualReferences = $user->getTable()->getRelation('Author')->getReferences();
+        $actualReferences = self::getRelationReferences($user->getTable()->getRelation('Author'));
         $this->assertEquals($expectedReferences, $actualReferences);
 
         $this->assertNull($user->Author, 'Expected reference $user->Author to be NULL!');
@@ -140,7 +140,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $author->User = null;
 
         $expectedReferences = array($user->getInternalId() => null);
-        $actualReferences = $author->getTable()->getRelation('User')->getReferences();
+        $actualReferences = self::getRelationReferences($author->getTable()->getRelation('User'));
         $this->assertEquals($expectedReferences, $actualReferences);
 
         $this->assertNull($author->User, 'Expected reference $author->User to be NULL!');
@@ -250,7 +250,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $authorOne = $userOne->Author;
         $authorTwo = $userTwo->Author;
 
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $expectedReferences = array(
             $userOneId => $authorOneId,
             $userTwoId => $authorTwoId
@@ -259,7 +259,7 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
 
         $userOne->Author = $userTwo->Author;
 
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $expectedReferences = array(
             $userOneId => $authorTwoId,
             $userTwoId => null

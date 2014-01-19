@@ -664,22 +664,6 @@ class Relation
 
 
     /**
-     * TODO think about removing this method, so that there is no public access to the reference mapping outside from this class
-     * Gets references
-     *
-     * @return array
-     *   keys:   referenced ids,
-     *   values:
-     *      one-to-many: owning ids as array
-     *      one-to-one:  owning id as string
-     */
-    public function getReferences()
-    {
-        return $this->map->getMapping();
-    }
-
-
-    /**
      * Clears references
      */
     public function clearReferences()

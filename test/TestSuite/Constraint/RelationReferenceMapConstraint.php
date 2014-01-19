@@ -10,6 +10,7 @@
 namespace Dive\TestSuite\Constraint;
 
 use Dive\Record;
+use Dive\Relation\ReferenceMap;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -65,7 +66,12 @@ class RelationReferenceMapConstraint extends \PHPUnit_Framework_Constraint
     private function matchByRecordIds($referencedId, $owningId)
     {
         $relation = $this->record->getTableRelation($this->relationName);
-        $references = $relation->getReferences();
+        $reflRelation = new \ReflectionClass($relation);
+        $property = $reflRelation->getProperty('map');
+        $property->setAccessible(true);
+        /** @var ReferenceMap $map */
+        $map = $property->getValue($relation);
+        $references = $map->getMapping();
         if ($owningId === null) {
             $expected = $relation->isOneToMany() ? array() : null;
             if (array_key_exists($referencedId, $references)) {

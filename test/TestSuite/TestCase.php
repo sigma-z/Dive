@@ -6,6 +6,7 @@ use Dive\Connection\Connection;
 use Dive\Connection\ConnectionRowChangeEvent;
 use Dive\Event\EventDispatcher;
 use Dive\Event\Event;
+use Dive\Relation\ReferenceMap;
 use Dive\TestSuite\Record\Record;
 use Dive\Record\Generator\RecordGenerator;
 use Dive\RecordManager;
@@ -388,6 +389,18 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $this->markTestSkipped("Skipping test, because $className could not be created for '$scheme'!");
         }
         return $instance;
+    }
+
+
+    /**
+     * @param  Relation $relation
+     * @return array
+     */
+    protected static function getRelationReferences(Relation $relation)
+    {
+        /** @var ReferenceMap $referenceMap */
+        $referenceMap = self::readAttribute($relation, 'map');
+        return $referenceMap->getMapping();
     }
 
 

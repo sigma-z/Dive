@@ -6,19 +6,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 23.05.13
- */
-
 
 namespace Dive\Test\Relation;
 
 require_once __DIR__ . '/RelationSetReferenceTestCase.php';
+
 use Dive\Collection\RecordCollection;
 use Dive\Record;
-use Dive\TestSuite\TestCase;
 
+/**
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * @created 23.05.13
+ */
 class UnlinkReferenceTest extends RelationSetReferenceTestCase
 {
 
@@ -33,7 +32,7 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         // assert test data setup was correct
         $this->assertEquals($author, $user->Author);
         $expectedReferences = array($user->getInternalId() => $author->getInternalId());
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $this->assertEquals($expectedReferences, $references);
 
         // perform test
@@ -41,7 +40,7 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
 
         // assert unlink of reference
         $this->assertNull($user->Author);
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $expectedReferences = array($user->getInternalId() => null);
         $this->assertEquals($expectedReferences, $references);
     }
@@ -57,7 +56,7 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         // assert test data setup was correct
         $this->assertEquals($user, $author->User);
         $expectedReferences = array($user->getInternalId() => $author->getInternalId());
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $this->assertEquals($expectedReferences, $references);
 
         // perform test
@@ -65,7 +64,7 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
 
         // assert unlink of reference
         $this->assertNull($user->Author);
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $expectedReferences = array($user->getInternalId() => null);
         $this->assertEquals($expectedReferences, $references);
     }
@@ -76,7 +75,6 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         $authorOne = $this->createAuthor('Author One');
         $authorTwo = $this->createAuthor('Author Two');
         $editor = $this->createAuthor('Editor');
-        $relation = $authorOne->getTable()->getRelation('Editor');
 
         $authorOne->Editor = $editor;
         $authorTwo->Editor = $editor;
@@ -120,7 +118,7 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         );
         /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEquals($expectedReferences[$editor->getInternalId()], $editor->Author->getIdentifiers());
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $this->assertEquals($expectedReferences, $references);
 
         // perform test
@@ -129,7 +127,7 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         // assert unlink of reference
         $this->assertNull($authorOne->Editor);
         $this->assertNull($authorTwo->Editor);
-        $references = $relation->getReferences();
+        $references = self::getRelationReferences($relation);
         $expectedReferences = array($editor->getInternalId() => array());
         $this->assertEquals($expectedReferences, $references);
     }

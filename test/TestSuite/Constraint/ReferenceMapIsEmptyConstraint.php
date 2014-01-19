@@ -25,15 +25,14 @@ class ReferenceMapIsEmptyConstraint extends \PHPUnit_Framework_Constraint
      */
     public function matches($relation)
     {
-        if ($relation->getReferences()) {
-            return false;
-        }
-
         $reflRelation = new \ReflectionClass($relation);
         $property = $reflRelation->getProperty('map');
         $property->setAccessible(true);
         /** @var ReferenceMap $map */
         $map = $property->getValue($relation);
+        if ($map->getMapping()) {
+            return false;
+        }
         $relfReferenceMap = new \ReflectionClass($map);
         $property = $relfReferenceMap->getProperty('owningFieldOidMapping');
         $property->setAccessible(true);

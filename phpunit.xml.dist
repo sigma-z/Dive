@@ -11,6 +11,7 @@
     <testsuites>
         <testsuite name="DiveSuite">
             <directory>test/Dive</directory>
+            <exclude>test/Dive/PerformanceTests</exclude>
         </testsuite>
     </testsuites>
 </phpunit>

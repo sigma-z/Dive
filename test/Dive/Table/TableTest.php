@@ -140,6 +140,14 @@ class TableTest extends TestCase
     }
 
 
+    public function testCreateRecord()
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable('user');
+        $this->assertInstanceOf('\Dive\TestSuite\Model\User', $table->createRecord());
+    }
+
+
     /**
      * @param string $database
      * @param string $field

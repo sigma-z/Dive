@@ -34,7 +34,7 @@ class UnitOfWork
 
 
     /** @var RecordManager */
-    private $rm = null;
+    private $recordManager = null;
 
     /**
      * @var string[]
@@ -59,7 +59,7 @@ class UnitOfWork
      */
     public function __construct(RecordManager $rm)
     {
-        $this->rm = $rm;
+        $this->recordManager = $rm;
     }
 
 
@@ -386,6 +386,9 @@ class UnitOfWork
 
     public function commitChanges()
     {
+        $conn = $this->recordManager->getConnection();
+        $conn->beginTransaction();
+
         foreach ($this->recordIdentityMap as $oid => $record) {
             $recordExists = $record->exists();
             if ($this->isRecordScheduledForSave($record)) {
@@ -411,6 +414,7 @@ class UnitOfWork
                 }
             }
         }
+        $conn->commit();
 
         $this->resetScheduled();
     }

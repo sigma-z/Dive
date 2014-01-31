@@ -152,8 +152,7 @@ class Table
     public function createRecord(array $data = array(), $exists = false)
     {
         /** @var Record $record */
-        $record = new $this->recordClass($this, $exists);
-        $record->setData($data);
+        $record = new $this->recordClass($this, $data, $exists);
         $this->repository->add($record);
         return $record;
     }

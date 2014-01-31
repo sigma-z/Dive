@@ -64,12 +64,15 @@ class Record
 
     /**
      * @param Table $table
+     * @param array $data
      * @param bool  $exists
      */
-    public function __construct(Table $table, $exists = false)
+    public function __construct(Table $table, array $data = array(), $exists = false)
     {
         $this->_table = $table;
         $this->_exists = $exists;
+
+        $this->setData($data);
     }
 
 

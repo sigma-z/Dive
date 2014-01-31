@@ -389,12 +389,16 @@ class UnitOfWork
         foreach ($this->recordIdentityMap as $oid => $record) {
             $recordExists = $record->exists();
             if ($this->isRecordScheduledForSave($record)) {
+                $record->preSave();
+
                 if ($recordExists) {
                     $this->doUpdate($record);
                 }
                 else {
                     $this->doInsert($record);
                 }
+
+                $record->postSave();
             }
             else {
                 if ($recordExists) {
@@ -425,6 +429,8 @@ class UnitOfWork
      */
     private function doInsert(Record $record)
     {
+        $record->preInsert();
+
         $identifier = $record->getIdentifierFieldIndexed();
         $table = $record->getTable();
         $data = array();
@@ -445,6 +451,8 @@ class UnitOfWork
 
         // assign record identifier
         $record->assignIdentifier($identifier, $oldIdentifier);
+
+        $record->postInsert();
     }
 
 
@@ -453,6 +461,8 @@ class UnitOfWork
      */
     private function doDelete(Record $record)
     {
+        $record->preDelete();
+
         $table = $record->getTable();
         $identifier = $record->getIdentifierFieldIndexed();
         $conn = $table->getConnection();
@@ -460,6 +470,8 @@ class UnitOfWork
 
         // remove record from it's references
         $this->removeRecordReferences($record);
+
+        $record->postDelete();
     }
 
 
@@ -483,6 +495,8 @@ class UnitOfWork
      */
     private function doUpdate(Record $record)
     {
+        $record->preUpdate();
+
         $table = $record->getTable();
         $identifier = array();
         $modifiedFields = array();
@@ -497,6 +511,8 @@ class UnitOfWork
 
         $conn = $table->getConnection();
         $conn->update($table, $modifiedFields, $identifier);
+
+        $record->postUpdate();
     }
 
 

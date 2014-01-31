@@ -563,7 +563,7 @@ class Record
      * @param  bool  $deep
      * @param  bool  $withMappedFields
      * @param  array $visited
-     * @return array
+     * @return array|bool
      */
     public function toArray($deep = true, $withMappedFields = false, array &$visited = array())
     {
@@ -571,14 +571,9 @@ class Record
         if (in_array($oid, $visited)) {
             return false;
         }
-
         $visited[] = $oid;
-        $data = array();
-        if ($withMappedFields) {
-            $data = $this->_mappedValues;
-        }
-        $data = array_merge($data, $this->_data);
 
+        $data = $withMappedFields ? array_merge($this->_mappedValues, $this->_data) : $this->_data;
         if ($deep) {
             $references = $this->getReferencesAsArray($withMappedFields, $visited);
             $data += $references;
@@ -726,6 +721,46 @@ class Record
                 }
             }
         }
+    }
+
+
+    public function preUpdate()
+    {
+    }
+
+
+    public function postUpdate()
+    {
+    }
+
+
+    public function preSave()
+    {
+    }
+
+
+    public function postSave()
+    {
+    }
+
+
+    public function preInsert()
+    {
+    }
+
+
+    public function postInsert()
+    {
+    }
+
+
+    public function preDelete()
+    {
+    }
+
+
+    public function postDelete()
+    {
     }
 
 }

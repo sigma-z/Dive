@@ -81,6 +81,7 @@ class RecordCollection extends Collection
         $this->throwExceptionIfRecordDoesNotMatchTable($item);
 
         // TODO throw exception record already added??
+        // TODO how to better track, that record is already in the collection?? This way is very expensive, especially for many records!
         if ($this->has($item)) {
             return $this;
         }

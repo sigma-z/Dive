@@ -162,6 +162,14 @@ return array(
                     'type'      => 'datetime'
                 )
             ),
+            'behaviours' => array(
+                array(
+                    'class' => '\Dive\Behaviour\Timestampable',
+                    'args' => array(
+                        'onSave' => array('changed_on')
+                    )
+                )
+            ),
             'recordClass' => '\Dive\TestSuite\Model\Article'
         ),
         'comment' => array(

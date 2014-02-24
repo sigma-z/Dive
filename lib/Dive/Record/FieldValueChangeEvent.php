@@ -9,14 +9,13 @@
 
 namespace Dive\Record;
 
-use Dive\Event\Event;
 use Dive\Record;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 17.12.13
  */
-class FieldValueChangeEvent extends Event
+class FieldValueChangeEvent extends RecordEvent
 {
     /** @var \Dive\Record */
     private $record;
@@ -31,22 +30,19 @@ class FieldValueChangeEvent extends Event
     private $oldValue;
 
 
-
+    /**
+     * @param Record $record
+     * @param string $fieldName
+     * @param mixed  $newValue
+     * @param mixed  $oldValue
+     */
     public function __construct(Record $record, $fieldName, $newValue, $oldValue)
     {
-        $this->record = $record;
+        parent::__construct($record);
+
         $this->fieldName = $fieldName;
         $this->newValue = $newValue;
         $this->oldValue = $oldValue;
-    }
-
-
-    /**
-     * @return Record
-     */
-    public function getRecord()
-    {
-        return $this->record;
     }
 
 

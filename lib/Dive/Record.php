@@ -39,8 +39,16 @@ class Record
     const FROM_ARRAY_EXISTS_KEY = '_exists_';
 
     /** events */
-    const EVENT_PRE_FIELD_VALUE_CHANGE = 'Dive.Record.preFieldValueChange';
+    const EVENT_PRE_FIELD_VALUE_CHANGE  = 'Dive.Record.preFieldValueChange';
     const EVENT_POST_FIELD_VALUE_CHANGE = 'Dive.Record.postFieldValueChange';
+    const EVENT_PRE_SAVE                = 'Dive.Record.preSave';
+    const EVENT_POST_SAVE               = 'Dive.Record.postSave';
+    const EVENT_PRE_INSERT              = 'Dive.Record.preInsert';
+    const EVENT_POST_INSERT             = 'Dive.Record.postInsert';
+    const EVENT_PRE_DELETE              = 'Dive.Record.preDelete';
+    const EVENT_POST_DELETE             = 'Dive.Record.postDelete';
+    const EVENT_PRE_UPDATE              = 'Dive.Record.preUpdate';
+    const EVENT_POST_UPDATE             = 'Dive.Record.postUpdate';
 
 
     /** @var Table */

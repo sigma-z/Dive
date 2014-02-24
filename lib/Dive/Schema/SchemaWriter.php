@@ -22,6 +22,9 @@ class SchemaWriter
     private $schema = null;
 
 
+    /**
+     * @param Schema $schema
+     */
     public function __construct(Schema $schema)
     {
         $this->schema = $schema;

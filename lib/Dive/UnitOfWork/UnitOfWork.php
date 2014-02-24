@@ -433,7 +433,8 @@ class UnitOfWork
      */
     private function doInsert(Record $record)
     {
-        $record->preInsert();
+        $this->invokeRecordEvent(Record::EVENT_PRE_INSERT, $record);
+        $this->invokeRecordEvent(Record::EVENT_PRE_SAVE, $record);
 
         $identifier = $record->getIdentifierFieldIndexed();
         $table = $record->getTable();
@@ -456,7 +457,8 @@ class UnitOfWork
         // assign record identifier
         $record->assignIdentifier($identifier, $oldIdentifier);
 
-        $record->postInsert();
+        $this->invokeRecordEvent(Record::EVENT_POST_SAVE, $record);
+        $this->invokeRecordEvent(Record::EVENT_POST_INSERT, $record);
     }
 
 
@@ -465,7 +467,7 @@ class UnitOfWork
      */
     private function doDelete(Record $record)
     {
-        $record->preDelete();
+        $this->invokeRecordEvent(Record::EVENT_PRE_DELETE, $record);
 
         $table = $record->getTable();
         $identifier = $record->getIdentifierFieldIndexed();
@@ -475,7 +477,7 @@ class UnitOfWork
         // remove record from it's references
         $this->removeRecordReferences($record);
 
-        $record->postDelete();
+        $this->invokeRecordEvent(Record::EVENT_POST_DELETE, $record);
     }
 
 
@@ -499,7 +501,8 @@ class UnitOfWork
      */
     private function doUpdate(Record $record)
     {
-        $record->preUpdate();
+        $this->invokeRecordEvent(Record::EVENT_PRE_UPDATE, $record);
+        $this->invokeRecordEvent(Record::EVENT_PRE_SAVE, $record);
 
         $table = $record->getTable();
         $identifier = array();
@@ -516,7 +519,8 @@ class UnitOfWork
         $conn = $table->getConnection();
         $conn->update($table, $modifiedFields, $identifier);
 
-        $record->postUpdate();
+        $this->invokeRecordEvent(Record::EVENT_POST_SAVE, $record);
+        $this->invokeRecordEvent(Record::EVENT_POST_UPDATE, $record);
     }
 
 
@@ -543,4 +547,21 @@ class UnitOfWork
         }
     }
 
+
+    /**
+     * @param string $eventName
+     * @param Record $record
+     */
+    private function invokeRecordEvent($eventName, Record $record)
+    {
+        $length = 12; // length of Dive.Record.
+        $hookMethod = substr($eventName, $length);
+        call_user_func(array($record, $hookMethod));
+
+        $eventDispatcher = $this->recordManager->getEventDispatcher();
+        if ($eventDispatcher->hasListeners($eventName)) {
+            $recordEvent = new Record\RecordEvent($record);
+            $eventDispatcher->dispatch($eventName, $recordEvent);
+        }
+    }
 }

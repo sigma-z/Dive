@@ -43,6 +43,9 @@ class RecordManager
     /** @var \Dive\Relation\Relation[] */
     private $relations = array();
 
+    /** @var Table\Behaviour\Behaviour[] */
+    private $tableBehaviours = array();
+
     /** @var \Dive\Hydrator\HydratorInterface[] */
     private $hydrators = array();
 
@@ -156,6 +159,7 @@ class RecordManager
         $relations = $this->instantiateRelations($relationsData);
 
         $indexes = $this->schema->getTableIndexes($tableName);
+        $this->initTableBehaviours($tableName);
 
         return new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
     }
@@ -212,6 +216,48 @@ class RecordManager
         }
 
         return $this->relations[$name];
+    }
+
+
+    /**
+     * @param string $tableName
+     */
+    private function initTableBehaviours($tableName)
+    {
+        $behaviours = $this->schema->getTableBehaviours($tableName);
+        foreach ($behaviours as $behaviourDefinition) {
+            $behaviour = $this->getBehaviourInstance($behaviourDefinition);
+            $this->getEventDispatcher()->addSubscriber($behaviour);
+            $eventFields = isset($behaviourDefinition['eventFields']) ? $behaviourDefinition['eventFields'] : array();
+            foreach ($eventFields as $eventName => $fields) {
+                $behaviour->addTableEventFields($tableName, $eventName, $fields);
+            }
+        }
+    }
+
+
+    /**
+     * @param  array $definition
+     * @return Table\Behaviour\Behaviour
+     * @throws Exception
+     */
+    private function getBehaviourInstance(array $definition)
+    {
+        if (!isset($definition['class'])) {
+            throw new Exception("Missing table behaviour class in schema definition!");
+        }
+
+        $sharedInstance = isset($definition['instanceShared']) && $definition['instanceShared'] === true;
+        $className = $definition['class'];
+        if ($sharedInstance && isset($this->tableBehaviours[$className])) {
+            return $this->tableBehaviours[$className];
+        }
+
+        $behaviour = new $className;
+        if ($sharedInstance) {
+            $this->tableBehaviours[$className] = $behaviour;
+        }
+        return $behaviour;
     }
 
 

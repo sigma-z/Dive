@@ -13,28 +13,12 @@ use Dive\Record;
 use Dive\Record\RecordEvent;
 
 /**
- * TODO unit test this class!!!
  * Class Timestampable
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class Timestampable implements BehaviourInterface
+class Timestampable extends Behaviour
 {
-
-    /** @var array */
-    protected $tableEventFields = array();
-
-
-    /**
-     * @param string        $eventName
-     * @param string        $tableName
-     * @param array|string  $fields
-     */
-    public function setTableEventFields($eventName, $tableName, $fields)
-    {
-        $this->tableEventFields[$tableName][$eventName] = (array)$fields;
-    }
-
 
     /**
      * @return array
@@ -55,7 +39,8 @@ class Timestampable implements BehaviourInterface
     public function onSave(RecordEvent $event)
     {
         $record = $event->getRecord();
-        $fields = $this->getTableEventFields($record, Record::EVENT_PRE_SAVE);
+        $tableName = $record->getTable()->getTableName();
+        $fields = $this->getTableEventFields($tableName, Record::EVENT_PRE_SAVE);
         $this->setFieldTimestamps($record, $fields);
     }
 
@@ -66,7 +51,8 @@ class Timestampable implements BehaviourInterface
     public function onInsert(RecordEvent $event)
     {
         $record = $event->getRecord();
-        $fields = $this->getTableEventFields($record, Record::EVENT_PRE_INSERT);
+        $tableName = $record->getTable()->getTableName();
+        $fields = $this->getTableEventFields($tableName, Record::EVENT_PRE_INSERT);
         $this->setFieldTimestamps($record, $fields);
     }
 
@@ -77,7 +63,8 @@ class Timestampable implements BehaviourInterface
     public function onUpdate(RecordEvent $event)
     {
         $record = $event->getRecord();
-        $fields = $this->getTableEventFields($record, Record::EVENT_PRE_UPDATE);
+        $tableName = $record->getTable()->getTableName();
+        $fields = $this->getTableEventFields($tableName, Record::EVENT_PRE_UPDATE);
         $this->setFieldTimestamps($record, $fields);
     }
 
@@ -89,21 +76,6 @@ class Timestampable implements BehaviourInterface
     {
         $datetime = new \DateTime();
         return $datetime->format('Y-m-d H:i:s');
-    }
-
-
-    /**
-     * @param  Record $record
-     * @param  string $eventName
-     * @return array
-     */
-    private function getTableEventFields(Record $record, $eventName)
-    {
-        $tableName = $record->getTable()->getTableName();
-        if (!empty($this->tableEventFields[$tableName][$eventName])) {
-            return $this->tableEventFields[$tableName][$eventName];
-        }
-        return array();
     }
 
 

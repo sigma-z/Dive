@@ -10,6 +10,8 @@ namespace Dive\Test;
 
 use Dive\Hydrator\HydratorInterface;
 use Dive\RecordManager;
+use Dive\Table\Behaviour\Timestampable;
+use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -19,9 +21,7 @@ use Dive\TestSuite\TestCase;
 class RecordManagerTest extends TestCase
 {
 
-    /**
-     * @var RecordManager
-     */
+    /** @var RecordManager */
     private $rm;
 
 
@@ -29,7 +29,6 @@ class RecordManagerTest extends TestCase
     {
         parent::setUp();
 
-        // record manager
         $this->rm = $this->createDefaultRecordManager();
     }
 
@@ -145,5 +144,26 @@ class RecordManagerTest extends TestCase
         $this->rm->getTable('notexistingtablename');
     }
 
+
+    public function testGetTableWithBehaviour()
+    {
+        $tableName = 'article';
+        // initializes article table and instances Timestampable as shared instance
+        $this->rm->getTable($tableName);
+
+        $tableBehaviours = self::readAttribute($this->rm, 'tableBehaviours');
+        $this->assertCount(1, $tableBehaviours);
+        /** @var Timestampable $timestampableBehaviour */
+        $timestampableBehaviour = current($tableBehaviours);
+        $this->assertInstanceOf('\Dive\Table\Behaviour\Timestampable', $timestampableBehaviour);
+        $this->assertEquals(array('created_on'), $timestampableBehaviour->getTableEventFields($tableName, Record::EVENT_PRE_INSERT));
+        $this->assertEquals(array('saved_on'),   $timestampableBehaviour->getTableEventFields($tableName, Record::EVENT_PRE_SAVE));
+        $this->assertEquals(array('changed_on'), $timestampableBehaviour->getTableEventFields($tableName, Record::EVENT_PRE_UPDATE));
+
+        $eventDispatcher = $this->rm->getEventDispatcher();
+        $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_SAVE));
+        $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_UPDATE));
+        $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_INSERT));
+    }
 
 }

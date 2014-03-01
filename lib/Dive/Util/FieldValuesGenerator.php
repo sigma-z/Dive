@@ -27,7 +27,7 @@ class FieldValuesGenerator
     /**
      * check field is autoIncrement
      *
-     * @param $fieldDefinition
+     * @param  array $fieldDefinition
      * @return bool
      */
     public static function fieldIsAutoIncrement($fieldDefinition)
@@ -39,7 +39,7 @@ class FieldValuesGenerator
     /**
      * check field is required
      *
-     * @param $fieldDefinition
+     * @param  array $fieldDefinition
      * @return bool
      */
     public static function fieldIsNullable($fieldDefinition)
@@ -66,8 +66,8 @@ class FieldValuesGenerator
     /**
      * Checks whether given type hits given fieldDefinition.
      *
-     * @param array  $fieldDefinition
-     * @param string $type = self::REQUIRED
+     * @param  array  $fieldDefinition
+     * @param  string $type = self::REQUIRED
      * @return bool
      */
     public function matchType($fieldDefinition, $type = self::REQUIRED)
@@ -91,9 +91,9 @@ class FieldValuesGenerator
     /**
      * This method generates a data-array for insert into table.
      *
-     * @param array  $fields
-     * @param array  $recordData    = array() - default values, that were not overwritten!
-     * @param string $type          = self::REQUIRED - type of generating data, supports type constants of this class
+     * @param  array  $fields
+     * @param  array  $recordData = array() - default values, that were not overwritten!
+     * @param  string $type       = self::REQUIRED - type of generating data, supports type constants of this class
      * @return array
      */
     public function getRandomRecordData(array $fields, array $recordData = array(), $type = self::REQUIRED)
@@ -117,7 +117,7 @@ class FieldValuesGenerator
      * This method generates a random value for a field, which is defined like given $fieldDefinition. If type is not
      *  supported it returns null.
      *
-     * @param array $fieldDefinition
+     * @param  array $fieldDefinition
      * @throws UnsupportedTypeException
      * @return string|int|float
      */

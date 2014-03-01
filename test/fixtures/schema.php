@@ -173,12 +173,12 @@ return array(
             ),
             'behaviours' => array(
                 array(
-                    'class' => '\Dive\Behaviour\Timestampable',
+                    'class' => '\Dive\Table\Behaviour\Timestampable',
                     'instanceShared' => true,
-                    'args' => array(
-                        'onInsert' => array('created_on'),
-                        'onUpdate' => array('changed_on'),
-                        'onSave' => array('saved_on')
+                    'eventFields' => array(
+                        'Dive.Record.preInsert' => 'created_on',
+                        'Dive.Record.preSave' => 'saved_on',
+                        'Dive.Record.preUpdate' => 'changed_on'
                     )
                 )
             ),

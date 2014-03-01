@@ -9,7 +9,11 @@
 
 namespace Dive\Test\Table\Behaviour;
 
+use Dive\Record;
 use Dive\Table\Behaviour\Timestampable;
+use Dive\TestSuite\Model\Article;
+use Dive\TestSuite\Model\Author;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -38,23 +42,71 @@ class TimestampableTest extends TestCase
     }
 
 
-    public function testTimestampOnInsert()
+    /**
+     * @return Article
+     */
+    public function testTimestampFieldsAreNull()
     {
-        $this->markTestIncomplete();
         $rm = self::createDefaultRecordManager();
 
+        $userTable = $rm->getTable('user');
+        /** @var User $user */
+        $user = self::getRecordWithRandomData($userTable);
+
+        $authorTable = $rm->getTable('author');
+        /** @var Author $author */
+        $author = self::getRecordWithRandomData($authorTable);
+
+        $articleTable = $rm->getTable('article');
+        /** @var Article $article */
+        $article = self::getRecordWithRandomData($articleTable);
+
+        $user->Author = $author;
+        $author->Article[] = $article;
+
+        $this->assertNull($article->created_on);
+        $this->assertNull($article->saved_on);
+        $this->assertNull($article->changed_on);
+
+        return $article;
     }
 
 
-    public function testTimestampOnSave()
+    /**
+     * @depends testTimestampFieldsAreNull
+     * @param  Article $article
+     * @return Article
+     */
+    public function testTimestampOnInsert(Article $article)
     {
-        $this->markTestIncomplete();
+        $this->assertFalse($article->exists());
+
+        $rm = $article->getRecordManager();
+        $rm->save($article)->commit();
+
+        $this->assertNotNull($article->created_on);
+        $this->assertNotNull($article->saved_on);
+        $this->assertNull($article->changed_on);
+
+        return $article;
     }
 
 
-    public function testTimestampOnUpdate()
+    /**
+     * @depends testTimestampOnInsert
+     * @param Article $article
+     */
+    public function testTimestampOnUpdate(Article $article)
     {
-        $this->markTestIncomplete();
+        $this->assertTrue($article->exists());
+
+        $article->teaser = 'Teaser changed ...';
+        $rm = $article->getRecordManager();
+        $rm->save($article)->commit();
+
+        $this->assertNotNull($article->created_on);
+        $this->assertNotNull($article->saved_on);
+        $this->assertEquals($article->saved_on, $article->changed_on);
     }
 
 }

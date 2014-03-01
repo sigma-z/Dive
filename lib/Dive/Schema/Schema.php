@@ -497,9 +497,16 @@ class Schema
     }
 
 
-    public function addTableBehaviour($tableName, $behaviour)
+    /**
+     * @param  string $tableName
+     * @return array
+     */
+    public function getTableBehaviours($tableName)
     {
-        // TODO!!
+        if (isset($this->tableSchemes[$tableName]['behaviours'])) {
+            return $this->tableSchemes[$tableName]['behaviours'];
+        }
+        return array();
     }
 
 

@@ -556,7 +556,9 @@ class UnitOfWork
     {
         $length = 12; // length of Dive.Record.
         $hookMethod = substr($eventName, $length);
-        call_user_func(array($record, $hookMethod));
+        if (method_exists($record, $hookMethod)) {
+            call_user_func(array($record, $hookMethod));
+        }
 
         $eventDispatcher = $this->recordManager->getEventDispatcher();
         if ($eventDispatcher->hasListeners($eventName)) {

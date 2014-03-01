@@ -11,7 +11,6 @@ namespace Dive\Table\Behaviour;
 
 use Dive\Record;
 use Dive\Record\RecordEvent;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * TODO unit test this class!!!
@@ -19,7 +18,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class Timestampable implements EventSubscriberInterface
+class Timestampable implements BehaviourInterface
 {
 
     /** @var array */
@@ -89,7 +88,7 @@ class Timestampable implements EventSubscriberInterface
     public function getTimestamp()
     {
         $datetime = new \DateTime();
-        return $datetime->format('yyyy-mm-dd');
+        return $datetime->format('Y-m-d H:i:s');
     }
 
 

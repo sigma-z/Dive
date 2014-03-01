@@ -158,15 +158,27 @@ return array(
                     'type'      => 'string',
                     'length'    => 2000
                 ),
+                'created_on' => array(
+                    'type'      => 'datetime',
+                    'nullable'  => true
+                ),
+                'saved_on' => array(
+                    'type'      => 'datetime',
+                    'nullable'  => true
+                ),
                 'changed_on' => array(
-                    'type'      => 'datetime'
+                    'type'      => 'datetime',
+                    'nullable'  => true
                 )
             ),
             'behaviours' => array(
                 array(
                     'class' => '\Dive\Behaviour\Timestampable',
+                    'instanceShared' => true,
                     'args' => array(
-                        'onSave' => array('changed_on')
+                        'onInsert' => array('created_on'),
+                        'onUpdate' => array('changed_on'),
+                        'onSave' => array('saved_on')
                     )
                 )
             ),

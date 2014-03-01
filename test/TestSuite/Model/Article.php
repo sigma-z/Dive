@@ -22,6 +22,8 @@ use Dive\TestSuite\Record\Record;
  * @property string $title
  * @property string $teaser
  * @property string $text
+ * @property string $created_on
+ * @property string $saved_on
  * @property string $changed_on
  * @property Author $Author
  * @property Comment[]|RecordCollection $Comment

@@ -10,7 +10,6 @@
 namespace Dive\Test;
 
 
-use Dive\Exception;
 use Dive\Generator\Formatter\FormatterInterface;
 use Dive\Generator\Formatter\PhpClassFormatter;
 use Dive\Generator\ModelGenerator;
@@ -268,6 +267,8 @@ class ModelGeneratorTest extends TestCase
                     'title' => 'string',
                     'teaser' => 'string',
                     'text' => 'string',
+                    'created_on' => 'string',
+                    'saved_on' => 'string',
                     'changed_on' => 'string',
                     'Author' => 'Author',
                     'Comment' => 'Comment[]|RecordCollection',

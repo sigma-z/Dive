@@ -298,13 +298,14 @@ class Schema
     /**
      * Adds table
      *
-     * @param   string $name
-     * @param   array  $fields
-     * @param   array  $indexes
-     * @return  $this
-     * @throws  SchemaException
+     * @param  string $name
+     * @param  array  $fields
+     * @param  array  $indexes
+     * @param  array  $behaviours
+     * @throws SchemaException
+     * @return $this
      */
-    public function addTable($name, array $fields, array $indexes = array())
+    public function addTable($name, array $fields, array $indexes = array(), array $behaviours = array())
     {
         if (empty($fields)) {
             throw new SchemaException("Missing fields for table '$name'!");
@@ -319,11 +320,14 @@ class Schema
             }
         }
 
-        $this->tableSchemes[$name] = array();
-        if (!empty($indexes)) {
+        $this->tableSchemes[$name] = array('fields' => $fields);
+
+        if ($indexes) {
             $this->tableSchemes[$name]['indexes'] = $indexes;
         }
-        $this->tableSchemes[$name]['fields'] = $fields;
+        if ($behaviours) {
+            $this->tableSchemes[$name]['behaviours'] = $behaviours;
+        }
 
         return $this;
     }
@@ -338,9 +342,10 @@ class Schema
      */
     public function addTableByDefinition($name, array $definition)
     {
-        $fields = isset($definition['fields']) ? $definition['fields'] : array();
-        $indexes = isset($definition['indexes']) ? $definition['indexes'] : array();
-        $this->addTable($name, $fields, $indexes);
+        $fields     = isset($definition['fields'])      ? $definition['fields']     : array();
+        $indexes    = isset($definition['indexes'])     ? $definition['indexes']    : array();
+        $behaviours = isset($definition['behaviours'])  ? $definition['behaviours'] : array();
+        $this->addTable($name, $fields, $indexes, $behaviours);
         if (isset($definition['recordClass'])) {
             $this->setRecordClass($name, $definition['recordClass']);
         }
@@ -489,6 +494,12 @@ class Schema
             $this->tableSchemes[$tableName]['indexes'][$indexName] = $definition;
         }
         return $this;
+    }
+
+
+    public function addTableBehaviour($tableName, $behaviour)
+    {
+        // TODO!!
     }
 
 

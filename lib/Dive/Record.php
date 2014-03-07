@@ -624,31 +624,64 @@ class Record
         }
 
         if ($relationReferences) {
-            $rm = $this->getRecordManager();
-            foreach ($relationReferences as $relationName => $related) {
-                $relation = $this->_table->getRelation($relationName);
-                $relatedTableName = $relation->getJoinTableName($relationName);
-                $relatedTable = $relation->getJoinTable($rm, $relationName);
-                if ($relation->isOneToMany() && $relation->isOwningSide($relationName)) {
-                    $collection = new RecordCollection($relatedTable, $this, $relation);
-                    foreach ($related as $relatedData) {
-                        $relatedExists = isset($relatedData[self::FROM_ARRAY_EXISTS_KEY])
-                            && $relatedData[self::FROM_ARRAY_EXISTS_KEY] === true;
-                        $relatedRecord = $rm->getRecord($relatedTableName, $relatedData, $relatedExists);
-                        $relatedRecord->fromArray($relatedData, $deep, $mapVirtualFields);
-                        $collection[] = $relatedRecord;
-                    }
-                    $this->set($relationName, $collection);
-                }
-                else {
-                    $relatedExists = isset($related[self::FROM_ARRAY_EXISTS_KEY])
-                        && $related[self::FROM_ARRAY_EXISTS_KEY] === true;
-                    $relatedRecord = $rm->getRecord($relatedTableName, $related, $relatedExists);
-                    $relatedRecord->fromArray($related, $deep, $mapVirtualFields);
-                    $this->set($relationName, $relatedRecord);
-                }
+            $this->setRelatedFromArray($relationReferences, $mapVirtualFields);
+        }
+    }
+
+
+    /**
+     * @param array $relationReferences
+     * @param bool  $mapVirtualFields
+     */
+    private function setRelatedFromArray(array $relationReferences, $mapVirtualFields)
+    {
+        foreach ($relationReferences as $relationName => $related) {
+            $relation = $this->_table->getRelation($relationName);
+            if ($relation->isOneToMany() && $relation->isOwningSide($relationName)) {
+                $this->setRelatedCollectionFromArray($related, $mapVirtualFields, $relationName);
+            }
+            else {
+                $this->setRelatedRecordFromArray($related, $mapVirtualFields, $relationName);
             }
         }
+    }
+
+
+    /**
+     * @param array  $related
+     * @param bool   $mapVirtualFields
+     * @param string $relationName
+     */
+    private function setRelatedCollectionFromArray(array $related, $mapVirtualFields, $relationName)
+    {
+        $relation = $this->getTableRelation($relationName);
+        $rm = $this->getRecordManager();
+        $relatedTableName = $relation->getJoinTableName($relationName);
+        $collection = new RecordCollection($rm->getTable($relatedTableName), $this, $relation);
+        foreach ($related as $data) {
+            $relatedExists = isset($data[self::FROM_ARRAY_EXISTS_KEY]) && $data[self::FROM_ARRAY_EXISTS_KEY] === true;
+            $relatedRecord = $rm->getRecord($relatedTableName, $data, $relatedExists);
+            $relatedRecord->fromArray($data, true, $mapVirtualFields);
+            $collection[] = $relatedRecord;
+        }
+        $this->set($relationName, $collection);
+    }
+
+
+    /**
+     * @param array  $related
+     * @param bool   $mapVirtualFields
+     * @param string $relationName
+     */
+    private function setRelatedRecordFromArray(array $related, $mapVirtualFields, $relationName)
+    {
+        $relation = $this->getTableRelation($relationName);
+        $rm = $this->getRecordManager();
+        $relatedTableName = $relation->getJoinTableName($relationName);
+        $relatedExists = isset($related[self::FROM_ARRAY_EXISTS_KEY]) && $related[self::FROM_ARRAY_EXISTS_KEY] === true;
+        $relatedRecord = $rm->getRecord($relatedTableName, $related, $relatedExists);
+        $relatedRecord->fromArray($related, true, $mapVirtualFields);
+        $this->set($relationName, $relatedRecord);
     }
 
 

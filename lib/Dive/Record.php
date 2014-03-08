@@ -727,19 +727,20 @@ class Record
      */
     private function getReferenceAsArray(Relation $relation, $relationName, $withMappedFields, array &$visited)
     {
-        if ($relation->hasReferenceLoadedFor($this, $relationName)) {
-            /** @var Record|Record[]|RecordCollection $related */
-            $related = $this->get($relationName);
-            if ($relation->isOneToMany() && $relation->isOwningSide($relationName)) {
-                $reference = array();
-                foreach ($related as $relatedRecord) {
-                    $reference[] = $relatedRecord->toArray(true, $withMappedFields, $visited);
-                }
-                return $reference;
-            }
-            return $related->toArray(true, $withMappedFields, $visited);
+        if (!$relation->hasReferenceLoadedFor($this, $relationName)) {
+            return false;
         }
-        return false;
+
+        /** @var Record|Record[]|RecordCollection $related */
+        $related = $this->get($relationName);
+        if ($relation->isOneToMany() && $relation->isOwningSide($relationName)) {
+            $reference = array();
+            foreach ($related as $relatedRecord) {
+                $reference[] = $relatedRecord->toArray(true, $withMappedFields, $visited);
+            }
+            return $reference;
+        }
+        return $related->toArray(true, $withMappedFields, $visited);
     }
 
 

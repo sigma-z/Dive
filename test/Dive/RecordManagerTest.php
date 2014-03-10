@@ -156,9 +156,6 @@ class RecordManagerTest extends TestCase
         /** @var TimestampableBehaviour $timestampableBehaviour */
         $timestampableBehaviour = current($tableBehaviours);
         $this->assertInstanceOf('\Dive\Table\Behaviour\TimestampableBehaviour', $timestampableBehaviour);
-        $this->assertEquals(array('created_on'), $timestampableBehaviour->getTableEventFields($tableName, 'onInsert'));
-        $this->assertEquals(array('saved_on'),   $timestampableBehaviour->getTableEventFields($tableName, 'onSave'));
-        $this->assertEquals(array('changed_on'), $timestampableBehaviour->getTableEventFields($tableName, 'onUpdate'));
 
         $eventDispatcher = $this->rm->getEventDispatcher();
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_SAVE));

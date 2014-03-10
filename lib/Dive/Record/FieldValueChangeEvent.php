@@ -15,16 +15,8 @@ use Dive\Record;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 17.12.13
  */
-class FieldValueChangeEvent extends RecordEvent
+class FieldValueChangeEvent extends RecordPropertyEvent
 {
-    /** @var \Dive\Record */
-    private $record;
-
-    /** @var string */
-    private $fieldName;
-
-    /** @var mixed */
-    private $newValue;
 
     /** @var mixed */
     private $oldValue;
@@ -32,35 +24,14 @@ class FieldValueChangeEvent extends RecordEvent
 
     /**
      * @param Record $record
-     * @param string $fieldName
-     * @param mixed  $newValue
+     * @param string $property
+     * @param mixed  $value
      * @param mixed  $oldValue
      */
-    public function __construct(Record $record, $fieldName, $newValue, $oldValue)
+    public function __construct(Record $record, $property, $value, $oldValue)
     {
-        parent::__construct($record);
-
-        $this->fieldName = $fieldName;
-        $this->newValue = $newValue;
+        parent::__construct($record, $property, $value);
         $this->oldValue = $oldValue;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getFieldName()
-    {
-        return $this->fieldName;
-    }
-
-
-    /**
-     * @return mixed
-     */
-    public function getNewValue()
-    {
-        return $this->newValue;
     }
 
 

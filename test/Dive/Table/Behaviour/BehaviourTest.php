@@ -30,20 +30,26 @@ class BehaviourTest extends \PHPUnit_Framework_TestCase
 
         /** @var Behaviour $behaviour */
         $behaviour = $this->getMockForAbstractClass('\Dive\Table\Behaviour\Behaviour');
-        $behaviour->addTableEventFields('test_table', 'onSave', array('a', 'b'));
-        $behaviour->addTableEventFields('test_table', 'onInsert', 'c');
+        $behaviourConfig = array(
+            'onSave' => array('a', 'b'),
+            'onInsert' => 'c'
+        );
+        $behaviour->setTableConfig('test_table', $behaviourConfig);
+
         $this->behaviour = $behaviour;
     }
 
 
     public function testAddTableEventFields()
     {
-        $this->behaviour->addTableEventFields('test_table', 'onUpdate', 'abc');
-        $actual = self::readAttribute($this->behaviour, 'tableEventFields');
+        $behaviourConfig = $this->behaviour->getTableConfig('test_table');
+        $behaviourConfig['onUpdate'] = 'abc';
+        $this->behaviour->setTableConfigValue('test_table', 'onUpdate', 'abc');
+        $actual = self::readAttribute($this->behaviour, 'tableConfigs');
         $expected = array('test_table' => array(
             'onSave' => array('a', 'b'),
-            'onInsert' => array('c'),
-            'onUpdate' => array('abc')
+            'onInsert' => 'c',
+            'onUpdate' => 'abc'
         ));
         $this->assertEquals($expected, $actual);
     }
@@ -51,26 +57,26 @@ class BehaviourTest extends \PHPUnit_Framework_TestCase
 
     public function testGetTableEventFields()
     {
-        $this->assertEquals(array('a', 'b'), $this->behaviour->getTableEventFields('test_table', 'onSave'));
-        $this->assertEquals(array('c'),      $this->behaviour->getTableEventFields('test_table', 'onInsert'));
+        $this->assertEquals(array('a', 'b'), $this->behaviour->getTableConfigValue('test_table', 'onSave'));
+        $this->assertEquals('c',             $this->behaviour->getTableConfigValue('test_table', 'onInsert'));
     }
 
 
-    public function testClearTableEventFieldsByEventName()
+    public function testUnsetTableConfigValue()
     {
-        $this->behaviour->clearTableEventFields('test_table', 'onSave');
+        $this->behaviour->unsetTableConfigValue('test_table', 'onSave');
 
-        $this->assertEmpty($this->behaviour->getTableEventFields('test_table', 'onSave'));
-        $this->assertEquals(array('c'), $this->behaviour->getTableEventFields('test_table', 'onInsert'));
+        $this->assertNull($this->behaviour->getTableConfigValue('test_table', 'onSave'));
+        $this->assertEquals('c', $this->behaviour->getTableConfigValue('test_table', 'onInsert'));
     }
 
 
     public function testClearTableEvents()
     {
-        $this->behaviour->clearTableEventFields('test_table');
+        $this->behaviour->setTableConfig('test_table', array());
 
-        $this->assertEmpty($this->behaviour->getTableEventFields('test_table', 'onSave'));
-        $this->assertEmpty($this->behaviour->getTableEventFields('test_table', 'onInsert'));
+        $this->assertNull($this->behaviour->getTableConfigValue('test_table', 'onSave'));
+        $this->assertNull($this->behaviour->getTableConfigValue('test_table', 'onInsert'));
     }
 
 }

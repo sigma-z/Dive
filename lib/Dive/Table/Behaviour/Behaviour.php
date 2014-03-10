@@ -21,49 +21,59 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 abstract class Behaviour implements EventSubscriberInterface
 {
 
-    /** @var array */
-    protected $tableEventFields = array();
+    /** @var array[] */
+    protected $tableConfigs = array();
 
 
     /**
-     * @param string        $tableName
-     * @param string        $eventName
-     * @param array|string  $fields
+     * @param string $tableName
+     * @param array  $config
      */
-    public function addTableEventFields($tableName, $eventName, $fields)
+    public function setTableConfig($tableName, array $config)
     {
-        $this->tableEventFields[$tableName][$eventName] = (array)$fields;
+        $this->tableConfigs[$tableName] = $config;
     }
 
 
     /**
      * @param  string $tableName
-     * @param  string $eventName
      * @return array
      */
-    public function getTableEventFields($tableName, $eventName)
+    public function getTableConfig($tableName)
     {
-        if (!empty($this->tableEventFields[$tableName][$eventName])) {
-            return $this->tableEventFields[$tableName][$eventName];
-        }
-        return array();
+        return isset($this->tableConfigs[$tableName]) ? $this->tableConfigs[$tableName] : null;
     }
 
 
     /**
-     * Removes table field events
-     *
-     * @param string $tableName
-     * @param string $eventName
+     * @param  string $tableName
+     * @param  string $configName
+     * @param  mixed  $value
      */
-    public function clearTableEventFields($tableName, $eventName = null)
+    public function setTableConfigValue($tableName, $configName, $value)
     {
-        if ($eventName) {
-            unset($this->tableEventFields[$tableName][$eventName]);
-        }
-        else {
-            unset($this->tableEventFields[$tableName]);
-        }
+        $this->tableConfigs[$tableName][$configName] = $value;
+    }
+
+
+    /**
+     * @param  string $tableName
+     * @param  string $configName
+     */
+    public function unsetTableConfigValue($tableName, $configName)
+    {
+        unset($this->tableConfigs[$tableName][$configName]);
+    }
+
+
+    /**
+     * @param  string $tableName
+     * @param  string $configName
+     * @return mixed
+     */
+    public function getTableConfigValue($tableName, $configName)
+    {
+        return isset($this->tableConfigs[$tableName][$configName]) ? $this->tableConfigs[$tableName][$configName] : null;
     }
 
 

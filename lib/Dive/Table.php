@@ -658,14 +658,13 @@ class Table
 
     /**
      * checks if given name is defined as field or relation on this table and throws an exception if it does not
+     *
      * @param $name
-     * @throws TableException
+     * @return \Dive\Table\TableException
      */
-    public function throwExceptionIfFieldOrRelationNotExists($name)
+    public function getFieldOrRelationNotExistsException($name)
     {
-        if (!$this->hasField($name) && !$this->hasRelation($name)) {
-            throw new TableException("'$name' is neither a field nor a relation on table '$this->tableName'!");
-        }
+        return new TableException("'$name' is neither a field nor a relation on table '$this->tableName'!");
     }
 
 

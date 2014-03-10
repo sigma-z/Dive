@@ -23,6 +23,8 @@ use Dive\UnitOfWork\UnitOfWork;
 class RecordManager
 {
 
+    const ORM_VERSION = '1.0-alpha';
+
     const FETCH_RECORD_COLLECTION = 'record-collection';
     const FETCH_RECORD = 'record';
     const FETCH_ARRAY = 'array';
@@ -228,9 +230,8 @@ class RecordManager
         foreach ($behaviours as $behaviourDefinition) {
             $behaviour = $this->getBehaviourInstance($behaviourDefinition);
             $this->getEventDispatcher()->addSubscriber($behaviour);
-            $eventFields = isset($behaviourDefinition['eventFields']) ? $behaviourDefinition['eventFields'] : array();
-            foreach ($eventFields as $eventName => $fields) {
-                $behaviour->addTableEventFields($tableName, $eventName, $fields);
+            if (!empty($behaviourDefinition['config'])) {
+                $behaviour->setTableConfig($tableName, $behaviourDefinition['config']);
             }
         }
     }

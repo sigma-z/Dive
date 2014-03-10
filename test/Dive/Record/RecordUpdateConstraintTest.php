@@ -283,7 +283,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
         $fieldValueChangeListener = function (FieldValueChangeEvent $event) {
             /** @var Record $record */
             $record = $event->getRecord();
-            $record->markFieldAsModified($event->getFieldName());
+            $record->markFieldAsModified($event->getProperty());
         };
         // clean event dispatcher with no listeners
         $rm->getConnection()->setEventDispatcher(new EventDispatcher());

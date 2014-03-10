@@ -35,13 +35,25 @@ class TimestampableBehaviour extends Behaviour
 
     /**
      * @param RecordEvent $event
+     * @param string      $eventName
      */
-    public function onSave(RecordEvent $event)
+    private function process(RecordEvent $event, $eventName)
     {
         $record = $event->getRecord();
         $tableName = $record->getTable()->getTableName();
-        $fields = $this->getTableEventFields($tableName, 'onSave');
-        $this->setFieldTimestamps($record, $fields);
+        $fields = $this->getTableEventFields($tableName, $eventName);
+        if ($fields) {
+            $this->setFieldTimestamps($record, $fields);
+        }
+    }
+
+
+    /**
+     * @param RecordEvent $event
+     */
+    public function onSave(RecordEvent $event)
+    {
+        $this->process($event, __FUNCTION__);
     }
 
 
@@ -50,10 +62,7 @@ class TimestampableBehaviour extends Behaviour
      */
     public function onInsert(RecordEvent $event)
     {
-        $record = $event->getRecord();
-        $tableName = $record->getTable()->getTableName();
-        $fields = $this->getTableEventFields($tableName, 'onInsert');
-        $this->setFieldTimestamps($record, $fields);
+        $this->process($event, __FUNCTION__);
     }
 
 
@@ -62,10 +71,7 @@ class TimestampableBehaviour extends Behaviour
      */
     public function onUpdate(RecordEvent $event)
     {
-        $record = $event->getRecord();
-        $tableName = $record->getTable()->getTableName();
-        $fields = $this->getTableEventFields($tableName, 'onUpdate');
-        $this->setFieldTimestamps($record, $fields);
+        $this->process($event, __FUNCTION__);
     }
 
 
@@ -76,6 +82,21 @@ class TimestampableBehaviour extends Behaviour
     {
         $datetime = new \DateTime();
         return $datetime->format('Y-m-d H:i:s');
+    }
+
+
+    /**
+     * @param  string $tableName
+     * @param  string $eventName
+     * @return array
+     */
+    private function getTableEventFields($tableName, $eventName)
+    {
+        $config = $this->getTableConfig($tableName);
+        if (!empty($config[$eventName])) {
+            return (array)$config[$eventName];
+        }
+        return array();
     }
 
 

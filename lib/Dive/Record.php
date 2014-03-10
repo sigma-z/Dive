@@ -12,6 +12,7 @@ namespace Dive;
 use Dive\Collection\RecordCollection;
 use Dive\Record\FieldValueChangeEvent;
 use Dive\Record\RecordException;
+use Dive\Record\RecordPropertyEvent;
 use Dive\Relation\Relation;
 
 /**
@@ -39,16 +40,18 @@ class Record
     const FROM_ARRAY_EXISTS_KEY = '_exists_';
 
     /** events */
-    const EVENT_PRE_FIELD_VALUE_CHANGE  = 'Dive.Record.preFieldValueChange';
+    const EVENT_PRE_FIELD_VALUE_CHANGE = 'Dive.Record.preFieldValueChange';
     const EVENT_POST_FIELD_VALUE_CHANGE = 'Dive.Record.postFieldValueChange';
-    const EVENT_PRE_SAVE                = 'Dive.Record.preSave';
-    const EVENT_POST_SAVE               = 'Dive.Record.postSave';
-    const EVENT_PRE_INSERT              = 'Dive.Record.preInsert';
-    const EVENT_POST_INSERT             = 'Dive.Record.postInsert';
-    const EVENT_PRE_DELETE              = 'Dive.Record.preDelete';
-    const EVENT_POST_DELETE             = 'Dive.Record.postDelete';
-    const EVENT_PRE_UPDATE              = 'Dive.Record.preUpdate';
-    const EVENT_POST_UPDATE             = 'Dive.Record.postUpdate';
+    const EVENT_NON_EXISTING_PROPERTY_SET = 'Dive.Record.nonExistingPropertySet';
+    const EVENT_NON_EXISTING_PROPERTY_GET = 'Dive.Record.nonExistingPropertyGet';
+    const EVENT_PRE_SAVE = 'Dive.Record.preSave';
+    const EVENT_POST_SAVE = 'Dive.Record.postSave';
+    const EVENT_PRE_INSERT = 'Dive.Record.preInsert';
+    const EVENT_POST_INSERT = 'Dive.Record.postInsert';
+    const EVENT_PRE_DELETE = 'Dive.Record.preDelete';
+    const EVENT_POST_DELETE = 'Dive.Record.postDelete';
+    const EVENT_PRE_UPDATE = 'Dive.Record.preUpdate';
+    const EVENT_POST_UPDATE = 'Dive.Record.postUpdate';
 
 
     /** @var Table */
@@ -304,12 +307,11 @@ class Record
 
     /**
      * @param  string $name
+     * @throws Table\TableException
      * @return \Dive\Collection\RecordCollection|Record|null|mixed|string
      */
     public function get($name)
     {
-        $this->_table->throwExceptionIfFieldOrRelationNotExists($name);
-
         if ($this->_table->hasField($name)) {
             if (array_key_exists($name, $this->_data)) {
                 return $this->_data[$name];
@@ -321,7 +323,13 @@ class Record
             return $this->_table->getReferenceFor($this, $name);
         }
 
-        return null;
+        $recordPropertyEvent = new RecordPropertyEvent($this, $name);
+        $this->getEventDispatcher()->dispatch(self::EVENT_NON_EXISTING_PROPERTY_GET, $recordPropertyEvent);
+        if ($recordPropertyEvent->isPropagationStopped()) {
+            return $recordPropertyEvent->getValue();
+        }
+
+        throw $this->_table->getFieldOrRelationNotExistsException($name);
     }
 
 
@@ -336,20 +344,28 @@ class Record
 
 
     /**
-     * @param string                                                     $name
-     * @param \Dive\Collection\RecordCollection|Record|null|mixed|string $value
+     * @param  string                                                     $name
+     * @param  \Dive\Collection\RecordCollection|Record|null|mixed|string $value
+     * @throws Table\TableException
      */
     public function set($name, $value)
     {
-        $this->_table->throwExceptionIfFieldOrRelationNotExists($name);
-
         if ($this->_table->hasField($name)) {
             $this->setFieldValue($name, $value);
+            return;
         }
-
         if ($this->_table->hasRelation($name)) {
             $this->_table->setReferenceFor($this, $name, $value);
+            return;
         }
+
+        $recordPropertyEvent = new RecordPropertyEvent($this, $name, $value);
+        $this->getEventDispatcher()->dispatch(self::EVENT_NON_EXISTING_PROPERTY_SET, $recordPropertyEvent);
+        if ($recordPropertyEvent->isPropagationStopped()) {
+            return;
+        }
+
+        throw $this->_table->getFieldOrRelationNotExistsException($name);
     }
 
 

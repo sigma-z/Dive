@@ -53,18 +53,15 @@ return array(
                     )
                 )
             ),
-//            'behaviours' => array(
-//                array(
-//                    'class' => 'DelegateBehaviour',
-//                    'args' => '',
-//                    'instanceShared' => true,
-//                    'eventFields' => array(
-//                        'Dive.Record.preInsert' => 'created_on',
-//                        'Dive.Record.preSave' => 'saved_on',
-//                        'Dive.Record.preUpdate' => 'changed_on'
-//                    )
-//                )
-//            ),
+            'behaviours' => array(
+                array(
+                    'class' => 'DelegateBehaviour',
+                    'config' => array(
+                        'delegateToRelation' => 'User'
+                    ),
+                    'instanceShared' => true
+                )
+            ),
             'recordClass' => '\Dive\TestSuite\Model\Author'
         ),
         'user' => array(
@@ -187,7 +184,7 @@ return array(
                 array(
                     'class' => 'TimestampableBehaviour',
                     'instanceShared' => true,
-                    'eventFields' => array(
+                    'config' => array(
                         'onInsert' => 'created_on',
                         'onSave' => 'saved_on',
                         'onUpdate' => 'changed_on'

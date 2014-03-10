@@ -102,11 +102,11 @@ class RecordManagerTest extends TestCase
     {
         return array(
             array(RecordManager::FETCH_RECORD_COLLECTION, '\Dive\Hydrator\RecordCollectionHydrator'),
-            array(RecordManager::FETCH_RECORD, '\Dive\Hydrator\RecordHydrator'),
-            array(RecordManager::FETCH_ARRAY, '\Dive\Hydrator\ArrayHydrator'),
-            array(RecordManager::FETCH_SINGLE_ARRAY, '\Dive\Hydrator\SingleArrayHydrator'),
-            array(RecordManager::FETCH_SCALARS, '\Dive\Hydrator\ScalarHydrator'),
-            array(RecordManager::FETCH_SINGLE_SCALAR, '\Dive\Hydrator\SingleScalarHydrator'),
+            array(RecordManager::FETCH_RECORD,            '\Dive\Hydrator\RecordHydrator'),
+            array(RecordManager::FETCH_ARRAY,             '\Dive\Hydrator\ArrayHydrator'),
+            array(RecordManager::FETCH_SINGLE_ARRAY,      '\Dive\Hydrator\SingleArrayHydrator'),
+            array(RecordManager::FETCH_SCALARS,           '\Dive\Hydrator\ScalarHydrator'),
+            array(RecordManager::FETCH_SINGLE_SCALAR,     '\Dive\Hydrator\SingleScalarHydrator'),
         );
     }
 
@@ -156,9 +156,9 @@ class RecordManagerTest extends TestCase
         /** @var TimestampableBehaviour $timestampableBehaviour */
         $timestampableBehaviour = current($tableBehaviours);
         $this->assertInstanceOf('\Dive\Table\Behaviour\TimestampableBehaviour', $timestampableBehaviour);
-        $this->assertEquals(array('created_on'), $timestampableBehaviour->getTableEventFields($tableName, Record::EVENT_PRE_INSERT));
-        $this->assertEquals(array('saved_on'),   $timestampableBehaviour->getTableEventFields($tableName, Record::EVENT_PRE_SAVE));
-        $this->assertEquals(array('changed_on'), $timestampableBehaviour->getTableEventFields($tableName, Record::EVENT_PRE_UPDATE));
+        $this->assertEquals(array('created_on'), $timestampableBehaviour->getTableEventFields($tableName, 'onInsert'));
+        $this->assertEquals(array('saved_on'),   $timestampableBehaviour->getTableEventFields($tableName, 'onSave'));
+        $this->assertEquals(array('changed_on'), $timestampableBehaviour->getTableEventFields($tableName, 'onUpdate'));
 
         $eventDispatcher = $this->rm->getEventDispatcher();
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_SAVE));

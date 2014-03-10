@@ -40,7 +40,7 @@ class TimestampableBehaviour extends Behaviour
     {
         $record = $event->getRecord();
         $tableName = $record->getTable()->getTableName();
-        $fields = $this->getTableEventFields($tableName, Record::EVENT_PRE_SAVE);
+        $fields = $this->getTableEventFields($tableName, 'onSave');
         $this->setFieldTimestamps($record, $fields);
     }
 
@@ -52,7 +52,7 @@ class TimestampableBehaviour extends Behaviour
     {
         $record = $event->getRecord();
         $tableName = $record->getTable()->getTableName();
-        $fields = $this->getTableEventFields($tableName, Record::EVENT_PRE_INSERT);
+        $fields = $this->getTableEventFields($tableName, 'onInsert');
         $this->setFieldTimestamps($record, $fields);
     }
 
@@ -64,7 +64,7 @@ class TimestampableBehaviour extends Behaviour
     {
         $record = $event->getRecord();
         $tableName = $record->getTable()->getTableName();
-        $fields = $this->getTableEventFields($tableName, Record::EVENT_PRE_UPDATE);
+        $fields = $this->getTableEventFields($tableName, 'onUpdate');
         $this->setFieldTimestamps($record, $fields);
     }
 

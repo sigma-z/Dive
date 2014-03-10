@@ -188,9 +188,9 @@ return array(
                     'class' => 'TimestampableBehaviour',
                     'instanceShared' => true,
                     'eventFields' => array(
-                        'Dive.Record.preInsert' => 'created_on',
-                        'Dive.Record.preSave' => 'saved_on',
-                        'Dive.Record.preUpdate' => 'changed_on'
+                        'onInsert' => 'created_on',
+                        'onSave' => 'saved_on',
+                        'onUpdate' => 'changed_on'
                     )
                 )
             ),

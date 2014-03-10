@@ -48,19 +48,7 @@ class ModelGeneratorTest extends TestCase
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
-
-        $directorySeparator = DIRECTORY_SEPARATOR;
-        $testBaseDirectory = __DIR__ . $directorySeparator . '..' . $directorySeparator;
-        self::$targetDirectory = realpath($testBaseDirectory . 'TestSuite' . $directorySeparator . self::MODEL_PATH);
-
-        $formatter = new PhpClassFormatter();
-        $fileName = $formatter->getTargetFileName('\Dive\TestSuite\Model\Donation', self::$targetDirectory);
-        if (is_file($fileName . '.bak')) {
-            self::fail($fileName . '.bak exists');
-        }
-        if (is_file($fileName)) {
-            rename($fileName, $fileName . '.bak');
-        }
+        self::$targetDirectory = __DIR__ . '/../TestSuite/' . self::MODEL_PATH;
     }
 
 
@@ -346,10 +334,11 @@ class ModelGeneratorTest extends TestCase
     public static function tearDownAfterClass()
     {
         parent::tearDownAfterClass();
+
         $formatter = new PhpClassFormatter();
         $fileName = $formatter->getTargetFileName('\Dive\TestSuite\Model\Donation', self::$targetDirectory);
-        if (is_file($fileName . '.bak')) {
-            rename($fileName . '.bak', $fileName);
+        if (is_file($fileName)) {
+            unlink($fileName);
         }
     }
 

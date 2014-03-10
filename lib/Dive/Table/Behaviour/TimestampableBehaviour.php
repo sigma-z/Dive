@@ -13,11 +13,11 @@ use Dive\Record;
 use Dive\Record\RecordEvent;
 
 /**
- * Class Timestampable
+ * Class TimestampableBehaviour
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class Timestampable extends Behaviour
+class TimestampableBehaviour extends Behaviour
 {
 
     /**

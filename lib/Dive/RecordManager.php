@@ -249,6 +249,9 @@ class RecordManager
 
         $sharedInstance = isset($definition['instanceShared']) && $definition['instanceShared'] === true;
         $className = $definition['class'];
+        if ($className[0] != '\\') {
+            $className = "\\Dive\\Table\\Behaviour\\$className";
+        }
         if ($sharedInstance && isset($this->tableBehaviours[$className])) {
             return $this->tableBehaviours[$className];
         }

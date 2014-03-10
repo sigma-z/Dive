@@ -10,28 +10,28 @@
 namespace Dive\Test\Table\Behaviour;
 
 use Dive\Record;
-use Dive\Table\Behaviour\Timestampable;
+use Dive\Table\Behaviour\TimestampableBehaviour;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 
 /**
- * Class TimestampableTest
+ * Class TimestampableBehaviourTest
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class TimestampableTest extends TestCase
+class TimestampableBehaviourTest extends TestCase
 {
 
-    /** @var Timestampable */
+    /** @var TimestampableBehaviour */
     private $timestampable;
 
 
     protected function setUp()
     {
         parent::setUp();
-        $this->timestampable = new Timestampable();
+        $this->timestampable = new TimestampableBehaviour();
     }
 
 

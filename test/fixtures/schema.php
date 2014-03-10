@@ -36,7 +36,7 @@ return array(
                     'unsigned'  => true,
                     'nullable'  => true,
                     'foreign'   => 'author.id'
-                ),
+                )
             ),
             'indexes' => array(
                 'UNIQUE' => array(
@@ -53,6 +53,18 @@ return array(
                     )
                 )
             ),
+//            'behaviours' => array(
+//                array(
+//                    'class' => 'DelegateBehaviour',
+//                    'args' => '',
+//                    'instanceShared' => true,
+//                    'eventFields' => array(
+//                        'Dive.Record.preInsert' => 'created_on',
+//                        'Dive.Record.preSave' => 'saved_on',
+//                        'Dive.Record.preUpdate' => 'changed_on'
+//                    )
+//                )
+//            ),
             'recordClass' => '\Dive\TestSuite\Model\Author'
         ),
         'user' => array(
@@ -173,7 +185,7 @@ return array(
             ),
             'behaviours' => array(
                 array(
-                    'class' => '\Dive\Table\Behaviour\Timestampable',
+                    'class' => 'TimestampableBehaviour',
                     'instanceShared' => true,
                     'eventFields' => array(
                         'Dive.Record.preInsert' => 'created_on',

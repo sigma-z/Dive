@@ -140,7 +140,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $definition = self::getSchemaDefinition();
         }
         $schema = new Schema($definition);
-        $schema->setRecordBaseClass('\Dive\TestSuite\Record');
+        $schema->setRecordBaseClass('\Dive\TestSuite\Record\Record');
         return $schema;
     }
 
@@ -159,7 +159,6 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     ) {
         $callOnEvent = function(Event $event) use (&$expectedEventsCalled) {
             // TODO Event::getName() will be deprecated in symfony/event-dispatcher 3
-            /** @noinspection PhpDeprecationInspection */
             $expectedEventsCalled[] = $event->getName();
         };
         foreach ($events as $eventName) {

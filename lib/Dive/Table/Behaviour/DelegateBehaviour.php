@@ -79,6 +79,11 @@ class DelegateBehaviour extends Behaviour
     }
 
 
+    /**
+     * @param  Table  $table
+     * @param  string $relationName
+     * @return bool|\Dive\Relation\Relation
+     */
     private function getOneToOneRelation(Table $table, $relationName)
     {
         if ($relationName && $table->hasRelation($relationName)) {

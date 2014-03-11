@@ -30,10 +30,10 @@ class DelegateBehaviourTest extends TestCase
      *         ------------
      *         | employee |
      *         ------------
-     *          |        |
-     * ------------    -----------
-     * | engineer |    | manager |
-     * ------------    -----------
+     *               |
+     *          -----------
+     *          | manager |
+     *          -----------
      *
      * @var array
      */
@@ -85,32 +85,6 @@ class DelegateBehaviourTest extends TestCase
                     )
                 )
             ),
-            'engineer' => array(
-                'fields' => array(
-                    'id'    => array(
-                        'primary'   => true,
-                        'type'      => 'integer',
-                        'length'    => 10,
-                        'unsigned'  => true,
-                        'autoIncrement' => true,
-                        'foreign'   => 'employee.id'
-                    ),
-                    'special_qualification' => array(
-                        'type'      => 'string',
-                        'length'    => 255,
-                        'nullable'  => true
-                    )
-                ),
-                'behaviours' => array(
-                    array(
-                        'class' => 'DelegateBehaviour',
-                        'config' => array(
-                            'delegateToRelation' => 'Employee'
-                        ),
-                        'instanceShared' => true
-                    )
-                )
-            ),
             'manager' => array(
                 'fields' => array(
                     'id'    => array(
@@ -146,17 +120,6 @@ class DelegateBehaviourTest extends TestCase
                 'refAlias' => 'Person',
                 'refField' => 'id',
                 'refTable' => 'person',
-                'type' => '1-1',
-                'onUpdate' => 'CASCADE',
-                'onDelete' => 'CASCADE'
-            ),
-            'engineer.id' => array(
-                'owningAlias' => 'Engineer',
-                'owningField' => 'id',
-                'owningTable' => 'engineer',
-                'refAlias' => 'Employee',
-                'refField' => 'id',
-                'refTable' => 'employee',
                 'type' => '1-1',
                 'onUpdate' => 'CASCADE',
                 'onDelete' => 'CASCADE'
@@ -214,10 +177,12 @@ class DelegateBehaviourTest extends TestCase
         $manager->firstname = 'Otto';
         $manager->lastname = 'Normal';
         $manager->salary = '165000';
+        $manager->position = 'CEO';
 
         $this->assertEquals('Otto', $manager->Employee->Person->firstname);
         $this->assertEquals('Normal', $manager->Employee->Person->lastname);
         $this->assertEquals('165000', $manager->Employee->salary);
+        $this->assertEquals('CEO', $manager->position);
     }
 
 

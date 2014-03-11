@@ -19,7 +19,7 @@ Concepts behind
 Requires
 ---
  * PHP 5.3 or greater (UnitTests need 5.3.2)
- * Symfony's EventDispatcher (https://github.com/symfony/EventDispatcher)
+ * [Symfony's EventDispatcher]: https://github.com/symfony/EventDispatcher
 
 [On GitHub]: https://github.com/sigma-z/Dive
 [Documentation (coming soon)]: http://www.sigma-scripts.de/Dive/docs
@@ -32,6 +32,9 @@ Features
  * Event handling
  * Query building
  * Query result hydration
+ * Behaviours
+   * Timestampable
+   * Delegate (for implementing [Class Table Inheritance]: http://martinfowler.com/eaaCatalog/classTableInheritance.html)
 
 Development milestones
 ---
@@ -49,20 +52,23 @@ Development milestones
  * fetch as scalars
 
 ### Event/Listener handling
- * connections (done)
+ * connections
  * for queries
  * for records (save/update/insert/delete/validation)
 
-### ErrorHandling
+### Database Error Handling
  * for connections
  * for statement executions
 
-### Milestone intelligent Relation/Reference management using repositories as registers
- * repositories that hold already loading records
- * relations knows which records belong to each other
+### Milestone intelligent relation management
+ * repositories hold their loaded records
+ * relations knows which records belong to each other (for both sides)
 
 ### Milestone UnitOfWork for saving / deleting object graphs
  * change set processing by object graph and corresponding relations
  * events fired on insert/update/delete/save/validate
  * database type validation
  * abstraction of foreign key constraints by Dive
+
+### Documentation
+

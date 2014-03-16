@@ -44,10 +44,6 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      */
     protected static $datasetRegistryTestClass = null;
     /**
-     * @var FieldValuesGenerator
-     */
-    protected $randomRecordDataGenerator = null;
-    /**
      * @var Connection[]
      */
     private static $connectionPoolTestClass = array();
@@ -212,19 +208,6 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
         }
         return false;
-    }
-
-
-    /**
-     * TODO could we use getRecordWithRandomData() instead?
-     * @return FieldValuesGenerator
-     */
-    public function getRandomRecordDataGenerator()
-    {
-        if (null === $this->randomRecordDataGenerator) {
-            $this->randomRecordDataGenerator = new FieldValuesGenerator();
-        }
-        return $this->randomRecordDataGenerator;
     }
 
 

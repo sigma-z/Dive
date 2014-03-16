@@ -15,6 +15,7 @@ use Dive\Log\SqlLogger;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\TestSuite\TestCase;
+use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -346,7 +347,7 @@ class ConnectionTest extends TestCase
     public function testInsert(array $database, $tableName)
     {
         $rm = self::createRecordManager($database);
-        $randomGenerator = $this->getRandomRecordDataGenerator();
+        $randomGenerator = new FieldValuesGenerator();
         $insertTypes = $randomGenerator->getTypes();
         $conn = $rm->getConnection();
 
@@ -395,7 +396,7 @@ class ConnectionTest extends TestCase
     public function testUpdate(array $database, $tableName)
     {
         $rm = self::createRecordManager($database);
-        $randomGenerator = $this->getRandomRecordDataGenerator();
+        $randomGenerator = new FieldValuesGenerator();
         $conn = $rm->getConnection();
 
         $table = $rm->getTable($tableName);
@@ -445,7 +446,7 @@ class ConnectionTest extends TestCase
     {
         $rm = self::createRecordManager($database);
 
-        $randomGenerator = $this->getRandomRecordDataGenerator();
+        $randomGenerator = new FieldValuesGenerator();
         $conn = $rm->getConnection();
 
         $table = $rm->getTable($tableName);
@@ -489,7 +490,7 @@ class ConnectionTest extends TestCase
      */
     protected function insertRequiredLocalRelationGraph(RecordManager $rm, Relation $relation)
     {
-        $randomGenerator    = $this->getRandomRecordDataGenerator();
+        $randomGenerator    = new FieldValuesGenerator();
         $conn               = $rm->getConnection();
 
         $refTableName       = $relation->getReferencedTable();

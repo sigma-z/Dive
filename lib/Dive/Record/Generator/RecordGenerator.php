@@ -39,7 +39,7 @@ class RecordGenerator
     private $tableRows = array();
 
     /**
-     * @var string[]
+     * @var array[]
      * keys: keys provided by table rows
      * values: record identifier as string
      */
@@ -309,6 +309,25 @@ class RecordGenerator
         }
         $table = $this->rm->getTable($tableName);
         return $this->saveRecord($table, $row, $key);
+    }
+
+
+    /**
+     * removes records by their record alias id map
+     * @link https://github.com/sigma-z/Dive/issues/2
+     */
+    public function removeGeneratedRecords()
+    {
+        foreach ($this->recordAliasIdMap as $tableName => $recordKeys) {
+            $table = $this->rm->getTable($tableName);
+            foreach ($recordKeys as $id) {
+                $record = $table->findByPk($id);
+                $this->rm->delete($record);
+            }
+        }
+        $this->rm->commit();
+
+        $this->clear();
     }
 
 

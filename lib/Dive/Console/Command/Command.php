@@ -10,7 +10,9 @@
 
 namespace Dive\Console\Command;
 
+use Dive\Console\Console;
 use Dive\Console\ConsoleException;
+use Dive\Console\OutputWriterInterface;
 
 /**
  * Class Command
@@ -18,6 +20,9 @@ use Dive\Console\ConsoleException;
  */
 abstract class Command
 {
+
+    /** @var Console */
+    protected $console;
 
     /** @var string */
     protected $description = '';
@@ -33,9 +38,19 @@ abstract class Command
 
 
     /**
+     * @param \Dive\Console\OutputWriterInterface $outputWriter
      * @return bool
      */
-    abstract public function execute();
+    abstract public function execute(OutputWriterInterface $outputWriter);
+
+
+    /**
+     * @param Console $console
+     */
+    public function setConsole(Console $console)
+    {
+        $this->console = $console;
+    }
 
 
     /**
@@ -68,12 +83,54 @@ abstract class Command
     /**
      * @return string
      */
+    public function getUsage()
+    {
+        $scriptName = $_SERVER['SCRIPT_NAME'];
+        $paramList = '';
+        $requiredParams = $this->getRequiredParams();
+        if ($requiredParams) {
+            $paramList = '<' . implode('> <', array_keys($requiredParams)) . '>';
+        }
+        $optionalParams = $this->getOptionalParams();
+        if ($optionalParams) {
+            $paramList .= '[<' . implode('>] [<', array_keys($optionalParams)) . '>]';
+        }
+        $commandName = $this->getName();
+        return
+            $this->getDescription() . "\n\n"
+            . "USAGE: $scriptName $commandName $paramList\n\n"
+            . $this->getParamsDescription($requiredParams, 'Required params:')
+            . $this->getParamsDescription($this->getOptionalParams(), 'Optional params:');
+    }
+
+
+    /**
+     * @param  array  $params
+     * @param  string $label
+     * @return string
+     */
+    private function getParamsDescription(array $params, $label)
+    {
+        if ($params) {
+            $string = "$label\n";
+            foreach ($params as $paramName => $paramDescription) {
+                $string .= "  $paramName: $paramDescription\n";
+            }
+            return $string;
+        }
+        return '';
+    }
+
+
+    /**
+     * @return string
+     */
     public function getName()
     {
         $name = get_class($this);
         $pos = strrpos($name, '\\');
         if ($pos !== false) {
-            $name = substr($name, $pos);
+            $name = substr($name, $pos + 1);
         }
         return $name;
     }

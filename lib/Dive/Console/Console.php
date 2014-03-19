@@ -11,6 +11,8 @@
 namespace Dive\Console;
 
 use Dive\Console\Command\Command;
+use Dive\Console\Command\CommandLoader;
+use Dive\Console\Command\CommandLoaderInterface;
 
 /**
  * Class Console
@@ -25,12 +27,28 @@ class Console
     /** @var array */
     protected $arguments = array();
 
+    /** @var CommandLoaderInterface */
+    protected $commandLoader;
+
+    /** @var OutputWriterInterface */
+    protected $outputWriter;
+
+
+    /**
+     * @param OutputWriterInterface $outputWriter
+     */
+    public function __construct(OutputWriterInterface $outputWriter = null)
+    {
+        $this->outputWriter = $outputWriter;
+    }
+
 
     /**
      * @param Command $command
      */
     public function setCommand(Command $command)
     {
+        $command->setConsole($this);
         $this->command = $command;
     }
 
@@ -90,4 +108,106 @@ class Console
         }
         return $params;
     }
+
+
+    /**
+     * @param CommandLoaderInterface $commandLoader
+     */
+    public function setCommandLoader(CommandLoaderInterface $commandLoader)
+    {
+        $this->commandLoader = $commandLoader;
+    }
+
+
+    /**
+     * @return CommandLoaderInterface
+     */
+    public function getCommandLoader()
+    {
+        if (!$this->commandLoader) {
+            $this->commandLoader = new CommandLoader();
+        }
+        return $this->commandLoader;
+    }
+
+
+    /**
+     * @param OutputWriterInterface $outputWriter
+     */
+    public function setOutputWriter(OutputWriterInterface $outputWriter)
+    {
+        $this->outputWriter = $outputWriter;
+    }
+
+
+    /**
+     * @return OutputWriterInterface
+     */
+    public function getOutputWriter()
+    {
+        if (!$this->outputWriter) {
+            $this->outputWriter = new OutputWriter();
+        }
+        return $this->outputWriter;
+    }
+
+
+    /**
+     * @param array $arguments
+     */
+    public function run(array $arguments)
+    {
+        try {
+            $this->setArguments($arguments);
+            $commandName = 'list';
+            if (isset($this->arguments[0])) {
+                $commandName = array_shift($this->arguments);
+            }
+            $this->processCommand($commandName);
+            $outputWriter = $this->getOutputWriter();
+            $success = $this->command->execute($outputWriter);
+            if ($success === true) {
+                $outputWriter->writeLine(
+                    "Command '$commandName' has run successfully",
+                    OutputWriterInterface::LEVEL_VERBOSE
+                );
+            }
+            else {
+                $outputWriter->writeLine(
+                    "Run of command '$commandName' has FAILED!",
+                    OutputWriterInterface::LEVEL_QUIET
+                );
+            }
+        }
+        catch (\Exception $e) {
+            $this->handleException($e);
+        }
+    }
+
+
+    /**
+     * @param string $commandName
+     */
+    private function processCommand($commandName)
+    {
+        $command = $this->getCommandLoader()->createCommand($commandName);
+        $this->setCommand($command);
+        $this->populateCommandParams();
+    }
+
+
+    /**
+     * @param \Exception $e
+     */
+    private function handleException(\Exception $e)
+    {
+        $outputWriter = $this->getOutputWriter();
+        $outputWriter->writeLine(
+            'EXCEPTION raised: "' . $e->getMessage() . '"',
+            OutputWriterInterface::LEVEL_QUIET,
+            '>>>'
+        );
+        $outputWriter->writeLine($e->getTraceAsString(), OutputWriterInterface::LEVEL_QUIET);
+    }
+
 }

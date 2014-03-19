@@ -175,7 +175,7 @@ class Console
             else {
                 $outputWriter->writeLine(
                     "Run of command '$commandName' has FAILED!",
-                    OutputWriterInterface::LEVEL_QUIET
+                    OutputWriterInterface::LEVEL_LESS_INFO
                 );
             }
         }
@@ -204,10 +204,10 @@ class Console
         $outputWriter = $this->getOutputWriter();
         $outputWriter->writeLine(
             'EXCEPTION raised: "' . $e->getMessage() . '"',
-            OutputWriterInterface::LEVEL_QUIET,
+            OutputWriterInterface::LEVEL_LESS_INFO,
             '>>>'
         );
-        $outputWriter->writeLine($e->getTraceAsString(), OutputWriterInterface::LEVEL_QUIET);
+        $outputWriter->writeLine($e->getTraceAsString(), OutputWriterInterface::LEVEL_LESS_INFO);
     }
 
 }

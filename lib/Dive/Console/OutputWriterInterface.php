@@ -16,10 +16,10 @@ namespace Dive\Console;
 interface OutputWriterInterface
 {
 
-    const LEVEL_QUIET   = 0;
-    const LEVEL_NORMAL  = 1;
-    const LEVEL_VERBOSE = 2;
-    const LEVEL_DEBUG   = 3;
+    const LEVEL_LESS_INFO = 0;
+    const LEVEL_NORMAL    = 1;
+    const LEVEL_VERBOSE   = 2;
+    const LEVEL_DEBUG     = 3;
 
 
     /**

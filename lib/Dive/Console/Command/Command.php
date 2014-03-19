@@ -127,12 +127,24 @@ abstract class Command
      */
     public function getName()
     {
-        $name = get_class($this);
+        return $this->getNameByClassName(get_class($this));
+    }
+
+
+    /**
+     * @param  string $name
+     * @return string
+     */
+    protected function getNameByClassName($name)
+    {
         $pos = strrpos($name, '\\');
         if ($pos !== false) {
             $name = substr($name, $pos + 1);
         }
-        return $name;
+        if (substr($name, -7) == 'Command') {
+            $name = substr($name, 0, -7);
+        }
+        return lcfirst($name);
     }
 
 

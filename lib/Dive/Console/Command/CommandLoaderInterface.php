@@ -31,4 +31,10 @@ interface CommandLoaderInterface
      * @return null|string
      */
     public function getCommandClass($commandName);
+
+
+    /**
+     * @return array
+     */
+    public function getCommandClasses();
 }

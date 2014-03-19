@@ -78,15 +78,60 @@ class CommandLoader implements CommandLoaderInterface
                 if (!is_file($directory . '/' . $file)) {
                     continue;
                 }
+
+                $className = '';
                 if ($file == $commandName . '.php') {
-                    return $namespace . '\\' . $commandName;
+                    $className = $namespace . '\\' . $commandName;
                 }
                 else if ($file == $commandName . 'Command.php') {
-                    return $namespace . '\\' . $commandName . 'Command';
+                    $className = $namespace . '\\' . $commandName . 'Command';
+                }
+
+                if ($className && $this->isCommandClass($className)) {
+                    return $className;
                 }
             }
         }
         return null;
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getCommandClasses()
+    {
+        $classes = array();
+        foreach ($this->directories as $directory => $namespace) {
+            $iterator = new \DirectoryIterator($directory);
+            foreach ($iterator as $entry) {
+                $file = (string)$entry;
+                if (!is_file($directory . '/' . $file)) {
+                    continue;
+                }
+
+                $pathInfo = pathinfo($file);
+                if (isset($pathInfo['filename'])) {
+                    $className = $namespace . '\\' . $pathInfo['filename'];
+                    if ($this->isCommandClass($className)) {
+                        $classes[] = $className;
+                    }
+                }
+            }
+        }
+        sort($classes);
+        return $classes;
+    }
+
+
+    /**
+     * @param  string $className
+     * @return bool
+     */
+    private function isCommandClass($className)
+    {
+        $reflection = new \ReflectionClass($className);
+        return $reflection->isInstantiable() && $reflection->isSubclassOf('\Dive\Console\Command\Command');
     }
 
 }

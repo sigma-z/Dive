@@ -1,4 +1,4 @@
-.idea
+.*
 test/fixtures/test.db
 coverage
 sqlite.bat

@@ -20,18 +20,15 @@ class DataTypeMapper
     const UNIT_CHARS = 'chars';
 
 
+    /** @var array */
     protected static $ormTypes = array(
         'boolean', 'integer', 'double', 'decimal', 'string', 'datetime', 'date', 'time', 'timestamp', 'blob', 'enum'
     );
 
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $dataTypeMapping = array();
 
-    /**
-     * @var array
-     */
+    /** @var array */
     protected $ormTypeMapping = array();
 
 

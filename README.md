@@ -1,6 +1,4 @@
-Build-Status sigma-z\Dive: [![Build Status](https://travis-ci.org/sigma-z/Dive.png)](https://travis-ci.org/sigma-z/Dive)
-
-Dive ORM Framework
+Dive ORM Framework [![Build Status](https://travis-ci.org/sigma-z/Dive.png)](https://travis-ci.org/sigma-z/Dive)
 ===
 
 Just another ORM implementation... Just another? No, not really...
@@ -8,23 +6,24 @@ Okay, it uses active record pattern, as many others too. But there some things a
 
 It components are loose coupled, introduced by interfaces, clean, maintainable and extensible.
 
+See [documentation](http://www.sigma-scripts.de/Dive/docs/index.html) for further details.
+
+
 Concepts behind
 ---
  * PDO connector based
  * Active record pattern
- * Intelligent relation loading similar to the [NotORM]: https://github.com/vrana/notorm (see also: [Doctrine 2 versus NotORM]: http://www.notorm.com/static/doctrine2-notorm/)
+ * Intelligent relation loading similar to the [NotORM](https://github.com/vrana/notorm) (see also: [Doctrine 2 versus NotORM](http://www.notorm.com/static/doctrine2-notorm/))
  * Intelligent relation handling
    Two tables with a relation to each other sharing the same relation instance, so both know of each other, which is different to all ORM implementations I know.
 
-Requires
+Requirements
 ---
  * PHP 5.3 or greater (UnitTests need 5.3.2)
- * [Symfony's EventDispatcher]: https://github.com/symfony/EventDispatcher
+ * [Symfony's EventDispatcher](https://github.com/symfony/EventDispatcher)
 
-[On GitHub]: https://github.com/sigma-z/Dive
-[Documentation (coming soon)]: http://www.sigma-scripts.de/Dive/docs
 
-Features
+Feature list
 ---
  * Schema import
  * Schema export
@@ -34,41 +33,4 @@ Features
  * Query result hydration
  * Behaviours
    * Timestampable
-   * Delegate (for implementing [Class Table Inheritance]: http://martinfowler.com/eaaCatalog/classTableInheritance.html)
-
-Development milestones
----
-### Milestone Query building (in progress)
- * Support of select/from/left join/where/where in/where not in/group by/having/order by/limit/offset/distinct/for update
- * Deletes through select queries (select query used as sub-query)
- * Update queries
-
-### Milestone Query result hydration (in progress)
- * fetch as object (\Dive\Record)
- * fetch as objects (\Dive\Collection\RecordCollection)
- * fetch as single array
- * fetch as array
- * fetch as single scalar
- * fetch as scalars
-
-### Event/Listener handling
- * connections
- * for queries
- * for records (save/update/insert/delete/validation)
-
-### Database Error Handling
- * for connections
- * for statement executions
-
-### Milestone intelligent relation management
- * repositories hold their loaded records
- * relations knows which records belong to each other (for both sides)
-
-### Milestone UnitOfWork for saving / deleting object graphs
- * change set processing by object graph and corresponding relations
- * events fired on insert/update/delete/save/validate
- * database type validation
- * abstraction of foreign key constraints by Dive
-
-### Documentation
-
+   * Delegate (for implementing [Class Table Inheritance](http://martinfowler.com/eaaCatalog/classTableInheritance.html))

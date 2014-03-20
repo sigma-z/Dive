@@ -1,0 +1,39 @@
+body:not(.no-literate) .content-root {
+    box-shadow: 930px 0 #FFFFFF inset, 781px 0 #DFE2E7 inset, 790px 0 5px -10px rgba(0, 0, 0, 0.1) inset;
+}
+
+body:not(.no-literate) .content > p, body:not(.no-literate) .content > ul,
+body:not(.no-literate) .content > ol, body:not(.no-literate) .content > h1,
+body:not(.no-literate) .content > h2, body:not(.no-literate) .content > h3,
+body:not(.no-literate) .content > h4, body:not(.no-literate) .content > h5,
+body:not(.no-literate) .content > h6, body:not(.no-literate) .content > pre,
+body:not(.no-literate) .content > blockquote {
+    width: 700px;
+}
+
+body:not(.no-literate) .content > pre, body:not(.no-literate) .content > blockquote {
+    float: left;
+    clear: left;
+    margin-left: 40px;
+    width: 640px;
+    border: 1px solid #DFE2E7;
+    background-color: #f0f4ff;
+}
+
+.content h1, .content h2 {
+    text-transform: none;
+}
+
+.content h2 {
+    font-size: 1.3em;
+}
+
+.content h1, .content h2, .content .big-heading, body.big-h3 .content h3 {
+    padding-top: 30px;
+}
+
+.content h1:before, .content h2:before, .content .big-heading:before, body.big-h3 .content h3:before {
+    background: #DFE2E7;
+    top: -20px;
+    width: 700px;
+}

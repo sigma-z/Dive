@@ -621,24 +621,6 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @param bool $testFullSchema = true
-     * @return array
-     */
-    public static function provideTableNameTestCases($testFullSchema = true)
-    {
-        $schema = self::getSchema();
-        // TODO: workaround until all cleanups working...
-        $tableNames = $testFullSchema ? $schema->getTableNames() : array('author');
-        $tableNameTestCases = array();
-        foreach ($tableNames as $tableName) {
-            $tableNameTestCases[] = array($tableName);
-        }
-
-        return $tableNameTestCases;
-    }
-
-
-    /**
      * Inserts new data record to database
      *
      * @param  \Dive\Table      $table

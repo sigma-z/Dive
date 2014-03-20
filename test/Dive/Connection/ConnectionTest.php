@@ -478,8 +478,7 @@ class ConnectionTest extends TestCase
     public function provideInsertUpdateDeleteDatabaseAware()
     {
         $databases = $this->provideDatabaseAwareTestCases();
-        $tableNameTestCases = $this->provideTableNameTestCases(false); // TODO: workaround until all cleanups working...
-        return self::combineTestCases($databases, $tableNameTestCases);
+        return self::combineTestCases($databases, array(array('author')));
     }
 
 

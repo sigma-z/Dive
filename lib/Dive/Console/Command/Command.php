@@ -160,11 +160,34 @@ abstract class Command
 
     /**
      * @param  string $name
+     * @param  mixed  $default
      * @return mixed
      */
-    public function getParam($name)
+    public function getParam($name, $default = null)
     {
-        return isset($this->params[$name]) ? $this->params[$name] : null;
+        return isset($this->params[$name]) ? $this->params[$name] : $default;
+    }
+
+
+    /**
+     * @param  string $name
+     * @param  bool   $default
+     * @return bool
+     */
+    public function getBooleanParam($name, $default = null)
+    {
+        $value = $this->getParam($name, $default);
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (is_string($value)) {
+            $value = strtolower($value);
+            return $value === 'on' || $value === 'yes' || $value === '1';
+        }
+        if (is_int($value)) {
+            return $value === 1;
+        }
+        return false;
     }
 
 

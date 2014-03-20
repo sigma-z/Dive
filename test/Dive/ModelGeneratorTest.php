@@ -10,10 +10,8 @@
 namespace Dive\Test;
 
 
-use Dive\Generator\Formatter\FormatterInterface;
 use Dive\Generator\Formatter\PhpClassFormatter;
 use Dive\Generator\ModelGenerator;
-use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -52,13 +50,22 @@ class ModelGeneratorTest extends TestCase
     }
 
 
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+
+        $formatter = new PhpClassFormatter();
+        $fileName = $formatter->getTargetFileName('\Dive\TestSuite\Model\Donation', self::$targetDirectory);
+        if (is_file($fileName)) {
+            unlink($fileName);
+        }
+    }
+
+
     protected function setUp()
     {
         parent::setUp();
-
-        $recordManager = $this->createDefaultRecordManager();
-        $formatter = $this->getFormatter();
-        $this->modelGenerator = $this->createModelGenerator($recordManager, $formatter);
+        $this->modelGenerator = $this->createModelGenerator();
     }
 
 
@@ -303,17 +310,16 @@ class ModelGeneratorTest extends TestCase
 
 
     /**
-     * @param RecordManager      $recordManager
-     * @param FormatterInterface $formatter
      * @return ModelGenerator
      */
-    private function createModelGenerator(RecordManager $recordManager, FormatterInterface $formatter)
+    private function createModelGenerator()
     {
-        $modelGenerator = new ModelGenerator($recordManager, $formatter);
+        $formatter = $this->getFormatter();
+        $modelGenerator = new ModelGenerator($formatter);
         return $modelGenerator->setLicense($this->getLicense(self::EOL))
             ->setEndOfLine(self::EOL)
             ->setAuthor(self::AUTHOR, self::MAIL)
-            ->setDate(self::DATE);
+            ->setCreatedOn(self::DATE);
     }
 
 
@@ -328,18 +334,6 @@ class ModelGeneratorTest extends TestCase
             . $eol
             . "For the full copyright and license information, please view the LICENSE" . $eol
             . "file that was distributed with this source code.";
-    }
-
-
-    public static function tearDownAfterClass()
-    {
-        parent::tearDownAfterClass();
-
-        $formatter = new PhpClassFormatter();
-        $fileName = $formatter->getTargetFileName('\Dive\TestSuite\Model\Donation', self::$targetDirectory);
-        if (is_file($fileName)) {
-            unlink($fileName);
-        }
     }
 
 }

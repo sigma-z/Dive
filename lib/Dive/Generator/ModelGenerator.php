@@ -12,7 +12,6 @@ namespace Dive\Generator;
 
 use Dive\Exception;
 use Dive\Generator\Formatter\FormatterInterface;
-use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\Util\ClassNameExtractor;
@@ -36,29 +35,20 @@ class ModelGenerator
     /**
      * @var string
      */
-    private $date = '';
+    private $createdOn = '';
 
     /**
      * @var string
      */
     private $author = '';
 
-    /**
-     * @var RecordManager|null
-     */
-    private $recordManager = null;
-
 
     /**
-     * @param RecordManager      $recordManager
      * @param FormatterInterface $formatter
      * @return ModelGenerator
      */
-    public function __construct(RecordManager $recordManager, FormatterInterface $formatter)
+    public function __construct(FormatterInterface $formatter)
     {
-        $this->recordManager = $recordManager;
-        $this->date = date('d.m.y');
-
         $this->formatter = $formatter;
     }
 
@@ -96,9 +86,16 @@ class ModelGenerator
      */
     public function getNeededModels(Schema $schema)
     {
+        $baseRecordClass = $schema->getRecordBaseClass();
         $tableNames = $schema->getTableNames();
         foreach ($tableNames as $key => $tableName) {
-            $tableNames[$key] = $schema->getRecordClass($tableName);
+            $recordClass = $schema->getRecordClass($tableName);
+            if ($recordClass == $baseRecordClass) {
+                unset($tableNames[$key]);
+            }
+            else {
+                $tableNames[$key] = $recordClass;
+            }
         }
         return $tableNames;
     }
@@ -171,15 +168,18 @@ class ModelGenerator
             }
         }
 
-
-        return $this->formatter
+        $this->formatter
             ->setUsages($usages)
             ->setExtendedFrom($extendedClass)
             ->setAnnotations()
             ->setAnnotation('author', $this->author)
-            ->setAnnotation('created', $this->date)
-            ->setProperties($fields)
-            ->getFileContent($modelClassName);
+            ->setProperties($fields);
+
+        if ($this->createdOn) {
+            $this->formatter->setAnnotation('created', $this->createdOn);
+        }
+
+        return $this->formatter->getFileContent($modelClassName);
     }
 
 
@@ -262,12 +262,12 @@ class ModelGenerator
 
 
     /**
-     * @param string $date
+     * @param  string $createdOn
      * @return $this
      */
-    public function setDate($date)
+    public function setCreatedOn($createdOn)
     {
-        $this->date = $date;
+        $this->createdOn = $createdOn;
         return $this;
     }
 
@@ -284,7 +284,7 @@ class ModelGenerator
         $targetFile = $this->formatter->getTargetFileName($className, $targetDirectory);
         $write = file_put_contents($targetFile, $classFile, LOCK_EX);
         if ($write === false) {
-            throw new Exception('file could not be written');
+            throw new Exception("File '$targetFile' could not be written!");
         }
     }
 

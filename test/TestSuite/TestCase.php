@@ -135,9 +135,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         if ($definition === null) {
             $definition = self::getSchemaDefinition();
         }
-        $schema = new Schema($definition);
-        $schema->setRecordBaseClass('\Dive\TestSuite\Record\Record');
-        return $schema;
+        return new Schema($definition);
     }
 
 

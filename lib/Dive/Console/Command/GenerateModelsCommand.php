@@ -46,7 +46,7 @@ class GenerateModelsCommand extends Command
         $this->optionalParams = array(
             'overwrite' => 'Flag to overwrite existing model classes, default if OFF',
             'license-file' => 'License text read from file will be the license comment in generated model classes',
-            'eol' => 'possible values: lf crlf cr (default is lf)',
+            'eol' => 'Possible values: lf crlf cr (default is lf)',
             'create-date-format' => 'Default is d.m.y'
         );
     }
@@ -133,8 +133,7 @@ class GenerateModelsCommand extends Command
             if (!is_file($licenseFile)) {
                 throw new ConsoleException("Could not open license file '$licenseFile'!");
             }
-            /** @noinspection PhpIncludeInspection */
-            $license = include $licenseFile;
+            $license = trim(file_get_contents($licenseFile));
             $modelGenerator->setLicense($license);
         }
 

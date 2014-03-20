@@ -386,5 +386,6 @@ return array(
             ),
             'sqlStatement' => 'SELECT a.id, a.firstname, a.lastname, a.email, u.username, u.password FROM author a LEFT JOIN user u ON a.user_id = u.id'
         )
-    )
+    ),
+    'baseRecordClass' => '\\Dive\\TestSuite\\Record\\Record'
 );

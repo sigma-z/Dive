@@ -18,34 +18,32 @@ use Dive\Platform\PlatformInterface;
 class Schema
 {
 
-    /**
-     * @var array
-     */
+    const DEFAULT_BASE_RECORD_CLASS = '\\Dive\\Record';
+    const DEFAULT_BASE_TABLE_CLASS = '\\Dive\\Table';
+
+    /** @var array */
     private $definition = array();
-    /**
-     * @var string
-     */
-    protected $recordBaseClass = '\Dive\Record';
-    /**
-     * @var string
-     */
-    protected $tableBaseClass = '\Dive\Table';
+
+    /** @var string */
+    protected $recordBaseClass = self::DEFAULT_BASE_RECORD_CLASS;
+
+    /** @var string */
+    protected $tableBaseClass = self::DEFAULT_BASE_TABLE_CLASS;
+
+    /** @var array */
+    protected $tableSchemes = array();
+
+    /** @var array */
+    protected $viewSchemes = array();
 
     /**
      * @var array
-     */
-    protected $tableSchemes = array();
-    /**
-     * @var array
-     */
-    protected $viewSchemes = array();
-    /**
-     * @var array keys: table names, values relations as array
+     * keys: table names
+     * values: relations as array
      */
     protected $relations = array();
-    /**
-     * @var bool
-     */
+
+    /** @var bool */
     protected $validationEnabled = false;
 
 
@@ -62,21 +60,32 @@ class Schema
 
     private function initSchema()
     {
+        if (!empty($this->definition['baseRecordClass'])) {
+            $this->setRecordBaseClass($this->definition['baseRecordClass']);
+        }
+
+        if (!empty($this->definition['baseTableClass'])) {
+            $this->setTableBaseClass($this->definition['baseTableClass']);
+        }
+
         if (!empty($this->definition['tables'])) {
             foreach ($this->definition['tables'] as $name => $tableDefinition) {
                 $this->initTable($name, $tableDefinition);
             }
         }
+
         if (!empty($this->definition['views'])) {
             foreach ($this->definition['views'] as $name => $viewDefinition) {
                 $this->initView($name, $viewDefinition);
             }
         }
+
         if (!empty($this->definition['relations'])) {
             foreach ($this->definition['relations'] as $name => $relation) {
                 if (!isset($relation['owningTable'])) {
                     throw new SchemaException("Relation '$name' definition missing key 'owningTable'!");
                 }
+
                 if (!isset($relation['refTable'])) {
                     throw new SchemaException("Relation '$name' definition missing key 'refTable'!");
                 }
@@ -84,6 +93,7 @@ class Schema
                 if (!$this->hasReferencedTableRelation($relation['owningTable'], $name)) {
                     $this->addOwningTableRelation($name, $relation);
                 }
+
                 if (!$this->hasReferencedTableRelation($relation['refTable'], $name)) {
                     $this->addReferencedTableRelation($name, $relation);
                 }
@@ -744,12 +754,15 @@ class Schema
             'views' => array(),
             'relations' => array()
         );
+
         if (!empty($this->tableSchemes)) {
             $schemaDefinition['tables'] = $this->tableSchemes;
         }
+
         if (!empty($this->viewSchemes)) {
             $schemaDefinition['views'] = $this->viewSchemes;
         }
+
         if (!empty($this->relations)) {
             $schemaDefinition['relations'] = array();
             foreach ($this->relations as $data) {
@@ -761,6 +774,15 @@ class Schema
                 }
             }
         }
+
+        if ($this->recordBaseClass != self::DEFAULT_BASE_RECORD_CLASS) {
+            $schemaDefinition['baseRecordClass'] = $this->recordBaseClass;
+        }
+
+        if ($this->tableBaseClass != self::DEFAULT_BASE_TABLE_CLASS) {
+            $schemaDefinition['baseTableClass'] = $this->tableBaseClass;
+        }
+
         return $schemaDefinition;
     }
 

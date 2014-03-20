@@ -27,15 +27,6 @@ class CommandLoader implements CommandLoaderInterface
 
 
     /**
-     * constructor
-     */
-    public function __construct()
-    {
-        $this->directories[__DIR__] = '\\Dive\\Console\\Command';
-    }
-
-
-    /**
      * @param  string $directory
      * @param  string $namespace
      * @throws \Dive\Console\ConsoleException

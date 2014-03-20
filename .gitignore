@@ -1,4 +1,5 @@
 .*
+cli/cli-config.php
 test/fixtures/test.db
 coverage
 sqlite.bat

@@ -43,5 +43,4 @@ class ListCommand extends Command
         return true;
     }
 
-
 }

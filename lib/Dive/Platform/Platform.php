@@ -6,15 +6,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 20.12.12
- */
 
 namespace Dive\Platform;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 20.12.12
+ */
 abstract class Platform implements PlatformInterface
 {
 

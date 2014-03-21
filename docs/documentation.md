@@ -194,8 +194,8 @@ type: ``decimal``
 Attributes applicable:
 
  - (bool)``unsigned`` - Default: FALSE
- - (int)``length`` - value length
- - (int)``precision`` digits after comma
+ - (int)``length`` - value length (precision = length - 1)
+ - (int)``scale`` digits after comma
 
 
 ### String

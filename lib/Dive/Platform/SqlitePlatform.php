@@ -24,6 +24,16 @@ class SqlitePlatform extends Platform
     );
 
 
+    /**
+     * get create table as sql
+     *
+     * @param string $tableName
+     * @param array  $columns
+     * @param array  $indexes
+     * @param array  $foreignKeys
+     * @param array  $tableOptions
+     * @return string
+     */
     public function getCreateTableSql(
         $tableName,
         array $columns,
@@ -114,12 +124,30 @@ class SqlitePlatform extends Platform
     }
 
 
+    /**
+     * gets drop column as sql
+     *
+     * @param  string $tableName
+     * @param  string $columnName
+     * @return string|void
+     * @throws PlatformException
+     */
     public function getDropColumnSql($tableName, $columnName)
     {
         throw new PlatformException('DROP COLUMN is not supported for SQLITE!');
     }
 
 
+    /**
+     * gets change column as sql
+     *
+     * @param  string $tableName
+     * @param  string $columnName
+     * @param  array  $definition
+     * @param  string $newColumnName
+     * @throws PlatformException
+     * @return string
+     */
     public function getChangeColumnSql($tableName, $columnName, array $definition, $newColumnName = null)
     {
         throw new PlatformException('CHANGE COLUMN is not supported for SQLITE!');
@@ -160,12 +188,22 @@ class SqlitePlatform extends Platform
     }
 
 
+    /**
+     * gets disable foreign key checks as sql
+     *
+     * @return string
+     */
     public function getDisableForeignKeyChecksSql()
     {
         return 'PRAGMA foreign_keys = OFF';
     }
 
 
+    /**
+     * gets enable foreign key checks as sql
+     *
+     * @return string
+     */
     public function getEnableForeignKeyChecksSql()
     {
         return 'PRAGMA foreign_keys = ON';
@@ -185,12 +223,29 @@ class SqlitePlatform extends Platform
     }
 
 
+    /**
+     * gets add foreign key as sql
+     *
+     * @param  string $tableName
+     * @param  string $owningField
+     * @param  array  $definition
+     * @throws PlatformException
+     * @return string
+     */
     public function getAddForeignKeySql($tableName, $owningField, array $definition)
     {
         throw new PlatformException('ADD FOREIGN KEY is not supported for SQLITE!');
     }
 
 
+    /**
+     * gets drop foreign key as sql
+     *
+     * @param  string $tableName
+     * @param  string $constraintName
+     * @throws PlatformException
+     * @return string
+     */
     public function getDropForeignKeySql($tableName, $constraintName)
     {
         throw new PlatformException('DROP FOREIGN KEY is not supported for SQLITE!');

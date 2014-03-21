@@ -167,11 +167,11 @@ interface PlatformInterface
     /**
      * gets change column as sql
      *
-     * @param   string  $tableName
-     * @param   string  $columnName
-     * @param   array   $definition
-     * @param   string  $newColumnName
-     * @return  string
+     * @param  string  $tableName
+     * @param  string  $columnName
+     * @param  array   $definition
+     * @param  string  $newColumnName
+     * @return string
      */
     public function getChangeColumnSql($tableName, $columnName, array $definition, $newColumnName = null);
 

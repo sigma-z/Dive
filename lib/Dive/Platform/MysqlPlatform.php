@@ -136,12 +136,21 @@ class MysqlPlatform extends Platform
     }
 
 
+    /**
+     * gets disable foreign key checks as sql
+     *
+     * @return string
+     */
     public function getDisableForeignKeyChecksSql()
     {
         return 'SET FOREIGN_KEY_CHECKS=0';
     }
 
-
+    /**
+     * gets enable foreign key checks as sql
+     *
+     * @return string
+     */
     public function getEnableForeignKeyChecksSql()
     {
         return 'SET FOREIGN_KEY_CHECKS=1';
@@ -176,14 +185,23 @@ class MysqlPlatform extends Platform
     }
 
 
+    /**
+     * get create table as sql
+     *
+     * @param   string  $tableName
+     * @param   array   $columns
+     * @param   array   $indexes
+     * @param   array   $foreignKeys
+     * @param   array   $tableOptions
+     * @return  string
+     */
     public function getCreateTableSql(
         $tableName,
         array $columns,
         array $indexes = array(),
         array $foreignKeys = array(),
         array $tableOptions = array()
-    )
-    {
+    ) {
         $sql = parent::getCreateTableSql($tableName, $columns, $indexes, $foreignKeys, $tableOptions);
         if (!empty($tableOptions['engine'])) {
             $sql .= ' ENGINE ' . $tableOptions['engine'];

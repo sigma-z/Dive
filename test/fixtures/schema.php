@@ -271,7 +271,7 @@ return array(
             ),
             'recordClass' => '\Dive\TestSuite\Model\Article2tag'
         ),
-        /*'data_types' => array(
+        'data_types' => array(
             'fields' => array(
                 'id' => array(
                     'primary'   => true,
@@ -294,14 +294,19 @@ return array(
                     'unsigned' => true,
                     'nullable' => true
                 ),
+                't_integer_unsigned_zerofilled' => array(
+                    'type' => 'integer',
+                    'length' => 5,
+                    'zerofill' => true,
+                    'unsigned' => true,
+                    'nullable' => true
+                ),
                 't_double_signed' => array(
                     'type' => 'double',
-                    'length' => 5,
                     'nullable' => true
                 ),
                 't_double_unsigned' => array(
                     'type' => 'double',
-                    'length' => 5,
                     'unsigned' => true,
                     'nullable' => true
                 ),
@@ -349,7 +354,7 @@ return array(
                     'nullable' => true
                 )
             )
-        )*/
+        )
     ),
     'relations' => array(
         'article.author_id' => array(

@@ -93,19 +93,19 @@ class MysqlPlatform extends Platform
                 $dbType = substr($dbType, 0, -1) . ')';
             }
             // TODO length is not supported for some types
-            else if ($length) {
+            else if ($dbType != 'double' && $length) {
                 if (isset($definition['scale'])) {
                     $precision = $length - 1;
                     $scale = $definition['scale'];
                     $length = "$precision,$scale";
                 }
-
                 $dbType .= '(' . $length . ')';
-                if (isset($definition['unsigned']) && $definition['unsigned'] === true) {
-                    $dbType .= ' UNSIGNED';
-                    if (isset($definition['zerofill']) && $definition['zerofill'] === true) {
-                        $dbType .= ' ZEROFILL';
-                    }
+            }
+
+            if (isset($definition['unsigned']) && $definition['unsigned'] === true) {
+                $dbType .= ' UNSIGNED';
+                if (isset($definition['zerofill']) && $definition['zerofill'] === true) {
+                    $dbType .= ' ZEROFILL';
                 }
             }
         }

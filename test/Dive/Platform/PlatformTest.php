@@ -256,7 +256,20 @@ class PlatformTest extends TestCase
             )
         );
 
-        // unsigned zerofill integer
+        // double
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'double',
+                'length' => 7,
+                'nullable' => true
+            ),
+            'expectedArray' => array(
+                'sqlite' => 'double(7)',
+                'mysql' => 'double',
+            )
+        );
+
+        // unsigned zerofill integer (only supported by mysql)
         $testCases[] = array(
             'definition' => array(
                 'type' => 'integer',

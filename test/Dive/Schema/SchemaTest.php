@@ -17,7 +17,6 @@ namespace Dive\Test\Schema;
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
-use Dive\Schema\SchemaException;
 use Dive\TestSuite\TestCase;
 
 class SchemaTest extends TestCase
@@ -144,7 +143,7 @@ class SchemaTest extends TestCase
 
     public function testGetTableNames()
     {
-        $expected = array('article', 'article2tag', 'author', 'comment', 'donation', 'tag', 'user');
+        $expected = array('article', 'article2tag', 'author', 'comment', 'data_types', 'donation', 'tag', 'user');
         $actual = $this->schema->getTableNames();
         sort($actual);
         $this->assertEquals($expected, $actual);

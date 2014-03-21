@@ -194,7 +194,12 @@ class RecordGenerator
 
         // keep record identifier in the record map
         $id = $record->getIdentifierAsString();
-        $this->recordAliasIdMap[$tableName][$key] = $id;
+        if ($key === null) {
+            $this->recordAliasIdMap[$tableName]["__autoindexed__" . $id] = $id;
+        }
+        else {
+            $this->recordAliasIdMap[$tableName][$key] = $id;
+        }
 
         // save owning relations
         foreach ($owningRelations as $relationData) {

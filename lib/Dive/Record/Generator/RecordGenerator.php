@@ -185,6 +185,8 @@ class RecordGenerator
             }
         }
 
+        $row = $this->saveRequiredRelations($table, $row);
+
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
         $tableName = $table->getTableName();
@@ -309,9 +311,10 @@ class RecordGenerator
         else {
             $row = $additionalData;
         }
-        if (empty($row)) {
-            throw new RecordGeneratorException("Empty row for table '$tableName'!");
-        }
+        // TODO: glady - change 1
+//        if (empty($row)) {
+//            throw new RecordGeneratorException("Empty row for table '$tableName'!");
+//        }
         $table = $this->rm->getTable($tableName);
         return $this->saveRecord($table, $row, $key);
     }
@@ -372,6 +375,26 @@ class RecordGenerator
             return $this->tableMapFields[$tableName];
         }
         throw new RecordGeneratorException("No map field defined for single value mapping on table '$tableName'!");
+    }
+
+
+    /**
+     * @param Table $table
+     * @param array $row
+     * @return array
+     */
+    private function saveRequiredRelations(Table $table, array $row)
+    {
+        foreach ($table->getRelations() as $relationName => $relation) {
+            $owning = $relation->getOwningField();
+            if (!$relation->isReferencedSide($relationName) || isset($row[$relationName]) || isset($row[$owning])) {
+                continue;
+            }
+            if ($table->isFieldRequired($owning)) {
+                $row[$owning] = $this->saveRelatedRecord($relation->getReferencedTable(), null, array());
+            }
+        }
+        return $row;
     }
 
 }

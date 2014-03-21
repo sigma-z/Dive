@@ -270,7 +270,86 @@ return array(
                 )
             ),
             'recordClass' => '\Dive\TestSuite\Model\Article2tag'
-        )
+        ),
+        /*'data_types' => array(
+            'fields' => array(
+                'id' => array(
+                    'primary'   => true,
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true
+                ),
+                't_boolean' => array(
+                    'type' => 'boolean',
+                    'nullable' => true
+                ),
+                't_integer_signed' => array(
+                    'type' => 'integer',
+                    'length' => 5,
+                    'nullable' => true
+                ),
+                't_integer_unsigned' => array(
+                    'type' => 'integer',
+                    'length' => 5,
+                    'unsigned' => true,
+                    'nullable' => true
+                ),
+                't_double_signed' => array(
+                    'type' => 'double',
+                    'length' => 5,
+                    'nullable' => true
+                ),
+                't_double_unsigned' => array(
+                    'type' => 'double',
+                    'length' => 5,
+                    'unsigned' => true,
+                    'nullable' => true
+                ),
+                't_decimal_signed' => array(
+                    'type' => 'decimal',
+                    'length' => 13,
+                    'scale' => 3,
+                    'nullable' => true
+                ),
+                't_decimal_unsigned' => array(
+                    'type' => 'decimal',
+                    'length' => 13,
+                    'scale' => 3,
+                    'unsigned' => true,
+                    'nullable' => true
+                ),
+                't_string' => array(
+                    'type' => 'string',
+                    'length' => 255,
+                    'nullable' => true
+                ),
+                't_datetime' => array(
+                    'type' => 'datetime',
+                    'nullable' => true
+                ),
+                't_date' => array(
+                    'type' => 'date',
+                    'nullable' => true
+                ),
+                't_time' => array(
+                    'type' => 'time',
+                    'nullable' => true
+                ),
+                't_timestamp' => array(
+                    'type' => 'timestamp',
+                    'nullable' => true
+                ),
+                't_blob' => array(
+                    'type' => 'blob',
+                    'nullable' => true
+                ),
+                't_enum' => array(
+                    'type' => 'enum',
+                    'values' => array('123', 'abc', 'zyx', '0987'),
+                    'nullable' => true
+                )
+            )
+        )*/
     ),
     'relations' => array(
         'article.author_id' => array(

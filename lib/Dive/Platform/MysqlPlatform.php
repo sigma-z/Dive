@@ -94,6 +94,12 @@ class MysqlPlatform extends Platform
             }
             // TODO length is not supported for some types
             else if ($length) {
+                if (isset($definition['scale'])) {
+                    $precision = $length - 1;
+                    $scale = $definition['scale'];
+                    $length = "$precision,$scale";
+                }
+
                 $dbType .= '(' . $length . ')';
                 if (isset($definition['unsigned']) && $definition['unsigned'] === true) {
                     $dbType .= ' UNSIGNED';
@@ -216,6 +222,21 @@ class MysqlPlatform extends Platform
             $sql .= ' COMMENT ' . $this->stringQuote . $tableOptions['comment'] . $this->stringQuote;
         }
         return $sql;
+    }
+
+
+    /**
+     * gets column length
+     *
+     * @param   array   $definition
+     * @return  string
+     */
+    protected function getColumnLength(array $definition)
+    {
+        if ($definition['type'] == 'time') {
+            return 8;
+        }
+        return parent::getColumnLength($definition);
     }
 
 }

@@ -373,12 +373,7 @@ abstract class Platform implements PlatformInterface
     protected function getColumnLength(array $definition)
     {
         if (isset($definition['precision'])) {
-            $length = $definition['precision'];
-            if (isset($definition['scale'])) {
-                $length += $definition['scale'] + 1;
-                return $length . '.' . $definition['scale'];
-            }
-            return $length;
+            return $definition['precision'] + 1;
         }
         else if (isset($definition['length'])) {
             return $definition['length'];

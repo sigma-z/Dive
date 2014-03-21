@@ -131,18 +131,30 @@ Tables were defined by the key ``tables``, view by the key ``views``.
 
 Their fields is the sub-key ``fields``.
 
-More about fields and their data types see [next section](#dive-field-types-vs-database-column-types).
+More about fields and their data types see [next section](#field-types-vs-database-column-types).
 
 
-Dive field types vs database column types
------------------------------------------
+Field types vs database column types
+---
 
 If you importing Dive schema from an existing database Dive maps the table/view columns to their best fitting
 Dive field types. By saving a record the field values will be validated by their specific types.
 
-Field types are defined by the key ``type``.
+Read more about how database column types are mapped into dive field types
+in section [Data type mapper](#data-type-mapper).
 
-Attributes the fits for most field types are:
+The field type is defined by the key ``type``. Here an example for a primary key definition.
+
+```php
+'id' => array(
+    'type' => 'integer',
+    'primary' => true,
+    'autoIncrement' => true,
+    'unsigned' => true
+)
+```
+
+Attributes, that are applicable to most field types, are:
 
  - (bool)``primary`` - Default: FALSE
  - (bool)``autoIncrement`` - Default: FALSE (effective if ``primary`` is TRUE)
@@ -152,21 +164,31 @@ Attributes the fits for most field types are:
 
 ### Boolean
 
+type: ``boolean``
+
 ### Integer
+
+type: ``integer``
 
 Attributes applicable:
 
  - (bool)``unsigned`` - Default: FALSE
  - (int)``length`` - value length
+
 
 ### Double
 
+type: ``double``
+
 Attributes applicable:
 
  - (bool)``unsigned`` - Default: FALSE
  - (int)``length`` - value length
 
+
 ### Decimal
+
+type: ``decimal``
 
 Attributes applicable:
 
@@ -177,6 +199,8 @@ Attributes applicable:
 
 ### String
 
+type: ``string``
+
 Attributes applicable:
 
  - (int)``length`` - value length
@@ -184,24 +208,42 @@ Attributes applicable:
 
 ### Datetime
 
+type: ``datetime``
+
 Datetime field type has the format: ``YYYY-MM-DD hh:mm:ss``.
+
 
 ### Date
 
+type: ``date``
+
 Date field type has the format: ``YYYY-MM-DD``.
+
 
 ### Time
 
+type: ``time``
+
 Time field type has the format: ``hh:mm:ss``.
+
 
 ### Timestamp
 
+type: ``timestamp``
+
+Represents a unix timestamp.
+
+
 ### Blob
+
+type: ``blob``
 
 Binary large objects are handled as large strings.
 
 
 ### Enum
+
+type: ``enum``
 
 The enum field can be used with or without support of your database management system.
 That means the Dive enum field can by a varchar in your database and Dive handles the
@@ -331,4 +373,7 @@ Behaviours
 ===
 
 Migration
+===
+
+Data type mapper
 ===

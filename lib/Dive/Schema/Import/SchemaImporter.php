@@ -142,11 +142,9 @@ abstract class SchemaImporter implements SchemaImporterInterface
     public function importDefinition(array $schemaDefinition = null)
     {
         if (empty($schemaDefinition)) {
-            $this->schemaDefinition = array('tables' => array(), 'relations' => array());
+            $schemaDefinition = array('tables' => array(), 'relations' => array());
         }
-        else {
-            $this->schemaDefinition = $schemaDefinition;
-        }
+        $this->schemaDefinition = $schemaDefinition;
 
         $this->importTables();
         $this->importViews();
@@ -267,9 +265,10 @@ abstract class SchemaImporter implements SchemaImporterInterface
             $length = $match[2];
         }
         // parsing type like float(5,2) OR decimal(5,2)
-        else if (preg_match('/^(\w+)\((\d+),\d+\)/', $type, $match)) {
+        else if (preg_match('/^(\w+)\((\d+),(\d+)\)/', $type, $match)) {
             $dataType = $match[1];
             $length = $match[2] + 1;
+            $definition['scale'] = $match[3];
         }
         // parsing type like date OR timestamp
         else if (preg_match('/^\w+/', $type, $match)) {

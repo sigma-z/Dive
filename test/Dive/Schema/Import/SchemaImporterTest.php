@@ -20,11 +20,11 @@ use Dive\TestSuite\TestCase;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 14.01.13
  */
-class ImportTest extends TestCase
+class SchemaImporterTest extends TestCase
 {
 
     /**
-     * @param $database
+     * @param  array $database
      * @return SchemaImporterInterface
      */
     private function getImporter($database)
@@ -52,7 +52,7 @@ class ImportTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetTableNames()
     {
@@ -83,7 +83,7 @@ class ImportTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetTableFields()
     {
@@ -144,7 +144,7 @@ class ImportTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetTableIndexes()
     {
@@ -185,7 +185,7 @@ class ImportTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetTableForeignKeys()
     {
@@ -254,7 +254,7 @@ class ImportTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetViewNames()
     {

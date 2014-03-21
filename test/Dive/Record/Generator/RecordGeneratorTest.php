@@ -129,6 +129,19 @@ class RecordGeneratorTest extends TestCase
                 'author' => 1
             )
         );
+        $testCases[] = array(
+            'tablesRows' => array(
+                'article' => array(
+                    'ArticleOfSomeRandomAuthor' => array()
+                )
+            ),
+            'tablesMappingField' => array(),
+            'expectedTableCount' => array(
+                'user' => 1,
+                'author' => 1,
+                'article' => 1
+            )
+        );
 
         return $testCases;
     }

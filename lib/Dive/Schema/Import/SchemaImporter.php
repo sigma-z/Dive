@@ -20,7 +20,7 @@ use Dive\Util\CamelCase;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 04.11.12
  */
-abstract class Importer implements ImporterInterface
+abstract class SchemaImporter implements SchemaImporterInterface
 {
 
     /**

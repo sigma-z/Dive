@@ -32,7 +32,7 @@ interface DriverInterface
      * gets schema importer
      *
      * @param   Connection $conn
-     * @return  \Dive\Schema\Import\ImporterInterface
+     * @return  \Dive\Schema\Import\SchemaImporterInterface
      */
     public function getSchemaImporter(Connection $conn);
 

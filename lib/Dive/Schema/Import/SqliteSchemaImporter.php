@@ -16,7 +16,7 @@ use Dive\Relation\Relation;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 08.11.12
  */
-class SqliteImporter extends Importer
+class SqliteSchemaImporter extends SchemaImporter
 {
 
     /**

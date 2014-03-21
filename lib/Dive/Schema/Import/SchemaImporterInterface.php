@@ -13,7 +13,7 @@ namespace Dive\Schema\Import;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 04.11.12
  */
-interface ImporterInterface
+interface SchemaImporterInterface
 {
 
     /**

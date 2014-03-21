@@ -11,7 +11,7 @@ namespace Dive\Test\Schema\Import;
 
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
-use Dive\Schema\Import\ImporterInterface;
+use Dive\Schema\Import\SchemaImporterInterface;
 use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
 
@@ -25,7 +25,7 @@ class ImportTest extends TestCase
 
     /**
      * @param $database
-     * @return ImporterInterface
+     * @return SchemaImporterInterface
      */
     private function getImporter($database)
     {

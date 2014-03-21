@@ -9,6 +9,8 @@
 
 namespace Dive\Test\Schema\DataTypeMapper;
 
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 05.11.12
@@ -17,7 +19,7 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @var \Dive\Schema\DataTypeMapper\DataTypeMapper
+     * @var DataTypeMapper
      */
     private $dataTypeMapper;
 
@@ -46,7 +48,7 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
         $lengths = array(
             'integer' => array(
                 'default'   => 'int',
-                'unit'      => \Dive\Schema\DataTypeMapper\DataTypeMapper::UNIT_BYTES,
+                'unit'      => DataTypeMapper::UNIT_BYTES,
                 'types'     => array(
                     'tinyint'   => 1,
                     'smallint'  => 2,
@@ -60,14 +62,14 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
             ),
             'string'    => array(
                 'default'   => 'text',
-                'unit'      => \Dive\Schema\DataTypeMapper\DataTypeMapper::UNIT_CHARS,
+                'unit'      => DataTypeMapper::UNIT_CHARS,
                 'types'     => array(
                     'varchar'   => 255
                 )
             ),
             'date' => 'date'
         );
-        $this->dataTypeMapper = new \Dive\Schema\DataTypeMapper\DataTypeMapper($mapping, $lengths);
+        $this->dataTypeMapper = new DataTypeMapper($mapping, $lengths);
     }
 
 
@@ -129,6 +131,9 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideGetMappedDataType()
     {
         $testCases = array();

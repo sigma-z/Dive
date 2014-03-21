@@ -16,6 +16,12 @@ namespace Dive\Schema\DataTypeMapper;
 class MysqlDataTypeMapper extends DataTypeMapper
 {
 
+    /**
+     * constructor
+     *
+     * @param array $mapping
+     * @param array $ormTypeMapping
+     */
     public function __construct(array $mapping = array(), array $ormTypeMapping = array())
     {
         $defaultMapping = array(

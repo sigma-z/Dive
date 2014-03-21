@@ -12,7 +12,7 @@ namespace Dive\Connection\Driver;
 use Dive\Connection\Connection;
 use Dive\Platform\SqlitePlatform;
 use Dive\Schema\DataTypeMapper\SqliteDataTypeMapper;
-use Dive\Schema\Import\SqliteImporter;
+use Dive\Schema\Import\SqliteSchemaImporter;
 use Dive\Schema\Migration\SqliteMigration;
 
 /**
@@ -32,11 +32,11 @@ class SqliteDriver implements DriverInterface
      * gets schema importer
      *
      * @param   Connection $conn
-     * @return  \Dive\Schema\Import\SqliteImporter
+     * @return  \Dive\Schema\Import\SqliteSchemaImporter
      */
     public function getSchemaImporter(Connection $conn)
     {
-        return new SqliteImporter($conn, $this->getDataTypeMapper());
+        return new SqliteSchemaImporter($conn, $this->getDataTypeMapper());
     }
 
 

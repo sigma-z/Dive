@@ -11,7 +11,7 @@ namespace Dive\Connection\Driver;
 use Dive\Connection\Connection;
 use Dive\Platform\MysqlPlatform;
 use Dive\Schema\DataTypeMapper\MysqlDataTypeMapper;
-use Dive\Schema\Import\MysqlImporter;
+use Dive\Schema\Import\MysqlSchemaImporter;
 use Dive\Schema\Migration\MysqlMigration;
 
 /**
@@ -31,11 +31,11 @@ class MysqlDriver implements DriverInterface
      * gets schema importer
      *
      * @param   Connection $conn
-     * @return  \Dive\Schema\Import\MysqlImporter
+     * @return  \Dive\Schema\Import\MysqlSchemaImporter
      */
     public function getSchemaImporter(Connection $conn)
     {
-        return new MysqlImporter($conn, $this->getDataTypeMapper());
+        return new MysqlSchemaImporter($conn, $this->getDataTypeMapper());
     }
 
 

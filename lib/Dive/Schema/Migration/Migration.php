@@ -10,7 +10,7 @@
 namespace Dive\Schema\Migration;
 
 use Dive\Relation\Relation;
-use Dive\Schema\Import\ImporterInterface;
+use Dive\Schema\Import\SchemaImporterInterface;
 use Dive\Platform\PlatformInterface;
 use Dive\Connection\Connection;
 use Dive\Schema\Schema;
@@ -102,9 +102,9 @@ abstract class Migration implements MigrationInterface
 
 
     /**
-     * @param ImporterInterface $importer
+     * @param SchemaImporterInterface $importer
      */
-    public function importFromDb(ImporterInterface $importer)
+    public function importFromDb(SchemaImporterInterface $importer)
     {
         $tableNames = $importer->getTableNames();
         if (!in_array($this->tableName, $tableNames)) {

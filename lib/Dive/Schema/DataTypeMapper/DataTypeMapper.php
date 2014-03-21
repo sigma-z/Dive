@@ -50,7 +50,7 @@ class DataTypeMapper
      *
      * @param   string  $dataType
      * @param   string  $ormDataType
-     * @return  DataTypeMapper
+     * @return  $this
      */
     public function addDataType($dataType, $ormDataType)
     {
@@ -65,7 +65,7 @@ class DataTypeMapper
      * @param   string      $ormDataType
      * @param   string      $dataType
      * @param   int|string  $dataTypeMaxLength
-     * @return  DataTypeMapper
+     * @return  $this
      */
     public function addOrmType($ormDataType, $dataType, $dataTypeMaxLength = 'default')
     {
@@ -88,7 +88,7 @@ class DataTypeMapper
      * removes a data type
      *
      * @param   string $dataType
-     * @return  DataTypeMapper
+     * @return  $this
      */
     public function removeDataType($dataType)
     {
@@ -103,7 +103,7 @@ class DataTypeMapper
      * removes an orm type
      *
      * @param   string $ormDataType
-     * @return  DataTypeMapper
+     * @return  $this
      */
     public function removeOrmType($ormDataType)
     {

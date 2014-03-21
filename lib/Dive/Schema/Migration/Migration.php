@@ -101,6 +101,9 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param ImporterInterface $importer
+     */
     public function importFromDb(ImporterInterface $importer)
     {
         $tableNames = $importer->getTableNames();
@@ -121,6 +124,9 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param Schema $schema
+     */
     public function importFromSchema(Schema $schema)
     {
         $this->columns = $schema->getTableFields($this->tableName);
@@ -188,9 +194,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * rename table
-
      *
-*@param  string $newName
+     * @param  string $newName
      * @return Migration
      */
     public function renameTable($newName)
@@ -207,11 +212,10 @@ abstract class Migration implements MigrationInterface
     /**
      * sets table option
      *
-*@example
+     * @example
      *   collation: utf8_unicode_ci
      *   charset:   utf8
      *   engine:    InnoDB          for mysql
-
      * @param  string $name
      * @param  string $value
      * @return Migration
@@ -256,9 +260,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * adds column
-
      *
-*@param  string   $name
+     * @param  string   $name
      * @param  array    $definition
      * @param  string   $afterColumn
      * @return Migration
@@ -284,9 +287,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * drops column
-
      *
-*@param  string $name
+     * @param  string $name
      * @return Migration
      */
     public function dropColumn($name)
@@ -323,9 +325,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * change column
-
      *
-*@param  string $name
+     * @param  string $name
      * @param  array  $definition
      * @param  string $newName
      * @return Migration
@@ -407,9 +408,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * adds index
-
      *
-*@param   string          $name
+     * @param   string          $name
      * @param   string|array    $fields
      * @param   string          $indexType
      * @return  Migration
@@ -436,9 +436,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * drops index
-
      *
-*@param  string $name
+     * @param  string $name
      * @return Migration
      */
     public function dropIndex($name)
@@ -461,9 +460,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * changes index
-
      *
-*@param   string          $name
+     * @param   string          $name
      * @param   string|array    $fields
      * @param   string          $indexType
      * @return  Migration
@@ -497,9 +495,7 @@ abstract class Migration implements MigrationInterface
 
     /**
      * renames index
-
-     *
-*@param  string $name
+     * @param  string $name
      * @param  string $newName
      * @throws MigrationException
      * @return Migration
@@ -533,9 +529,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * checks if foreign key is defined
-
      *
-*@param  string $owningField
+     * @param  string $owningField
      * @return Migration
      */
     public function hasForeignKey($owningField)
@@ -546,9 +541,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * adds foreign key
-
      *
-*@param   string  $owningField
+     * @param   string  $owningField
      * @param   string  $refTable
      * @param   string  $refField
      * @param   string  $onDelete
@@ -580,9 +574,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * adds foreign key by relation instance
-
      *
-*@param \Dive\Relation\Relation $relation
+     * @param  \Dive\Relation\Relation $relation
      * @return Migration
      * @throws MigrationException
      */
@@ -605,9 +598,8 @@ abstract class Migration implements MigrationInterface
 
     /**
      * drops foreign key
-
      *
-*@param   string $owningField
+     * @param   string $owningField
      * @return  Migration
      */
     public function dropForeignKey($owningField)
@@ -682,6 +674,9 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param bool $useTransaction
+     */
     public function execute($useTransaction = true)
     {
         $statements = $this->getSqlStatements();
@@ -696,6 +691,9 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @return string[]
+     */
     protected function getCreateTableStatements()
     {
         $createTableSql = $this->platform->getCreateTableSql(
@@ -709,6 +707,9 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @return string[]
+     */
     protected function getDropTableStatements()
     {
         $sql = 'DROP TABLE ' . ($this->preventErrors ? ' IF EXISTS' : '')
@@ -717,6 +718,9 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @return string[]
+     */
     protected function getAlterTableStatements()
     {
         $statements = array();
@@ -730,6 +734,10 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param  array $operation
+     * @return string[]
+     */
     protected function getOperationStatements(array $operation)
     {
         $statements = array();
@@ -781,6 +789,12 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param  string $name
+     * @param  string $afterColumn
+     * @return string
+     * @throws MigrationException
+     */
     protected function getAddColumnSql($name, $afterColumn = null)
     {
         if (!$this->hasColumn($name)) {
@@ -793,6 +807,12 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param  string $name
+     * @param  string $newName
+     * @return string
+     * @throws MigrationException
+     */
     protected function getChangeColumnSql($name, $newName)
     {
         if (!$this->hasColumn($newName)) {
@@ -805,6 +825,11 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param  string $name
+     * @return string
+     * @throws MigrationException
+     */
     protected function getCreateIndexSql($name)
     {
         if (!$this->hasIndex($name)) {
@@ -815,6 +840,11 @@ abstract class Migration implements MigrationInterface
     }
 
 
+    /**
+     * @param  string $name
+     * @return string
+     * @throws MigrationException
+     */
     protected function getAddForeignKeySql($name)
     {
         if (!$this->hasForeignKey($name)) {
@@ -828,8 +858,6 @@ abstract class Migration implements MigrationInterface
 
 
     /**
-     *
-     *
      * @param  array $fields
      * @return string
      */

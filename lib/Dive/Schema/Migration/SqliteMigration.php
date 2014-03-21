@@ -28,6 +28,9 @@ class SqliteMigration extends Migration
     }
 
 
+    /**
+     * @return bool
+     */
     private function checkOperationForDropAndCreateFallback()
     {
         if ($this->mode != self::ALTER_TABLE) {
@@ -56,6 +59,9 @@ class SqliteMigration extends Migration
     }
 
 
+    /**
+     * @return string[]
+     */
     private function getDropAndCreateTableFallbackStatements()
     {
         $newColumns = array();
@@ -95,6 +101,9 @@ class SqliteMigration extends Migration
     }
 
 
+    /**
+     * @return string[]
+     */
     protected function getCreateTableStatements()
     {
         $statements = parent::getCreateTableStatements();

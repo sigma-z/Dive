@@ -321,10 +321,6 @@ class RecordGenerator
         else {
             $row = $additionalData;
         }
-        // TODO: glady - change 1
-//        if (empty($row)) {
-//            throw new RecordGeneratorException("Empty row for table '$tableName'!");
-//        }
         $table = $this->rm->getTable($tableName);
         return $this->saveRecord($table, $row, $key);
     }

@@ -108,6 +108,11 @@ class SqlitePlatform extends Platform
                 }
                 $length = $this->getColumnLength($definition);
                 if ($length) {
+                    if (isset($definition['scale'])) {
+                        $precision = $length - 1;
+                        $scale = $definition['scale'];
+                        $length = "$precision,$scale";
+                    }
                     $dbType .= '(' . $length . ')';
                 }
             }
@@ -121,6 +126,21 @@ class SqlitePlatform extends Platform
             : '';
 
         return $dbType . $charset  . $collation . $default .  $notNull;
+    }
+
+
+    /**
+     * gets column length
+     *
+     * @param   array   $definition
+     * @return  string
+     */
+    protected function getColumnLength(array $definition)
+    {
+        if ($definition['type'] == 'time') {
+            return 8;
+        }
+        return parent::getColumnLength($definition);
     }
 
 

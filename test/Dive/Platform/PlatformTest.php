@@ -210,35 +210,49 @@ class PlatformTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideGetColumnDefinitionSql()
     {
         $testCases = array();
 
-        // unsigned float
+        // boolean
         $testCases[] = array(
             'definition' => array(
-                'type' => 'decimal',
-                'scale' => 3,
-                'precision' => 4,
-                'unsigned' => true
+                'type' => 'boolean'
             ),
             'expectedArray' => array(
-                'sqlite' => 'unsigned decimal(8.3) NOT NULL',
-                'mysql' => 'decimal(8.3) UNSIGNED NOT NULL',
+                'sqlite' => 'boolean NOT NULL',
+                'mysql' => 'boolean NOT NULL'
             )
         );
 
-        // signed float
+        // unsigned decimal
         $testCases[] = array(
             'definition' => array(
                 'type' => 'decimal',
                 'scale' => 3,
-                'precision' => 2,
+                'length' => 9,
+                'unsigned' => true
+            ),
+            'expectedArray' => array(
+                'sqlite' => 'unsigned decimal(8,3) NOT NULL',
+                'mysql' => 'decimal(8,3) UNSIGNED NOT NULL',
+            )
+        );
+
+        // signed decimal
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'decimal',
+                'scale' => 3,
+                'length' => 7,
                 'nullable' => true
             ),
             'expectedArray' => array(
-                'sqlite' => 'decimal(6.3)',
-                'mysql' => 'decimal(6.3)',
+                'sqlite' => 'decimal(6,3)',
+                'mysql' => 'decimal(6,3)',
             )
         );
 
@@ -254,6 +268,70 @@ class PlatformTest extends TestCase
             'expectedArray' => array(
                 'sqlite' => 'unsigned mediumint(6)',
                 'mysql' => 'mediumint(6) UNSIGNED ZEROFILL',
+            )
+        );
+
+        // string
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'string',
+                'length' => 255,
+                'nullable' => true
+            ),
+            'expectedArray' => array(
+                'sqlite' => 'varchar(255)',
+                'mysql' => 'varchar(255)'
+            )
+        );
+
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'datetime',
+            ),
+            'expectedArray' => array(
+                'sqlite' => 'datetime NOT NULL',
+                'mysql' => 'datetime NOT NULL'
+            )
+        );
+
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'date',
+            ),
+            'expectedArray' => array(
+                'sqlite' => 'date NOT NULL',
+                'mysql' => 'date NOT NULL'
+            )
+        );
+
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'time',
+            ),
+            'expectedArray' => array(
+                'sqlite' => 'character(8) NOT NULL',
+                'mysql' => 'char(8) NOT NULL'
+            )
+        );
+
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'timestamp',
+            ),
+            'expectedArray' => array(
+               'sqlite' => 'integer NOT NULL',
+               'mysql' => 'timestamp NOT NULL'
+            )
+        );
+
+        $testCases[] = array(
+            'definition' => array(
+                'type' => 'blob',
+                'nullable' => true
+            ),
+            'expectedArray' => array(
+               'sqlite' => 'blob',
+               'mysql' => 'blob'
             )
         );
 

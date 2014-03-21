@@ -128,6 +128,21 @@ class MysqlPlatform extends Platform
 
 
     /**
+     * gets column length
+     *
+     * @param   array   $definition
+     * @return  string
+     */
+    protected function getColumnLength(array $definition)
+    {
+        if ($definition['type'] == 'time') {
+            return 8;
+        }
+        return parent::getColumnLength($definition);
+    }
+
+
+    /**
      * gets drop index as sql
      *
      * @param  string $tableName
@@ -222,21 +237,6 @@ class MysqlPlatform extends Platform
             $sql .= ' COMMENT ' . $this->stringQuote . $tableOptions['comment'] . $this->stringQuote;
         }
         return $sql;
-    }
-
-
-    /**
-     * gets column length
-     *
-     * @param   array   $definition
-     * @return  string
-     */
-    protected function getColumnLength(array $definition)
-    {
-        if ($definition['type'] == 'time') {
-            return 8;
-        }
-        return parent::getColumnLength($definition);
     }
 
 }

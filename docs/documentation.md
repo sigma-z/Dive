@@ -174,6 +174,7 @@ Attributes applicable:
 
  - (bool)``unsigned`` - Default: FALSE
  - (int)``length`` - value length
+ - (bool)``zerofill`` - Flag, whether integer is zero-filled or not (Applies only to mysql database)
 
 
 ### Double

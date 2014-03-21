@@ -47,6 +47,11 @@ class RecordGenerator
 
     /**
      * @var array
+     */
+    private $generatedRecords = array();
+
+    /**
+     * @var array
      * keys: table name
      * values: map field name
      */
@@ -167,12 +172,10 @@ class RecordGenerator
      */
     private function saveRecord(Table $table, array $row, $key)
     {
-        $tableName = $table->getTableName();
-        if (!isset($this->recordAliasIdMap[$tableName])) {
-            $this->recordAliasIdMap[$tableName] = array();
-        }
         // keep foreign key relations in array to process after record has been saved
         $owningRelations = array();
+        $beforeSaveGeneratedRecords = $this->generatedRecords;
+        $this->generatedRecords = array();
         foreach ($row as $relationName => $value) {
             if ($table->hasRelation($relationName)) {
                 $relation = $table->getRelation($relationName);
@@ -193,18 +196,22 @@ class RecordGenerator
 
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
+        $tableName = $table->getTableName();
         $record = $this->rm->getRecord($tableName, $row);
         $this->rm->save($record);
         $this->rm->commit();
 
         // keep record identifier in the record map
         $id = $record->getIdentifierAsString();
-        if ($key === null) {
-            $this->recordAliasIdMap[$tableName]["__autoindexed__" . $id] = $id;
-        }
-        else {
+        if ($key !== null) {
             $this->recordAliasIdMap[$tableName][$key] = $id;
         }
+
+        $this->generatedRecords = array_merge(
+            $beforeSaveGeneratedRecords, // records before this save
+            array(array('tableName' => $tableName, 'id' => $id)), // record saved with this save
+            $this->generatedRecords // dependent records, that were possibly required by actual record and can only be removed after it
+        );
 
         // save owning relations
         foreach ($owningRelations as $relationData) {
@@ -329,12 +336,10 @@ class RecordGenerator
      */
     public function removeGeneratedRecords()
     {
-        foreach ($this->recordAliasIdMap as $tableName => $recordKeys) {
-            $table = $this->rm->getTable($tableName);
-            foreach ($recordKeys as $id) {
-                $record = $table->findByPk($id);
-                $this->rm->delete($record);
-            }
+        foreach ($this->generatedRecords as $recordTableNameAndId) {
+            $table = $this->rm->getTable($recordTableNameAndId['tableName']);
+            $record = $table->findByPk($recordTableNameAndId['id']);
+            $this->rm->delete($record);
         }
         $this->rm->commit();
 

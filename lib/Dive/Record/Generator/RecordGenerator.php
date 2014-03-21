@@ -167,6 +167,10 @@ class RecordGenerator
      */
     private function saveRecord(Table $table, array $row, $key)
     {
+        $tableName = $table->getTableName();
+        if (!isset($this->recordAliasIdMap[$tableName])) {
+            $this->recordAliasIdMap[$tableName] = array();
+        }
         // keep foreign key relations in array to process after record has been saved
         $owningRelations = array();
         foreach ($row as $relationName => $value) {
@@ -189,7 +193,6 @@ class RecordGenerator
 
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
-        $tableName = $table->getTableName();
         $record = $this->rm->getRecord($tableName, $row);
         $this->rm->save($record);
         $this->rm->commit();

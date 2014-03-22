@@ -430,6 +430,7 @@ class UnitOfWork
     {
         $this->scheduledForCommit = array();
         $this->recordIdentityMap = array();
+        $this->restrictNotDeletedOnCommit = array();
     }
 
 

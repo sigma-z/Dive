@@ -46,7 +46,8 @@ class RecordGenerator
     private $recordAliasIdMap = array();
 
     /**
-     * @var array
+     * @var array[]
+     * values: array with key 'tableName' and 'id'
      */
     private $generatedRecords = array();
 
@@ -208,9 +209,12 @@ class RecordGenerator
         }
 
         $this->generatedRecords = array_merge(
-            $beforeSaveGeneratedRecords, // records before this save
-            array(array('tableName' => $tableName, 'id' => $id)), // record saved with this save
-            $this->generatedRecords // dependent records, that were possibly required by actual record and can only be removed after it
+            // records before this save
+            $beforeSaveGeneratedRecords,
+            // record saved with this save
+            array(array('tableName' => $tableName, 'id' => $id)),
+            // dependent records, that were possibly required by actual record and can only be removed after it
+            $this->generatedRecords
         );
 
         // save owning relations

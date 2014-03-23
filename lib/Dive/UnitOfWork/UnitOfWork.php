@@ -46,6 +46,12 @@ class UnitOfWork
      * @var Record[]
      * keys: record oid's
      */
+    private $restrictNotDeletedOnCommit = array();
+
+    /**
+     * @var Record[]
+     * keys: record oid's
+     */
     private $recordIdentityMap = array();
 
     /**
@@ -375,17 +381,16 @@ class UnitOfWork
 
             case PlatformInterface::RESTRICT:
             case PlatformInterface::NO_ACTION:
-                if (!$this->isRecordScheduledForDelete($owningRecord)) {
-                    // TODO exception not specific enough?
-                    throw new UnitOfWorkException("Delete record is restricted by onDelete!");
-                }
-                break;
+                $this->markRecordForRestrictOnCommitWhenNotDeleted($owningRecord);
+            break;
         }
     }
 
 
     public function commitChanges()
     {
+        $this->checkRestrictOnCommit();
+
         $conn = $this->recordManager->getConnection();
         $conn->beginTransaction();
 
@@ -425,6 +430,7 @@ class UnitOfWork
     {
         $this->scheduledForCommit = array();
         $this->recordIdentityMap = array();
+        $this->restrictNotDeletedOnCommit = array();
     }
 
 
@@ -564,6 +570,30 @@ class UnitOfWork
         if ($eventDispatcher->hasListeners($eventName)) {
             $recordEvent = new Record\RecordEvent($record);
             $eventDispatcher->dispatch($eventName, $recordEvent);
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function markRecordForRestrictOnCommitWhenNotDeleted(Record $record)
+    {
+        $oid = $record->getOid();
+        $this->restrictNotDeletedOnCommit[$oid] = $record;
+    }
+
+
+    /**
+     * @throws UnitOfWorkException
+     */
+    private function checkRestrictOnCommit()
+    {
+        foreach ($this->restrictNotDeletedOnCommit as $restrictedRecord) {
+            if (!$this->isRecordScheduledForDelete($restrictedRecord)) {
+                // TODO exception not specific enough?
+                throw new UnitOfWorkException("Delete record is restricted by onDelete!");
+            }
         }
     }
 }

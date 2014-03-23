@@ -90,6 +90,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         $table = $rm->getTable($tableName);
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
         $rm->delete($record);
+        $rm->commit();
     }
 
 

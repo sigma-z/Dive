@@ -67,12 +67,20 @@ class GenerateModelsCommand extends Command
         $missingModels = $this->modelGenerator->getMissingModels($this->schema, $targetDirectory);
         $wroteModels = $this->writeModelFiles($missingModels, 'New model classes: ');
 
-        if ($this->getBooleanParam('overwrite', false)) {
+        $overwriteExistingModels = $this->getBooleanParam('overwrite', null);
+        if ($overwriteExistingModels === null) {
+            $overwriteExistingModels = $this->readInput('Do you want to overwrite existing model classes? [yes,no]');
+        }
+        if ($overwriteExistingModels) {
+            $outputWriter->writeLine('Existing model classes will be overwritten!');
             $existingModels = $this->modelGenerator->getMissingModels($this->schema, $targetDirectory);
             $wroteExistingModels = $this->writeModelFiles($existingModels, 'Overwritten model classes: ');
             if ($wroteExistingModels) {
                 $wroteModels = true;
             }
+        }
+        else {
+            $outputWriter->writeLine('Existing model classes will NOT be overwritten!');
         }
 
         if (!$wroteModels) {

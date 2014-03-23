@@ -181,13 +181,12 @@ abstract class Command
             return $value;
         }
         if (is_string($value)) {
-            $value = strtolower($value);
-            return $value === 'on' || $value === 'yes' || $value === '1';
+            return $this->isInputValueTrue($value);
         }
         if (is_int($value)) {
             return $value === 1;
         }
-        return false;
+        return $default;
     }
 
 
@@ -213,6 +212,40 @@ abstract class Command
     public function getParams()
     {
         return $this->params;
+    }
+
+
+    /**
+     * user interaction read from STDIN
+     *
+     * @param  string $message
+     * @param  string $type
+     * @return string
+     */
+    public function readInput($message, $type = 'string')
+    {
+        do {
+            echo $message . ': ';
+            $input = trim(fgets(STDIN));
+        }
+        while ($input === '');
+
+        switch ($type) {
+            case 'boolean':
+                return $this->isInputValueTrue($input);
+        }
+        return $input;
+    }
+
+
+    /**
+     * @param  string $input
+     * @return bool
+     */
+    private function isInputValueTrue($input)
+    {
+        $input = strtolower($input);
+        return $input === 'yes' || $input === 'on' || $input === 'true' || $input === '1';
     }
 
 }

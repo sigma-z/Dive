@@ -8,12 +8,15 @@
  */
 namespace Dive\Test\Record;
 
+use Dive\Collection\RecordCollection;
 use Dive\Platform\PlatformInterface;
 use Dive\Record;
+use Dive\RecordManager;
 use Dive\TestSuite\ConstraintTestCase;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
+use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -135,6 +138,73 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
             'tableName' => 'article',
             'recordKey' => 'DiveORM released',
             'constraints' => array(PlatformInterface::RESTRICT)
+        );
+
+        return $testCases;
+    }
+
+
+    /**
+     * @dataProvider provideDeleteBothForRestrictedConstraint
+     * @param string $tableName
+     * @param string $restrictedByRelation
+     * @param array  $deleteOrder
+     */
+    public function testDeleteBothForRestrictedConstraint($tableName, $restrictedByRelation, array $deleteOrder)
+    {
+        $rm = self::createDefaultRecordManager(self::getSchemaDefinition());
+        $recordGenerator = new Record\Generator\RecordGenerator($rm, new FieldValuesGenerator());
+
+        // we generate two records, which both will be deleted
+        $tableRows = array(
+            'myRecord' => array(),
+            'myRecord2' => array()
+        );
+        $recordGenerator
+            ->setTableRows($tableName, $tableRows)
+            ->generate();
+
+        $table = $rm->getTable($tableName);
+        foreach ($tableRows as $recordKey => $recordData) {
+            $recordId = $recordGenerator->getRecordIdFromMap($tableName, $recordKey);
+
+            $record = $table->findByPk($recordId);
+            $restrictedByRecord = $record->{$restrictedByRelation};
+            if ($restrictedByRecord instanceof RecordCollection) {
+                $restrictedByRecord = $restrictedByRecord[0];
+            }
+
+            $deleteMap = array(
+                $tableName => $record,
+                $restrictedByRelation => $restrictedByRecord
+            );
+
+            foreach ($deleteOrder as $deleteKey) {
+                $rm->delete($deleteMap[$deleteKey]);
+            }
+
+            $rm->commit();
+        }
+    }
+
+
+    /**
+     * @return array
+     */
+    public function provideDeleteBothForRestrictedConstraint()
+    {
+        $testCases = array();
+
+        $testCases[] = array(
+            'tableName' => 'article',
+            'restrictedByRelation' => 'Author',
+            'deleteOrder' => array('article', 'Author'),
+        );
+
+        $testCases[] = array(
+            'tableName' => 'article',
+            'restrictedByRelation' => 'Author',
+            'deleteOrder' => array('Author', 'article'),
         );
 
         return $testCases;
@@ -275,5 +345,4 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
 
         return $testCases;
     }
-
 }

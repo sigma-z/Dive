@@ -381,7 +381,10 @@ class UnitOfWork
 
             case PlatformInterface::RESTRICT:
             case PlatformInterface::NO_ACTION:
-                $this->markRecordForRestrictOnCommitWhenNotDeleted($owningRecord);
+                // if not deleted yet, it has to be deleted before commit for comply with the constraint
+                if (!$this->isRecordScheduledForDelete($owningRecord)) {
+                    $this->markRecordForRestrictOnCommitWhenNotDeleted($owningRecord);
+                }
             break;
         }
     }
@@ -580,6 +583,8 @@ class UnitOfWork
     private function markRecordForRestrictOnCommitWhenNotDeleted(Record $record)
     {
         $oid = $record->getOid();
+        // record will have to be deleted before record with restricted relation
+        $this->recordIdentityMap[$oid] = $record;
         $this->restrictNotDeletedOnCommit[$oid] = $record;
     }
 

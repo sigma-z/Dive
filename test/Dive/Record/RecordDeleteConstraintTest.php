@@ -152,10 +152,12 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
      */
     public function testDeleteBothForRestrictedConstraint($tableName, $restrictedByRelation, array $deleteOrder)
     {
+        // get record manager for fixture scheme
         $rm = self::createDefaultRecordManager(self::getSchemaDefinition());
         $recordGenerator = new Record\Generator\RecordGenerator($rm, new FieldValuesGenerator());
 
         // we generate two records, which both will be deleted
+        // second record is needed for testing, that restrict-map is cleared after commit
         $tableRows = array(
             'myRecord' => array(),
             'myRecord2' => array()
@@ -166,24 +168,32 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
 
         $table = $rm->getTable($tableName);
         foreach ($tableRows as $recordKey => $recordData) {
+            // get record and restricted by relation-record
             $recordId = $recordGenerator->getRecordIdFromMap($tableName, $recordKey);
-
             $record = $table->findByPk($recordId);
             $restrictedByRecord = $record->{$restrictedByRelation};
             if ($restrictedByRecord instanceof RecordCollection) {
                 $restrictedByRecord = $restrictedByRecord[0];
             }
 
+            // delete in right order
             $deleteMap = array(
                 $tableName => $record,
                 $restrictedByRelation => $restrictedByRecord
             );
-
             foreach ($deleteOrder as $deleteKey) {
                 $rm->delete($deleteMap[$deleteKey]);
             }
 
-            $rm->commit();
+            // commit should NOT throw Exception
+            $e = null;
+            try {
+                $rm->commit();
+            }
+            catch (\Exception $e) {
+                // do nothing
+            }
+            $this->assertNull($e);
         }
     }
 

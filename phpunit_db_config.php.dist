@@ -12,7 +12,7 @@
  */
 
 return array(
-    'sqlite:' . FIXTURE_DIR . '/test.db',
+    'sqlite:file::memory:',
     /*array(
         'dsn' => 'mysql:host=localhost;dbname=test',
         'user' => 'root',

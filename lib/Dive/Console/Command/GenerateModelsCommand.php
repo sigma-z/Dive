@@ -53,12 +53,11 @@ class GenerateModelsCommand extends Command
 
 
     /**
-     * @param  \Dive\Console\OutputWriterInterface $outputWriter
+     * @internal param \Dive\Console\OutputWriterInterface $outputWriter
      * @return bool
      */
-    public function execute(OutputWriterInterface $outputWriter)
+    public function execute()
     {
-        $this->outputWriter = $outputWriter;
         $this->schema = $this->getSchema();
 
         $this->createModelGenerator();
@@ -72,7 +71,7 @@ class GenerateModelsCommand extends Command
             $overwriteExistingModels = $this->readInput('Do you want to overwrite existing model classes? [yes,no]');
         }
         if ($overwriteExistingModels) {
-            $outputWriter->writeLine('Existing model classes will be overwritten!');
+            $this->outputWriter->writeLine('Existing model classes will be overwritten!');
             $existingModels = $this->modelGenerator->getMissingModels($this->schema, $targetDirectory);
             $wroteExistingModels = $this->writeModelFiles($existingModels, 'Overwritten model classes: ');
             if ($wroteExistingModels) {
@@ -80,11 +79,11 @@ class GenerateModelsCommand extends Command
             }
         }
         else {
-            $outputWriter->writeLine('Existing model classes will NOT be overwritten!');
+            $this->outputWriter->writeLine('Existing model classes will NOT be overwritten!');
         }
 
         if (!$wroteModels) {
-            $outputWriter->writeLine(
+            $this->outputWriter->writeLine(
                 "WARNING: No models have been generated!\n"
                 . "  To generate model classes, you have to specify the key 'recordClass'\n"
                 . "  for each table in your schema file!"

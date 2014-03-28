@@ -7,10 +7,7 @@
  * file that was distributed with this source code.
  */
 
-
 namespace Dive\Console\Command;
-
-use Dive\Console\OutputWriterInterface;
 
 /**
  * Class HelpCommand
@@ -30,10 +27,10 @@ class HelpCommand extends Command
 
 
     /**
-     * @param \Dive\Console\OutputWriterInterface $outputWriter
+     * @internal param \Dive\Console\OutputWriterInterface $outputWriter
      * @return bool
      */
-    public function execute(OutputWriterInterface $outputWriter)
+    public function execute()
     {
         $commandName = $this->getParam('command');
         if ($commandName) {
@@ -42,7 +39,7 @@ class HelpCommand extends Command
         else {
             $usage = $this->getGeneralUsage();
         }
-        $outputWriter->writeLine($usage);
+        $this->outputWriter->writeLine($usage);
         return true;
     }
 

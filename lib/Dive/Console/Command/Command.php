@@ -36,12 +36,14 @@ abstract class Command
     /**@var array */
     protected $params = array();
 
+    /** @var OutputWriterInterface */
+    protected $outputWriter;
+
 
     /**
-     * @param \Dive\Console\OutputWriterInterface $outputWriter
      * @return bool
      */
-    abstract public function execute(OutputWriterInterface $outputWriter);
+    abstract public function execute();
 
 
     /**
@@ -50,6 +52,15 @@ abstract class Command
     public function setConsole(Console $console)
     {
         $this->console = $console;
+    }
+
+
+    /**
+     * @param OutputWriterInterface $outputWriter
+     */
+    public function setOutputWriter(OutputWriterInterface $outputWriter)
+    {
+        $this->outputWriter = $outputWriter;
     }
 
 
@@ -83,22 +94,31 @@ abstract class Command
     /**
      * @return string
      */
+    protected function getScriptName()
+    {
+        return $_SERVER['SCRIPT_NAME'];
+    }
+
+
+    /**
+     * @return string
+     */
     public function getUsage()
     {
-        $scriptName = $_SERVER['SCRIPT_NAME'];
         $paramList = '';
         $requiredParams = $this->getRequiredParams();
         if ($requiredParams) {
-            $paramList = '<' . implode('> <', array_keys($requiredParams)) . '>';
+            $paramList = ' <' . implode('> <', array_keys($requiredParams)) . '>';
         }
         $optionalParams = $this->getOptionalParams();
         if ($optionalParams) {
-            $paramList .= '[<' . implode('>] [<', array_keys($optionalParams)) . '>]';
+            $paramList .= ' [<' . implode('>] [<', array_keys($optionalParams)) . '>]';
         }
+        $scriptName = $this->getScriptName();
         $commandName = $this->getName();
         return
             $this->getDescription() . "\n\n"
-            . "USAGE: $scriptName $commandName $paramList\n\n"
+            . "USAGE: $scriptName $commandName$paramList\n\n"
             . $this->getParamsDescription($requiredParams, 'Required params:')
             . $this->getParamsDescription($this->getOptionalParams(), 'Optional params:');
     }
@@ -225,7 +245,7 @@ abstract class Command
     public function readInput($message, $type = 'string')
     {
         do {
-            echo $message . ': ';
+            $this->outputWriter->write($message . ': ');
             $input = trim(fgets(STDIN));
         }
         while ($input === '');

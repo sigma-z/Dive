@@ -28,17 +28,19 @@ class ListCommand extends Command
 
 
     /**
-     * @param \Dive\Console\OutputWriterInterface $outputWriter
+     * @internal param \Dive\Console\OutputWriterInterface $outputWriter
      * @return bool
      */
-    public function execute(OutputWriterInterface $outputWriter)
+    public function execute()
     {
         $commandLoader = $this->console->getCommandLoader();
         $classes = $commandLoader->getCommandClasses();
-        $outputWriter->writeLine('Command list (' . count($classes) . ')', OutputWriterInterface::LEVEL_LESS_INFO);
+        $this->outputWriter->writeLine(
+            'Command list (' . count($classes) . ')', OutputWriterInterface::LEVEL_LESS_INFO
+        );
         foreach ($classes as $className) {
             $name = $this->getNameByClassName($className);
-            $outputWriter->writeLine("  - $name", OutputWriterInterface::LEVEL_LESS_INFO);
+            $this->outputWriter->writeLine("  - $name", OutputWriterInterface::LEVEL_LESS_INFO);
         }
         return true;
     }

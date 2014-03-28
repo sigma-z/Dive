@@ -165,7 +165,8 @@ class Console
             }
             $this->processCommand($commandName);
             $outputWriter = $this->getOutputWriter();
-            $success = $this->command->execute($outputWriter);
+            $this->command->setOutputWriter($outputWriter);
+            $success = $this->command->execute();
             if ($success === true) {
                 $outputWriter->writeLine(
                     "Command '$commandName' has run successfully",

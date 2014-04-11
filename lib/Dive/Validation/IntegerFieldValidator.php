@@ -9,11 +9,11 @@
 namespace Dive\Validation;
 
 /**
- * Class BooleanFieldValidator
+ * Class IntegerFieldValidator
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 11.04.14
  */
-class BooleanFieldValidator implements ValidatorInterface
+class IntegerFieldValidator implements ValidatorInterface
 {
 
     /**
@@ -25,13 +25,10 @@ class BooleanFieldValidator implements ValidatorInterface
         if ($value === null) {
             return true;
         }
-        if ($value === '1' || $value === '0') {
+        if (is_int($value)) {
             return true;
         }
-        if (is_bool($value)) {
-            return true;
-        }
-        if ($value === 1 || $value === 0) {
+        if (is_string($value) && preg_match('/^-?\d+$/', $value)) {
             return true;
         }
 

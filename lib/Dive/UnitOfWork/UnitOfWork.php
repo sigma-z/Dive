@@ -397,18 +397,31 @@ class UnitOfWork
         $conn = $this->recordManager->getConnection();
         $conn->beginTransaction();
 
+        try {
+            $this->processChanges();
+            $conn->commit();
+        }
+        catch (\PDOException $e) {
+            $conn->rollBack();
+            throw $e;
+        }
+
+        $this->resetScheduled();
+    }
+
+
+    private function processChanges()
+    {
         foreach ($this->recordIdentityMap as $oid => $record) {
             $recordExists = $record->exists();
             if ($this->isRecordScheduledForSave($record)) {
                 $record->preSave();
-
                 if ($recordExists) {
                     $this->doUpdate($record);
                 }
                 else {
                     $this->doInsert($record);
                 }
-
                 $record->postSave();
             }
             else {
@@ -422,11 +435,7 @@ class UnitOfWork
                 }
             }
         }
-        $conn->commit();
-
-        $this->resetScheduled();
     }
-
 
 
     public function resetScheduled()

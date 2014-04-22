@@ -8,7 +8,7 @@
  */
 namespace Dive\Test\Validation;
 
-require __DIR__ . '/FieldTypeValidatorTestCase.php';
+require_once __DIR__ . '/FieldTypeValidatorTestCase.php';
 
 /**
  * Class IntegerFieldTypeValidatorTest

@@ -6,37 +6,34 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Dive\Test\Validation;
 
-require_once __DIR__ . '/FieldTypeValidatorTestCase.php';
+require_once __DIR__ . '/FieldValidatorTestCase.php';
 
 /**
- * Class BooleanFieldTypeValidationTest
+ * Class StringFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 11.04.14
+ * @created 25.04.2014
  */
-class BooleanFieldTypeValidationTest extends FieldTypeValidatorTestCase
+class StringFieldValidatorTest extends FieldValidatorTestCase
 {
-
-
-
     /**
      * @dataProvider provideValidationSucceeds
      */
     public function testValidationSucceeds($value)
     {
-        $this->givenIHaveAFieldTypeValidatorWithType('BooleanFieldValidator');
+        $this->givenIHaveAFieldTypeValidatorWithType('StringFieldValidator');
         $this->whenIValidateValue($value);
         $this->thenValidationShouldSucceed();
     }
+
 
     /**
      * @dataProvider provideValidationFails
      */
     public function testValidationFails($value)
     {
-        $this->givenIHaveAFieldTypeValidatorWithType('BooleanFieldValidator');
+        $this->givenIHaveAFieldTypeValidatorWithType('StringFieldValidator');
         $this->whenIValidateValue($value);
         $this->thenValidationShouldFail();
     }
@@ -48,13 +45,10 @@ class BooleanFieldTypeValidationTest extends FieldTypeValidatorTestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'       => array(null),
-            'int1'       => array(1),
-            'string1'    => array('1'),
-            'bool-true'  => array(true),
-            'int0'       => array(0),
-            'string0'    => array('0'),
-            'bool-false' => array(false),
+            'null'      => array(null),
+            'empty-string' => array(''),
+            'string-12' => array('12'),
+            'string'    => array('some kind of string')
         );
     }
 
@@ -65,8 +59,9 @@ class BooleanFieldTypeValidationTest extends FieldTypeValidatorTestCase
     public function provideValidationFails()
     {
         return array(
-            'string'        => array('string'),
-            'empty-string'  => array(''),
+            'bool-false'    => array(false),
+            'bool-true'     => array(true),
+            'int-12'        => array(12),
             'empty-array'   => array(array())
         );
     }

@@ -8,16 +8,15 @@
  */
 namespace Dive\Test\Validation;
 
-require_once __DIR__ . '/FieldTypeValidatorTestCase.php';
+require_once __DIR__ . '/FieldValidatorTestCase.php';
 
 /**
- * Class IntegerFieldTypeValidatorTest
+ * Class IntegerFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 11.04.14
  */
-class IntegerFieldTypeValidatorTest extends FieldTypeValidatorTestCase
+class IntegerFieldValidatorTest extends FieldValidatorTestCase
 {
-
 
     /**
      * @dataProvider provideValidationSucceeds
@@ -28,6 +27,7 @@ class IntegerFieldTypeValidatorTest extends FieldTypeValidatorTestCase
         $this->whenIValidateValue($value);
         $this->thenValidationShouldSucceed();
     }
+
 
     /**
      * @dataProvider provideValidationFails

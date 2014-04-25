@@ -12,11 +12,11 @@ use Dive\TestSuite\TestCase;
 use Dive\Validation\ValidatorInterface;
 
 /**
- * Class FieldTypeValidatorTestCase
+ * Class FieldValidatorTestCase
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 11.04.14
  */
-abstract class FieldTypeValidatorTestCase extends TestCase
+abstract class FieldValidatorTestCase extends TestCase
 {
 
     /** @var  ValidatorInterface */

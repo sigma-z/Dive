@@ -6,10 +6,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 20.12.12
- */
 
 namespace Dive\TestSuite\Platform;
 
@@ -19,6 +15,10 @@ use Dive\Platform\PlatformInterface;
 use Dive\TestSuite\TestCase;
 
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 20.12.12
+ */
 class PlatformTest extends TestCase
 {
 
@@ -259,13 +259,13 @@ class PlatformTest extends TestCase
         // double
         $testCases[] = array(
             'definition' => array(
-                'type' => 'double',
+                'type' => 'decimal',
                 'length' => 7,
                 'nullable' => true
             ),
             'expectedArray' => array(
-                'sqlite' => 'double(7)',
-                'mysql' => 'double',
+                'sqlite' => 'decimal(7)',
+                'mysql' => 'decimal(7)',
             )
         );
 

@@ -11,11 +11,11 @@ namespace Dive\Test\Validation;
 require_once 'FieldValidatorTestCase.php';
 
 /**
- * Class DateFieldValidatorTest
+ * Class DecimalFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class DateFieldValidatorTest extends FieldValidatorTestCase
+class DecimalFieldValidatorTest extends FieldValidatorTestCase
 {
 
     /**
@@ -23,7 +23,7 @@ class DateFieldValidatorTest extends FieldValidatorTestCase
      */
     public function testValidationSucceeds($value)
     {
-        $this->givenIHaveAFieldTypeValidatorWithType('DateFieldValidator');
+        $this->givenIHaveAFieldTypeValidatorWithType('DecimalFieldValidator');
         $this->whenIValidateValue($value);
         $this->thenValidationShouldSucceed();
     }
@@ -34,7 +34,7 @@ class DateFieldValidatorTest extends FieldValidatorTestCase
      */
     public function testValidationFails($value)
     {
-        $this->givenIHaveAFieldTypeValidatorWithType('DateFieldValidator');
+        $this->givenIHaveAFieldTypeValidatorWithType('DecimalFieldValidator');
         $this->whenIValidateValue($value);
         $this->thenValidationShouldFail();
     }
@@ -46,9 +46,21 @@ class DateFieldValidatorTest extends FieldValidatorTestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'       => array(null),
-            '2014-04-14' => array('2014-04-14'),
-            '9999-12-31' => array('9999-12-31'),
+            'null'          => array(null),
+            'int 0'         => array(0),
+            'string 0'      => array('0'),
+            'float .0'      => array(.0),
+            'string .0'     => array('.0'),
+            'int 1234'      => array(1243),
+            'string 1234'   => array('1243'),
+            'float .1234'   => array(.1243),
+            'string .1234'  => array('.1243'),
+            'int -1234'     => array(-1243),
+            'string -1234'  => array('-1243'),
+            'float -.1234'  => array(-.1243),
+            'string -.1234' => array('-.1243'),
+            'float 134567890.0987654321' => array(1234567890.0987654321),
+            'string 1234567890.0987654321' => array('1234567890.0987654321')
         );
     }
 
@@ -60,9 +72,7 @@ class DateFieldValidatorTest extends FieldValidatorTestCase
     {
         return array(
             'string'        => array('string'),
-            '0000-00-00'    => array('0000-00-00'),
-            '2013-02-29'    => array('2013-02-29'),
-            '2013-02-28 12:23:34' => array('2013-02-28 12:23:34'),
+            '2014-04-14'    => array('2014-04-14'),
             'string-true'   => array('true'),
             'string-false'  => array('false'),
             'bool-true'     => array(true),

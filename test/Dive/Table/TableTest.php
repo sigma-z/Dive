@@ -243,4 +243,28 @@ class TableTest extends TestCase
         return $testCases;
     }
 
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testFindByUniqueIndex($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $data = array(
+            'username' => 'John Doe',
+            'password' => 'my secret'
+        );
+        $id = self::insertDataset($table, $data);
+        $this->assertTrue($id !== false);
+
+        $record = $table->findByUniqueIndex('UNIQUE', array('username' => 'John Doe'));
+
+        $this->assertInstanceOf('\Dive\Record', $record);
+        $this->assertEquals('user', $record->getTable()->getTableName());
+        $this->assertEquals($id, $record->id);
+        $this->assertSame($table->findByPk($id), $record);
+    }
+
 }

@@ -610,14 +610,25 @@ class Table
 //        $query = $this->createQuery();
 //        return $query->execute();
 //    }
-//
-//
-//    public function findByUniqueKey($uniqueKey, $fields)
-//    {
-//
-//    }
-//
-//
+
+
+    /**
+     * @param       $uniqueIndexName
+     * @param array $fields
+     * @throws Table\TableException
+     * @return Record
+     */
+    public function findByUniqueIndex($uniqueIndexName, array $fields)
+    {
+        $uniqueIndex = $this->getIndex($uniqueIndexName);
+        $query = $this->createQuery();
+        foreach ($uniqueIndex['fields'] as $field) {
+            $query->andWhere("$field = ?", $fields[$field]);
+        }
+        return $query->fetchOneAsObject();
+    }
+
+
 //    public function findByField($field, $value)
 //    {
 //

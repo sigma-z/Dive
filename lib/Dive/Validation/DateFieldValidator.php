@@ -16,12 +16,15 @@ namespace Dive\Validation;
 class DateFieldValidator implements ValidatorInterface
 {
 
+    const DEFAULT_FORMAT = 'Y-m-d';
+
+
     /**
      * @param  mixed $value
      * @param  string $format
      * @return bool
      */
-    public function validate($value, $format = 'Y-m-d')
+    public function validate($value, $format = null)
     {
         if ($value === null) {
             return true;
@@ -29,6 +32,8 @@ class DateFieldValidator implements ValidatorInterface
         if (empty($value)) {
             return false;
         }
+
+        $format = $format ?: self::DEFAULT_FORMAT;
         $date = \DateTime::createFromFormat($format, $value);
         if ($date === false) {
             return false;

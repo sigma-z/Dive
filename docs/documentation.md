@@ -177,16 +177,6 @@ Attributes applicable:
  - (bool)``zerofill`` - Flag, whether integer is zero-filled or not (Applies only to mysql databases)
 
 
-### Double
-
-type: ``double``
-
-Attributes applicable:
-
- - (bool)``unsigned`` - Default: FALSE
- - (int)``length`` - value length (Does not apply to mysql databases)
-
-
 ### Decimal
 
 type: ``decimal``

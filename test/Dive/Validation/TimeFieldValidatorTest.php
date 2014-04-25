@@ -59,22 +59,25 @@ class TimeFieldValidatorTest extends FieldValidatorTestCase
      */
     public function provideValidationFails()
     {
-        return array(
-            'string'        => array('string'),
-            '2014-04-14'    => array('2014-04-14'),
-            '000:000:000'   => array('000:000:000'),
-            '0:0:0'         => array('0:0:0'),
-            '1:1:0'         => array('1:1:0'),
-            '24:00:00'      => array('24:00:00'),
-            '23:60:00'      => array('23:60:00'),
-            '23:00:60'      => array('23:00:60'),
-            'string-true'   => array('true'),
-            'string-false'  => array('false'),
-            'bool-true'     => array(true),
-            'bool-false'    => array(false),
-            'empty-string'  => array(''),
-            'empty-array'   => array(array())
-        );
+        $cases = array();
+        $cases['string'] = array('string');
+        $cases['2014-04-14'] = array('2014-04-14');
+        $cases['000:000:000'] = array('000:000:000');
+        if (version_compare(PHP_VERSION, '5.3.9', '>')) {
+            // behavior introduced in 5.3.9 is desired, see http://3v4l.org/L1A7f
+            $cases['0:0:0'] = array('0:0:0');
+            $cases['1:1:0'] = array('1:1:0');
+        }
+        $cases['24:00:00'] = array('24:00:00');
+        $cases['23:60:00'] = array('23:60:00');
+        $cases['23:00:60'] = array('23:00:60');
+        $cases['string-true'] = array('true');
+        $cases['string-false'] = array('false');
+        $cases['bool-true'] = array(true);
+        $cases['bool-false'] = array(false);
+        $cases['empty-string'] = array('');
+        $cases['empty-array'] = array(array());
+        return $cases;
     }
 
 }

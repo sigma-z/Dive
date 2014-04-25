@@ -621,6 +621,12 @@ class Table
     public function findByUniqueIndex($uniqueIndexName, array $fields)
     {
         $uniqueIndex = $this->getIndex($uniqueIndexName);
+
+        // TODO: validate that given index is really a unique
+        // TODO: validate that given field values hit unique index fields
+        // TODO: handle null-values
+        // TODO: add possibility for another hydration mode (currently only object)
+
         $query = $this->createQuery();
         foreach ($uniqueIndex['fields'] as $field) {
             $query->andWhere("$field = ?", $fields[$field]);

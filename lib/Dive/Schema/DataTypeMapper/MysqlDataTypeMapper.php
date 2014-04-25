@@ -51,8 +51,8 @@ class MysqlDataTypeMapper extends DataTypeMapper
 
             'date'          => 'date',
             'datetime'      => 'datetime',
-            'timestamp'     => 'timestamp',
             'time'          => 'time',
+            'timestamp'     => 'integer',
             'year'          => 'integer',
 
             'tinyblob'      => 'blob',

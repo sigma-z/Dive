@@ -251,13 +251,13 @@ class Table
 
 
     /**
-     * TODO unit test it!
+     * @return array
      */
     public function getUniqueIndexes()
     {
         $uniqueIndexes = array();
         foreach ($this->indexes as $name => $definition) {
-            if ($definition['unique'] === true) {
+            if ($definition['type'] === 'unique') {
                 $uniqueIndexes[$name] = $definition;
             }
         }

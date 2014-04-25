@@ -267,4 +267,19 @@ class TableTest extends TestCase
         $this->assertSame($table->findByPk($id), $record);
     }
 
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testGetUniqueIndexes($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+
+        $actual = $table->getUniqueIndexes();
+
+        $this->assertCount(1, $actual);
+        $this->assertArrayHasKey('UNIQUE', $actual);
+    }
 }

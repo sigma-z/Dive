@@ -616,7 +616,7 @@ class Table
      * @param       $uniqueIndexName
      * @param array $fields
      * @throws Table\TableException
-     * @return Record
+     * @return Record|bool
      */
     public function findByUniqueIndex($uniqueIndexName, array $fields)
     {

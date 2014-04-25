@@ -243,4 +243,91 @@ class TableTest extends TestCase
         return $testCases;
     }
 
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testFindByUniqueIndexReturnsRecord($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $data = array(
+            'username' => 'John Doe',
+            'password' => 'my secret'
+        );
+        $id = self::insertDataset($table, $data);
+        $this->assertTrue($id !== false);
+
+        $record = $table->findByUniqueIndex('UNIQUE', array('username' => 'John Doe'));
+
+        $this->assertInstanceOf('\Dive\Record', $record);
+        $this->assertEquals('user', $record->getTable()->getTableName());
+        $this->assertEquals($id, $record->id);
+        $this->assertSame($table->findByPk($id), $record);
+    }
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testFindByUniqueIndexReturnsFalse($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+        $data = array(
+            'username' => 'John Doe',
+            'password' => 'my secret'
+        );
+        $id = self::insertDataset($table, $data);
+        $this->assertTrue($id !== false);
+
+        $record = $table->findByUniqueIndex('UNIQUE', array('username' => 'Johanna Stuart'));
+
+        $this->assertFalse($record);
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testGetUniqueIndexes($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('user');
+
+        $actual = $table->getUniqueIndexes();
+
+        $this->assertCount(1, $actual);
+        $this->assertArrayHasKey('UNIQUE', $actual);
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testGetUniqueIndexesOnTableWithoutUniques($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('donation');
+        $actual = $table->getUniqueIndexes();
+        $this->assertEmpty($actual);
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testGetUniqueIndexesOnTableWithTwoUniques($database)
+    {
+        $rm = self::createRecordManager($database);
+        $table = $rm->getTable('author');
+        $actual = $table->getUniqueIndexes();
+        $this->assertCount(2, $actual);
+        $this->assertArrayHasKey('UNIQUE', $actual);
+        $this->assertArrayHasKey('UQ_user_id', $actual);
+    }
 }

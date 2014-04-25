@@ -374,6 +374,22 @@ class RecordGenerator
 
     /**
      * @param  string $tableName
+     * @return array
+     */
+    public function getRecordIds($tableName)
+    {
+        $idList = array();
+        foreach ($this->generatedRecords as $recordData) {
+            if ($recordData['tableName'] == $tableName) {
+                $idList[] = $recordData['id'];
+            }
+        }
+        return $idList;
+    }
+
+
+    /**
+     * @param  string $tableName
      * @return string
      * @throws RecordGeneratorException
      */

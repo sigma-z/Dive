@@ -25,6 +25,7 @@ class RecordGeneratorTest extends TestCase
 
     /** @var RecordGenerator */
     private $recordGenerator;
+
     /** @var RecordManager */
     private $rm;
 
@@ -40,7 +41,22 @@ class RecordGeneratorTest extends TestCase
         $this->givenRecordGenerator();
         $this->givenTablesRows($tablesRows, $tablesMappingField);
         $this->whenGeneratingRecords();
-        $this->thenExpectingTablesCounts($expectedTablesCounts);
+        $this->thenItShouldHaveGeneratedRecordsWithTablesCounts($expectedTablesCounts);
+    }
+
+
+    /**
+     * @dataProvider provideGenerate
+     * @param array $tablesRows
+     * @param array $tablesMappingField
+     * @param array $expectedTablesCounts
+     */
+    public function testGetGeneratedRecordIds(array $tablesRows, array $tablesMappingField, array $expectedTablesCounts)
+    {
+        $this->givenRecordGenerator();
+        $this->givenTablesRows($tablesRows, $tablesMappingField);
+        $this->whenGeneratingRecords();
+        $this->thenItShouldHaveGeneratedTheRecords($expectedTablesCounts);
     }
 
 
@@ -61,7 +77,7 @@ class RecordGeneratorTest extends TestCase
             array_keys($expectedTablesCounts),
             array_fill(0, count($expectedTablesCounts), 0)
         );
-        $this->thenExpectingTablesCounts($expectedTablesCounts);
+        $this->thenItShouldHaveGeneratedRecordsWithTablesCounts($expectedTablesCounts);
     }
 
 
@@ -229,7 +245,7 @@ class RecordGeneratorTest extends TestCase
     /**
      * @param array $expectedTablesCounts
      */
-    private function thenExpectingTablesCounts(array $expectedTablesCounts)
+    private function thenItShouldHaveGeneratedRecordsWithTablesCounts(array $expectedTablesCounts)
     {
         foreach ($expectedTablesCounts as $tableName => $expectedTableCounts) {
             $actual = $this->rm->getTable($tableName)->createQuery()->countByPk();
@@ -241,5 +257,19 @@ class RecordGeneratorTest extends TestCase
     private function whenRemovingGeneratedRecords()
     {
         $this->recordGenerator->removeGeneratedRecords();
+    }
+
+
+    /**
+     * @param array $expectedTablesCounts
+     */
+    private function thenItShouldHaveGeneratedTheRecords($expectedTablesCounts)
+    {
+        foreach ($expectedTablesCounts as $tableName => $expectedTablesCount) {
+            $recordIds = $this->recordGenerator->getRecordIds($tableName);
+            echo $tableName . ' ' . $expectedTablesCount . "\n";
+            var_dump($recordIds);
+            $this->assertCount($expectedTablesCount, $recordIds);
+        }
     }
 }

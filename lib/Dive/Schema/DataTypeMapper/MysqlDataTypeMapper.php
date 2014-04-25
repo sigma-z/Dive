@@ -35,9 +35,9 @@ class MysqlDataTypeMapper extends DataTypeMapper
             'mediumint'     => 'integer',
             'bigint'        => 'integer',
 
-            'double'        => 'double',
-            'float'         => 'double',
-            'real'          => 'double',
+            'double'        => 'decimal',
+            'float'         => 'decimal',
+            'real'          => 'decimal',
             'decimal'       => 'decimal',
             'numeric'       => 'decimal',
 

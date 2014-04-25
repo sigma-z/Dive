@@ -22,7 +22,7 @@ class DataTypeMapper
 
     /** @var array */
     protected static $ormTypes = array(
-        'boolean', 'integer', 'double', 'decimal', 'string', 'datetime', 'date', 'time', 'timestamp', 'blob', 'enum'
+        'boolean', 'integer', 'decimal', 'string', 'datetime', 'date', 'time', 'timestamp', 'blob', 'enum'
     );
 
     /** @var array */

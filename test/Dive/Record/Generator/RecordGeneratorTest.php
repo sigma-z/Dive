@@ -267,8 +267,6 @@ class RecordGeneratorTest extends TestCase
     {
         foreach ($expectedTablesCounts as $tableName => $expectedTablesCount) {
             $recordIds = $this->recordGenerator->getRecordIds($tableName);
-            echo $tableName . ' ' . $expectedTablesCount . "\n";
-            var_dump($recordIds);
             $this->assertCount($expectedTablesCount, $recordIds);
         }
     }

@@ -10,6 +10,7 @@
 namespace Dive\Test\Table;
 
 
+use Dive\Collection\Collection;
 use Dive\Record;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
@@ -329,5 +330,99 @@ class TableTest extends TestCase
         $this->assertCount(2, $actual);
         $this->assertArrayHasKey('UNIQUE', $actual);
         $this->assertArrayHasKey('UQ_user_id', $actual);
+    }
+
+
+    /**
+     * @param $database
+     * @param $tableName
+     * @param $tableRows
+     * @param $findFieldValues
+     * @param $expectedRecords
+     * @dataProvider provideFindByFields
+     */
+    public function testFindByFieldsWithResult(
+        $database, $tableName, $tableRows, $findFieldValues, $expectedRecords
+    )
+    {
+        $rm = self::createRecordManager($database);
+        $recordGenerator = self::createRecordGenerator($rm);
+        $recordGenerator
+            ->setTableRows($tableName, $tableRows)
+            ->generate();
+
+        $table = $rm->getTable('author');
+        $records = $table->findByFieldValues($findFieldValues);
+
+        $this->assertInstanceOf('\Dive\Collection\Collection', $records);
+        $this->assertEquals(count($expectedRecords), $records->count());
+
+        $expectedCollection = new Collection();
+        foreach ($expectedRecords as $alias) {
+            $id = $recordGenerator->getRecordIdFromMap($tableName, $alias);
+            $expectedCollection->add($table->findByPk($id));
+        }
+        foreach ($expectedCollection as $index => $expected) {
+            $this->assertSame($expected, $records[$index]);
+        }
+    }
+
+
+    public function provideFindByFields()
+    {
+        $johnDoe = array(
+            'firstname' => 'John',
+            'lastname' => 'Doe',
+            'email' => 'john.doe@example.com'
+        );
+        $johnDoeJr = array(
+            'firstname' => 'John Jr.',
+            'lastname' => 'Doe',
+            'email' => 'john.doe.junior@example.com'
+        );
+
+        $databases = self::getDatabases();
+        $testCases = array();
+        foreach ($databases as $database) {
+            $testCases[] = array(
+                'database'  => $database,
+                'table'     => 'author',
+                'rows'      => array(
+                    'JohnD' => $johnDoe,
+                ),
+                'findFields' => $johnDoe,
+                'expectedRecords' => array('JohnD'),
+            );
+            $testCases[] = array(
+                'database'  => $database,
+                'table'     => 'author',
+                'rows'      => array(
+                    'JohnDJr' => $johnDoeJr,
+                ),
+                'findFields' => $johnDoe,
+                'expectedRecords' => array(),
+            );
+            $testCases[] = array(
+                'database'  => $database,
+                'table'     => 'author',
+                'rows'      => array(
+                    'JohnD' => $johnDoe,
+                    'JohnDJr' => $johnDoeJr
+                ),
+                'findFields' => $johnDoe,
+                'expectedRecords' => array('JohnD'),
+            );
+            $testCases[] = array(
+                'database'  => $database,
+                'table'     => 'author',
+                'rows'      => array(
+                    'JohnD' => $johnDoe,
+                    'JohnDJr' => $johnDoeJr
+                ),
+                'findFields' => array('lastname' => 'Doe'),
+                'expectedRecords' => array('JohnD', 'JohnDJr'),
+            );
+        }
+        return $testCases;
     }
 }

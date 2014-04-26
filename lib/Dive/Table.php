@@ -9,6 +9,7 @@
 
 namespace Dive;
 
+use Dive\Collection\Collection;
 use Dive\Connection\Connection;
 use Dive\Query\Query;
 use Dive\Table\Repository;
@@ -614,24 +615,33 @@ class Table
 
     /**
      * @param       $uniqueIndexName
-     * @param array $fields
-     * @throws Table\TableException
-     * @return Record|bool
+     * @param array $fieldValues
+     * @param string $fetchMode
+     * @return bool|Record|Collection|array|mixed depending on $fetchMode
      */
-    public function findByUniqueIndex($uniqueIndexName, array $fields)
+    public function findByUniqueIndex($uniqueIndexName, array $fieldValues, $fetchMode = RecordManager::FETCH_RECORD)
     {
-        $uniqueIndex = $this->getIndex($uniqueIndexName);
-
         // TODO: validate that given index is really a unique
-        // TODO: validate that given field values hit unique index fields
-        // TODO: handle null-values
-        // TODO: add possibility for another hydration mode (currently only object)
+        $uniqueIndex = $this->getIndex($uniqueIndexName);
+        $fieldsOfIndex = $uniqueIndex['fields'];
+        $fieldValues = $this->filterFieldValuesByFieldList($fieldValues, $fieldsOfIndex);
+        return $this->findByFieldValues($fieldValues, $fetchMode);
+    }
 
+
+    /**
+     * @param array $fieldValues
+     * @param string $fetchMode
+     * @return bool|Record|Collection|array|mixed depending on $fetchMode
+     */
+    public function findByFieldValues($fieldValues, $fetchMode = null)
+    {
+        // TODO: handle null-values
         $query = $this->createQuery();
-        foreach ($uniqueIndex['fields'] as $field) {
-            $query->andWhere("$field = ?", $fields[$field]);
+        foreach ($fieldValues as $field => $value) {
+            $query->andWhere("$field = ?", $value);
         }
-        return $query->fetchOneAsObject();
+        return $query->execute($fetchMode);
     }
 
 
@@ -697,6 +707,20 @@ class Table
                     . ' (you gave me: ' . implode(', ', $id) . ')!'
             );
         }
+    }
+
+    /**
+     * @param array $fieldValues
+     * @param array $fieldsOfIndex
+     * @return array
+     */
+    private function filterFieldValuesByFieldList(array $fieldValues, array $fieldsOfIndex)
+    {
+        $findByValues = array();
+        foreach ($fieldsOfIndex as $field) {
+            $findByValues[$field] = $fieldValues[$field];
+        }
+        return $findByValues;
     }
 
 }

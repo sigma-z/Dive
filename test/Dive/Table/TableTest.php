@@ -12,6 +12,7 @@ namespace Dive\Test\Table;
 
 use Dive\Collection\Collection;
 use Dive\Record;
+use Dive\RecordManager;
 use Dive\Table;
 use Dive\TestSuite\TestCase;
 
@@ -44,7 +45,7 @@ class TableTest extends TestCase
         // assert
         $this->assertInstanceOf('\Dive\Record', $record);
         $this->assertEquals('user', $record->getTable()->getTableName());
-        $this->assertEquals($id, $record->id);
+        $this->assertEquals($id, $record->get('id'));
     }
 
 
@@ -341,7 +342,7 @@ class TableTest extends TestCase
      * @param $expectedRecords
      * @dataProvider provideFindByFields
      */
-    public function testFindByFieldsWithResult(
+    public function testFindByFields(
         $database, $tableName, $tableRows, $findFieldValues, $expectedRecords
     )
     {
@@ -380,6 +381,8 @@ class TableTest extends TestCase
             'lastname' => 'Doe',
             'email' => 'john.doe.junior@example.com'
         );
+
+        $nullableUniqueRows = $this->getNullableUniqueRowsForAuthor();
 
         $databases = self::getDatabases();
         $testCases = array();
@@ -422,7 +425,180 @@ class TableTest extends TestCase
                 'findFields' => array('lastname' => 'Doe'),
                 'expectedRecords' => array('JohnD', 'JohnDJr'),
             );
+
+            $testCases[] = array(
+                'database'  => $database,
+                'table'     => 'author',
+                'rows'      => $nullableUniqueRows,
+                'findFields' => array('lastname' => 'Anonymous'),
+                'expectedRecords' => array('null_1', 'null_2', 'null_3', 'not_null')
+            );
+            $testCases[] = array(
+                'database'  => $database,
+                'table'     => 'author',
+                'rows'      => $nullableUniqueRows,
+                'findFields' => array('firstname' => null, 'lastname' => 'Anonymous'),
+                'expectedRecords' => array('null_1', 'null_2', 'null_3'),
+            );
         }
         return $testCases;
+    }
+
+    /**
+     * @return array
+     */
+    private function getNullableUniqueRowsForAuthor()
+    {
+        $nullAnonymous1 = array(
+            'firstname' => null,
+            'lastname' => 'Anonymous',
+            'email' => 'first.anonymous@example.com'
+        );
+        $nullAnonymous2 = array(
+            'firstname' => null,
+            'lastname' => 'Anonymous',
+            'email' => 'second.anonymous@example.com'
+        );
+        $nullAnonymous3 = array(
+            'firstname' => null,
+            'lastname' => 'Anonymous',
+            'email' => 'third.anonymous@example.com'
+        );
+        $notAnonymous = array(
+            'firstname' => 'Not',
+            'lastname' => 'Anonymous',
+            'email' => 'not.anonymous@example.com'
+        );
+        $nullableUniqueRows = array(
+            'null_1' => $nullAnonymous1,
+            'null_2' => $nullAnonymous2,
+            'null_3' => $nullAnonymous3,
+            'not_null' => $notAnonymous
+        );
+        return $nullableUniqueRows;
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     * @expectedException \Dive\Table\TableException
+     */
+    public function testNullableUniqueThrowsExceptionOnNotUniqueResult($database)
+    {
+        $rm = self::createRecordManager($database);
+        $recordGenerator = self::createRecordGenerator($rm);
+        $recordGenerator
+            ->setTableRows('author', $this->getNullableUniqueRowsForAuthor())
+            ->generate();
+
+        $table = $rm->getTable('author');
+        $table->findByUniqueIndex('UNIQUE', array('firstname' => null, 'lastname' => 'Anonymous'));
+    }
+
+
+    /**
+     * @TODO: is this case, what we want? e.g. mySql allows this case, but should Dive work the same way?
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testNullableUniqueWorksLikeFindByFieldValuesWhenFetchModeIsCollection($database)
+    {
+        $rm = self::createRecordManager($database);
+        $recordGenerator = self::createRecordGenerator($rm);
+        $recordGenerator
+            ->setTableRows('author', $this->getNullableUniqueRowsForAuthor())
+            ->generate();
+
+        $table = $rm->getTable('author');
+        $records = $table->findByUniqueIndex(
+            'UNIQUE',
+            array('firstname' => null, 'lastname' => 'Anonymous'),
+            RecordManager::FETCH_RECORD_COLLECTION
+        );
+
+        $expectedRecords = array('null_1', 'null_2', 'null_3');
+        $this->assertInstanceOf('\Dive\Collection\Collection', $records);
+        $this->assertEquals(count($expectedRecords), $records->count());
+
+        $expectedCollection = new Collection();
+        foreach ($expectedRecords as $alias) {
+            $id = $recordGenerator->getRecordIdFromMap('author', $alias);
+            $expectedCollection->add($table->findByPk($id));
+        }
+        foreach ($expectedCollection as $index => $expected) {
+            $this->assertSame($expected, $records[$index]);
+        }
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testNullableUniqueWorksForNotNullValues($database)
+    {
+        $rm = self::createRecordManager($database);
+        $recordGenerator = self::createRecordGenerator($rm);
+        $recordGenerator
+            ->setTableRows('author', $this->getNullableUniqueRowsForAuthor())
+            ->generate();
+        $id = $recordGenerator->getRecordIdFromMap('author', 'not_null');
+
+        $table = $rm->getTable('author');
+        $record = $table->findByUniqueIndex(
+            'UNIQUE',
+            array('firstname' => 'Not', 'lastname' => 'Anonymous')
+        );
+
+        $this->assertInstanceOf('\Dive\Record', $record);
+        $this->assertSame($table->findByPk($id), $record);
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     * @expectedException \Dive\Table\TableException
+     */
+    public function testFindByUniqueThrowsExceptionWhenIndexDoesNotExist($database)
+    {
+        $rm = self::createRecordManager($database);
+        $recordGenerator = self::createRecordGenerator($rm);
+        $recordGenerator
+            ->setTableRows('author', $this->getNullableUniqueRowsForAuthor())
+            ->generate();
+
+        $table = $rm->getTable('author');
+        $table->findByUniqueIndex(
+            'NOT_A_VALID_INDEX_NAME',
+            array('firstname' => null, 'lastname' => 'Anonymous'),
+            RecordManager::FETCH_RECORD_COLLECTION
+        );
+    }
+
+
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     * @expectedException \Dive\Table\TableException
+     */
+    public function testFindByUniqueThrowsExceptionWhenIndexIsNotUnique($database)
+    {
+        $schemaDefinition = self::getSchemaDefinition();
+        // define 'UNIQUE' is not a unique index
+        $schemaDefinition['tables']['author']['indexes']['UNIQUE']['type'] = 'index';
+
+        $rm = self::createRecordManager($database, $schemaDefinition);
+        $recordGenerator = self::createRecordGenerator($rm);
+        $recordGenerator
+            ->setTableRows('author', $this->getNullableUniqueRowsForAuthor())
+            ->generate();
+
+        $table = $rm->getTable('author');
+        $table->findByUniqueIndex(
+            'UNIQUE',
+            array('firstname' => 'Not', 'lastname' => 'Anonymous')
+        );
     }
 }

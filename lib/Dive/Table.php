@@ -614,18 +614,31 @@ class Table
 
 
     /**
-     * @param       $uniqueIndexName
-     * @param array $fieldValues
+     * @param string $uniqueIndexName
+     * @param array  $fieldValues
      * @param string $fetchMode
+     * @throws TableException
      * @return bool|Record|Collection|array|mixed depending on $fetchMode
      */
     public function findByUniqueIndex($uniqueIndexName, array $fieldValues, $fetchMode = RecordManager::FETCH_RECORD)
     {
-        // TODO: validate that given index is really a unique
-        $uniqueIndex = $this->getIndex($uniqueIndexName);
-        $fieldsOfIndex = $uniqueIndex['fields'];
+        $fieldsOfIndex = $this->getFieldsOfUniqueIndex($uniqueIndexName);
         $fieldValues = $this->filterFieldValuesByFieldList($fieldValues, $fieldsOfIndex);
+        if ($this->isFetchModeSingleResultRow($fetchMode) && $this->countByFieldValues($fieldValues) > 1) {
+            throw new TableException("Find by unique index returns more than one record!");
+        }
         return $this->findByFieldValues($fieldValues, $fetchMode);
+    }
+
+
+    /**
+     * @param array $fieldValues
+     * @return int
+     */
+    public function countByFieldValues(array $fieldValues)
+    {
+        $query = $this->createQueryByFieldValues($fieldValues);
+        return $query->countByPk();
     }
 
 
@@ -634,13 +647,9 @@ class Table
      * @param string $fetchMode
      * @return bool|Record|Collection|array|mixed depending on $fetchMode
      */
-    public function findByFieldValues($fieldValues, $fetchMode = null)
+    public function findByFieldValues(array $fieldValues, $fetchMode = null)
     {
-        // TODO: handle null-values
-        $query = $this->createQuery();
-        foreach ($fieldValues as $field => $value) {
-            $query->andWhere("$field = ?", $value);
-        }
+        $query = $this->createQueryByFieldValues($fieldValues);
         return $query->execute($fetchMode);
     }
 
@@ -723,4 +732,51 @@ class Table
         return $findByValues;
     }
 
+
+    /**
+     * @param array $fieldValues
+     * @return Query
+     */
+    private function createQueryByFieldValues(array $fieldValues)
+    {
+        $query = $this->createQuery();
+        foreach ($fieldValues as $field => $value) {
+            if ($this->hasField($field)) {
+                if ($value === null) {
+                    $query->andWhere("$field IS NULL");
+                }
+                else {
+                    $query->andWhere("$field = ?", $value);
+                }
+            }
+        }
+        return $query;
+    }
+
+
+    /**
+     * @param string $uniqueIndexName
+     * @throws TableException
+     * @return array
+     */
+    private function getFieldsOfUniqueIndex($uniqueIndexName)
+    {
+        $uniqueIndex = $this->getIndex($uniqueIndexName);
+        if (!isset($uniqueIndex['type']) || $uniqueIndex['type'] !== 'unique') {
+            throw new TableException("Index '$uniqueIndexName' is used as unique index, but it is not unique!");
+        }
+        return $uniqueIndex['fields'];
+    }
+
+
+    /**
+     * @param string $fetchMode
+     * @return bool
+     */
+    private function isFetchModeSingleResultRow($fetchMode)
+    {
+        return $fetchMode === RecordManager::FETCH_RECORD
+            || $fetchMode === RecordManager::FETCH_SINGLE_ARRAY
+            || $fetchMode === RecordManager::FETCH_SINGLE_SCALAR;
+    }
 }

@@ -440,6 +440,22 @@ class TableTest extends TestCase
                 'findFields' => array('firstname' => null, 'lastname' => 'Anonymous'),
                 'expectedRecords' => array('null_1', 'null_2', 'null_3'),
             );
+
+            // TODO: this test-case will provide current implementation. there are some possibilities to discuss:
+            // possible solution 1: invalid fields should be ignored
+            // possible solution 2: invalid fields cause empty result
+            // possible solution 3: invalid fields throw exception (would result in a new test)
+            $testCases[] = array(
+                'database'  => $database,
+                'table'     => 'author',
+                'rows'      => array(
+                    'JohnD' => $johnDoe,
+                    'JohnDJr' => $johnDoeJr
+                ),
+                'findFields' => array('lastname' => 'Doe', 'invalidField' => 'should be ignored'),
+                'expectedRecords' => array('JohnD', 'JohnDJr'),
+            );
+
         }
         return $testCases;
     }

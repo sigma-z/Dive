@@ -416,10 +416,10 @@ class RecordManager
      * @param  bool  $exists
      * @return Record
      */
-    public function getRecord($tableName, array $data, $exists = false)
+    public function getOrCreateRecord($tableName, array $data, $exists = false)
     {
         $table = $this->getTable($tableName);
-        return $this->unitOfWork->getRecord($table, $data, $exists);
+        return $this->unitOfWork->getOrCreateRecord($table, $data, $exists);
     }
 
 }

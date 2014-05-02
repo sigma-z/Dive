@@ -198,7 +198,7 @@ class RecordGenerator
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
         $tableName = $table->getTableName();
-        $record = $this->rm->getRecord($tableName, $row);
+        $record = $this->rm->getOrCreateRecord($tableName, $row);
         $this->rm->save($record);
         $this->rm->commit();
 

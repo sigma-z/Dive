@@ -561,6 +561,7 @@ class Relation
 
 
     /**
+     * @TODO Remove result collections, use repository records instead
      * Loads reference for a given record
      *
      * @param  Record $record

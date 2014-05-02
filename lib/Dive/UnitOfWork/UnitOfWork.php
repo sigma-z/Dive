@@ -78,7 +78,7 @@ class UnitOfWork
      * @throws \UnexpectedValueException
      * @return Record
      */
-    public function getRecord(Table $table, array $data, $exists = false)
+    public function getOrCreateRecord(Table $table, array $data, $exists = false)
     {
         $id = $this->getIdentifierFromData($table, $data);
         if ($id !== false && $table->isInRepository($id)) {

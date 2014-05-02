@@ -35,11 +35,11 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         $rm = self::createDefaultRecordManager();
 
         /** @var User $user */
-        $user = $rm->getRecord('user', array());
+        $user = $rm->getOrCreateRecord('user', array());
         /** @var Author $author */
-        $author = $rm->getRecord('author', array());
+        $author = $rm->getOrCreateRecord('author', array());
         /** @var Article $article */
-        $article = $rm->getRecord('article', array());
+        $article = $rm->getOrCreateRecord('article', array());
         $author->Article[] = $article;
         $user->Author = $author;
 

@@ -676,7 +676,7 @@ class Record
         $collection = new RecordCollection($rm->getTable($relatedTableName), $this, $relation);
         foreach ($related as $data) {
             $relatedExists = isset($data[self::FROM_ARRAY_EXISTS_KEY]) && $data[self::FROM_ARRAY_EXISTS_KEY] === true;
-            $relatedRecord = $rm->getRecord($relatedTableName, $data, $relatedExists);
+            $relatedRecord = $rm->getOrCreateRecord($relatedTableName, $data, $relatedExists);
             $relatedRecord->fromArray($data, true, $mapVirtualFields);
             $collection[] = $relatedRecord;
         }
@@ -695,7 +695,7 @@ class Record
         $rm = $this->getRecordManager();
         $relatedTableName = $relation->getJoinTableName($relationName);
         $relatedExists = isset($related[self::FROM_ARRAY_EXISTS_KEY]) && $related[self::FROM_ARRAY_EXISTS_KEY] === true;
-        $relatedRecord = $rm->getRecord($relatedTableName, $related, $relatedExists);
+        $relatedRecord = $rm->getOrCreateRecord($relatedTableName, $related, $relatedExists);
         $relatedRecord->fromArray($related, true, $mapVirtualFields);
         $this->set($relationName, $relatedRecord);
     }

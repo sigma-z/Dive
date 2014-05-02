@@ -6,16 +6,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 11.02.13
- */
 
 namespace Dive\Hydrator;
 
 use Dive\Table;
 
-
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 11.02.13
+ */
 class RecordHydrator extends Hydrator
 {
 
@@ -49,7 +48,7 @@ class RecordHydrator extends Hydrator
      */
     protected function hydrateRecord(Table $table, array $row)
     {
-        $record = $this->recordManager->getRecord($table->getTableName(), $row, true);
+        $record = $this->recordManager->getOrCreateRecord($table->getTableName(), $row, true);
 //        $id = $record->getIdentifierAsString();
 //        foreach ($referencingRelations as $relation) {
 //            $referencingField = $relation->getReferencingField();

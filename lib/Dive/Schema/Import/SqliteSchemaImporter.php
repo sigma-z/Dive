@@ -49,13 +49,13 @@ class SqliteSchemaImporter extends SchemaImporter
     /**
      * gets table/view fields
      *
-     * @param  string $name
+     * @param  string $tableName
      * @return array
      */
-    private function getFields($name)
+    private function getFields($tableName)
     {
         $fields = array();
-        $dbFields = $this->conn->query('PRAGMA table_info (' . $this->conn->quoteIdentifier($name) . ')');
+        $dbFields = $this->conn->query('PRAGMA table_info (' . $this->conn->quoteIdentifier($tableName) . ')');
         foreach ($dbFields as $fieldData) {
             $dbType = $fieldData['type'];
             $unsigned = (0 === stripos($dbType, 'unsigned '));
@@ -98,8 +98,14 @@ class SqliteSchemaImporter extends SchemaImporter
                 $type = $row['unique'] === '1' ? PlatformInterface::UNIQUE : PlatformInterface::INDEX;
                 $indexes[$name] = array('type' => $type, 'fields' => array());
                 $indexRows = $this->conn->query($query);
+                $tableFields = $this->getFields($tableName);
+
                 foreach ($indexRows as $indexRow) {
-                    $indexes[$name]['fields'][] = $indexRow['name'];
+                    $fieldName = $indexRow['name'];
+                    if (isset($tableFields[$fieldName]['nullable']) && $tableFields[$fieldName]['nullable'] === true) {
+                        $indexes[$name]['nullConstrained'] = $this->conn->getPlatform()->isUniqueConstraintNullConstrained();
+                    }
+                    $indexes[$name]['fields'][] = $fieldName;
                 }
             }
             $this->cacheTableIndexes($tableName, $indexes);

@@ -27,7 +27,7 @@ class SchemaImporterTest extends TestCase
      * @param  array $database
      * @return SchemaImporterInterface
      */
-    private function getImporter($database)
+    private function getImporter(array $database)
     {
         $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
         $driver = $conn->getDriver();
@@ -39,11 +39,13 @@ class SchemaImporterTest extends TestCase
     /**
      * @dataProvider provideGetTableNames
      */
-    public function testGetTableNames($database, array $expectedArray)
+    public function testGetTableNames(array $database, array $expectedArray)
     {
         $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
-        $expected = array('article', 'article2tag', 'author', 'comment', 'data_types', 'donation', 'tag', 'user');
+        $expected = array(
+            'article', 'article2tag', 'author', 'comment', 'data_types', 'donation', 'tag', 'unique_constraint_test', 'user'
+        );
 
         $actual = $importer->getTableNames(true);
         sort($actual);
@@ -72,7 +74,7 @@ class SchemaImporterTest extends TestCase
     /**
      * @dataProvider provideGetTableFields
      */
-    public function testGetTableFields($database, array $expectedArray)
+    public function testGetTableFields(array $database, array $expectedArray)
     {
         $expected = $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
@@ -133,12 +135,12 @@ class SchemaImporterTest extends TestCase
     /**
      * @dataProvider provideGetTableIndexes
      */
-    public function testGetTableIndexes($database, array $expectedArray)
+    public function testGetTableIndexes(array $database, $tableName, array $expectedArray)
     {
         $expected = $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
 
-        $actual = $importer->getTableIndexes('user');
+        $actual = $importer->getTableIndexes($tableName);
         $this->assertEquals($expected, $actual);
     }
 
@@ -151,6 +153,7 @@ class SchemaImporterTest extends TestCase
         $testCases = array();
 
         $testCases[] = array(
+            'tableName' => 'user',
             'expectedArray' => array(
                 'sqlite' => array(
                     'user_UNIQUE' => array(
@@ -167,6 +170,38 @@ class SchemaImporterTest extends TestCase
             )
         );
 
+        $testCases[] = array(
+            'tableName' => 'author',
+            'expectedArray' => array(
+                'sqlite' => array(
+                    'author_UNIQUE' => array(
+                        'fields' => array('firstname', 'lastname'),
+                        'type' => 'unique',
+                        'nullConstrained' => false
+                    ),
+                    'author_UQ_user_id' => array(
+                        'fields' => array('user_id'),
+                        'type' => 'unique'
+                    )
+                ),
+                'mysql' => array(
+                    'UNIQUE' => array(
+                        'fields' => array('firstname', 'lastname'),
+                        'type' => 'unique',
+                        'nullConstrained' => false
+                    ),
+                    'UQ_user_id' => array(
+                        'fields' => array('user_id'),
+                        'type' => 'unique'
+                    ),
+                    'author_fk_editor_id' => array(
+                        'fields' => array('editor_id'),
+                        'type' => 'index'
+                    )
+                )
+            )
+        );
+
         return self::getDatabaseAwareTestCases($testCases);
     }
 
@@ -174,7 +209,7 @@ class SchemaImporterTest extends TestCase
     /**
      * @dataProvider provideGetTableForeignKeys
      */
-    public function testGetTableForeignKeys($database, array $expectedArray)
+    public function testGetTableForeignKeys(array $database, array $expectedArray)
     {
         $expected = $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
@@ -243,7 +278,7 @@ class SchemaImporterTest extends TestCase
     /**
      * @dataProvider provideGetViewNames
      */
-    public function testGetViewNames($database, array $expectedArray)
+    public function testGetViewNames(array $database, array $expectedArray)
     {
         $expected = $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
@@ -272,7 +307,7 @@ class SchemaImporterTest extends TestCase
     /**
      * @dataProvider provideGetViewFields
      */
-    public function testGetViewFields($database, array $expectedArray)
+    public function testGetViewFields(array $database, array $expectedArray)
     {
         $expected = $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
@@ -359,7 +394,7 @@ class SchemaImporterTest extends TestCase
     /**
      * @dataProvider \Dive\TestSuite\TestCase::provideDatabaseAwareTestCases
      */
-    public function testImportDefinitionIsValidSchema($database)
+    public function testImportDefinitionIsValidSchema(array $database)
     {
         $importer = $this->getImporter($database);
         $definition = $importer->importDefinition();

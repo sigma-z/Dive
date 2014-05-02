@@ -393,6 +393,7 @@ class UnitOfWork
     public function commitChanges()
     {
         $this->checkRestrictOnCommit();
+        $this->validateScheduledSaveRecords();
 
         $conn = $this->recordManager->getConnection();
         $conn->beginTransaction();
@@ -430,8 +431,8 @@ class UnitOfWork
                 }
                 else {
                     // remove record from schedule, so record references do not have to be updated
-                    $this->recordIdentityMap[$oid];
-                    $this->scheduledForCommit[$oid];
+                    unset($this->recordIdentityMap[$oid]);
+                    unset($this->scheduledForCommit[$oid]);
                 }
             }
         }
@@ -609,5 +610,23 @@ class UnitOfWork
                 throw new UnitOfWorkException("Delete record is restricted by onDelete!");
             }
         }
+    }
+
+
+    private function validateScheduledSaveRecords()
+    {
+        foreach ($this->recordIdentityMap as $record) {
+            if ($this->isRecordScheduledForSave($record)) {
+                $this->validateRecord($record);
+            }
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function validateRecord(Record $record)
+    {
     }
 }

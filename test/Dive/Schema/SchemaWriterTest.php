@@ -9,13 +9,13 @@
 
 namespace Dive\Test\Schema;
 
+use Dive\Schema\Schema;
+use Dive\Schema\SchemaWriter;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 02.11.12
  */
-use Dive\Schema\Schema;
-use Dive\Schema\SchemaWriter;
-
 class SchemaWriterTest extends \PHPUnit_Framework_TestCase
 {
 
@@ -23,6 +23,7 @@ class SchemaWriterTest extends \PHPUnit_Framework_TestCase
     {
         // prepare test
         $schemaFile = FIXTURE_DIR . '/schema.php';
+        /** @noinspection PhpIncludeInspection */
         $schemaDefinition = include $schemaFile;
         $schema = new Schema($schemaDefinition);
 

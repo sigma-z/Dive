@@ -354,6 +354,79 @@ return array(
                     'nullable' => true
                 )
             )
+        ),
+        'unique_constraint_test' => array(
+            'fields' => array(
+                'id' => array(
+                    'primary'   => true,
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'autoIncrement' => true
+                ),
+                'single_unique' => array(
+                    'type'      => 'string',
+                    'length'    => 10,
+                    'nullable'  => true
+                ),
+                'single_unique_null_constrained' => array(
+                    'type'      => 'string',
+                    'length'    => 10,
+                    'nullable'  => true
+                ),
+                'composite_unique1' => array(
+                    'type'      => 'string',
+                    'length'    => 10,
+                    'nullable'  => true
+                ),
+                'composite_unique2' => array(
+                    'type'      => 'string',
+                    'length'    => 10,
+                    'nullable'  => true
+                ),
+                'composite_unique_null_constrained1' => array(
+                    'type'      => 'string',
+                    'length'    => 10,
+                    'nullable'  => true
+                ),
+                'composite_unique_null_constrained2' => array(
+                    'type'      => 'string',
+                    'length'    => 10,
+                    'nullable'  => true
+                )
+            ),
+//            'indexes' => array(
+//                'UQ_1' => array(
+//                    'type' => 'unique',
+//                    'fields' => array(
+//                        'single_unique'
+//                    ),
+//                    'nullConstrained' => false
+//                ),
+//                'UQ_2' => array(
+//                    'type' => 'unique',
+//                    'fields' => array(
+//                        'single_unique_null_constrained'
+//                    ),
+//                    'nullConstrained' => true
+//                ),
+//                'UQ_3' => array(
+//                    'type' => 'unique',
+//                    'fields' => array(
+//                        'composite_unique1',
+//                        'composite_unique2'
+//                    ),
+//                    'nullConstrained' => false
+//                ),
+//                'UQ_4' => array(
+//                    'type' => 'unique',
+//                    'fields' => array(
+//                        'composite_unique_null_constrained1',
+//                        'composite_unique_null_constrained2'
+//                    ),
+//                    'nullConstrained' => true
+//                )
+//            )
         )
     ),
     'relations' => array(

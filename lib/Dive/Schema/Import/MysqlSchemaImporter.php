@@ -49,13 +49,14 @@ class MysqlSchemaImporter extends SchemaImporter
     /**
      * gets table/view fields
      *
-     * @param  string $name
+     * @param  string $tableName
+     * @throws \Dive\Schema\SchemaException
      * @return array
      */
-    private function getFields($name)
+    private function getFields($tableName)
     {
         $fields = array();
-        $dbFields = $this->conn->query('SHOW FIELDS FROM ' . $this->conn->quoteIdentifier($name));
+        $dbFields = $this->conn->query('SHOW FIELDS FROM ' . $this->conn->quoteIdentifier($tableName));
         foreach ($dbFields as $fieldData) {
             $fieldDefinition = $this->parseDbType($fieldData['Type']);
 
@@ -88,6 +89,9 @@ class MysqlSchemaImporter extends SchemaImporter
                 if (!isset($indexes[$name])) {
                     $type = $row['Non_unique'] === '1' ? PlatformInterface::INDEX : PlatformInterface::UNIQUE;
                     $indexes[$name] = array('type' => $type, 'fields' => array());
+                }
+                if ($indexes[$name]['type'] == PlatformInterface::UNIQUE && $row['Null'] === 'YES') {
+                    $indexes[$name]['nullConstrained'] = $this->conn->getPlatform()->isUniqueConstraintNullConstrained();
                 }
                 $indexes[$name]['fields'][] = $row['Column_name'];
             }

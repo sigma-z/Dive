@@ -570,7 +570,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @return  mixed
      * @throws  \PHPUnit_Framework_IncompleteTestError
      */
-    protected function getExpectedOrMarkTestIncomplete(array $expected, $database)
+    protected function getExpectedOrMarkTestIncomplete(array $expected, array $database)
     {
         $dsn = $database['dsn'];
         $scheme = self::getSchemeFromDsn($dsn);
@@ -595,9 +595,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         }
         $databases = self::getDatabases();
         $testCasesWithDatabases = array();
-        foreach ($testCases as $testCase) {
-            foreach ($databases as $database) {
-                $testCasesWithDatabases[] = array_merge(array('database' => $database), $testCase);
+        foreach ($testCases as $testCaseName => $testCase) {
+            foreach ($databases as $dbName => $database) {
+                $testCaseKey = $dbName;
+                if (is_string($testCaseName)) {
+                    $testCaseKey .= ':' . $testCaseName;
+                }
+                $testCasesWithDatabases[$testCaseKey] = array_merge(array('database' => $database), $testCase);
             }
         }
         return $testCasesWithDatabases;
@@ -613,8 +617,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         $databases = self::getDatabases();
         $testCasesWithDatabases = array();
-        foreach ($databases as $dbname => $database) {
-            $testCasesWithDatabases[$dbname] = array('database' => $database);
+        foreach ($databases as $dbName => $database) {
+            $testCasesWithDatabases[$dbName] = array('database' => $database);
         }
         return $testCasesWithDatabases;
     }

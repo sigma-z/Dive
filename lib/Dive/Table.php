@@ -230,13 +230,13 @@ class Table
     /**
      * Gets index
      *
-     * @param  string $name
+     * @param  string $indexName
      * @return array
      *   keys: type<string>, fields<array>
      */
-    public function getIndex($name)
+    public function getIndex($indexName)
     {
-        return isset($this->indexes[$name]) ? $this->indexes[$name] : null;
+        return isset($this->indexes[$indexName]) ? $this->indexes[$indexName] : null;
     }
 
 
@@ -263,6 +263,24 @@ class Table
             }
         }
         return $uniqueIndexes;
+    }
+
+
+    /**
+     * @param  string $uniqueName
+     * @throws Table\TableException
+     * @return bool
+     */
+    public function isUniqueIndexNullConstrained($uniqueName)
+    {
+        $indexDefinition = $this->getIndex($uniqueName);
+        if ($indexDefinition === null) {
+            throw new TableException("Missing unique constraint '$uniqueName' [table '$this->tableName']!");
+        }
+        if ($indexDefinition['type'] !== 'unique') {
+            throw new TableException("Index '$uniqueName' is not an unique constraint [table '$this->tableName']!");
+        }
+        return isset($indexDefinition['nullConstrained']) && $indexDefinition['nullConstrained'] === true;
     }
 
 
@@ -541,10 +559,13 @@ class Table
     }
 
 
-//    public function count()
-//    {
-//        return $this->createQuery()->count();
-//    }
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        return $this->createQuery()->countByPk();
+    }
 
 
     /**

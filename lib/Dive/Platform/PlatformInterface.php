@@ -205,6 +205,14 @@ interface PlatformInterface
      * @return string
      */
     public function getDropIndexSql($tableName, $indexName);
+
+    /**
+     * Returns TRUE, if NULL-values do NOT disable the unique constraint (ie. Oracle and MSSQL)
+     * Returns FALSE for MySQL, SQLITE, PostgreSQL, DB2
+     *
+     * @return bool
+     */
+    public function isUniqueConstraintNullConstrained();
     // </editor-fold>
 
 

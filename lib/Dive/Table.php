@@ -11,6 +11,7 @@ namespace Dive;
 
 use Dive\Collection\Collection;
 use Dive\Connection\Connection;
+use Dive\Hydrator\SingleHydrator;
 use Dive\Query\Query;
 use Dive\Table\Repository;
 use Dive\Table\TableException;
@@ -629,6 +630,20 @@ class Table
 
 
     /**
+     * @param string $indexName
+     * @param array  $fieldValues
+     * @param string $fetchMode
+     * @return bool|Record|Collection|array|mixed depending on $fetchMode
+     */
+    public function findByIndex($indexName, array $fieldValues, $fetchMode = RecordManager::FETCH_RECORD)
+    {
+        $fieldsOfIndex = $this->getFieldsOfIndex($indexName);
+        $fieldValues = $this->filterFieldValuesByFieldList($fieldValues, $fieldsOfIndex);
+        return $this->findByFieldValues($fieldValues, $fetchMode);
+    }
+
+
+    /**
      * @param array $fieldValues
      * @return int
      */
@@ -784,13 +799,22 @@ class Table
 
 
     /**
-     * @param string $fetchMode
-     * @return bool
+     * @param string $indexName
+     * @return array
      */
-    private function isFetchModeSingleResultRow($fetchMode)
+    private function getFieldsOfIndex($indexName)
     {
-        return $fetchMode === RecordManager::FETCH_RECORD
-            || $fetchMode === RecordManager::FETCH_SINGLE_ARRAY
-            || $fetchMode === RecordManager::FETCH_SINGLE_SCALAR;
+        $uniqueIndex = $this->getIndex($indexName);
+        return $uniqueIndex['fields'];
     }
+
+
+//    /**
+//     * @param string $fetchMode
+//     * @return bool
+//     */
+//    private function isFetchModeSingleResultRow($fetchMode)
+//    {
+//        return $this->getRecordManager()->getHydrator($fetchMode) instanceof SingleHydrator;
+//    }
 }

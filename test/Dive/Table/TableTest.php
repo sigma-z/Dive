@@ -498,7 +498,7 @@ class TableTest extends TestCase
     /**
      * @param string $database
      * @dataProvider provideDatabaseAwareTestCases
-     * @expectedException \Dive\Table\TableException
+     * @expectedException \Dive\Hydrator\HydratorException
      */
     public function testNullableUniqueThrowsExceptionOnNotUniqueResult($database)
     {

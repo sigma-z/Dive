@@ -624,9 +624,6 @@ class Table
     {
         $fieldsOfIndex = $this->getFieldsOfUniqueIndex($uniqueIndexName);
         $fieldValues = $this->filterFieldValuesByFieldList($fieldValues, $fieldsOfIndex);
-        if ($this->isFetchModeSingleResultRow($fetchMode) && $this->countByFieldValues($fieldValues) > 1) {
-            throw new TableException("Find by unique index returns more than one record!");
-        }
         return $this->findByFieldValues($fieldValues, $fetchMode);
     }
 
@@ -675,9 +672,6 @@ class Table
 //     */
 //    public function findOneByField($field, $value, $fetchMode = null)
 //    {
-//        if (!$this->isFetchModeSingleResultRow($fetchMode)) {
-//            throw new TableException("Find one by field returns more than one record!");
-//        }
 //        return $this->findByFieldValues(array($field => $value), $fetchMode);
 //    }
 

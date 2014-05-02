@@ -17,20 +17,14 @@ namespace Dive\Hydrator;
 use Dive\Table;
 
 
-class SingleArrayHydrator extends Hydrator
+class SingleArrayHydrator extends SingleHydrator
 {
 
     /**
-     * Gets statement result
-     *
-     * @param  \Dive\Table|null $table
-     * @return array
+     * @return array|bool
      */
-    public function getResult(Table $table = null)
+    protected function fetchNextRow()
     {
-        $row = $this->statement->fetch(\PDO::FETCH_ASSOC);
-        $this->statement->closeCursor();
-        return $row;
+        return $this->statement->fetch(\PDO::FETCH_ASSOC);
     }
-
 }

@@ -10,6 +10,8 @@
 namespace Dive\Test\Query;
 
 use Dive\Collection\RecordCollection;
+use Dive\Hydrator\RecordCollectionHydrator;
+use Dive\Hydrator\SingleHydrator;
 use Dive\Query\Query;
 use Dive\Record;
 use Dive\RecordManager;
@@ -677,6 +679,13 @@ class QueryTest extends TestCase
 
         $table = $rm->getTable('user');
         $query = $table->createQuery();
+
+        $hydrator = $rm->getHydrator($fetchMode);
+        if ($hydrator instanceof SingleHydrator) {
+            // prevent hydration exception
+            $query->limit(1);
+        }
+
         if ($isRecordFetchMode) {
             if ($fetchMode == RecordManager::FETCH_RECORD) {
                 $expected['id'] = $userIds[0];

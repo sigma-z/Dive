@@ -16,20 +16,15 @@ namespace Dive\Hydrator;
 use Dive\Table;
 
 
-class SingleScalarHydrator extends Hydrator
+class SingleScalarHydrator extends SingleHydrator
 {
 
     /**
-     * Gets statement result
-     *
-     * @param  \Dive\Table|null $table
-     * @return string
+     * @return array|bool
      */
-    public function getResult(Table $table = null)
+    protected function fetchNextRow()
     {
-        $result = $this->statement->fetchColumn();
-        $this->statement->closeCursor();
-        return $result;
+        return $this->statement->fetchColumn();
     }
 
 }

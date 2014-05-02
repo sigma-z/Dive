@@ -17,14 +17,14 @@ use Dive\Table;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 11.02.13
  */
-class RecordCollectionHydrator extends RecordHydrator
+class RecordCollectionHydrator extends Hydrator
 {
 
     /**
      * Gets hydrated result
      *
-     * @param   \Dive\Table $table
-     * @return  \Dive\Collection\RecordCollection
+     * @param   Table $table
+     * @return  RecordCollection
      */
     public function getResult(Table $table = null)
     {

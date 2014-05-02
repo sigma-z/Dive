@@ -329,22 +329,6 @@ class Table
 
 
     /**
-     * TODO implement unit test
-     * splits any given primary key(s) into the Primary key(s)
-     * @param string|array $pk
-     * @return string[]
-     */
-    public function splitPrimaryKeyAsArray($pk)
-    {
-        if (is_array($pk)) {
-            return $pk;
-        }
-        $pkValues = explode(Record::COMPOSITE_ID_SEPARATOR, $pk);
-        return array_combine($this->identifierFields, $pkValues);
-    }
-
-
-    /**
      * Gets identifier fields as array
      *
      * @return array

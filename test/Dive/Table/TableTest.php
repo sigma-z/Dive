@@ -654,4 +654,5 @@ class TableTest extends TestCase
             $this->assertSame($expected, $records[$index]);
         }
     }
+
 }

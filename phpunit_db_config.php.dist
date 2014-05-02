@@ -12,8 +12,8 @@
  */
 
 return array(
-    'sqlite:file::memory:',
-    /*array(
+    'SQLite' => 'sqlite:file::memory:',
+    /*'MySQL' => array(
         'dsn' => 'mysql:host=localhost;dbname=test',
         'user' => 'root',
         'password' => ''

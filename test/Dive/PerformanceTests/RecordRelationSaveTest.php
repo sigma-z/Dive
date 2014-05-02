@@ -22,10 +22,13 @@ use Dive\TestSuite\TestCase;
  */
 class RecordRelationSaveTest extends TestCase
 {
-
-    public function test()
+    /**
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function test($database)
     {
-        $rm = self::createDefaultRecordManager();
+        $rm = self::createRecordManager($database);
         $authorTable = $rm->getTable('author');
         $articleTable = $rm->getTable('article');
         $userTable = $rm->getTable('user');
@@ -47,7 +50,7 @@ class RecordRelationSaveTest extends TestCase
                 'title' => 'Title ' . $i,
                 'teaser' => 'Teaser ' . $i,
                 'text' => 'Text ' . $i,
-                'changed_on' => new Expression('NOW()')
+                'changed_on' => new Expression('CURRENT_TIMESTAMP')
             );
             $articles[] = $articleTable->createRecord($articleData);
         }

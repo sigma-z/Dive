@@ -654,15 +654,31 @@ class Table
     }
 
 
-//    public function findByField($field, $value)
+//    /**
+//     * @param string $field
+//     * @param mixed  $value
+//     * @param string $fetchMode
+//     * @return bool|Record|Collection|array|mixed depending on $fetchMode
+//     */
+//    public function findByField($field, $value, $fetchMode = null)
 //    {
-//
+//        return $this->findByFieldValues(array($field => $value), $fetchMode);
 //    }
 //
 //
-//    public function findOneByField($field, $value)
+//    /**
+//     * @param string $field
+//     * @param mixed  $value
+//     * @param string $fetchMode
+//     * @throws TableException
+//     * @return bool|Record|Collection|array|mixed depending on $fetchMode
+//     */
+//    public function findOneByField($field, $value, $fetchMode = null)
 //    {
-//
+//        if (!$this->isFetchModeSingleResultRow($fetchMode)) {
+//            throw new TableException("Find one by field returns more than one record!");
+//        }
+//        return $this->findByFieldValues(array($field => $value), $fetchMode);
 //    }
 
 
@@ -718,7 +734,11 @@ class Table
         }
     }
 
+
     /**
+     * Modifies $fieldValues array. Deletes all fields that are not part of index and adds all fields of index not part
+     *  of $fieldValues with value null.
+     *
      * @param array $fieldValues
      * @param array $fieldsOfIndex
      * @return array
@@ -727,7 +747,7 @@ class Table
     {
         $findByValues = array();
         foreach ($fieldsOfIndex as $field) {
-            $findByValues[$field] = $fieldValues[$field];
+            $findByValues[$field] = isset($fieldValues[$field]) ? $fieldValues[$field] : null;
         }
         return $findByValues;
     }

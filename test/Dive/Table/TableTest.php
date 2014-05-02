@@ -617,4 +617,41 @@ class TableTest extends TestCase
             array('firstname' => 'Not', 'lastname' => 'Anonymous')
         );
     }
+
+
+    /**
+     * Info: This is a copy of "testNullableUniqueWorksForNotNullValues" with commented out first name!
+     * Not give a field will be implicit accepted as NULL!
+     *
+     * @param string $database
+     * @dataProvider provideDatabaseAwareTestCases
+     */
+    public function testFindByUniqueWithIncompleteFieldValues($database)
+    {
+        $rm = self::createRecordManager($database);
+        $recordGenerator = self::createRecordGenerator($rm);
+        $recordGenerator
+            ->setTableRows('author', $this->getNullableUniqueRowsForAuthor())
+            ->generate();
+
+        $table = $rm->getTable('author');
+        $records = $table->findByUniqueIndex(
+            'UNIQUE',
+            array(/*'firstname' => null, */'lastname' => 'Anonymous'),
+            RecordManager::FETCH_RECORD_COLLECTION
+        );
+
+        $expectedRecords = array('null_1', 'null_2', 'null_3');
+        $this->assertInstanceOf('\Dive\Collection\Collection', $records);
+        $this->assertEquals(count($expectedRecords), $records->count());
+
+        $expectedCollection = new Collection();
+        foreach ($expectedRecords as $alias) {
+            $id = $recordGenerator->getRecordIdFromMap('author', $alias);
+            $expectedCollection->add($table->findByPk($id));
+        }
+        foreach ($expectedCollection as $index => $expected) {
+            $this->assertSame($expected, $records[$index]);
+        }
+    }
 }

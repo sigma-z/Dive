@@ -180,8 +180,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
                 /** @noinspection PhpIncludeInspection */
                 $databases = require_once $dbConfigDistFile;
             }
-            foreach ($databases as $database) {
-                self::$databases[] = is_string($database)
+            foreach ($databases as $dbname => $database) {
+                self::$databases[$dbname] = is_string($database)
                     ? array('dsn' => $database, 'user' => '', 'password' => '')
                     : $database;
             }
@@ -231,7 +231,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     public static function createDefaultRecordManager(array $schemaDefinition = null)
     {
         $databases = self::getDatabases();
-        return self::createRecordManager($databases[0], $schemaDefinition);
+        return self::createRecordManager(array_shift($databases), $schemaDefinition);
     }
 
 
@@ -613,8 +613,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         $databases = self::getDatabases();
         $testCasesWithDatabases = array();
-        foreach ($databases as $database) {
-            $testCasesWithDatabases[] = array('database' => $database);
+        foreach ($databases as $dbname => $database) {
+            $testCasesWithDatabases[$dbname] = array('database' => $database);
         }
         return $testCasesWithDatabases;
     }

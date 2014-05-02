@@ -11,7 +11,6 @@ namespace Dive;
 
 use Dive\Collection\Collection;
 use Dive\Connection\Connection;
-use Dive\Hydrator\SingleHydrator;
 use Dive\Query\Query;
 use Dive\Table\Repository;
 use Dive\Table\TableException;
@@ -808,13 +807,4 @@ class Table
         return $uniqueIndex['fields'];
     }
 
-
-//    /**
-//     * @param string $fetchMode
-//     * @return bool
-//     */
-//    private function isFetchModeSingleResultRow($fetchMode)
-//    {
-//        return $this->getRecordManager()->getHydrator($fetchMode) instanceof SingleHydrator;
-//    }
 }

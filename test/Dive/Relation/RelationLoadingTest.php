@@ -92,12 +92,11 @@ class RelationLoadingTest extends TestCase
             ->execute();
         $this->assertEquals(count(self::$tableRows['author']), $users->count());
 
-        /** @var \Iterator $iterator */
-        $iterator = $users->getIterator();
-        $user = $iterator->current();
-        $coll = $user->getResultCollection();
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $coll);
-
+        foreach ($users as $user) {
+            if (($author = $user->Author)) {
+                $author->Article;
+            }
+        }
         foreach ($users as $user) {
             if (($author = $user->Author)) {
                 $author->Article;

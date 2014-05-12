@@ -511,7 +511,7 @@ class ReferenceMap
                 $relatedCollection = $this->getRelatedCollection($referencedRecord->getOid());
                 // TODO exception, or if not set create one??
                 if ($relatedCollection) {
-                    $relatedCollection->add($owningRecord, null);
+                    $relatedCollection->add($owningRecord);
                 }
             }
         }

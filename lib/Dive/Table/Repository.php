@@ -210,4 +210,13 @@ class Repository implements \Countable
     {
         return count($this->records);
     }
+
+
+    /**
+     * @return array
+     */
+    public function getIdentifiers()
+    {
+        return array_keys($this->identityMap);
+    }
 }

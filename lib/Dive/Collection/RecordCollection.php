@@ -221,13 +221,14 @@ class RecordCollection extends Collection
 
     /**
      * @param  bool $deep
+     * @param  bool $withMappedFields
      * @return array
      */
-    public function toArray($deep = false)
+    public function toArray($deep = false, $withMappedFields = false)
     {
         $data = array();
         foreach ($this->items as $record) {
-            $data[] = $record->toArray($deep);
+            $data[] = $record->toArray($deep, $withMappedFields);
         }
         return $data;
     }

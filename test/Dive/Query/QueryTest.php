@@ -10,7 +10,6 @@
 namespace Dive\Test\Query;
 
 use Dive\Collection\RecordCollection;
-use Dive\Hydrator\RecordCollectionHydrator;
 use Dive\Hydrator\SingleHydrator;
 use Dive\Query\Query;
 use Dive\Record;
@@ -815,6 +814,47 @@ class QueryTest extends TestCase
         $rm = self::createDefaultRecordManager();
         $query = new Query($rm);
         $query->getRootTable();
+    }
+
+
+    /**
+     * @dataProvider provideQueryHasResult
+     */
+    public function testQueryHasResult(array $conditions, array $params, $expected)
+    {
+        $rm = self::createDefaultRecordManager();
+        $query = $rm->getTable('user')->createQuery('u');
+        foreach ($conditions as $condition) {
+            $query->andWhere($condition);
+        }
+        $query->setParams('where', $params);
+
+        $this->assertEquals($expected, $query->hasResult());
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideQueryHasResult()
+    {
+        $testCases = array();
+        $testCases[] = array(
+            'conditions' => array('username = ?', 'password = ?'),
+            'params' => array('Johanna Stuart', 'johanna secret'),
+            'expected' => true
+        );
+        $testCases[] = array(
+            'conditions' => array('password = ? OR password = ?'),
+            'params' => array('johanna secret', 'my secret'),
+            'expected' => true
+        );
+        $testCases[] = array(
+            'conditions' => array('password = ?', 'password = ?'),
+            'params' => array('johanna secret', 'my secret'),
+            'expected' => false
+        );
+        return $testCases;
     }
 
 

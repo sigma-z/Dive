@@ -6,21 +6,32 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Dive\Query;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 01.03.13
  */
-
-namespace Dive\Query;
-
-
 interface QueryHydrationInterface
 {
 
-//    /**
-//     * @return int
-//     */
-//    public function count();
+    /**
+     * @return int
+     */
+    public function count();
+
+
+    /**
+     * @return int
+     */
+    public function countByPk();
+
+
+    /**
+     * @return bool
+     */
+    public function hasResult();
 
 
     /**

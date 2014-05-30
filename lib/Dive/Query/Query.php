@@ -725,6 +725,21 @@ class Query implements QueryInterface, QueryHydrationInterface
 
 
     /**
+     * @return bool
+     * @throws QueryException
+     */
+    public function hasResult()
+    {
+        $query = $this->copy();
+        $query->removeQueryPart('orderBy');
+        $query->select('(1+0)');
+        $query->limit(1);
+        $result = $query->fetchSingleScalar();
+        return $result !== false;
+    }
+
+
+    /**
      * Gets fetch mode
      *
      * @return string

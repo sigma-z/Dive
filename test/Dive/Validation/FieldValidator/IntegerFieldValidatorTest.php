@@ -6,17 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace Dive\Test\Validation\FieldValidator;
 
-namespace Dive\Test\Validation;
-
-require_once __DIR__ . '/FieldValidatorTestCase.php';
+require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class BooleanFieldValidationTest
+ * Class IntegerFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 11.04.14
  */
-class BooleanFieldValidationTest extends FieldValidatorTestCase
+class IntegerFieldValidatorTest extends TestCase
 {
 
     /**
@@ -24,7 +23,7 @@ class BooleanFieldValidationTest extends FieldValidatorTestCase
      */
     public function testValidationSucceeds($value)
     {
-        $this->givenIHaveAFieldTypeValidatorWithType('BooleanFieldValidator');
+        $this->givenIHaveAFieldTypeValidatorWithType('IntegerFieldValidator');
         $this->whenIValidateValue($value);
         $this->thenValidationShouldSucceed();
     }
@@ -35,7 +34,7 @@ class BooleanFieldValidationTest extends FieldValidatorTestCase
      */
     public function testValidationFails($value)
     {
-        $this->givenIHaveAFieldTypeValidatorWithType('BooleanFieldValidator');
+        $this->givenIHaveAFieldTypeValidatorWithType('IntegerFieldValidator');
         $this->whenIValidateValue($value);
         $this->thenValidationShouldFail();
     }
@@ -47,13 +46,15 @@ class BooleanFieldValidationTest extends FieldValidatorTestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'       => array(null),
-            'int1'       => array(1),
-            'string1'    => array('1'),
-            'bool-true'  => array(true),
-            'int0'       => array(0),
-            'string0'    => array('0'),
-            'bool-false' => array(false),
+            'null'              => array(null),
+            'int1'              => array(1),
+            'string1'           => array('1'),
+            'int0'              => array(0),
+            'string0'           => array('0'),
+            'negative-int'      => array(-1234),
+            'string-negative-int' => array(-1234),
+            'string-bigint'     => array('12345678987654321'),
+            'string-negative-bigint' => array('-12345678987654321'),
         );
     }
 
@@ -66,8 +67,11 @@ class BooleanFieldValidationTest extends FieldValidatorTestCase
         return array(
             'string'        => array('string'),
             'empty-string'  => array(''),
+            'true'          => array(true),
+            'false'         => array(false),
             'empty-array'   => array(array())
         );
     }
+
 
 }

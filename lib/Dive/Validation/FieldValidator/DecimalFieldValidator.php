@@ -6,14 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Validation;
+namespace Dive\Validation\FieldValidator;
+
+use Dive\Validation\ValidatorInterface;
 
 /**
- * Class BooleanFieldValidator
+ * Class DecimalFieldValidator
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 11.04.14
+ * @created 25.04.2014
  */
-class BooleanFieldValidator implements ValidatorInterface
+class DecimalFieldValidator implements ValidatorInterface
 {
 
     /**
@@ -25,13 +27,7 @@ class BooleanFieldValidator implements ValidatorInterface
         if ($value === null) {
             return true;
         }
-        if ($value === '1' || $value === '0') {
-            return true;
-        }
-        if (is_bool($value)) {
-            return true;
-        }
-        if ($value === 1 || $value === 0) {
+        if (is_numeric($value)) {
             return true;
         }
 

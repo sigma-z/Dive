@@ -6,14 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Validation;
+namespace Dive\Validation\FieldValidator;
+
+use Dive\Validation\ValidatorInterface;
 
 /**
- * Class IntegerFieldValidator
+ * Class TimestampFieldValidator
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 11.04.14
+ * @created 25.04.2014
  */
-class IntegerFieldValidator implements ValidatorInterface
+class TimestampFieldValidator implements ValidatorInterface
 {
 
     /**
@@ -25,14 +27,12 @@ class IntegerFieldValidator implements ValidatorInterface
         if ($value === null) {
             return true;
         }
-        if (is_int($value)) {
-            return true;
-        }
-        if (is_string($value) && preg_match('/^-?\d+$/', $value)) {
+        if ($value > 0 && $value < 2147483648 && preg_match('/^\d+$/', $value)) {
             return true;
         }
 
         return false;
     }
+
 
 }

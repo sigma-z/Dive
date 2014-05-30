@@ -6,16 +6,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Test\Validation;
+namespace Dive\Test\Validation\FieldValidator;
 
-require_once 'FieldValidatorTestCase.php';
+require_once __DIR__ . '/TestCase.php';
 
 /**
  * Class TimeFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class TimeFieldValidatorTest extends FieldValidatorTestCase
+class TimeFieldValidatorTest extends TestCase
 {
 
     /**

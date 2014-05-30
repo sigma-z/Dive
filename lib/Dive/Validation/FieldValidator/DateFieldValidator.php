@@ -6,7 +6,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Validation;
+namespace Dive\Validation\FieldValidator;
+
+use Dive\Validation\ValidatorInterface;
 
 /**
  * Class DateFieldValidator

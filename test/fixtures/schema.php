@@ -395,38 +395,38 @@ return array(
                     'nullable'  => true
                 )
             ),
-//            'indexes' => array(
-//                'UQ_1' => array(
-//                    'type' => 'unique',
-//                    'fields' => array(
-//                        'single_unique'
-//                    ),
-//                    'nullConstrained' => false
-//                ),
-//                'UQ_2' => array(
-//                    'type' => 'unique',
-//                    'fields' => array(
-//                        'single_unique_null_constrained'
-//                    ),
-//                    'nullConstrained' => true
-//                ),
-//                'UQ_3' => array(
-//                    'type' => 'unique',
-//                    'fields' => array(
-//                        'composite_unique1',
-//                        'composite_unique2'
-//                    ),
-//                    'nullConstrained' => false
-//                ),
-//                'UQ_4' => array(
-//                    'type' => 'unique',
-//                    'fields' => array(
-//                        'composite_unique_null_constrained1',
-//                        'composite_unique_null_constrained2'
-//                    ),
-//                    'nullConstrained' => true
-//                )
-//            )
+            'indexes' => array(
+                'UQ_1' => array(
+                    'type' => 'unique',
+                    'fields' => array(
+                        'single_unique'
+                    ),
+                    'nullConstrained' => false
+                ),
+                'UQ_2' => array(
+                    'type' => 'unique',
+                    'fields' => array(
+                        'single_unique_null_constrained'
+                    ),
+                    'nullConstrained' => true
+                ),
+                'UQ_3' => array(
+                    'type' => 'unique',
+                    'fields' => array(
+                        'composite_unique1',
+                        'composite_unique2'
+                    ),
+                    'nullConstrained' => false
+                ),
+                'UQ_4' => array(
+                    'type' => 'unique',
+                    'fields' => array(
+                        'composite_unique_null_constrained1',
+                        'composite_unique_null_constrained2'
+                    ),
+                    'nullConstrained' => true
+                )
+            )
         )
     ),
     'relations' => array(

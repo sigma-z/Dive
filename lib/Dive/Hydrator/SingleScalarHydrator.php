@@ -23,8 +23,7 @@ class SingleScalarHydrator extends SingleHydrator
      */
     protected function fetchNextRow()
     {
-        $result = $this->statement->fetchColumn();
-        return $result !== false ? array($result) : $result;
+        return $this->statement->fetchColumn();
     }
 
 }

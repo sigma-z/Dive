@@ -76,15 +76,22 @@ class FieldValuesGenerator
         $autoIncrement = self::fieldIsAutoIncrement($fieldDefinition);
 
         // default: do add field, when MAXIMAL was requested
-        $addFieldValue = $type === self::MAXIMAL;
+        if ($type === self::MAXIMAL) {
+            return true;
+        }
         // do add field, when MAXIMAL_WITHOUT_AUTOINCREMENT was requested and field is not autoIncrement
-        $addFieldValue = $addFieldValue || ($type === self::MAXIMAL_WITHOUT_AUTOINCREMENT && !$autoIncrement);
+        if ($type === self::MAXIMAL_WITHOUT_AUTOINCREMENT && !$autoIncrement) {
+            return true;
+        }
         // required field, that is not autoIncrement is needed whenever we want to get recordData
-        $addFieldValue = $addFieldValue  || ($required && !$autoIncrement);
+        if ($required && !$autoIncrement) {
+            return true;
+        }
         // autoIncrement field, when not REQUIRED requested
-        $addFieldValue = $addFieldValue || ($type === self::REQUIRED_AND_AUTOINCREMENT && $required && !$autoIncrement);
-
-        return $addFieldValue;
+        if ($type === self::REQUIRED_AND_AUTOINCREMENT && $required && !$autoIncrement) {
+            return true;
+        }
+        return false;
     }
 
 
@@ -108,7 +115,6 @@ class FieldValuesGenerator
                 $recordData[$fieldName] = $this->getRandomFieldValue($fieldDefinition);
             }
         }
-
         return $recordData;
     }
 

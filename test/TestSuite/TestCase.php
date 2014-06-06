@@ -76,6 +76,17 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     * @param string $name
+     * @param array  $arguments
+     */
+    public function __call($name, $arguments)
+    {
+        $name = preg_replace('/(?<=\\w)(?=[A-Z])/', " $1", $name);
+        $this->markTestIncomplete($name . ' is not implemented');
+    }
+
+
     protected function setUp()
     {
         parent::setUp();

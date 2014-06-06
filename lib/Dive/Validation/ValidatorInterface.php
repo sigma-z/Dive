@@ -14,6 +14,11 @@ namespace Dive\Validation;
 interface ValidatorInterface
 {
 
+    const VALIDATOR_FIELD_LENGTH = 'fieldLength';
+    const VALIDATOR_FIELD_TYPE = 'fieldType';
+    const VALIDATOR_UNIQUE_CONSTRAINT = 'uniqueConstraint';
+
+
     /**
      * @param  mixed $value
      * @return bool

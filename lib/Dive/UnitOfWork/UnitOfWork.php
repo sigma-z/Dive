@@ -16,7 +16,6 @@ use Dive\Record;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Table;
-use Dive\Validation\UniqueValidator\UniqueRecordValidator;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -632,8 +631,11 @@ class UnitOfWork
      */
     private function validateRecord(Record $record)
     {
-        $uniqueRecordValidator = new UniqueRecordValidator();
-        return $uniqueRecordValidator->validate($record);
+        $validator = $this->recordManager->getRecordValidationContainer();
+        return $validator->validate($record);
+//
+//        $uniqueRecordValidator = new UniqueRecordValidator();
+//        return $uniqueRecordValidator->validate($record);
     }
 
 }

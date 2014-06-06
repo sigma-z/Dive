@@ -15,6 +15,9 @@ use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Platform\PlatformInterface;
 use Dive\UnitOfWork\UnitOfWork;
+use Dive\Validation\UniqueValidator\UniqueRecordValidator;
+use Dive\Validation\ValidationContainer;
+use Dive\Validation\ValidatorInterface;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -56,6 +59,9 @@ class RecordManager
 
     /** @var string */
     private $queryClass = '\Dive\Query\Query';
+
+    /** @var ValidationContainer */
+    private $recordValidationContainer;
 
 
     /**
@@ -420,6 +426,31 @@ class RecordManager
     {
         $table = $this->getTable($tableName);
         return $this->unitOfWork->getOrCreateRecord($table, $data, $exists);
+    }
+
+
+    /**
+     * @return ValidationContainer
+     */
+    public function getRecordValidationContainer()
+    {
+        if (!$this->recordValidationContainer) {
+            $this->recordValidationContainer = $this->createValidationContainer();
+        }
+        return $this->recordValidationContainer;
+    }
+
+
+    /**
+     * @return ValidationContainer
+     */
+    protected function createValidationContainer()
+    {
+        $recordValidationContainer = new ValidationContainer();
+        //$recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_FIELD_LENGTH, new FieldLengthValidator());
+        //$recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_FIELD_TYPE, new FieldTypeValidator());
+        $recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_UNIQUE_CONSTRAINT, new UniqueRecordValidator());
+        return $recordValidationContainer;
     }
 
 }

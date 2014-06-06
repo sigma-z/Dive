@@ -13,6 +13,7 @@ use Dive\RecordManager;
 use Dive\Table\Behaviour\TimestampableBehaviour;
 use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
+use Dive\Validation\ValidatorInterface;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -161,6 +162,22 @@ class RecordManagerTest extends TestCase
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_SAVE));
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_UPDATE));
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_INSERT));
+    }
+
+
+    public function testHasAConfiguredValidationContainer()
+    {
+        $rm = self::createDefaultRecordManager();
+        $validationContainer = $rm->getRecordValidationContainer();
+        $this->assertNotNull($validationContainer);
+        $this->assertInstanceOf('\Dive\Validation\ValidationContainer', $validationContainer);
+
+        $validator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_UNIQUE_CONSTRAINT);
+        $this->assertNotNull($validator);
+//        $validator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_TYPE);
+//        $this->assertNotNull($validator);
+//        $validator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_LENGTH);
+//        $this->assertNotNull($validator);
     }
 
 }

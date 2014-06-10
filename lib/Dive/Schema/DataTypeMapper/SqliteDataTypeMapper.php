@@ -47,6 +47,7 @@ class SqliteDataTypeMapper extends DataTypeMapper
             'date'          => self::OTYPE_DATE,
             'datetime'      => self::OTYPE_DATETIME,
             'time'          => self::OTYPE_TIME,
+            'timestamp'     => self::OTYPE_TIMESTAMP,
 
             'blob'          => self::OTYPE_BLOB
         );

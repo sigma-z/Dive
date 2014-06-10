@@ -632,10 +632,12 @@ class UnitOfWork
     private function validateRecord(Record $record)
     {
         $validator = $this->recordManager->getRecordValidationContainer();
-        return $validator->validate($record);
-//
-//        $uniqueRecordValidator = new UniqueRecordValidator();
-//        return $uniqueRecordValidator->validate($record);
+        $isValid = $validator->validate($record);
+//        if (!$isValid) {
+//            var_dump($record->toArray(false));
+//        }
+        return $isValid;
+
     }
 
 }

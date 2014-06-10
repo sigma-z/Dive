@@ -25,46 +25,46 @@ class MysqlDataTypeMapper extends DataTypeMapper
     public function __construct(array $mapping = array(), array $ormTypeMapping = array())
     {
         $defaultMapping = array(
-            'bool'          => 'boolean',
-            'boolean'       => 'boolean',
+            'bool'          => self::OTYPE_BOOLEAN,
+            'boolean'       => self::OTYPE_BOOLEAN,
 
-            'int'           => 'integer',
-            'integer'       => 'integer',
-            'tinyint'       => 'integer',
-            'smallint'      => 'integer',
-            'mediumint'     => 'integer',
-            'bigint'        => 'integer',
+            'int'           => self::OTYPE_INTEGER,
+            'integer'       => self::OTYPE_INTEGER,
+            'tinyint'       => self::OTYPE_INTEGER,
+            'smallint'      => self::OTYPE_INTEGER,
+            'mediumint'     => self::OTYPE_INTEGER,
+            'bigint'        => self::OTYPE_INTEGER,
 
-            'double'        => 'decimal',
-            'float'         => 'decimal',
-            'real'          => 'decimal',
-            'decimal'       => 'decimal',
-            'numeric'       => 'decimal',
+            'double'        => self::OTYPE_DECIMAL,
+            'float'         => self::OTYPE_DECIMAL,
+            'real'          => self::OTYPE_DECIMAL,
+            'decimal'       => self::OTYPE_DECIMAL,
+            'numeric'       => self::OTYPE_DECIMAL,
 
-            'char'          => 'string',
-            'varchar'       => 'string',
-            'varbinary'     => 'string',
-            'text'          => 'string',
-            'tinytext'      => 'string',
-            'mediumtext'    => 'string',
-            'longtext'      => 'string',
+            'char'          => self::OTYPE_STRING,
+            'varchar'       => self::OTYPE_STRING,
+            'varbinary'     => self::OTYPE_STRING,
+            'text'          => self::OTYPE_STRING,
+            'tinytext'      => self::OTYPE_STRING,
+            'mediumtext'    => self::OTYPE_STRING,
+            'longtext'      => self::OTYPE_STRING,
 
-            'date'          => 'date',
-            'datetime'      => 'datetime',
-            'time'          => 'time',
-            'timestamp'     => 'integer',
-            'year'          => 'integer',
+            'date'          => self::OTYPE_DATE,
+            'datetime'      => self::OTYPE_DATETIME,
+            'time'          => self::OTYPE_TIME,
+            'timestamp'     => self::OTYPE_TIMESTAMP,
+            'year'          => self::OTYPE_INTEGER,
 
-            'tinyblob'      => 'blob',
-            'blob'          => 'blob',
-            'mediumblob'    => 'blob',
-            'longblob'      => 'blob',
+            'tinyblob'      => self::OTYPE_BLOB,
+            'blob'          => self::OTYPE_BLOB,
+            'mediumblob'    => self::OTYPE_BLOB,
+            'longblob'      => self::OTYPE_BLOB,
 
-            'enum'          => 'enum'
+            'enum'          => self::OTYPE_ENUM
         );
 
         $defaultOrmTypeMapping = array(
-            'integer' => array(
+            self::OTYPE_INTEGER => array(
                 'default'   => 'int',
                 'unit'      => self::UNIT_BYTES,
                 'types'     => array(
@@ -75,7 +75,7 @@ class MysqlDataTypeMapper extends DataTypeMapper
                     'bigint'        => 8
                 )
             ),
-            'string' => array(
+            self::OTYPE_STRING => array(
                 'default'   => 'text',
                 'unit'      => self::UNIT_CHARS,
                 'types'     => array(
@@ -85,7 +85,8 @@ class MysqlDataTypeMapper extends DataTypeMapper
                     'longtext'      => 1431655765   // utf8 character uses up to 3 bytes
                 )
             ),
-            'time' => 'char'
+            self::OTYPE_TIME => 'char',
+            self::OTYPE_BOOLEAN => 'tinyint'
         );
 
         $mapping = array_merge($defaultMapping, $mapping);

@@ -29,24 +29,24 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
         parent::setUp();
 
         $mapping = array(
-            'varchar'   => 'string',
-            'text'      => 'string',
+            'varchar'    => DataTypeMapper::OTYPE_STRING,
+            'text'       => DataTypeMapper::OTYPE_STRING,
 
-            'tinyint'   => 'integer',
-            'smallint'  => 'integer',
-            'mediumint' => 'integer',
-            'int'       => 'integer',
-            'bigint'    => 'integer',
+            'tinyint'    => DataTypeMapper::OTYPE_INTEGER,
+            'smallint'   => DataTypeMapper::OTYPE_INTEGER,
+            'mediumint'  => DataTypeMapper::OTYPE_INTEGER,
+            'int'        => DataTypeMapper::OTYPE_INTEGER,
+            'bigint'     => DataTypeMapper::OTYPE_INTEGER,
 
-            'tinyblob'  => 'blob',
-            'blob'      => 'blob',
-            'mediumblob' => 'blob',
-            'longblob'  => 'blob',
+            'tinyblob'   => DataTypeMapper::OTYPE_BLOB,
+            'blob'       => DataTypeMapper::OTYPE_BLOB,
+            'mediumblob' => DataTypeMapper::OTYPE_BLOB,
+            'longblob'   => DataTypeMapper::OTYPE_BLOB,
 
-            'datetime'  => 'datetime'
+            'datetime'   => DataTypeMapper::OTYPE_DATETIME
         );
         $lengths = array(
-            'integer' => array(
+            DataTypeMapper::OTYPE_INTEGER => array(
                 'default'   => 'int',
                 'unit'      => DataTypeMapper::UNIT_BYTES,
                 'types'     => array(
@@ -57,17 +57,17 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
                     'bigint'    => 8
                 )
             ),
-            'blob' => array(
+            DataTypeMapper::OTYPE_BLOB => array(
                 'default' => 'blob'
             ),
-            'string'    => array(
+            DataTypeMapper::OTYPE_STRING => array(
                 'default'   => 'text',
                 'unit'      => DataTypeMapper::UNIT_CHARS,
                 'types'     => array(
                     'varchar'   => 255
                 )
             ),
-            'date' => 'date'
+            DataTypeMapper::OTYPE_DATE => 'date'
         );
         $this->dataTypeMapper = new DataTypeMapper($mapping, $lengths);
     }
@@ -75,14 +75,14 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
 
     public function testAddDataType()
     {
-        $this->dataTypeMapper->addDataType('test', 'string');
+        $this->dataTypeMapper->addDataType('test', DataTypeMapper::OTYPE_STRING);
         $this->assertTrue($this->dataTypeMapper->hasDataType('test'));
     }
 
 
     public function testAddOrmType()
     {
-        $this->dataTypeMapper->addOrmType('test', 'string');
+        $this->dataTypeMapper->addOrmType('test', DataTypeMapper::OTYPE_STRING);
         $this->assertTrue($this->dataTypeMapper->hasOrmType('test'));
     }
 
@@ -96,27 +96,27 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
 
     public function testRemoveOrmType()
     {
-        $this->dataTypeMapper->removeOrmType('integer');
-        $this->assertFalse($this->dataTypeMapper->hasOrmType('integer'));
+        $this->dataTypeMapper->removeOrmType(DataTypeMapper::OTYPE_INTEGER);
+        $this->assertFalse($this->dataTypeMapper->hasOrmType(DataTypeMapper::OTYPE_INTEGER));
     }
 
 
     public function testGetDefaultMappedDataType()
     {
         // defined as default by special key '_default'
-        $actual = $this->dataTypeMapper->getMappedDataType('blob');
+        $actual = $this->dataTypeMapper->getMappedDataType(DataTypeMapper::OTYPE_BLOB);
         $this->assertEquals('blob', $actual);
 
         // defined as default by special key '_default'
-        $actual = $this->dataTypeMapper->getMappedDataType('string');
+        $actual = $this->dataTypeMapper->getMappedDataType(DataTypeMapper::OTYPE_STRING);
         $this->assertEquals('text', $actual);
 
         // not defined, suppose that orm type is equal data type
-        $actual = $this->dataTypeMapper->getMappedDataType('datetime');
+        $actual = $this->dataTypeMapper->getMappedDataType(DataTypeMapper::OTYPE_DATETIME);
         $this->assertEquals('datetime', $actual);
 
         // defined as key value
-        $actual = $this->dataTypeMapper->getMappedDataType('date');
+        $actual = $this->dataTypeMapper->getMappedDataType(DataTypeMapper::OTYPE_DATE);
         $this->assertEquals('date', $actual);
     }
 
@@ -137,23 +137,23 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
     public function provideGetMappedDataType()
     {
         $testCases = array();
-        $testCases[] = array(null,  'integer',  'int');
-        $testCases[] = array(0,     'integer',  'int');
-        $testCases[] = array(1,     'integer',  'tinyint');
-        $testCases[] = array(2,     'integer',  'tinyint');
-        $testCases[] = array(3,     'integer',  'smallint');
-        $testCases[] = array(4,     'integer',  'smallint');
-        $testCases[] = array(5,     'integer',  'mediumint');
-        $testCases[] = array(6,     'integer',  'mediumint');
-        $testCases[] = array(7,     'integer',  'mediumint');
-        $testCases[] = array(8,     'integer',  'int');
-        $testCases[] = array(9,     'integer',  'int');
-        $testCases[] = array(10,    'integer',  'bigint');
-        $testCases[] = array(19,    'integer',  'bigint');
-        $testCases[] = array(20,    'integer',  'bigint');
-        $testCases[] = array(255,   'string',   'varchar');
-        $testCases[] = array(300,   'string',   'text');
-        $testCases[] = array(null,  'blob',     'blob');
+        $testCases[] = array(null,  DataTypeMapper::OTYPE_INTEGER, 'int');
+        $testCases[] = array(0,     DataTypeMapper::OTYPE_INTEGER, 'int');
+        $testCases[] = array(1,     DataTypeMapper::OTYPE_INTEGER, 'tinyint');
+        $testCases[] = array(2,     DataTypeMapper::OTYPE_INTEGER, 'tinyint');
+        $testCases[] = array(3,     DataTypeMapper::OTYPE_INTEGER, 'smallint');
+        $testCases[] = array(4,     DataTypeMapper::OTYPE_INTEGER, 'smallint');
+        $testCases[] = array(5,     DataTypeMapper::OTYPE_INTEGER, 'mediumint');
+        $testCases[] = array(6,     DataTypeMapper::OTYPE_INTEGER, 'mediumint');
+        $testCases[] = array(7,     DataTypeMapper::OTYPE_INTEGER, 'mediumint');
+        $testCases[] = array(8,     DataTypeMapper::OTYPE_INTEGER, 'int');
+        $testCases[] = array(9,     DataTypeMapper::OTYPE_INTEGER, 'int');
+        $testCases[] = array(10,    DataTypeMapper::OTYPE_INTEGER, 'bigint');
+        $testCases[] = array(19,    DataTypeMapper::OTYPE_INTEGER, 'bigint');
+        $testCases[] = array(20,    DataTypeMapper::OTYPE_INTEGER, 'bigint');
+        $testCases[] = array(255,   DataTypeMapper::OTYPE_STRING,  'varchar');
+        $testCases[] = array(300,   DataTypeMapper::OTYPE_STRING,  'text');
+        $testCases[] = array(null,  DataTypeMapper::OTYPE_BLOB,    'blob');
 
         return $testCases;
     }

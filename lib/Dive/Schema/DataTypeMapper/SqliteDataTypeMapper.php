@@ -25,35 +25,34 @@ class SqliteDataTypeMapper extends DataTypeMapper
     public function __construct(array $mapping = array(), array $ormTypeMapping = array())
     {
         $defaultDataTypeMapping = array(
-            'boolean'       => 'boolean',
+            'boolean'       => self::OTYPE_BOOLEAN,
 
-            'int'           => 'integer',
-            'integer'       => 'integer',
-            'tinyint'       => 'integer',
-            'smallint'      => 'integer',
-            'mediumint'     => 'integer',
-            'bigint'        => 'integer',
+            'int'           => self::OTYPE_INTEGER,
+            'integer'       => self::OTYPE_INTEGER,
+            'tinyint'       => self::OTYPE_INTEGER,
+            'smallint'      => self::OTYPE_INTEGER,
+            'mediumint'     => self::OTYPE_INTEGER,
+            'bigint'        => self::OTYPE_INTEGER,
 
-            'double'        => 'decimal',
-            'float'         => 'decimal',
-            'real'          => 'decimal',
+            'double'        => self::OTYPE_DECIMAL,
+            'float'         => self::OTYPE_DECIMAL,
+            'real'          => self::OTYPE_DECIMAL,
+            'decimal'       => self::OTYPE_DECIMAL,
+            'numeric'       => self::OTYPE_DECIMAL,
 
-            'decimal'       => 'decimal',
-            'numeric'       => 'decimal',
+            'character'     => self::OTYPE_STRING,
+            'varchar'       => self::OTYPE_STRING,
+            'text'          => self::OTYPE_STRING,
 
-            'character'     => 'string',
-            'varchar'       => 'string',
-            'text'          => 'string',
+            'date'          => self::OTYPE_DATE,
+            'datetime'      => self::OTYPE_DATETIME,
+            'time'          => self::OTYPE_TIME,
 
-            'date'          => 'date',
-            'datetime'      => 'datetime',
-            'time'          => 'string',
-
-            'blob'          => 'blob'
+            'blob'          => self::OTYPE_BLOB
         );
 
         $defaultOrmTypeMapping = array(
-            'integer' => array(
+            self::OTYPE_INTEGER => array(
                 'default'   => 'integer',
                 'unit'      => self::UNIT_BYTES,
                 'types'     => array(
@@ -65,16 +64,15 @@ class SqliteDataTypeMapper extends DataTypeMapper
                     'bigint'        => 8
                 )
             ),
-            'string' => array(
+            self::OTYPE_STRING => array(
                 'default'   => 'text',
                 'unit'      => self::UNIT_CHARS,
                 'types' => array(
                     'varchar'   => 255
                 )
             ),
-            'time'      => 'character',
-            'timestamp' => 'integer',
-            'enum'      => 'varchar'
+            self::OTYPE_TIME => 'character',
+            self::OTYPE_ENUM => 'varchar'
         );
 
         $mapping = array_merge($defaultDataTypeMapping, $mapping);

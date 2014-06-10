@@ -10,6 +10,7 @@
 
 namespace Dive\Test\Util;
 
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Util\FieldValuesGenerator;
 
 /**
@@ -66,10 +67,10 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
     public function provdeGetRandomFieldValue()
     {
         return array(
-            array(array('type' => 'string', 'length' => '10'), 'string', 0, 10),
-            array(array('type' => 'integer'), 'int', 0, 10),
-            array(array('type' => 'float'), 'float', 0, 10),
-            array(array('type' => 'datetime'), 'string', 19, 19),
+            array(array('type' => DataTypeMapper::OTYPE_STRING, 'length' => '10'), 'string', 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_INTEGER), 'int', 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_DECIMAL), 'float', 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_DATETIME), 'string', 19, 19),
             array(array('type' => 'nothing'), null, null, null),
         );
     }
@@ -102,14 +103,14 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
     public function provideTypeAliases()
     {
         $inputFields = array(
-            array('type' => 'string', 'length' => 10, 'nullable' => true),
-            array('type' => 'string', 'length' => 10, 'nullable' => false),
-            array('type' => 'string', 'length' => 10, 'nullable' => true, 'autoIncrement' => true),
-            array('type' => 'string', 'length' => 10, 'nullable' => true, 'autoIncrement' => false),
-            array('type' => 'string', 'length' => 10, 'nullable' => false, 'autoIncrement' => true),
-            array('type' => 'string', 'length' => 10, 'nullable' => false, 'autoIncrement' => false),
-            array('type' => 'string', 'length' => 10, 'autoIncrement' => true),
-            array('type' => 'string', 'length' => 10, 'autoIncrement' => false),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'nullable' => true),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'nullable' => false),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'nullable' => true, 'autoIncrement' => true),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'nullable' => true, 'autoIncrement' => false),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'nullable' => false, 'autoIncrement' => true),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'nullable' => false, 'autoIncrement' => false),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'autoIncrement' => true),
+            array('type' => DataTypeMapper::OTYPE_STRING, 'length' => 10, 'autoIncrement' => false),
         );
 
         return array(

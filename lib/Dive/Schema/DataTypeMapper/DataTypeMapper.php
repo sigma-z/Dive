@@ -19,10 +19,30 @@ class DataTypeMapper
     const UNIT_BYTES = 'bytes';
     const UNIT_CHARS = 'chars';
 
+    const OTYPE_BOOLEAN     = 'boolean';
+    const OTYPE_INTEGER     = 'integer';
+    const OTYPE_DECIMAL     = 'decimal';
+    const OTYPE_STRING      = 'string';
+    const OTYPE_DATETIME    = 'datetime';
+    const OTYPE_DATE        = 'date';
+    const OTYPE_TIME        = 'time';
+    const OTYPE_TIMESTAMP   = 'timestamp';
+    const OTYPE_BLOB        = 'blob';
+    const OTYPE_ENUM        = 'enum';
+
 
     /** @var array */
     protected static $ormTypes = array(
-        'boolean', 'integer', 'decimal', 'string', 'datetime', 'date', 'time', 'timestamp', 'blob', 'enum'
+        self::OTYPE_BOOLEAN,
+        self::OTYPE_INTEGER,
+        self::OTYPE_DECIMAL,
+        self::OTYPE_STRING,
+        self::OTYPE_DATETIME,
+        self::OTYPE_DATE,
+        self::OTYPE_TIME,
+        self::OTYPE_TIMESTAMP,
+        self::OTYPE_BLOB,
+        self::OTYPE_ENUM
     );
 
     /** @var array */

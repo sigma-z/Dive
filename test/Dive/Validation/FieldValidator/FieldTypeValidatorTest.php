@@ -10,7 +10,7 @@ namespace Dive\Test\Validation\FieldValidator;
 
 use Dive\Record;
 use Dive\RecordManager;
-use Dive\TestSuite\TestCase;
+use Dive\TestSuite\TestCase as BaseTestCase;
 use Dive\Validation\FieldValidator\DateTimeFieldValidator;
 use Dive\Validation\FieldValidator\FieldTypeValidator;
 
@@ -19,7 +19,7 @@ use Dive\Validation\FieldValidator\FieldTypeValidator;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 10.06.2014
  */
-class FieldTypeValidatorTest extends TestCase
+class FieldTypeValidatorTest extends BaseTestCase
 {
 
     /** @var FieldTypeValidator */

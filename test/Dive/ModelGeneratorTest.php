@@ -278,7 +278,7 @@ class ModelGeneratorTest extends TestCase
                     'author_id' => 'string',
                     'comment_id' => 'string',
                     'is_cancelled' => 'bool',
-                    'value' => 'float',
+                    'value' => 'string',
                 ),
                 array('Dive\Record'),
             ),

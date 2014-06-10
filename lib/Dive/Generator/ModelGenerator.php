@@ -13,6 +13,7 @@ namespace Dive\Generator;
 use Dive\Exception;
 use Dive\Generator\Formatter\FormatterInterface;
 use Dive\Relation\Relation;
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Schema\Schema;
 use Dive\Util\ClassNameExtractor;
 use Dive\Util\ModelFilterIterator;
@@ -207,20 +208,13 @@ class ModelGenerator
      */
     private function translateType($type, $key)
     {
-        if ($type == 'datetime') {
-            return 'string';
+        if ($type == DataTypeMapper::OTYPE_BOOLEAN) {
+            return 'bool';
         }
-        if ($type == 'integer') {
-            // blacklist integer and datetime
-            if (substr($key, 0, 3) == 'is_' || substr($key, 0, 4) == 'has_') {
-                return 'bool';
-            }
-            return 'string';
+        if ($type == DataTypeMapper::OTYPE_INTEGER && (substr($key, 0, 3) == 'is_' || substr($key, 0, 4) == 'has_')) {
+            return 'bool';
         }
-        if ($type == 'decimal') {
-            return 'float';
-        }
-        return $type;
+        return 'string';
     }
 
 

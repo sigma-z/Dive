@@ -9,6 +9,8 @@
 
 namespace Dive\Util;
 
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
+
 /**
  * This class handles generating random values for fields (by field definition of schema) and records (by given field
  *  list).
@@ -131,17 +133,17 @@ class FieldValuesGenerator
     {
         $type = $fieldDefinition['type'];
         switch ($type) {
-            case 'datetime':
+            case DataTypeMapper::OTYPE_DATETIME:
                 return date('Y-m-d h:s:i');
 
             // TODO: create float/int really from supported interval with supported decimals
-            case 'float':
+            case DataTypeMapper::OTYPE_DECIMAL:
                 return (float)mt_rand(0, 100000000);
 
-            case 'integer':
+            case DataTypeMapper::OTYPE_INTEGER:
                 return mt_rand(0, 100000000);
 
-            case 'string':
+            case DataTypeMapper::OTYPE_STRING:
                 // used chars - TODO: check more e.g. chars, that have to be quoted by inserting
                 $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321';
                 // build min and max for calling random-function
@@ -157,6 +159,9 @@ class FieldValuesGenerator
                     $l--;
                 }
                 return $string;
+
+            case DataTypeMapper::OTYPE_BOOLEAN:
+                return mt_rand(0, 1) === 1;
         }
 
         throw new UnsupportedTypeException("unsupported field type: $type");

@@ -150,7 +150,7 @@ return array(
                     'foreign'   => 'author.id'
                 ),
                 'is_published' => array(
-                    'type'      => 'integer',
+                    'type'      => 'boolean',
                     'length'    => 1,
                     'unsigned'  => true,
                     'default'   => '0'

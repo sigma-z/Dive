@@ -217,6 +217,68 @@ class RecordGeneratorTest extends TestCase
     }
 
 
+    public function testGenerateRelatedReferencedRelationRecord()
+    {
+        $this->givenRecordGenerator();
+
+        $tablesRows = array(
+            'author' => array(
+                'Jamie T. Kirk' => array(
+                    'firstname' => 'Jamie T',
+                    'lastname' => 'Kirk',
+                    'email' => 'j.t.kirk@example.com'
+                ),
+                'John Doe' => array(
+                    'firstname' => 'John',
+                    'lastname' => 'Doe',
+                    'email' => 'j.doe@example.com',
+                    'Editor' => 'Jamie T. Kirk'
+                )
+            )
+        );
+        $this->givenTablesRows($tablesRows, array('author' => 'id'));
+
+        try {
+            $this->whenGeneratingRecords();
+            $this->assertTrue(true);
+        }
+        catch (\Exception $e) {
+            $this->fail($e->getMessage());
+        }
+    }
+
+
+
+    public function testGenerateRelatedOwningRelationRecord()
+    {
+        $this->givenRecordGenerator();
+
+        $tablesRows = array(
+            'author' => array(
+                'Jamie T. Kirk' => array(
+                    'firstname' => 'Jamie T',
+                    'lastname' => 'Kirk',
+                    'email' => 'j.t.kirk@example.com'
+                ),
+                'John Doe' => array(
+                    'firstname' => 'John',
+                    'lastname' => 'Doe',
+                    'email' => 'j.doe@example.com',
+                    'Author' => 'Jamie T. Kirk'
+                )
+            )
+        );
+        $this->givenTablesRows($tablesRows, array('author' => 'id'));
+        try {
+            $this->whenGeneratingRecords();
+            $this->assertTrue(true);
+        }
+        catch (\Exception $e) {
+            $this->fail($e->getMessage());
+        }
+    }
+
+
     private function givenRecordGenerator()
     {
         $this->rm = self::createDefaultRecordManager();

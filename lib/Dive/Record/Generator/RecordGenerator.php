@@ -240,14 +240,7 @@ class RecordGenerator
     {
         $owningTable = $relation->getOwningTable();
         $owningField = $relation->getOwningField();
-        if ($relation->isOneToMany()) {
-            foreach ($relatedRows as $relatedKey => $relatedRow) {
-                $this->saveRecordOnOwningRelation($relatedRow, $owningTable, $owningField, $id, $relatedKey);
-            }
-        }
-        else {
-            $this->saveRecordOnOwningRelation($relatedRows, $owningTable, $owningField, $id);
-        }
+        $this->saveRecordOnOwningRelation($relatedRows, $owningTable, $owningField, $id);
     }
 
 

@@ -160,8 +160,6 @@ class RecordGenerator
                 $rowKey++;
             }
         }
-
-        $this->rm->clearTables();
     }
 
 

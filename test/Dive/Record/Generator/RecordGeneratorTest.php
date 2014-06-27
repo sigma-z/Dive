@@ -221,63 +221,94 @@ class RecordGeneratorTest extends TestCase
     {
         $this->givenRecordGenerator();
 
+        $kirkKey = 'Kirk';
+        $doeKey = 'Doe';
+
         $tablesRows = array(
             'author' => array(
-                'Jamie T. Kirk' => array(
+                $kirkKey => array(
                     'firstname' => 'Jamie T',
                     'lastname' => 'Kirk',
                     'email' => 'j.t.kirk@example.com'
                 ),
-                'John Doe' => array(
+                $doeKey => array(
                     'firstname' => 'John',
                     'lastname' => 'Doe',
                     'email' => 'j.doe@example.com',
-                    'Editor' => 'Jamie T. Kirk'
-                )
+                    'Editor' => $kirkKey
+                ),
             )
         );
-        $this->givenTablesRows($tablesRows, array('author' => 'id'));
+        $this->givenTablesRows($tablesRows, array('author' => 'lastname'));
 
-        try {
-            $this->whenGeneratingRecords();
-            $this->assertTrue(true);
-        }
-        catch (\Exception $e) {
-            $this->fail($e->getMessage());
-        }
+        $this->whenGeneratingRecords();
+
+        $editor = $this->thenThereShouldBeAnEditorLinkedWith('Doe');
+        $kirk = $tablesRows['author'][$kirkKey];
+        $this->then_ShouldBeEqual($kirk, $editor);
     }
-
 
 
     public function testGenerateRelatedOwningRelationRecord()
     {
         $this->givenRecordGenerator();
 
+        $doeKey = 'Doe';
+        $kirkKey = 'Kirk';
+
         $tablesRows = array(
             'author' => array(
-                'Jamie T. Kirk' => array(
+                $kirkKey => array(
                     'firstname' => 'Jamie T',
                     'lastname' => 'Kirk',
                     'email' => 'j.t.kirk@example.com'
                 ),
-                'John Doe' => array(
+                $doeKey => array(
                     'firstname' => 'John',
                     'lastname' => 'Doe',
                     'email' => 'j.doe@example.com',
-                    'Author' => 'Jamie T. Kirk'
-                )
+                    'Author' => array($kirkKey)
+                ),
             )
         );
-        $this->givenTablesRows($tablesRows, array('author' => 'id'));
-        try {
-            $this->whenGeneratingRecords();
-            $this->assertTrue(true);
-        }
-        catch (\Exception $e) {
-            $this->fail($e->getMessage());
-        }
+        $this->givenTablesRows($tablesRows, array('author' => 'lastname'));
+
+        $this->whenGeneratingRecords();
+        $kirk = $tablesRows['author'][$kirkKey];
+        $author = $this->thenThereShouldBeOneAuthorLinkedWithDoe();
+        $this->then_ShouldBeEqual($kirk, $author);
     }
 
+
+    public function testGenerateRelatedOwningRelationRecordAlternateOrderOfTableRows()
+    {
+        $this->givenRecordGenerator();
+
+        $doeKey = 'Doe';
+        $kirkKey = 'Kirk';
+
+        $tablesRows = array(
+            'author' => array(
+                $doeKey => array(
+                    'firstname' => 'John',
+                    'lastname' => 'Doe',
+                    'email' => 'j.doe@example.com',
+                    'Author' => array($kirkKey)
+                ),
+                $kirkKey => array(
+                    'firstname' => 'Jamie T',
+                    'lastname' => 'Kirk',
+                    'email' => 'j.t.kirk@example.com'
+                ),
+            )
+        );
+        $this->givenTablesRows($tablesRows, array('author' => 'lastname'));
+
+        $this->whenGeneratingRecords();
+        $doe = $tablesRows['author'][$doeKey];
+        $editor = $this->thenThereShouldBeAnEditorLinkedWith('Kirk');
+        $this->then_ShouldBeEqual($doe, $editor);
+    }
 
     private function givenRecordGenerator()
     {
@@ -331,5 +362,51 @@ class RecordGeneratorTest extends TestCase
             $recordIds = $this->recordGenerator->getRecordIds($tableName);
             $this->assertCount($expectedTablesCount, $recordIds);
         }
+    }
+
+
+    /**
+     * @return array
+     */
+    private function thenThereShouldBeOneAuthorLinkedWithDoe()
+    {
+        $author = $this->rm->createQuery('author', 'e')
+            ->select("a.id, a.firstname, a.lastname, a.email")
+            ->leftJoin('e.Author a')
+            ->where('e.lastname = ?', 'Doe')
+            ->andWhere("a.id IS NOT NULL")
+            ->fetchArray();
+        $this->assertTrue((bool)$author);
+        $this->assertCount(1, $author);
+        return $author[0];
+    }
+
+
+    /**
+     * @return array
+     */
+    private function thenThereShouldBeAnEditorLinkedWith($lastname)
+    {
+        $editor = $this->rm->createQuery('author', 'a')
+            ->select("e.id, e.firstname, e.lastname, e.email")
+            ->leftJoin('a.Editor e')
+            ->where('a.lastname = ?', $lastname)
+            ->andWhere("e.id IS NOT NULL")
+            ->fetchArray();
+        $this->assertTrue((bool)$editor);
+        $this->assertCount(1, $editor);
+        return $editor[0];
+    }
+
+
+    /**
+     * @param $expectedAuthor
+     * @param $actualAuthor
+     */
+    private function then_ShouldBeEqual($expectedAuthor, $actualAuthor)
+    {
+        $this->assertEquals($expectedAuthor['firstname'], $actualAuthor['firstname']);
+        $this->assertEquals($expectedAuthor['lastname'], $actualAuthor['lastname']);
+        $this->assertEquals($expectedAuthor['email'], $actualAuthor['email']);
     }
 }

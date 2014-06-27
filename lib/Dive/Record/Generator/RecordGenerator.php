@@ -160,6 +160,8 @@ class RecordGenerator
                 $rowKey++;
             }
         }
+
+        $this->rm->clearTables();
     }
 
 
@@ -173,6 +175,10 @@ class RecordGenerator
      */
     private function saveRecord(Table $table, array $row, $key)
     {
+        $tableName = $table->getTableName();
+        if ($key && $this->isInRecordMap($tableName, $key)) {
+            return $this->getRecordIdFromMap($tableName, $key);
+        }
         // keep foreign key relations in array to process after record has been saved
         $owningRelations = array();
         $beforeSaveGeneratedRecords = $this->generatedRecords;
@@ -197,7 +203,6 @@ class RecordGenerator
 
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
-        $tableName = $table->getTableName();
         $record = $this->rm->getOrCreateRecord($tableName, $row);
         $this->rm->save($record);
         $this->rm->commit();
@@ -240,7 +245,14 @@ class RecordGenerator
     {
         $owningTable = $relation->getOwningTable();
         $owningField = $relation->getOwningField();
-        $this->saveRecordOnOwningRelation($relatedRows, $owningTable, $owningField, $id);
+        if ($relation->isOneToMany()) {
+            foreach ($relatedRows as $relatedKey => $relatedRow) {
+                $this->saveRecordOnOwningRelation($relatedRow, $owningTable, $owningField, $id, $relatedKey);
+            }
+        }
+        else {
+            $this->saveRecordOnOwningRelation($relatedRows, $owningTable, $owningField, $id);
+        }
     }
 
 
@@ -263,6 +275,9 @@ class RecordGenerator
         $relatedRow[$refField] = $id;
         if (!$relatedKey || !$this->isInRecordMap($refTableName, $relatedKey)) {
             $this->saveRelatedRecord($refTableName, $relatedKey, $relatedRow);
+        }
+        else if ($relatedKey && $this->isInRecordMap($refTableName, $relatedKey)) {
+            $this->updateRelatedRecord($refTableName, $refField, $id, $relatedKey);
         }
     }
 
@@ -412,6 +427,26 @@ class RecordGenerator
             }
         }
         return $row;
+    }
+
+
+    /**
+     * @param $refTableName
+     * @param $refField
+     * @param $id
+     * @param $relatedKey
+     * @throws RecordGeneratorException
+     * @throws \Dive\Table\TableException
+     */
+    private function updateRelatedRecord($refTableName, $refField, $id, $relatedKey)
+    {
+        $record = $this->rm->getTable($refTableName)->getFromRepository($this->getRecordIdFromMap($refTableName, $relatedKey));
+        if (!$record) {
+            throw new RecordGeneratorException("record not found");
+        }
+        $record->set($refField, $id);
+        $this->rm->save($record);
+        $this->rm->commit();
     }
 
 }

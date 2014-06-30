@@ -423,8 +423,8 @@ class SchemaImporterTest extends TestCase
 
         $this->givenIHaveAMockOfAbstractSchemaImporterClass($conn);
         $this->whenIGuessRelationNamesFor($children);
-        $this->thenOwningAliasShouldBe('Parent');
-        $this->thenReferencedAliasShouldBe('Children');
+        $this->thenOwningAliasShouldBe('Children');
+        $this->thenReferencedAliasShouldBe('Parent');
     }
 
     /**
@@ -439,8 +439,8 @@ class SchemaImporterTest extends TestCase
 
         $this->givenIHaveAMockOfAbstractSchemaImporterClass($conn);
         $this->whenIGuessRelationNamesFor($child);
-        $this->thenOwningAliasShouldBe('Parent');
-        $this->thenReferencedAliasShouldBe('Child');
+        $this->thenOwningAliasShouldBe('Child');
+        $this->thenReferencedAliasShouldBe('Parent');
     }
 
 

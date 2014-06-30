@@ -226,8 +226,8 @@ abstract class SchemaImporter implements SchemaImporterInterface
         $isOneToOne = $relation['type'] == Relation::ONE_TO_ONE;
 
         if ($relation['owningTable'] == $relation['refTable']) {
-            $relation['owningAlias'] = 'Parent';
-            $relation['refAlias'] = $isOneToOne ? 'Child' : 'Children';
+            $relation['refAlias'] = 'Parent';
+            $relation['owningAlias'] = $isOneToOne ? 'Child' : 'Children';
             return $relation;
         }
 

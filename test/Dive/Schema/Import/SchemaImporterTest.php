@@ -9,8 +9,10 @@
 
 namespace Dive\Test\Schema\Import;
 
+use Dive\Connection\Connection;
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
+use Dive\Schema\Import\SchemaImporter;
 use Dive\Schema\Import\SchemaImporterInterface;
 use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
@@ -22,6 +24,13 @@ use Dive\TestSuite\TestCase;
  */
 class SchemaImporterTest extends TestCase
 {
+
+    /** @var SchemaImporterGuessRelationNamesMock */
+    private $schemaImporterMock;
+
+    /** @var array */
+    private $relationDefinitionWithGuessedNames;
+
 
     /**
      * @param  array $database
@@ -402,4 +411,92 @@ class SchemaImporterTest extends TestCase
         $this->assertInstanceOf('\Dive\Schema\Schema', $schema);
     }
 
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param  array $database
+     */
+    public function testGuessRelationNameForParentAndChildrenRelation($database)
+    {
+        $children = $this->getRelationDefinitionWithParentChildrenRelation();
+        $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
+
+        $this->givenIHaveAMockOfAbstractSchemaImporterClass($conn);
+        $this->whenIGuessRelationNamesFor($children);
+        $this->thenOwningAliasShouldBe('Parent');
+        $this->thenReferencedAliasShouldBe('Children');
+    }
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param  array $database
+     */
+    public function testGuessRelationNameForParentAndChildRelation($database)
+    {
+        $child = $this->getRelationDefinitionWithParentChildrenRelation();
+        $child['type'] = Relation::ONE_TO_ONE;
+        $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
+
+        $this->givenIHaveAMockOfAbstractSchemaImporterClass($conn);
+        $this->whenIGuessRelationNamesFor($child);
+        $this->thenOwningAliasShouldBe('Parent');
+        $this->thenReferencedAliasShouldBe('Child');
+    }
+
+
+    /**
+     * A relation should guess Parent and Children / Child when it is a relation on the same table
+     * @return array
+     */
+    private function getRelationDefinitionWithParentChildrenRelation()
+    {
+        return array(
+            'owningTable' => 'author',
+            'owningField' => 'editor_id',
+            'refTable' => 'author',
+            'refField' => 'id',
+            'onDelete' => PlatformInterface::SET_NULL,
+            'onUpdate' => PlatformInterface::CASCADE,
+            'type' => Relation::ONE_TO_MANY
+        );
+    }
+
+
+    /**
+     * @param Connection $conn
+     */
+    private function givenIHaveAMockOfAbstractSchemaImporterClass($conn)
+    {
+        $this->schemaImporterMock = $this->getMockForAbstractClass(
+            '\Dive\Test\Schema\Import\SchemaImporterGuessRelationNamesMock',
+            array($conn)
+        );
+    }
+
+
+    private function whenIGuessRelationNamesFor($relation)
+    {
+        $this->relationDefinitionWithGuessedNames = $this->schemaImporterMock->guessRelationAliases($relation);
+    }
+
+
+    private function thenOwningAliasShouldBe($expected)
+    {
+        $this->assertEquals($expected, $this->relationDefinitionWithGuessedNames['owningAlias']);
+    }
+
+
+    private function thenReferencedAliasShouldBe($expected)
+    {
+        $this->assertEquals($expected, $this->relationDefinitionWithGuessedNames['refAlias']);
+    }
+}
+
+
+abstract class SchemaImporterGuessRelationNamesMock extends SchemaImporter
+{
+    public function guessRelationAliases(array $relation)
+    {
+        return parent::guessRelationAliases($relation);
+    }
 }

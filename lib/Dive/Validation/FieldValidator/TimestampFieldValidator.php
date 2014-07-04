@@ -24,9 +24,6 @@ class TimestampFieldValidator implements ValidatorInterface
      */
     public function validate($value)
     {
-        if ($value === null) {
-            return true;
-        }
         if ($value > 0 && $value < 2147483648 && preg_match('/^\d+$/', $value)) {
             return true;
         }

@@ -46,7 +46,6 @@ class TimestampFieldValidatorTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'     => array(null),
             '2147483647' => array('2147483647'),
             '1500000000' => array('1500000000'),
         );

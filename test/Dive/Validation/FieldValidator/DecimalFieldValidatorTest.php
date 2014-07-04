@@ -46,7 +46,6 @@ class DecimalFieldValidatorTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'          => array(null),
             'int 0'         => array(0),
             'string 0'      => array('0'),
             'float .0'      => array(.0),

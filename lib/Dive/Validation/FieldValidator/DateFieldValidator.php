@@ -28,9 +28,6 @@ class DateFieldValidator implements ValidatorInterface
      */
     public function validate($value, $format = null)
     {
-        if ($value === null) {
-            return true;
-        }
         if (empty($value)) {
             return false;
         }

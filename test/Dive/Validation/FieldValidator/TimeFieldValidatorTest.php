@@ -46,7 +46,6 @@ class TimeFieldValidatorTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'     => array(null),
             '12:23:34' => array('12:23:34'),
             '23:59:59' => array('23:59:59'),
             '00:00:00' => array('00:00:00'),

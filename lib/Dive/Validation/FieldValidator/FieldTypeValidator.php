@@ -8,6 +8,7 @@
  */
 namespace Dive\Validation\FieldValidator;
 
+use Dive\Expression;
 use Dive\Record;
 use Dive\Validation\ValidationException;
 use Dive\Validation\ValidatorInterface;
@@ -37,7 +38,6 @@ class FieldTypeValidator implements ValidatorInterface
         if (!($record instanceof Record)) {
             throw new \InvalidArgumentException("Expects record instance as #1 argument");
         }
-
         return $this->validateRecord($record);
     }
 
@@ -59,11 +59,13 @@ class FieldTypeValidator implements ValidatorInterface
     protected function validateRecord(Record $record)
     {
         $table = $record->getTable();
-        $fields = $table->getFields();
-        foreach ($fields as $fieldName => $field) {
+        $modifiedFields = $record->getModifiedFields();
+        foreach ($modifiedFields as $fieldName => $oldValue) {
+            $field = $table->getField($fieldName);
             if ($this->hasFieldValidator($field['type'])) {
                 $validator = $this->getFieldValidator($field['type']);
-                if (!$validator->validate($record->get($fieldName))) {
+                $value = $record->get($fieldName);
+                if ($this->validateFieldValue($validator, $value) === false) {
                     return false;
                 }
             }
@@ -102,6 +104,23 @@ class FieldTypeValidator implements ValidatorInterface
     public function removeFieldValidator($fieldType)
     {
         unset($this->fieldValidators[$fieldType]);
+    }
+
+
+    /**
+     * @param  ValidatorInterface $validator
+     * @param  mixed              $value
+     * @return bool
+     */
+    private function validateFieldValue(ValidatorInterface $validator, $value)
+    {
+        if ($value === null) {
+            return true;
+        }
+        if ($value instanceof Expression) {
+            return true;
+        }
+        return $validator->validate($value);
     }
 
 }

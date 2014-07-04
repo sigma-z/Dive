@@ -45,7 +45,6 @@ class StringFieldValidatorTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'      => array(null),
             'empty-string' => array(''),
             'string-12' => array('12'),
             'string'    => array('some kind of string')

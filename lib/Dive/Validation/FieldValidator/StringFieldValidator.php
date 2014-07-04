@@ -24,9 +24,6 @@ class StringFieldValidator implements ValidatorInterface
      */
     public function validate($value)
     {
-        if ($value === null) {
-            return true;
-        }
         if (is_string($value)) {
             return true;
         }

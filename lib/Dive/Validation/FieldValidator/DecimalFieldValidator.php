@@ -24,14 +24,7 @@ class DecimalFieldValidator implements ValidatorInterface
      */
     public function validate($value)
     {
-        if ($value === null) {
-            return true;
-        }
-        if (is_numeric($value)) {
-            return true;
-        }
-
-        return false;
+        return is_numeric($value);
     }
 
 }

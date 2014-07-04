@@ -46,7 +46,6 @@ class IntegerFieldValidatorTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'              => array(null),
             'int1'              => array(1),
             'string1'           => array('1'),
             'int0'              => array(0),

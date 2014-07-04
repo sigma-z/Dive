@@ -46,7 +46,6 @@ class DateTimeFieldValidatorTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null' => array(null),
             '2013-02-28 12:23:34' => array('2013-02-28 12:23:34'),
             '2012-02-29 23:59:59' => array('2012-02-29 23:59:59'),
             '2012-02-29 00:00:00' => array('2012-02-29 00:00:00')

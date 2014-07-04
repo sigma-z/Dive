@@ -24,9 +24,6 @@ class IntegerFieldValidator implements ValidatorInterface
      */
     public function validate($value)
     {
-        if ($value === null) {
-            return true;
-        }
         if (is_int($value)) {
             return true;
         }

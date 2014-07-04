@@ -46,7 +46,6 @@ class DateFieldValidatorTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'       => array(null),
             '2014-04-14' => array('2014-04-14'),
             '9999-12-31' => array('9999-12-31'),
         );

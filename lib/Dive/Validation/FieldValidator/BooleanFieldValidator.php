@@ -24,9 +24,6 @@ class BooleanFieldValidator implements ValidatorInterface
      */
     public function validate($value)
     {
-        if ($value === null) {
-            return true;
-        }
         if ($value === '1' || $value === '0') {
             return true;
         }

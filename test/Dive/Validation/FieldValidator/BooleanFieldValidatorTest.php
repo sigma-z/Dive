@@ -47,7 +47,6 @@ class BooleanFieldValidationTest extends TestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null'       => array(null),
             'int1'       => array(1),
             'string1'    => array('1'),
             'bool-true'  => array(true),

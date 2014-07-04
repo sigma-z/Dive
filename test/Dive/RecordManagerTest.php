@@ -183,7 +183,7 @@ class RecordManagerTest extends TestCase
         $this->assertNotNull($fieldTypeValidator);
         $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldTypeValidator', $fieldTypeValidator);
         $booleanOrmDataTypeValidator = $fieldTypeValidator->getDataTypeValidator(DataTypeMapper::OTYPE_BOOLEAN);
-        $this->assertInstanceOf('\Dive\Schema\OrmDataType\BooleanOrmDataTypeValidator', $booleanOrmDataTypeValidator);
+        $this->assertInstanceOf('\Dive\Schema\OrmDataType\BooleanOrmDataType', $booleanOrmDataTypeValidator);
 
 //        $validator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_LENGTH);
 //        $this->assertNotNull($validator);

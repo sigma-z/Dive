@@ -8,7 +8,6 @@
  */
 namespace Dive;
 
-use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Schema\Schema;
 use Dive\Schema\SchemaException;
 use Dive\Connection\Connection;
@@ -16,15 +15,7 @@ use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Platform\PlatformInterface;
 use Dive\UnitOfWork\UnitOfWork;
-use Dive\Validation\FieldValidator\BooleanFieldValidator;
-use Dive\Validation\FieldValidator\DateFieldValidator;
-use Dive\Validation\FieldValidator\DateTimeFieldValidator;
-use Dive\Validation\FieldValidator\DecimalFieldValidator;
 use Dive\Validation\FieldValidator\FieldTypeValidator;
-use Dive\Validation\FieldValidator\IntegerFieldValidator;
-use Dive\Validation\FieldValidator\StringFieldValidator;
-use Dive\Validation\FieldValidator\TimeFieldValidator;
-use Dive\Validation\FieldValidator\TimestampFieldValidator;
 use Dive\Validation\UniqueValidator\UniqueRecordValidator;
 use Dive\Validation\ValidationContainer;
 use Dive\Validation\ValidatorInterface;
@@ -479,19 +470,8 @@ class RecordManager
      */
     protected function createConfiguredFieldTypeValidator()
     {
-        //$stringValidator = new StringFieldValidator();
         $dataTypeMapper = $this->getDriver()->getDataTypeMapper();
         $fieldTypeValidator = new FieldTypeValidator($dataTypeMapper);
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_BOOLEAN,   new BooleanFieldValidator());
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_INTEGER,   new IntegerFieldValidator());
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DECIMAL,   new DecimalFieldValidator());
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_STRING,    $stringValidator);
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DATETIME,  new DateTimeFieldValidator());
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DATE,      new DateFieldValidator());
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_TIME,      new TimeFieldValidator());
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_TIMESTAMP, new TimestampFieldValidator());
-//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_BLOB,      $stringValidator);
-        //$fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_ENUM,    new EnumFieldValidator());
         return $fieldTypeValidator;
     }
 

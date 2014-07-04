@@ -55,10 +55,7 @@ class DataTypeMapper
     protected $ormTypeMapping = array();
 
     /** @var OrmDataTypeInterface[] */
-    protected $ormTypeInstances = array();
-
-    /** @var OrmDataTypeInterface[] */
-    private $ormDataTypeInstance = array();
+    protected $ormDataTypeInstance = array();
 
 
     /**
@@ -85,8 +82,8 @@ class DataTypeMapper
                 continue;
             }
 
-            if (!isset($this->ormTypeInstances[$ormDataType])) {
-                $this->ormTypeInstances[$ormDataType] = $this->createOrmDataType($ormDataType);
+            if (!isset($this->ormDataTypeInstance[$ormDataType])) {
+                $this->ormDataTypeInstance[$ormDataType] = $this->createOrmDataType($ormDataType);
             }
         }
     }
@@ -98,7 +95,7 @@ class DataTypeMapper
      */
     private function createOrmDataType($ormDataType)
     {
-        $class = "\Dive\Schema\OrmDataType\\" . CamelCase::toCamelCase($ormDataType) . 'OrmDataType';
+        $class = "\\Dive\\Schema\\OrmDataType\\" . CamelCase::toCamelCase($ormDataType) . 'OrmDataType';
         return new $class($ormDataType);
     }
 
@@ -128,9 +125,9 @@ class DataTypeMapper
     public function addOrmType($ormDataType, $dataType, $dataTypeMaxLength = 'default')
     {
         $type = $ormDataType->getType();
-        if ($dataTypeMaxLength === 'default'
-            && (!isset($this->ormTypeMapping[$type]) || is_string($this->ormTypeMapping[$type])))
-        {
+        $this->ormDataTypeInstance[$type] = $ormDataType;
+
+        if ($dataTypeMaxLength === 'default' && (!isset($this->ormTypeMapping[$type]) || is_string($this->ormTypeMapping[$type]))) {
             $this->ormTypeMapping[$type] = $dataType;
         }
         else if ($dataTypeMaxLength === 'default') {
@@ -159,22 +156,6 @@ class DataTypeMapper
 
 
     /**
-     * removes an orm type
-     *
-     * @param   string $ormDataType
-     * @return  $this
-     */
-    public function removeOrmType($ormDataType)
-    {
-        if ($this->hasOrmType($ormDataType)) {
-            unset($this->ormTypeMapping[$ormDataType]);
-            unset($this->ormTypeInstances[$ormDataType]);
-        }
-        return $this;
-    }
-
-
-    /**
      * checks, if data type is defined
      *
      * @param  string $dataType
@@ -194,7 +175,7 @@ class DataTypeMapper
      */
     public function hasOrmType($ormDataType)
     {
-        return isset($this->ormTypeMapping[$ormDataType]);
+        return isset($this->ormDataTypeInstance[$ormDataType]);
     }
 
 
@@ -218,8 +199,8 @@ class DataTypeMapper
      */
     public function getOrmTypeInstance($ormDataType)
     {
-        return isset($this->ormTypeInstances[$ormDataType])
-            ? $this->ormTypeInstances[$ormDataType]
+        return isset($this->ormDataTypeInstance[$ormDataType])
+            ? $this->ormDataTypeInstance[$ormDataType]
             : null;
     }
 
@@ -278,12 +259,6 @@ class DataTypeMapper
             return $defaultType;
         }
         return $recommendedDataType ?: $biggestDataType;
-    }
-
-
-    public function getOrmTypeInstanceDump()
-    {
-        var_dump(array_keys($this->ormTypeInstances));
     }
 
 }

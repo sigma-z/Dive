@@ -95,13 +95,6 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function testRemoveOrmType()
-    {
-        $this->dataTypeMapper->removeOrmType(DataTypeMapper::OTYPE_INTEGER);
-        $this->assertFalse($this->dataTypeMapper->hasOrmType(DataTypeMapper::OTYPE_INTEGER));
-    }
-
-
     public function testGetDefaultMappedDataType()
     {
         // defined as default by special key '_default'

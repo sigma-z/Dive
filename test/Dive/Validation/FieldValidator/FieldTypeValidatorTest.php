@@ -10,7 +10,6 @@ namespace Dive\Test\Validation\FieldValidator;
 
 use Dive\Record;
 use Dive\RecordManager;
-use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\TestSuite\TestCase as BaseTestCase;
 use Dive\Validation\FieldValidator\FieldTypeValidator;
 
@@ -70,17 +69,6 @@ class FieldTypeValidatorTest extends BaseTestCase
     }
 
 
-    public function testValidateWithRegisteredAndRemovedDateTimeTypeValidator()
-    {
-        $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveARecordOfTable('article');
-        $this->whenISetRecordField_to('created_on', 'invalid date');
-        $this->whenIRemoveDatetimeValidatorFromTheFieldTypeValidator();
-        $this->whenIValidateTheRecord();
-        $this->thenTheResultShouldBeValid();
-    }
-
-
     private function givenIHaveAFieldTypeValidator()
     {
         $dataTypeMapper = $this->rm->getDriver()->getDataTypeMapper();
@@ -94,13 +82,6 @@ class FieldTypeValidatorTest extends BaseTestCase
     private function givenIHaveARecordOfTable($tableName)
     {
         $this->record = $this->rm->getTable($tableName)->createRecord();
-    }
-
-
-    private function whenIRemoveDatetimeValidatorFromTheFieldTypeValidator()
-    {
-        $dataTypeMapper = $this->rm->getDriver()->getDataTypeMapper();
-        $dataTypeMapper->removeOrmType(DataTypeMapper::OTYPE_DATETIME);
     }
 
 

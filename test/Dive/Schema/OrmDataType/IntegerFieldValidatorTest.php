@@ -6,7 +6,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Test\Validation\FieldValidator;
+namespace Dive\Test\Schema\OrmDataType;
+
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
 require_once __DIR__ . '/TestCase.php';
 
@@ -18,26 +20,7 @@ require_once __DIR__ . '/TestCase.php';
 class IntegerFieldValidatorTest extends TestCase
 {
 
-    /**
-     * @dataProvider provideValidationSucceeds
-     */
-    public function testValidationSucceeds($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('IntegerFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldSucceed();
-    }
-
-
-    /**
-     * @dataProvider provideValidationFails
-     */
-    public function testValidationFails($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('IntegerFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldFail();
-    }
+    protected $type = DataTypeMapper::OTYPE_INTEGER;
 
 
     /**
@@ -45,7 +28,8 @@ class IntegerFieldValidatorTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        return array(
+        $testCases = parent::provideValidationSucceeds();
+        return array_merge($testCases, array(
             'int1'              => array(1),
             'string1'           => array('1'),
             'int0'              => array(0),
@@ -54,7 +38,7 @@ class IntegerFieldValidatorTest extends TestCase
             'string-negative-int' => array(-1234),
             'string-bigint'     => array('12345678987654321'),
             'string-negative-bigint' => array('-12345678987654321'),
-        );
+        ));
     }
 
 

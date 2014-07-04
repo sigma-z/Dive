@@ -310,7 +310,7 @@ abstract class SchemaImporter implements SchemaImporterInterface
         if (!$this->dataTypeMapper->hasDataType($dataType)) {
             throw new SchemaException("Data type $dataType is not defined! (Found in string $type)");
         }
-        $definition['type'] = $this->dataTypeMapper->getOrmType($dataType);
+        $definition['type'] = $this->dataTypeMapper->getMappedOrmType($dataType);
 
         // get length by longest value entry
         if (!empty($values)) {

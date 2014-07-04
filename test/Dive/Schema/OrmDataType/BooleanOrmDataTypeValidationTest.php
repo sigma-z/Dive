@@ -6,39 +6,21 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+namespace Dive\Test\Schema\OrmDataType;
 
-namespace Dive\Test\Validation\FieldValidator;
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
 require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class BooleanFieldValidationTest
+ * Class BooleanDataTypeValidationTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 11.04.14
+ * @created 04.07.2014
  */
-class BooleanFieldValidationTest extends TestCase
+class BooleanOrmDataTypeValidationTest extends TestCase
 {
 
-    /**
-     * @dataProvider provideValidationSucceeds
-     */
-    public function testValidationSucceeds($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('BooleanFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldSucceed();
-    }
-
-
-    /**
-     * @dataProvider provideValidationFails
-     */
-    public function testValidationFails($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('BooleanFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldFail();
-    }
+    protected $type = DataTypeMapper::OTYPE_BOOLEAN;
 
 
     /**
@@ -46,14 +28,15 @@ class BooleanFieldValidationTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        return array(
+        $testCases = parent::provideValidationSucceeds();
+        return array_merge($testCases, array(
             'int1'       => array(1),
             'string1'    => array('1'),
             'bool-true'  => array(true),
             'int0'       => array(0),
             'string0'    => array('0'),
             'bool-false' => array(false),
-        );
+        ));
     }
 
 
@@ -68,5 +51,4 @@ class BooleanFieldValidationTest extends TestCase
             'empty-array'   => array(array())
         );
     }
-
 }

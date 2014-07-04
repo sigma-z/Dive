@@ -10,8 +10,8 @@ namespace Dive\Test\Validation\FieldValidator;
 
 use Dive\Record;
 use Dive\RecordManager;
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\TestSuite\TestCase as BaseTestCase;
-use Dive\Validation\FieldValidator\DateTimeFieldValidator;
 use Dive\Validation\FieldValidator\FieldTypeValidator;
 
 /**
@@ -54,7 +54,6 @@ class FieldTypeValidatorTest extends BaseTestCase
     public function testValidateWithRegisteredDateTimeTypeValidator()
     {
         $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveRegisteredADatetimeValidatorOnTheFieldTypeValidator();
         $this->givenIHaveARecordOfTable('article');
         $this->whenIValidateTheRecord();
         $this->thenTheResultShouldBeValid();
@@ -64,7 +63,6 @@ class FieldTypeValidatorTest extends BaseTestCase
     public function testValidateToFalseWithRegisteredDateTimeTypeValidator()
     {
         $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveRegisteredADatetimeValidatorOnTheFieldTypeValidator();
         $this->givenIHaveARecordOfTable('article');
         $this->whenISetRecordField_to('created_on', 'invalid date');
         $this->whenIValidateTheRecord();
@@ -75,7 +73,6 @@ class FieldTypeValidatorTest extends BaseTestCase
     public function testValidateWithRegisteredAndRemovedDateTimeTypeValidator()
     {
         $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveRegisteredADatetimeValidatorOnTheFieldTypeValidator();
         $this->givenIHaveARecordOfTable('article');
         $this->whenISetRecordField_to('created_on', 'invalid date');
         $this->whenIRemoveDatetimeValidatorFromTheFieldTypeValidator();
@@ -86,7 +83,8 @@ class FieldTypeValidatorTest extends BaseTestCase
 
     private function givenIHaveAFieldTypeValidator()
     {
-        $this->validator = new FieldTypeValidator();
+        $dataTypeMapper = $this->rm->getDriver()->getDataTypeMapper();
+        $this->validator = new FieldTypeValidator($dataTypeMapper);
     }
 
 
@@ -99,15 +97,10 @@ class FieldTypeValidatorTest extends BaseTestCase
     }
 
 
-    private function givenIHaveRegisteredADatetimeValidatorOnTheFieldTypeValidator()
-    {
-        $this->validator->addFieldValidator('datetime', new DateTimeFieldValidator());
-    }
-
-
     private function whenIRemoveDatetimeValidatorFromTheFieldTypeValidator()
     {
-        $this->validator->removeFieldValidator('datetime');
+        $dataTypeMapper = $this->rm->getDriver()->getDataTypeMapper();
+        $dataTypeMapper->removeOrmType(DataTypeMapper::OTYPE_DATETIME);
     }
 
 

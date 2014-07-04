@@ -78,7 +78,6 @@ class SqliteDataTypeMapper extends DataTypeMapper
 
         $mapping = array_merge($defaultDataTypeMapping, $mapping);
         $ormTypeMapping = array_merge($defaultOrmTypeMapping, $ormTypeMapping);
-
         parent::__construct($mapping, $ormTypeMapping);
     }
 

@@ -6,7 +6,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Test\Validation\FieldValidator;
+namespace Dive\Test\Schema\OrmDataType;
+
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
 require_once __DIR__ . '/TestCase.php';
 
@@ -15,29 +17,10 @@ require_once __DIR__ . '/TestCase.php';
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class TimestampFieldValidatorTest extends TestCase
+class TimestampOrmDataTypeValidatorTest extends TestCase
 {
 
-    /**
-     * @dataProvider provideValidationSucceeds
-     */
-    public function testValidationSucceeds($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('TimestampFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldSucceed();
-    }
-
-
-    /**
-     * @dataProvider provideValidationFails
-     */
-    public function testValidationFails($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('TimestampFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldFail();
-    }
+    protected $type = DataTypeMapper::OTYPE_TIMESTAMP;
 
 
     /**
@@ -45,10 +28,11 @@ class TimestampFieldValidatorTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        return array(
+        $testCases = parent::provideValidationSucceeds();
+        return array_merge($testCases, array(
             '2147483647' => array('2147483647'),
             '1500000000' => array('1500000000'),
-        );
+        ));
     }
 
 

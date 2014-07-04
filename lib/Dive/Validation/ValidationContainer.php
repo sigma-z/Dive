@@ -58,7 +58,7 @@ class ValidationContainer implements ValidatorInterface
 
 
     /**
-     * @param  mixed $value
+     * @param  Record $value
      * @return bool
      */
     public function validate($value)

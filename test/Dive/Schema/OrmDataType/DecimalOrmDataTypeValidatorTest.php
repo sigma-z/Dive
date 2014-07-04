@@ -6,7 +6,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Test\Validation\FieldValidator;
+namespace Dive\Test\Schema\OrmDataType;
+
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
 require_once __DIR__ . '/TestCase.php';
 
@@ -18,26 +20,7 @@ require_once __DIR__ . '/TestCase.php';
 class DecimalFieldValidatorTest extends TestCase
 {
 
-    /**
-     * @dataProvider provideValidationSucceeds
-     */
-    public function testValidationSucceeds($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('DecimalFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldSucceed();
-    }
-
-
-    /**
-     * @dataProvider provideValidationFails
-     */
-    public function testValidationFails($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('DecimalFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldFail();
-    }
+    protected $type = DataTypeMapper::OTYPE_DECIMAL;
 
 
     /**
@@ -45,7 +28,8 @@ class DecimalFieldValidatorTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        return array(
+        $testCases = parent::provideValidationSucceeds();
+        return array_merge($testCases, array(
             'int 0'         => array(0),
             'string 0'      => array('0'),
             'float .0'      => array(.0),
@@ -60,7 +44,7 @@ class DecimalFieldValidatorTest extends TestCase
             'string -.1234' => array('-.1243'),
             'float 134567890.0987654321' => array(1234567890.0987654321),
             'string 1234567890.0987654321' => array('1234567890.0987654321')
-        );
+        ));
     }
 
 

@@ -6,37 +6,21 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Test\Validation\FieldValidator;
+namespace Dive\Test\Schema\OrmDataType;
+
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 
 require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class StringFieldValidatorTest
+ * Class StringOrmDataTypeValidationTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
- * @created 25.04.2014
+ * @created 04.07.2014
  */
-class StringFieldValidatorTest extends TestCase
+class StringOrmDataTypeValidationTest extends TestCase
 {
-    /**
-     * @dataProvider provideValidationSucceeds
-     */
-    public function testValidationSucceeds($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('StringFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldSucceed();
-    }
 
-
-    /**
-     * @dataProvider provideValidationFails
-     */
-    public function testValidationFails($value)
-    {
-        $this->givenIHaveAFieldTypeValidatorWithType('StringFieldValidator');
-        $this->whenIValidateValue($value);
-        $this->thenValidationShouldFail();
-    }
+    protected $type = DataTypeMapper::OTYPE_STRING;
 
 
     /**
@@ -44,11 +28,12 @@ class StringFieldValidatorTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        return array(
+        $testCases = parent::provideValidationSucceeds();
+        return array_merge($testCases, array(
             'empty-string' => array(''),
             'string-12' => array('12'),
             'string'    => array('some kind of string')
-        );
+        ));
     }
 
 

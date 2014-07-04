@@ -8,8 +8,8 @@
  */
 namespace Dive\Validation\FieldValidator;
 
-use Dive\Expression;
 use Dive\Record;
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Validation\ValidationException;
 use Dive\Validation\ValidatorInterface;
 
@@ -21,11 +21,18 @@ use Dive\Validation\ValidatorInterface;
 class FieldTypeValidator implements ValidatorInterface
 {
 
+    /** @var DataTypeMapper */
+    private $dataTypeMapper;
+
+
     /**
-     * @var ValidatorInterface[]
-     * keys: field type names
+     * constructor
+     * @param DataTypeMapper $dataTypeMapper
      */
-    private $fieldValidators;
+    public function __construct(DataTypeMapper $dataTypeMapper)
+    {
+        $this->dataTypeMapper = $dataTypeMapper;
+    }
 
 
     /**
@@ -43,16 +50,6 @@ class FieldTypeValidator implements ValidatorInterface
 
 
     /**
-     * @param string             $fieldType
-     * @param ValidatorInterface $validator
-     */
-    public function addFieldValidator($fieldType, ValidatorInterface $validator)
-    {
-        $this->fieldValidators[$fieldType] = $validator;
-    }
-
-
-    /**
      * @param  Record $record
      * @return bool
      */
@@ -62,26 +59,16 @@ class FieldTypeValidator implements ValidatorInterface
         $modifiedFields = $record->getModifiedFields();
         foreach ($modifiedFields as $fieldName => $oldValue) {
             $field = $table->getField($fieldName);
-            if ($this->hasFieldValidator($field['type'])) {
-                $validator = $this->getFieldValidator($field['type']);
-                $value = $record->get($fieldName);
-                if ($this->validateFieldValue($validator, $value) === false) {
-                    return false;
-                }
+            $validator = $this->getDataTypeValidator($field['type']);
+            $value = $record->get($fieldName);
+            if ($validator->validate($value) === false) {
+                return false;
             }
         }
         return true;
     }
 
 
-    /**
-     * @param  string $fieldType
-     * @return bool
-     */
-    public function hasFieldValidator($fieldType)
-    {
-        return isset($this->fieldValidators[$fieldType]);
-    }
 
 
     /**
@@ -89,38 +76,13 @@ class FieldTypeValidator implements ValidatorInterface
      * @throws \Dive\Validation\ValidationException
      * @return \Dive\Validation\ValidatorInterface
      */
-    public function getFieldValidator($fieldType)
+    public function getDataTypeValidator($fieldType)
     {
-        if ($this->hasFieldValidator($fieldType)) {
-            return $this->fieldValidators[$fieldType];
+        $validator = $this->dataTypeMapper->getOrmTypeInstance($fieldType);
+        if ($validator) {
+            return $validator;
         }
-        throw new ValidationException("No validator defined for field type '$fieldType'!");
-    }
-
-
-    /**
-     * @param string $fieldType
-     */
-    public function removeFieldValidator($fieldType)
-    {
-        unset($this->fieldValidators[$fieldType]);
-    }
-
-
-    /**
-     * @param  ValidatorInterface $validator
-     * @param  mixed              $value
-     * @return bool
-     */
-    private function validateFieldValue(ValidatorInterface $validator, $value)
-    {
-        if ($value === null) {
-            return true;
-        }
-        if ($value instanceof Expression) {
-            return true;
-        }
-        return $validator->validate($value);
+        throw new ValidationException("No orm data type defined for field type '$fieldType'!");
     }
 
 }

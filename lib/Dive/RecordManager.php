@@ -96,6 +96,15 @@ class RecordManager
 
 
     /**
+     * @return \Dive\Connection\Driver\DriverInterface
+     */
+    public function getDriver()
+    {
+        return $this->getConnection()->getDriver();
+    }
+
+
+    /**
      * @return Event\EventDispatcherInterface
      */
     public function getEventDispatcher()
@@ -470,17 +479,18 @@ class RecordManager
      */
     protected function createConfiguredFieldTypeValidator()
     {
-        $stringValidator = new StringFieldValidator();
-        $fieldTypeValidator = new FieldTypeValidator();
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_BOOLEAN,   new BooleanFieldValidator());
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_INTEGER,   new IntegerFieldValidator());
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DECIMAL,   new DecimalFieldValidator());
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_STRING,    $stringValidator);
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DATETIME,  new DateTimeFieldValidator());
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DATE,      new DateFieldValidator());
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_TIME,      new TimeFieldValidator());
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_TIMESTAMP, new TimestampFieldValidator());
-        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_BLOB,      $stringValidator);
+        //$stringValidator = new StringFieldValidator();
+        $dataTypeMapper = $this->getDriver()->getDataTypeMapper();
+        $fieldTypeValidator = new FieldTypeValidator($dataTypeMapper);
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_BOOLEAN,   new BooleanFieldValidator());
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_INTEGER,   new IntegerFieldValidator());
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DECIMAL,   new DecimalFieldValidator());
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_STRING,    $stringValidator);
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DATETIME,  new DateTimeFieldValidator());
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_DATE,      new DateFieldValidator());
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_TIME,      new TimeFieldValidator());
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_TIMESTAMP, new TimestampFieldValidator());
+//        $fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_BLOB,      $stringValidator);
         //$fieldTypeValidator->addFieldValidator(DataTypeMapper::OTYPE_ENUM,    new EnumFieldValidator());
         return $fieldTypeValidator;
     }

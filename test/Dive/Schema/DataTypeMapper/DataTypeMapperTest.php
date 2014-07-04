@@ -69,7 +69,7 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
             ),
             DataTypeMapper::OTYPE_DATE => 'date'
         );
-        $this->dataTypeMapper = new DataTypeMapper($mapping, $lengths);
+        $this->dataTypeMapper = new DataTypeMapper($mapping, $lengths, array());
     }
 
 
@@ -82,7 +82,8 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
 
     public function testAddOrmType()
     {
-        $this->dataTypeMapper->addOrmType('test', DataTypeMapper::OTYPE_STRING);
+        $ormDataType = $this->getMockForAbstractClass('\Dive\Schema\OrmDataType\OrmDataType', array('test'));
+        $this->dataTypeMapper->addOrmType($ormDataType, DataTypeMapper::OTYPE_STRING);
         $this->assertTrue($this->dataTypeMapper->hasOrmType('test'));
     }
 

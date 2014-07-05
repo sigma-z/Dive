@@ -32,6 +32,18 @@ class ErrorStack implements \IteratorAggregate
 
 
     /**
+     * @param  string $fieldName
+     * @return array
+     */
+    public function get($fieldName)
+    {
+        return isset($this->errors[$fieldName])
+            ? $this->errors[$fieldName]
+            : array();
+    }
+
+
+    /**
      * @param string      $fieldName
      * @param string|null $errorCode
      */
@@ -49,6 +61,17 @@ class ErrorStack implements \IteratorAggregate
         }
         else {
             unset($this->errors[$fieldName]);
+        }
+    }
+
+
+    /**
+     * @param string $errorCode
+     */
+    public function removeErrorCodeInFields($errorCode)
+    {
+        foreach ($this->errors as $fieldName => $errorCodes) {
+            $this->remove($fieldName, $errorCode);
         }
     }
 

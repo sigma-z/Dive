@@ -20,15 +20,6 @@ class DatetimeOrmDataType extends DateOrmDataType
     const DEFAULT_FORMAT = 'Y-m-d H:i:s';
 
 
-    /**
-     * @param  mixed  $value
-     * @param  string $format
-     * @return bool
-     */
-    public function validate($value, $format = null)
-    {
-        $format = $format ?: self::DEFAULT_FORMAT;
-        return parent::validate($value, $format);
-    }
+    protected $format = self::DEFAULT_FORMAT;
 
 }

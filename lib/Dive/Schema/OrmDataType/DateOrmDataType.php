@@ -19,12 +19,28 @@ class DateOrmDataType extends OrmDataType
     const DEFAULT_FORMAT = 'Y-m-d';
 
 
+    /** @var string */
+    protected $format = self::DEFAULT_FORMAT;
+
+
+    /**
+     * @param string $type
+     * @param string $format
+     */
+    public function __construct($type, $format = null)
+    {
+        $this->type = $type;
+        if ($format !== null) {
+            $this->format = $format;
+        }
+    }
+
+
     /**
      * @param  mixed $value
-     * @param  string $format
      * @return bool
      */
-    public function validate($value, $format = null)
+    public function validate($value)
     {
         if (!$this->canValueBeValidated($value)) {
             return true;
@@ -34,8 +50,7 @@ class DateOrmDataType extends OrmDataType
             return false;
         }
 
-        $format = $format ?: self::DEFAULT_FORMAT;
-        $date = \DateTime::createFromFormat($format, $value);
+        $date = \DateTime::createFromFormat($this->format, $value);
         if ($date === false) {
             return false;
         }

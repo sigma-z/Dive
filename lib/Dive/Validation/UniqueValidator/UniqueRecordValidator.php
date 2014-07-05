@@ -9,6 +9,7 @@
 namespace Dive\Validation\UniqueValidator;
 
 use Dive\Exception;
+use Dive\Query\Query;
 use Dive\Record;
 use Dive\Validation\ValidatorInterface;
 
@@ -97,14 +98,20 @@ class UniqueRecordValidator implements ValidatorInterface
             return true;
         }
 
-        // TODO hwo to know which unique index breaks the constraint for adding unique errors to the error stack
         $query = $this->getUniqueIndexesQuery($record, $uniqueIndexesToCheck);
-        $isInvalid = $query->hasResult();
-        if ($isInvalid) {
-            $errorStack = $record->getErrorStack();
-            $errorStack->add('unique index', 'unique');
+        $result = $query->fetchOneAsArray();
+        if ($result) {
+            foreach ($result as $uniqueName => $hit) {
+                if ($hit) {
+                    $uniqueIndex = $uniqueIndexesToCheck[$uniqueName];
+                    foreach ($uniqueIndex['fields'] as $field) {
+                        $errorStack = $record->getErrorStack();
+                        $errorStack->add($field, 'unique');
+                    }
+                }
+            }
         }
-        return !$isInvalid;
+        return empty($result);
     }
 
 
@@ -120,16 +127,18 @@ class UniqueRecordValidator implements ValidatorInterface
         $conn = $table->getConnection();
         $conditions = array();
         $queryParams = array();
+        $recordExists = $record->exists();
+        $identifier = array();
 
-        if ($record->exists()) {
+        if ($recordExists) {
             $condition = '';
             foreach ($record->getIdentifierFieldIndexed() as $idField => $idValue) {
                 $condition .= $conn->quoteIdentifier($idField) . ' != ? AND ';
-                $queryParams[] = $idValue;
+                $identifier[] = $idValue;
             }
             // strip last AND from string
             $condition = substr($condition, 0, -4);
-            $conditions[] = $condition;
+            $conditions['primary'] = $condition;
         }
 
         foreach ($uniqueIndexesToCheck as $uniqueName => $uniqueIndexToCheck) {
@@ -153,16 +162,28 @@ class UniqueRecordValidator implements ValidatorInterface
             }
             // strip last AND from string
             $condition = substr($condition, 0, -4);
-            $conditions[] = $condition;
+            $conditions[$uniqueName] = $condition;
             $queryParams = array_merge($queryParams, $conditionParams);
         }
 
-        $condition = ($record->exists() ? array_shift($conditions) . ' AND (' : '')
+        $whereCondition = ($recordExists ? array_shift($conditions) . ' AND (' : '')
             . implode(' OR ', $conditions)
-            . ($record->exists() ? ')' : '');
+            . ($recordExists ? ')' : '');
 
         $query = $table->createQuery();
-        $query->where($condition, $queryParams);
+        $query->where($whereCondition);
+
+        foreach ($conditions as $uniqueName => $condition) {
+            $query->addSelect("($condition) AS " . $conn->quoteIdentifier($uniqueName));
+        }
+
+        $whereParams = $recordExists
+            ? array_merge($identifier, $queryParams)
+            : $queryParams;
+        $query->setParams(Query::PART_SELECT, $queryParams);
+        $query->setParams(Query::PART_WHERE, $whereParams);
+        $query->limit(1);
+
         return $query;
     }
 

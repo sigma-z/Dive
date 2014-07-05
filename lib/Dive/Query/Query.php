@@ -19,6 +19,15 @@ use Dive\Util\StringExplode;
  */
 class Query implements QueryInterface, QueryHydrationInterface
 {
+    const PART_SELECT       = 'select';
+    const PART_DISTINCT     = 'distinct';
+    const PART_FOR_UPDATE   = 'forUpdate';
+    const PART_FROM         = 'from';
+    const PART_WHERE        = 'where';
+    const PART_GROUP_BY     = 'groupBy';
+    const PART_HAVING       = 'having';
+    const PART_ORDER_BY     = 'orderBy';
+
 
     /**
      * @var \Dive\RecordManager
@@ -34,41 +43,41 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @var array
      */
     protected $queryParts = array(
-        'select'    => array(),
-        'distinct'  => false,
-        'forUpdate' => false,
-        'from'      => array(),
+        self::PART_SELECT     => array(),
+        self::PART_DISTINCT   => false,
+        self::PART_FOR_UPDATE => false,
+        self::PART_FROM       => array(),
         //'set'       => array(), // TODO only for update
-        'where'     => array(),
-        'groupBy'   => array(),
-        'having'    => array(),
-        'orderBy'   => array()
+        self::PART_WHERE      => array(),
+        self::PART_GROUP_BY   => array(),
+        self::PART_HAVING     => array(),
+        self::PART_ORDER_BY   => array()
     );
 
     /**
      * @var array
      */
     protected $sqlParts = array(
-        'select'    => '',
-        'from'      => '',
-        'where'     => '',
-        'groupBy'   => '',
-        'having'    => '',
-        'orderBy'   => '',
-        'forUpdate' => ''
+        self::PART_SELECT     => '',
+        self::PART_FROM       => '',
+        self::PART_WHERE      => '',
+        self::PART_GROUP_BY   => '',
+        self::PART_HAVING     => '',
+        self::PART_ORDER_BY   => '',
+        self::PART_FOR_UPDATE => ''
     );
 
     /**
      * @var array
      */
     protected $params = array(
-        'select'    => array(),
-        'from'      => array(),
+        self::PART_SELECT   => array(),
+        self::PART_FROM     => array(),
         //'set'       => array(), // TODO only for update
-        'where'     => array(),
-        'groupBy'   => array(),
-        'having'    => array(),
-        'orderBy'   => array()
+        self::PART_WHERE    => array(),
+        self::PART_GROUP_BY  => array(),
+        self::PART_HAVING   => array(),
+        self::PART_ORDER_BY => array()
     );
 
     /**
@@ -155,7 +164,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function select($select, $params = array())
     {
-        $this->setQueryPart('select', $select, $params);
+        $this->setQueryPart(self::PART_SELECT, $select, $params);
         return $this;
     }
 
@@ -169,7 +178,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function addSelect($select, $params = array())
     {
-        $this->addQueryPart('select', $select, $params);
+        $this->addQueryPart(self::PART_SELECT, $select, $params);
         return $this;
     }
 
@@ -182,7 +191,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function distinct($distinct = true)
     {
-        $this->queryParts['distinct'] = (bool)$distinct;
+        $this->queryParts[self::PART_DISTINCT] = (bool)$distinct;
         return $this;
     }
 
@@ -195,7 +204,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function forUpdate($forUpdate = true)
     {
-        $this->queryParts['forUpdate'] = (bool)$forUpdate;
+        $this->queryParts[self::PART_FOR_UPDATE] = (bool)$forUpdate;
         return $this;
     }
 
@@ -222,7 +231,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         );
         $quote = $this->getRecordManager()->getConnection()->getIdentifierQuote();
         $from = $quote . $tableName . $quote . ' ' . $alias;
-        $this->setQueryPart('from', $from, $params);
+        $this->setQueryPart(self::PART_FROM, $from, $params);
         return $this;
     }
 
@@ -240,7 +249,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         $alias = $joinDef['alias'];
         $this->queryComponents[$alias] = $joinDef;
         $leftJoin = $this->getLeftJoinByDefinition($joinDef);
-        $this->addQueryPart('from', 'LEFT JOIN ' . $leftJoin, $params);
+        $this->addQueryPart(self::PART_FROM, 'LEFT JOIN ' . $leftJoin, $params);
         return $this;
     }
 
@@ -259,7 +268,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         $alias = $joinDef['alias'];
         $this->queryComponents[$alias] = $joinDef;
         $leftJoin = $this->getLeftJoinByDefinition($joinDef);
-        $this->addQueryPart('from', 'LEFT JOIN ' . $leftJoin, $params);
+        $this->addQueryPart(self::PART_FROM, 'LEFT JOIN ' . $leftJoin, $params);
         return $this;
     }
 
@@ -278,7 +287,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         $alias = $joinDef['alias'];
         $this->queryComponents[$alias] = $joinDef;
         $leftJoin = $this->getLeftJoinByDefinition($joinDef);
-        $this->addQueryPart('from', 'LEFT JOIN ' . $leftJoin, $params);
+        $this->addQueryPart(self::PART_FROM, 'LEFT JOIN ' . $leftJoin, $params);
         return $this;
     }
 
@@ -345,7 +354,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function where($expr, $params = array())
     {
-        $this->setQueryPart('where', $expr, $params);
+        $this->setQueryPart(self::PART_WHERE, $expr, $params);
         return $this;
     }
 
@@ -387,7 +396,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function whereIn($expr, $params = array())
     {
-        $this->removeQueryPart('where');
+        $this->removeQueryPart(self::PART_WHERE);
         $this->addWhereInClause($expr, $params);
         return $this;
     }
@@ -402,7 +411,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function whereNotIn($expr, $params = array())
     {
-        $this->removeQueryPart('where');
+        $this->removeQueryPart(self::PART_WHERE);
         $this->addWhereInClause($expr, $params, true);
         return $this;
     }
@@ -473,11 +482,11 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     protected function addWherePart($expr, $params, $logicalGlue = 'AND')
     {
-        if (empty($this->queryParts['where'])) {
-            $this->setQueryPart('where', $expr, $params);
+        if (empty($this->queryParts[self::PART_WHERE])) {
+            $this->setQueryPart(self::PART_WHERE, $expr, $params);
         }
         else {
-            $this->addQueryPart('where', $logicalGlue . ' ' . $expr, $params);
+            $this->addQueryPart(self::PART_WHERE, $logicalGlue . ' ' . $expr, $params);
         }
     }
 
@@ -515,7 +524,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function groupBy($expr, $params = array())
     {
-        $this->setQueryPart('groupBy', $expr, $params);
+        $this->setQueryPart(self::PART_GROUP_BY, $expr, $params);
         return $this;
     }
 
@@ -529,7 +538,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function addGroupBy($expr, $params = array())
     {
-        $this->addQueryPart('groupBy', $expr, $params);
+        $this->addQueryPart(self::PART_GROUP_BY, $expr, $params);
         return $this;
     }
 
@@ -543,7 +552,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function having($expr, $params = array())
     {
-        $this->setQueryPart('having', $expr, $params);
+        $this->setQueryPart(self::PART_HAVING, $expr, $params);
         return $this;
     }
 
@@ -557,10 +566,10 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function andHaving($expr, $params = array())
     {
-        if (!empty($this->queryParts['having'])) {
+        if (!empty($this->queryParts[self::PART_HAVING])) {
             $expr = ' AND ' . $expr;
         }
-        $this->addQueryPart('having', $expr, $params);
+        $this->addQueryPart(self::PART_HAVING, $expr, $params);
         return $this;
     }
 
@@ -574,10 +583,10 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function orHaving($expr, $params = array())
     {
-        if (!empty($this->queryParts['having'])) {
+        if (!empty($this->queryParts[self::PART_HAVING])) {
             $expr = ' OR ' . $expr;
         }
-        $this->addQueryPart('having', $expr, $params);
+        $this->addQueryPart(self::PART_HAVING, $expr, $params);
         return $this;
     }
 
@@ -591,7 +600,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function orderBy($expr, $params = array())
     {
-        $this->setQueryPart('orderBy', $expr, $params);
+        $this->setQueryPart(self::PART_ORDER_BY, $expr, $params);
         return $this;
     }
 
@@ -605,7 +614,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     public function addOrderBy($expr, $params = array())
     {
-        $this->addQueryPart('orderBy', $expr, $params);
+        $this->addQueryPart(self::PART_ORDER_BY, $expr, $params);
         return $this;
     }
 
@@ -683,9 +692,9 @@ class Query implements QueryInterface, QueryHydrationInterface
     {
         $query = $this->copy();
 
-        $query->removeQueryPart('orderBy');
-        $query->removeQueryPart('groupBy');
-        $query->removeQueryPart('having');
+        $query->removeQueryPart(self::PART_ORDER_BY);
+        $query->removeQueryPart(self::PART_GROUP_BY);
+        $query->removeQueryPart(self::PART_HAVING);
         $query->limitOffset(0, 0);
 
         $rootAlias = $query->getRootAlias();
@@ -703,12 +712,12 @@ class Query implements QueryInterface, QueryHydrationInterface
     {
         $query = $this->copy();
 
-        $query->removeQueryPart('orderBy');
+        $query->removeQueryPart(self::PART_ORDER_BY);
         $query->limitOffset(0, 0);
 
         $queryParts = $query->getQueryParts();
 
-        if (empty($queryParts['groupBy'])) {
+        if (empty($queryParts[self::PART_GROUP_BY])) {
             $query->select('COUNT(*)');
             return (int)$query->fetchSingleScalar();
         }
@@ -731,7 +740,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     public function hasResult()
     {
         $query = $this->copy();
-        $query->removeQueryPart('orderBy');
+        $query->removeQueryPart(self::PART_ORDER_BY);
         $query->select('(1+0)');
         $query->limit(1);
         $result = $query->fetchSingleScalar();
@@ -985,7 +994,7 @@ class Query implements QueryInterface, QueryHydrationInterface
             throw new QueryException("Query part '$part' is not defined/supported!");
         }
 
-        $default = in_array($part, array('forUpdate', 'distinct')) ? false : array();
+        $default = in_array($part, array(self::PART_FOR_UPDATE, self::PART_DISTINCT)) ? false : array();
         $this->queryParts[$part] = $default;
         unset($this->params[$part]);
         return $this;

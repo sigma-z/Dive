@@ -8,6 +8,7 @@
  */
 namespace Dive\Test\Record;
 
+use Dive\Record;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 use Dive\Util\FieldValuesGenerator;
@@ -27,9 +28,13 @@ class RecordSaveUniqueConstraintTest extends TestCase
     /** @var RecordInvalidException */
     private $raisedException;
 
+    /** @var Record */
+    private $record;
+
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testSingleFieldUniqueConstraintNullConstrainedViolationThrowsException(array $database)
     {
@@ -37,11 +42,13 @@ class RecordSaveUniqueConstraintTest extends TestCase
         $this->givenIHaveStoredRecordWithData(array('single_unique' => 'unique'));
         $this->whenITryToSaveRecordWithData(array('single_unique' => 'unique'));
         $this->thenItShouldThrowAUniqueConstraintException();
+        $this->thenItShouldHaveMarkedUniqueErrorForFields(array('single_unique'));
     }
 
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testSingleFieldUniqueConstraintNotNullConstrainedViolationThrowsException(array $database)
     {
@@ -49,11 +56,13 @@ class RecordSaveUniqueConstraintTest extends TestCase
         $this->givenIHaveStoredRecordWithData(array('single_unique_null_constrained' => 'unique'));
         $this->whenITryToSaveRecordWithData(array('single_unique_null_constrained' => 'unique'));
         $this->thenItShouldThrowAUniqueConstraintException();
+        $this->thenItShouldHaveMarkedUniqueErrorForFields(array('single_unique_null_constrained'));
     }
 
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testSingleFieldUniqueConstraintNullConstrainedIsValid(array $database)
     {
@@ -66,6 +75,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testSingleFieldUniqueConstraintNullConstrainedIsValidWithNullValues(array $database)
     {
@@ -78,6 +88,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testCompositeUniqueConstraintNullConstrainedViolationThrowsException(array $database)
     {
@@ -85,11 +96,13 @@ class RecordSaveUniqueConstraintTest extends TestCase
         $this->givenIHaveStoredRecordWithData(array('composite_unique1' => 'unique', 'composite_unique2' => 'unique'));
         $this->whenITryToSaveRecordWithData(array('composite_unique1' => 'unique', 'composite_unique2' => 'unique'));
         $this->thenItShouldThrowAUniqueConstraintException();
+        $this->thenItShouldHaveMarkedUniqueErrorForFields(array('composite_unique1', 'composite_unique2'));
     }
 
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testCompositeUniqueConstraintNotNullConstrainedViolationThrowsException(array $database)
     {
@@ -103,11 +116,15 @@ class RecordSaveUniqueConstraintTest extends TestCase
             'composite_unique_null_constrained2' => 'unique'
         ));
         $this->thenItShouldThrowAUniqueConstraintException();
+        $this->thenItShouldHaveMarkedUniqueErrorForFields(
+            array('composite_unique_null_constrained1', 'composite_unique_null_constrained2')
+        );
     }
 
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testCompositeUniqueConstraintNullConstrainedIsValid(array $database)
     {
@@ -120,6 +137,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testCompositeUniqueConstraintNullConstrainedIsValidWithNullValues(array $database)
     {
@@ -157,11 +175,10 @@ class RecordSaveUniqueConstraintTest extends TestCase
     {
         $this->raisedException = null;
         try {
-            $record = $this->createRecordWithRandomData($recordData);
-            $this->rm->save($record);
+            $this->record = $this->createRecordWithRandomData($recordData);
+            $this->rm->save($this->record);
             $this->rm->commit();
         }
-        // TODO use a more specific exception
         catch (RecordInvalidException $e) {
            $this->raisedException = $e;
         }
@@ -196,4 +213,16 @@ class RecordSaveUniqueConstraintTest extends TestCase
         return $table->createRecord($recordData);
     }
 
+
+    /**
+     * @param array $errorFields
+     */
+    private function thenItShouldHaveMarkedUniqueErrorForFields(array $errorFields)
+    {
+        $expectedErrors = array();
+        foreach ($errorFields as $errorField) {
+            $expectedErrors[$errorField] = array('unique');
+        }
+        $this->assertEquals($expectedErrors, $this->record->getErrorStack()->toArray());
+    }
 }

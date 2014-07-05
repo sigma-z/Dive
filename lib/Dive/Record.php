@@ -14,6 +14,7 @@ use Dive\Record\FieldValueChangeEvent;
 use Dive\Record\RecordException;
 use Dive\Record\RecordPropertyEvent;
 use Dive\Relation\Relation;
+use Dive\Validation\ErrorStack;
 
 /**
  * Representing a database table row as an object.
@@ -71,6 +72,9 @@ class Record
 
     /** @var bool */
     protected $_exists = false;
+
+    /** @var ErrorStack */
+    protected $_errorStack;
 
 
     /**
@@ -580,6 +584,18 @@ class Record
         else {
             $this->_exists = false;
         }
+    }
+
+
+    /**
+     * @return ErrorStack
+     */
+    public function getErrorStack()
+    {
+        if ($this->_errorStack === null) {
+            $this->_errorStack = new ErrorStack();
+        }
+        return $this->_errorStack;
     }
 
 

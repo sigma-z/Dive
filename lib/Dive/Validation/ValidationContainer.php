@@ -71,5 +71,4 @@ class ValidationContainer implements ValidatorInterface
         return true;
     }
 
-
 }

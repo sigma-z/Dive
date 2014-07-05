@@ -87,8 +87,8 @@ class UniqueRecordValidator implements ValidatorInterface
 
 
     /**
-     * @param Record $record
-     * @param array  $uniqueIndexesToCheck
+     * @param  Record $record
+     * @param  array  $uniqueIndexesToCheck
      * @return bool
      */
     private function isRecordIsUnique(Record $record, array $uniqueIndexesToCheck)
@@ -97,8 +97,14 @@ class UniqueRecordValidator implements ValidatorInterface
             return true;
         }
 
+        // TODO hwo to know which unique index breaks the constraint for adding unique errors to the error stack
         $query = $this->getUniqueIndexesQuery($record, $uniqueIndexesToCheck);
-        return !$query->hasResult();
+        $isInvalid = $query->hasResult();
+        if ($isInvalid) {
+            $errorStack = $record->getErrorStack();
+            $errorStack->add('unique index', 'unique');
+        }
+        return !$isInvalid;
     }
 
 
@@ -111,30 +117,52 @@ class UniqueRecordValidator implements ValidatorInterface
     private function getUniqueIndexesQuery(Record $record, array $uniqueIndexesToCheck)
     {
         $table = $record->getTable();
-        $query = $table->createQuery();
+        $conn = $table->getConnection();
+        $conditions = array();
+        $queryParams = array();
+
+        if ($record->exists()) {
+            $condition = '';
+            foreach ($record->getIdentifierFieldIndexed() as $idField => $idValue) {
+                $condition .= $conn->quoteIdentifier($idField) . ' != ? AND ';
+                $queryParams[] = $idValue;
+            }
+            // strip last AND from string
+            $condition = substr($condition, 0, -4);
+            $conditions[] = $condition;
+        }
 
         foreach ($uniqueIndexesToCheck as $uniqueName => $uniqueIndexToCheck) {
             $isNullConstrained = $table->isUniqueIndexNullConstrained($uniqueName);
-            $params = array();
+            $conditionParams = array();
             $condition = '';
             $fieldNames = $uniqueIndexToCheck['fields'];
             foreach ($fieldNames as $fieldName) {
+                $fieldNameQuoted = $conn->quoteIdentifier($fieldName);
                 $fieldValue = $record->get($fieldName);
                 if ($fieldValue !== null) {
-                    $condition .= $fieldName . ' = ? AND ';
-                    $params[] = $fieldValue;
+                    $condition .= $fieldNameQuoted . ' = ? AND ';
+                    $conditionParams[] = $fieldValue;
                 }
                 else if ($isNullConstrained) {
-                    $condition .= $fieldName . ' IS NULL AND ';
+                    $condition .= $fieldNameQuoted . ' IS NULL AND ';
                 }
                 else {
                     throw new Exception("Cannot process unique index for creating query to check whether the record is unique, or not!");
                 }
             }
+            // strip last AND from string
             $condition = substr($condition, 0, -4);
-            $query->orWhere($condition, $params);
+            $conditions[] = $condition;
+            $queryParams = array_merge($queryParams, $conditionParams);
         }
 
+        $condition = ($record->exists() ? array_shift($conditions) . ' AND (' : '')
+            . implode(' OR ', $conditions)
+            . ($record->exists() ? ')' : '');
+
+        $query = $table->createQuery();
+        $query->where($condition, $queryParams);
         return $query;
     }
 

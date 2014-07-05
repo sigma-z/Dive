@@ -8,11 +8,10 @@
  */
 namespace Dive\Test\Record;
 
-use Dive\Exception;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
-use Dive\UnitOfWork\UnitOfWorkException;
 use Dive\Util\FieldValuesGenerator;
+use Dive\Validation\RecordInvalidException;
 
 /**
  * Class RecordSaveUniqueConstraintTest
@@ -25,7 +24,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
     /** @var RecordManager */
     private $rm;
 
-    /** @var Exception */
+    /** @var RecordInvalidException */
     private $raisedException;
 
 
@@ -163,7 +162,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
             $this->rm->commit();
         }
         // TODO use a more specific exception
-        catch (UnitOfWorkException $e) {
+        catch (RecordInvalidException $e) {
            $this->raisedException = $e;
         }
     }
@@ -172,7 +171,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
     private function thenItShouldThrowAUniqueConstraintException()
     {
         $this->assertNotNull($this->raisedException, 'Expected exception to be thrown');
-        $this->assertInstanceOf('\\Dive\\UnitOfWork\UnitOfWorkException', $this->raisedException);
+        $this->assertInstanceOf('\\Dive\\Validation\\RecordInvalidException', $this->raisedException);
     }
 
 

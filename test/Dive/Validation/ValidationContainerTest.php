@@ -157,6 +157,4 @@ class ValidationContainerTest extends TestCase
         return $this->container->validate($this->getMockedRecord());
     }
 
-
-
 }

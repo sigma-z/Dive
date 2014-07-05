@@ -55,20 +55,58 @@ class FieldTypeValidator implements ValidatorInterface
      */
     protected function validateRecord(Record $record)
     {
-        $table = $record->getTable();
         $modifiedFields = $record->getModifiedFields();
         foreach ($modifiedFields as $fieldName => $oldValue) {
-            $field = $table->getField($fieldName);
-            $validator = $this->getDataTypeValidator($field['type']);
-            $value = $record->get($fieldName);
-            if ($validator->validate($value) === false) {
-                return false;
-            }
+            $this->validateFieldValue($record, $fieldName);
         }
-        return true;
+        return $record->getErrorStack()->isEmpty();
     }
 
 
+    /**
+     * @param Record $record
+     * @param string $fieldName
+     */
+    protected function validateFieldValue(Record $record, $fieldName)
+    {
+        $value = $record->get($fieldName);
+        if ($value === null) {
+            $this->validateNull($record, $fieldName);
+        }
+        else {
+            $table = $record->getTable();
+            $fieldType = $table->getFieldType($fieldName);
+            $validator = $this->getDataTypeValidator($fieldType);
+            if ($validator->validate($value) === false) {
+                $errorStack = $record->getErrorStack();
+                $errorStack->add($fieldName, 'type');
+            }
+        }
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $fieldName
+     */
+    private function validateNull(Record $record, $fieldName)
+    {
+        $table = $record->getTable();
+        if ($table->isFieldNullable($fieldName)) {
+            return;
+        }
+
+        $referencedRelations = $table->getReferencedRelationsIndexedByOwningField();
+        if (isset($referencedRelations[$fieldName])) {
+            $relation = $referencedRelations[$fieldName];
+            if ($relation->hasReferenceLoadedFor($record, $relation->getReferencedAlias())) {
+                return;
+            }
+        }
+
+        $errorStack = $record->getErrorStack();
+        $errorStack->add($fieldName, 'notnull');
+    }
 
 
     /**

@@ -44,15 +44,9 @@ abstract class OrmDataType implements OrmDataTypeInterface
      * @param  mixed $value
      * @return bool
      */
-    public function canValueBeValidated($value)
+    protected function canValueBeValidated($value)
     {
-        if ($value === null) {
-            return false;
-        }
-        if ($value instanceof Expression) {
-            return false;
-        }
-        return true;
+        return !($value instanceof Expression);
     }
 
 }

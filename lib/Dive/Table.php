@@ -387,53 +387,64 @@ class Table
     /**
      * Gets field definition
      *
-     * @param  string $name
+     * @param  string $fieldName
      * @return array
      * @throws TableException
      */
-    public function getField($name)
+    public function getField($fieldName)
     {
-        $this->throwExceptionIfFieldNotExists($name);
-        return $this->fields[$name];
+        $this->throwExceptionIfFieldNotExists($fieldName);
+        return $this->fields[$fieldName];
     }
 
 
     /**
      * Returns true, if table defines a field for the given name
      *
-     * @param string $name
+     * @param string $fieldName
      * @return bool
      */
-    public function hasField($name)
+    public function hasField($fieldName)
     {
-        return isset($this->fields[$name]);
+        return isset($this->fields[$fieldName]);
     }
 
 
     /**
      * Returns true, if field is not nullable
      *
-     * @param  string $name
+     * @param  string $fieldName
      * @return bool
      * @throws TableException
      */
-    public function isFieldRequired($name)
+    public function isFieldRequired($fieldName)
     {
-        return !$this->isFieldNullable($name);
+        return !$this->isFieldNullable($fieldName);
     }
 
 
     /**
      * Returns true, if field is nullable
      *
-     * @param  string $name
+     * @param  string $fieldName
      * @return bool
      * @throws TableException
      */
-    public function isFieldNullable($name)
+    public function isFieldNullable($fieldName)
     {
-        $this->throwExceptionIfFieldNotExists($name);
-        return isset($this->fields[$name]['nullable']) && $this->fields[$name]['nullable'] == true;
+        $this->throwExceptionIfFieldNotExists($fieldName);
+        return isset($this->fields[$fieldName]['nullable']) && $this->fields[$fieldName]['nullable'] == true;
+    }
+
+
+    /**
+     * @param  string $fieldName
+     * @return string
+     */
+    public function getFieldType($fieldName)
+    {
+        $this->throwExceptionIfFieldNotExists($fieldName);
+        return $this->fields[$fieldName]['type'];
     }
 
 

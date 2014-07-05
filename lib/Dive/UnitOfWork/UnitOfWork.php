@@ -16,6 +16,7 @@ use Dive\Record;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\Table;
+use Dive\Validation\RecordInvalidException;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -618,7 +619,7 @@ class UnitOfWork
         foreach ($this->recordIdentityMap as $record) {
             if ($this->isRecordScheduledForSave($record)) {
                 if (!$this->validateRecord($record)) {
-                    throw new UnitOfWorkException("Record is not valid!");
+                    throw RecordInvalidException::createByRecord($record);
                 }
             }
         }

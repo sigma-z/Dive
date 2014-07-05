@@ -93,7 +93,6 @@ abstract class TestCase extends BaseTestCase
     public function provideValidationSucceeds()
     {
         return array(
-            'null' => array(null),
             'expr' => array(new Expression(''))
         );
     }

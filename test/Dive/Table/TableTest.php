@@ -212,6 +212,77 @@ class TableTest extends TestCase
 
 
     /**
+     * @dataProvider provideGetIdentifierFieldValues
+     * @param string $tableName
+     * @param array  $fieldValues
+     * @param array  $expectedIdentifier
+     */
+    public function testGetIdentifierFieldValues($tableName, array $fieldValues, array $expectedIdentifier)
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable($tableName);
+        $identifier = $table->getIdentifierFieldValues($fieldValues);
+        $this->assertEquals($expectedIdentifier, $identifier);
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideGetIdentifierFieldValues()
+    {
+        return array(
+            array(
+                'tableName' => 'user',
+                'fieldValues' => array('id' => '1234'),
+                'expectedIdentifier' => array('id' => '1234')
+            ),
+            array(
+                'tableName' => 'article2tag',
+                'fieldValues' => array('tag_id' => '123', 'article_id' => '432'),
+                'expectedIdentifier' => array('tag_id' => '123', 'article_id' => '432'),
+            )
+        );
+    }
+
+
+    /**
+     * @dataProvider provideGetIdentifierFieldValuesReturnsNullOnIncompleteIdentifierValues
+     * @param string $tableName
+     * @param array  $fieldValues
+     */
+    public function testGetIdentifierFieldValuesReturnsNullOnIncompleteIdentifierValues($tableName, array $fieldValues)
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable($tableName);
+        $identifier = $table->getIdentifierFieldValues($fieldValues);
+        $this->assertNull($identifier);
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideGetIdentifierFieldValuesReturnsNullOnIncompleteIdentifierValues()
+    {
+        return array(
+            array(
+                'tableName' => 'user',
+                'fieldValues' => array()
+            ),
+            array(
+                'tableName' => 'article2tag',
+                'fieldValues' => array('tag_id' => '123')
+            ),
+            array(
+                'tableName' => 'article2tag',
+                'fieldValues' => array('article_id' => '123')
+            )
+        );
+    }
+
+
+    /**
      * @return array[]
      */
     public function provideGetIdentifierQueryExpression()

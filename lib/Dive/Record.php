@@ -234,16 +234,7 @@ class Record
      */
     public function getIdentifierFieldIndexed()
     {
-        $identifierFields = $this->_table->getIdentifierFields();
-        $identifier = array();
-        foreach ($identifierFields as $fieldName) {
-            $idValue = $this->get($fieldName);
-            if ($idValue === null) {
-                return null;
-            }
-            $identifier[$fieldName] = $idValue;
-        }
-        return $identifier;
+        return $this->_table->getIdentifierFieldValues($this->_data);
     }
 
 

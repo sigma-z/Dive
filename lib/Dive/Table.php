@@ -630,6 +630,112 @@ class Table
 
 
     /**
+     * Finds record by field values, if given fields matches primary key, if not try to find by unique indexes,
+     * if no record could be found, then create one
+     *
+     * @param  array $fieldValues
+     * @return \Dive\Record
+     */
+    public function findOrCreateRecord(array $fieldValues)
+    {
+        $identifier = $this->getIdentifierFieldValues($fieldValues);
+        if ($identifier) {
+            $record = $this->findByPk($identifier);
+        }
+        else {
+            $record = $this->findByUniqueIndexes($fieldValues);
+        }
+
+        if (!$record) {
+            $record = $this->createRecord($fieldValues);
+        }
+        return $record;
+    }
+
+
+    /**
+     * @param  array  $fieldValues
+     * @param  string $fetchMode
+     * @throws Table\TableException
+     * @return bool|mixed
+     */
+    public function findByUniqueIndexes(array $fieldValues, $fetchMode = RecordManager::FETCH_RECORD)
+    {
+        $uniqueIndexes = $this->getUniqueIndexes();
+        if (!$uniqueIndexes) {
+            return false;
+        }
+
+        $fieldNames = array_keys($fieldValues);
+        foreach ($uniqueIndexes as $uniqueName => $uniqueIndexDefinition) {
+            $uniqueFields = $uniqueIndexDefinition['fields'];
+            foreach ($uniqueFields as $uniqueField) {
+                if (!in_array($uniqueField, $fieldNames)) {
+                    unset($uniqueIndexes[$uniqueName]);
+                    continue;
+                }
+            }
+        }
+
+        if (!$uniqueIndexes) {
+            return false;
+        }
+
+        $conn = $this->getConnection();
+        $conditions = array();
+        $queryParams = array();
+
+        foreach ($uniqueIndexes as $uniqueName => $uniqueIndexToCheck) {
+            $isNullConstrained = $this->isUniqueIndexNullConstrained($uniqueName);
+            $conditionParams = array();
+            $condition = '';
+            $fieldNames = $uniqueIndexToCheck['fields'];
+            foreach ($fieldNames as $fieldName) {
+                $fieldNameQuoted = $conn->quoteIdentifier($fieldName);
+                $fieldValue = $fieldValues[$fieldName];
+                if ($fieldValue !== null) {
+                    $condition .= $fieldNameQuoted . ' = ? AND ';
+                    $conditionParams[] = $fieldValue;
+                }
+                else if ($isNullConstrained) {
+                    $condition .= $fieldNameQuoted . ' IS NULL AND ';
+                }
+                else {
+                    throw new TableException(
+                        "Cannot process unique index for creating query to check whether the record is unique, or not!"
+                    );
+                }
+            }
+            // strip last AND from string
+            $condition = substr($condition, 0, -4);
+            $conditions[] = $condition;
+            $queryParams = array_merge($queryParams, $conditionParams);
+        }
+        $query = $this->createQuery();
+        $query->where(implode(' OR ', $conditions), $queryParams);
+
+        return $query->execute($fetchMode);
+    }
+
+
+    /**
+     * @param  array $fieldValues
+     * @return array|null
+     */
+    public function getIdentifierFieldValues(array $fieldValues)
+    {
+        $identifier = array();
+        foreach ($this->getIdentifierFields() as $fieldName) {
+            if (!isset($fieldValues[$fieldName])) {
+                return null;
+            }
+            $identifier[$fieldName] = $fieldValues[$fieldName];
+        }
+        return $identifier;
+    }
+
+
+    /**
      * @param string $uniqueIndexName
      * @param array  $fieldValues
      * @param string $fetchMode

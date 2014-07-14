@@ -425,7 +425,7 @@ class RecordManager
 
 
     /**
-     * Gets record
+     * Gets the record from the repository or creates a new instance
      *
      * @param  string $tableName
      * @param  array $data
@@ -436,6 +436,20 @@ class RecordManager
     {
         $table = $this->getTable($tableName);
         return $this->unitOfWork->getOrCreateRecord($table, $data, $exists);
+    }
+
+
+    /**
+     * Finds the record from the repository or creates a new instance
+     *
+     * @param  string $tableName
+     * @param  array  $data
+     * @return Record
+     */
+    public function findOrCreateRecord($tableName, array $data)
+    {
+        $table = $this->getTable($tableName);
+        return $table->findOrCreateRecord($data);
     }
 
 

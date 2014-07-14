@@ -632,6 +632,7 @@ class Table
     /**
      * Finds record by field values, if given fields matches primary key, if not try to find by unique indexes,
      * if no record could be found, then create one
+     * TODO If identifier is given, the repository could be checked instead of querying the database
      *
      * @param  array $fieldValues
      * @return \Dive\Record

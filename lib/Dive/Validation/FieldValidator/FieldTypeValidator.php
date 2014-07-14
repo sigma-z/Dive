@@ -55,8 +55,8 @@ class FieldTypeValidator implements ValidatorInterface
      */
     protected function validateRecord(Record $record)
     {
-        $modifiedFields = $record->getModifiedFields();
-        foreach ($modifiedFields as $fieldName => $oldValue) {
+        $fields = $this->getFieldNamesForValidation($record);
+        foreach ($fields as $fieldName) {
             $this->validateFieldValue($record, $fieldName);
         }
         return $record->getErrorStack()->isEmpty();
@@ -121,6 +121,29 @@ class FieldTypeValidator implements ValidatorInterface
             return $validator;
         }
         throw new ValidationException("No orm data type defined for field type '$fieldType'!");
+    }
+
+
+    /**
+     * @param  Record $record
+     * @return array
+     */
+    private function getFieldNamesForValidation(Record $record)
+    {
+        if ($record->exists()) {
+            $fields = $record->getModifiedFields();
+        }
+        else {
+            $table = $record->getTable();
+            $fields = $table->getFields();
+            if ($table->hasAutoIncrementTrigger()) {
+                $idFields = $table->getIdentifierFields();
+                foreach ($idFields as $idFieldName) {
+                    unset($fields[$idFieldName]);
+                }
+            }
+        }
+        return array_keys($fields);
     }
 
 }

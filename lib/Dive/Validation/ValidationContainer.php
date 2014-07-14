@@ -58,13 +58,19 @@ class ValidationContainer implements ValidatorInterface
 
 
     /**
-     * @param  Record $value
+     * @param  Record $record
      * @return bool
      */
-    public function validate($value)
+    public function validate($record)
     {
+        if (!($record instanceof Record)) {
+            throw new \InvalidArgumentException("Argument #1 should be an instance of \\Dive\\Record!");
+        }
+
+        $record->getErrorStack()->clear();
+
         foreach ($this->validators as $validator) {
-            if (!$validator->validate($value)) {
+            if (!$validator->validate($record)) {
                 return false;
             }
         }

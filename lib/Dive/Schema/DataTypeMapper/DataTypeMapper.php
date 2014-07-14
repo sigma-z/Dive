@@ -45,7 +45,7 @@ class DataTypeMapper
         self::OTYPE_TIME,
         self::OTYPE_TIMESTAMP,
         self::OTYPE_BLOB,
-        self::OTYPE_ENUM
+        //self::OTYPE_ENUM
     );
 
     /** @var array */
@@ -78,10 +78,6 @@ class DataTypeMapper
     private function createMissingOrmDataTypeInstances()
     {
         foreach (self::$ormTypes as $ormDataType) {
-            if (in_array($ormDataType, array(self::OTYPE_ENUM, self::OTYPE_BLOB))) {
-                continue;
-            }
-
             if (!isset($this->ormDataTypeInstance[$ormDataType])) {
                 $this->ormDataTypeInstance[$ormDataType] = $this->createOrmDataType($ormDataType);
             }

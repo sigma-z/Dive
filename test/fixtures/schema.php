@@ -301,15 +301,6 @@ return array(
                     'unsigned' => true,
                     'nullable' => true
                 ),
-                't_double_signed' => array(
-                    'type' => 'double',
-                    'nullable' => true
-                ),
-                't_double_unsigned' => array(
-                    'type' => 'double',
-                    'unsigned' => true,
-                    'nullable' => true
-                ),
                 't_decimal_signed' => array(
                     'type' => 'decimal',
                     'length' => 13,
@@ -348,11 +339,11 @@ return array(
                     'type' => 'blob',
                     'nullable' => true
                 ),
-                't_enum' => array(
-                    'type' => 'enum',
-                    'values' => array('123', 'abc', 'zyx', '0987'),
-                    'nullable' => true
-                )
+//                't_enum' => array(
+//                    'type' => 'enum',
+//                    'values' => array('123', 'abc', 'zyx', '0987'),
+//                    'nullable' => true
+//                )
             )
         ),
         'unique_constraint_test' => array(

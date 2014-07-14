@@ -28,7 +28,7 @@ class ConnectionFailedTransactionTest extends TestCase
             $rm->commit();
             $this->fail('expected exception to be thrown');
         }
-        catch (\PDOException $e) {
+        catch (\Exception $e) {
         }
 
         $user->set('username', 'user');

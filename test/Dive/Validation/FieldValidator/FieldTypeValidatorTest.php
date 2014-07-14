@@ -14,6 +14,8 @@ use Dive\TestSuite\TestCase as BaseTestCase;
 use Dive\Validation\FieldValidator\FieldTypeValidator;
 
 /**
+ * TODO Refactor, this test does not make sense anymore!
+ *
  * Class FieldTypeValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 10.06.2014
@@ -43,6 +45,7 @@ class FieldTypeValidatorTest extends BaseTestCase
 
     public function testValidateWithNonRegisteredTypeValidators()
     {
+        $this->markTestIncomplete('Disabling of validation is not implemented, yet!');
         $this->givenIHaveAFieldTypeValidator();
         $this->givenIHaveARecordOfTable('article');
         $this->whenIValidateTheRecord();
@@ -52,6 +55,7 @@ class FieldTypeValidatorTest extends BaseTestCase
 
     public function testValidateWithRegisteredDateTimeTypeValidator()
     {
+        $this->markTestIncomplete('Disabling of validation is not implemented, yet!');
         $this->givenIHaveAFieldTypeValidator();
         $this->givenIHaveARecordOfTable('article');
         $this->whenIValidateTheRecord();
@@ -103,6 +107,7 @@ class FieldTypeValidatorTest extends BaseTestCase
 
     private function thenTheResultShouldBeValid()
     {
+        echo $this->record->getErrorStack();
         $this->assertTrue($this->validationResult);
     }
 

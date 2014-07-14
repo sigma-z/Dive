@@ -44,6 +44,15 @@ class ErrorStack implements \IteratorAggregate
 
 
     /**
+     * Clears the error stack
+     */
+    public function clear()
+    {
+        $this->errors = array();
+    }
+
+
+    /**
      * @param string      $fieldName
      * @param string|null $errorCode
      */

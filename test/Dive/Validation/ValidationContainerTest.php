@@ -123,7 +123,7 @@ class ValidationContainerTest extends TestCase
      */
     private function getMockedRecord()
     {
-        return $this->getMock('\Dive\Record', array(), array(), '', false);
+        return $this->getMock('\Dive\Record', null, array(), '', false);
     }
 
 

@@ -61,4 +61,14 @@ class DateOrmDataType extends OrmDataType
         return true;
     }
 
+
+    /**
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        return $value !== '';
+    }
 }

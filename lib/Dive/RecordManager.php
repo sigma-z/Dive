@@ -15,7 +15,7 @@ use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Platform\PlatformInterface;
 use Dive\UnitOfWork\UnitOfWork;
-use Dive\Validation\FieldValidator\FieldTypeValidator;
+use Dive\Validation\FieldValidator\FieldValidator;
 use Dive\Validation\UniqueValidator\UniqueRecordValidator;
 use Dive\Validation\ValidationContainer;
 use Dive\Validation\ValidatorInterface;
@@ -480,12 +480,12 @@ class RecordManager
 
 
     /**
-     * @return FieldTypeValidator
+     * @return FieldValidator
      */
     protected function createConfiguredFieldTypeValidator()
     {
         $dataTypeMapper = $this->getDriver()->getDataTypeMapper();
-        $fieldTypeValidator = new FieldTypeValidator($dataTypeMapper);
+        $fieldTypeValidator = new FieldValidator($dataTypeMapper);
         return $fieldTypeValidator;
     }
 

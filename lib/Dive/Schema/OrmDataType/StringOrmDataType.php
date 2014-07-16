@@ -27,4 +27,20 @@ class StringOrmDataType extends OrmDataType
             : true;
     }
 
+
+    /**
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        if (isset($field['length'])) {
+            $length = $field['length'];
+            $charset = isset($field['charset']) ? $field['charset'] : 'UTF-8';
+            $stringLength = mb_strlen($value, $charset);
+            return ($stringLength !== false && $stringLength <= $length);
+        }
+        return true;
+    }
 }

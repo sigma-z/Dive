@@ -17,9 +17,10 @@ require_once __DIR__ . '/TestCase.php';
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class DecimalFieldValidatorTest extends TestCase
+class DecimalFieldTest extends TestCase
 {
 
+    /** @var string */
     protected $type = DataTypeMapper::OTYPE_DECIMAL;
 
 
@@ -62,6 +63,35 @@ class DecimalFieldValidatorTest extends TestCase
             'bool-false'    => array(false),
             'empty-string'  => array(''),
             'empty-array'   => array(array())
+        );
+    }
+
+
+    /**
+     * TODO implement test
+     *
+     * @dataProvider provideLengthValidation
+     * @param mixed $value
+     * @param array $field
+     * @param bool  $expected
+     */
+    public function testLengthValidation($value, array $field, $expected)
+    {
+        $this->markTestIncomplete();
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideLengthValidation()
+    {
+        return array(
+            array(
+                'value' => null,
+                'field' => array(),
+                'expected' => false
+            )
         );
     }
 

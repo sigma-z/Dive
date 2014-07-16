@@ -17,7 +17,7 @@ require_once __DIR__ . '/TestCase.php';
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class TimeOrmDataTypeValidatorTest extends TestCase
+class TimeOrmDataTypeTest extends TestCase
 {
 
     protected $type = DataTypeMapper::OTYPE_TIME;
@@ -61,6 +61,36 @@ class TimeOrmDataTypeValidatorTest extends TestCase
         $cases['empty-string'] = array('');
         $cases['empty-array'] = array(array());
         return $cases;
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideLengthValidation()
+    {
+        return array(
+            '12:23:34' => array(
+                'value' => '12:23:34',
+                'field' => array(),
+                'expected' => true
+            ),
+            '23:59:59' => array(
+                'value' => '23:59:59',
+                'field' => array(),
+                'expected' => true
+            ),
+            '00:00:00' => array(
+                'value' => '00:00:00',
+                'field' => array(),
+                'expected' => true
+            ),
+            'empty-string'  => array(
+                'value' => '',
+                'field' => array(),
+                'expected' => false
+            ),
+        );
     }
 
 }

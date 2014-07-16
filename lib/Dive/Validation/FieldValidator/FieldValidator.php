@@ -18,7 +18,7 @@ use Dive\Validation\ValidatorInterface;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 10.06.2014
  */
-class FieldTypeValidator implements ValidatorInterface
+class FieldValidator implements ValidatorInterface
 {
 
     /** @var DataTypeMapper */
@@ -71,48 +71,84 @@ class FieldTypeValidator implements ValidatorInterface
     {
         $value = $record->get($fieldName);
         if ($value === null) {
-            $this->validateNull($record, $fieldName);
-        }
-        else {
-            $table = $record->getTable();
-            $fieldType = $table->getFieldType($fieldName);
-            $validator = $this->getDataTypeValidator($fieldType);
-            if ($validator->validate($value) === false) {
-                $errorStack = $record->getErrorStack();
-                $errorStack->add($fieldName, 'type');
+            $isValid = $this->validateNull($record, $fieldName);
+            if (!$isValid) {
+                $this->addErrorToStack($record, $fieldName, 'notnull');
             }
+            return;
+        }
+
+        $isValid = $this->validateFieldType($record, $fieldName);
+        if (!$isValid) {
+            $this->addErrorToStack($record, $fieldName, 'type');
+            return;
+        }
+
+        $isValid = $this->validateFieldLength($record, $fieldName);
+        if (!$isValid) {
+            $this->addErrorToStack($record, $fieldName, 'length');
         }
     }
 
 
     /**
-     * @param Record $record
-     * @param string $fieldName
+     * @param  Record $record
+     * @param  string $fieldName
+     * @return bool
      */
-    private function validateNull(Record $record, $fieldName)
+    protected function validateNull(Record $record, $fieldName)
     {
         $table = $record->getTable();
         if ($table->isFieldNullable($fieldName)) {
-            return;
+            return true;
         }
 
         $referencedRelations = $table->getReferencedRelationsIndexedByOwningField();
         if (isset($referencedRelations[$fieldName])) {
             $relation = $referencedRelations[$fieldName];
             if ($relation->hasReferenceLoadedFor($record, $relation->getReferencedAlias())) {
-                return;
+                return true;
             }
         }
 
-        $errorStack = $record->getErrorStack();
-        $errorStack->add($fieldName, 'notnull');
+        return false;
+    }
+
+
+    /**
+     * @param  Record $record
+     * @param  string $fieldName
+     * @return bool
+     */
+    protected function validateFieldType(Record $record, $fieldName)
+    {
+        $value = $record->get($fieldName);
+        $table = $record->getTable();
+        $fieldType = $table->getFieldType($fieldName);
+        $validator = $this->getDataTypeValidator($fieldType);
+        return $validator->validate($value);
+    }
+
+
+    /**
+     * @param  Record $record
+     * @param  string $fieldName
+     * @return bool
+     */
+    protected function validateFieldLength(Record $record, $fieldName)
+    {
+        $value = $record->get($fieldName);
+        $table = $record->getTable();
+        $field = $table->getField($fieldName);
+        $validator = $this->getDataTypeValidator($field['type']);
+        return $validator->validateLength($value, $field);
     }
 
 
     /**
      * @param string $fieldType
      * @throws \Dive\Validation\ValidationException
-     * @return \Dive\Validation\ValidatorInterface
+     * @return \Dive\Validation\FieldValidator\FieldValidatorInterface
      */
     public function getDataTypeValidator($fieldType)
     {
@@ -146,4 +182,14 @@ class FieldTypeValidator implements ValidatorInterface
         return array_keys($fields);
     }
 
+
+    /**
+     * @param Record $record
+     * @param string $fieldName
+     * @param string $errorCode
+     */
+    private function addErrorToStack(Record $record, $fieldName, $errorCode)
+    {
+        $record->getErrorStack()->add($fieldName, $errorCode);
+    }
 }

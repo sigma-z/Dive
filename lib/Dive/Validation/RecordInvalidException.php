@@ -28,7 +28,19 @@ class RecordInvalidException extends Exception
     public static function createByRecord(Record $record)
     {
         $errorStack = $record->getErrorStack();
-        $message = "Record $record is invalid!\n" . $errorStack;
+        $message = "Record $record is invalid!\n";
+        foreach ($errorStack as $fieldName => $errorCodes) {
+            $value = $record->get($fieldName);
+            $type = gettype($value);
+            $valueAsString = "($type)";
+            if (is_string($value) || is_numeric($value)) {
+                $valueAsString .= $value;
+            }
+            else if (is_bool($value)) {
+                $valueAsString .= $value ? 'TRUE' : 'FALSE';
+            }
+            $message .= "  $fieldName: $valueAsString [codes: " . implode(', ', $errorCodes) . "]\n";
+        }
         return new self($message);
     }
 

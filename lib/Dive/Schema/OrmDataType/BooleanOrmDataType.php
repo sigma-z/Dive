@@ -9,7 +9,7 @@
 namespace Dive\Schema\OrmDataType;
 
 /**
- * Class BooleanDataType
+ * Class BooleanOrmDataType
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 04.07.2014
  */
@@ -37,6 +37,17 @@ class BooleanOrmDataType extends OrmDataType
         }
 
         return false;
+    }
+
+
+    /**
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        return $value !== '';
     }
 
 }

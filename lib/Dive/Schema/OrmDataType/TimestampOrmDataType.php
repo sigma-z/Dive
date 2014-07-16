@@ -25,10 +25,30 @@ class TimestampOrmDataType extends OrmDataType
         if (!$this->canValueBeValidated($value)) {
             return true;
         }
-        if ($value > 0 && $value < 2147483648 && preg_match('/^\d+$/', $value)) {
+        if ($value >= 0 && $value < 2147483648 && preg_match('/^\d+$/', $value)) {
             return true;
         }
         return false;
+    }
+
+
+    /**
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        if ($value === '') {
+            return false;
+        }
+        if ($value < 0) {
+            return false;
+        }
+        if ($value > 2147483647) {
+            return false;
+        }
+        return true;
     }
 
 }

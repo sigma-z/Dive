@@ -14,7 +14,7 @@ use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Table\Behaviour\TimestampableBehaviour;
 use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
-use Dive\Validation\FieldValidator\FieldTypeValidator;
+use Dive\Validation\FieldValidator\FieldValidator;
 use Dive\Validation\ValidatorInterface;
 
 /**
@@ -178,10 +178,10 @@ class RecordManagerTest extends TestCase
         $this->assertNotNull($uniqueValidator);
         $this->assertInstanceOf('\Dive\Validation\UniqueValidator\UniqueRecordValidator', $uniqueValidator);
 
-        /** @var FieldTypeValidator $fieldTypeValidator */
+        /** @var FieldValidator $fieldTypeValidator */
         $fieldTypeValidator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_TYPE);
         $this->assertNotNull($fieldTypeValidator);
-        $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldTypeValidator', $fieldTypeValidator);
+        $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldValidator', $fieldTypeValidator);
         $booleanOrmDataTypeValidator = $fieldTypeValidator->getDataTypeValidator(DataTypeMapper::OTYPE_BOOLEAN);
         $this->assertInstanceOf('\Dive\Schema\OrmDataType\BooleanOrmDataType', $booleanOrmDataTypeValidator);
 

@@ -17,9 +17,10 @@ require_once __DIR__ . '/TestCase.php';
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 04.07.2014
  */
-class BooleanOrmDataTypeValidationTest extends TestCase
+class BooleanOrmDataTypeTest extends TestCase
 {
 
+    /** @var string */
     protected $type = DataTypeMapper::OTYPE_BOOLEAN;
 
 
@@ -51,4 +52,50 @@ class BooleanOrmDataTypeValidationTest extends TestCase
             'empty-array'   => array(array())
         );
     }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideLengthValidation()
+    {
+        return array(
+            'int-0' => array(
+                'value' => 0,
+                'field' => array(),
+                'expected' => true
+            ),
+            'int-1' => array(
+                'value' => 1,
+                'field' => array(),
+                'expected' => true
+            ),
+            'string-0' => array(
+                'value' => '0',
+                'field' => array(),
+                'expected' => true
+            ),
+            'string-1' => array(
+                'value' => '1',
+                'field' => array(),
+                'expected' => true
+            ),
+            'bool-true' => array(
+                'value' => true,
+                'field' => array(),
+                'expected' => true
+            ),
+            'bool-false' => array(
+                'value' => false,
+                'field' => array(),
+                'expected' => true
+            ),
+            'empty-string'  => array(
+                'value' => '',
+                'field' => array(),
+                'expected' => false
+            ),
+        );
+    }
+
 }

@@ -13,15 +13,15 @@ use Dive\Schema\DataTypeMapper\DataTypeMapper;
 require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class DateFieldValidatorTest
+ * Class DateTimeFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class DateOrmDataTypeValidatorTest extends TestCase
+class DatetimeOrmDataTypeTest extends TestCase
 {
 
-    protected $type = DataTypeMapper::OTYPE_DATE;
-
+    /** @var string */
+    protected $type = DataTypeMapper::OTYPE_DATETIME;
 
     /**
      * @return array[]
@@ -30,8 +30,9 @@ class DateOrmDataTypeValidatorTest extends TestCase
     {
         $testCases = parent::provideValidationSucceeds();
         return array_merge($testCases, array(
-            '2014-04-14' => array('2014-04-14'),
-            '9999-12-31' => array('9999-12-31'),
+            '2013-02-28 12:23:34' => array('2013-02-28 12:23:34'),
+            '2012-02-29 23:59:59' => array('2012-02-29 23:59:59'),
+            '2012-02-29 00:00:00' => array('2012-02-29 00:00:00')
         ));
     }
 
@@ -43,15 +44,39 @@ class DateOrmDataTypeValidatorTest extends TestCase
     {
         return array(
             'string'        => array('string'),
+            '2014-04-14'    => array('2014-04-14'),
+            '2014-04-14 24:00:00' => array('2014-04-14 24:00:00'),
+            '2014-04-14 23:60:00' => array('2014-04-14 23:60:00'),
+            '2014-04-14 23:00:60' => array('2014-04-14 23:00:60'),
+            '9999-12-31'    => array('9999-12-31'),
             '0000-00-00'    => array('0000-00-00'),
             '2013-02-29'    => array('2013-02-29'),
-            '2013-02-28 12:23:34' => array('2013-02-28 12:23:34'),
             'string-true'   => array('true'),
             'string-false'  => array('false'),
             'bool-true'     => array(true),
             'bool-false'    => array(false),
             'empty-string'  => array(''),
             'empty-array'   => array(array())
+        );
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideLengthValidation()
+    {
+        return array(
+            '2013-02-28 12:23:34' => array(
+                'value' => '2013-02-28 12:23:34',
+                'field' => array(),
+                'expected' => true
+            ),
+            'empty-string'  => array(
+                'value' => '',
+                'field' => array(),
+                'expected' => false
+            ),
         );
     }
 

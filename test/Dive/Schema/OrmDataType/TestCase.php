@@ -11,7 +11,7 @@ namespace Dive\Test\Schema\OrmDataType;
 use Dive\Expression;
 use Dive\TestSuite\TestCase as BaseTestCase;
 use Dive\Util\CamelCase;
-use Dive\Validation\ValidatorInterface;
+use Dive\Validation\FieldValidator\FieldValidatorInterface;
 
 /**
  * Class FieldValidatorTestCase
@@ -24,7 +24,7 @@ abstract class TestCase extends BaseTestCase
     /** @var string */
     protected $type;
 
-    /** @var  ValidatorInterface */
+    /** @var FieldValidatorInterface */
     protected $validator;
 
     /** @var bool */
@@ -56,6 +56,20 @@ abstract class TestCase extends BaseTestCase
 
 
     /**
+     * @dataProvider provideLengthValidation
+     * @param mixed $value
+     * @param array $field
+     * @param bool  $expected
+     */
+    public function testLengthValidation($value, array $field, $expected)
+    {
+        $this->givenIHaveADataTypeOfType($this->type);
+        $this->whenIValidateValueLength($value, $field);
+        $this->thenValidationShouldBe($expected);
+    }
+
+
+    /**
      * @param string $ormDataType
      */
     protected function givenIHaveADataTypeOfType($ormDataType)
@@ -75,6 +89,17 @@ abstract class TestCase extends BaseTestCase
     }
 
 
+    /**
+     * @param mixed $value
+     * @param array $field
+     */
+    private function whenIValidateValueLength($value, array $field)
+    {
+        $field['type'] = $this->type;
+        $this->validationResult = $this->validator->validateLength($value, $field);
+    }
+
+
     protected function thenValidationShouldFail()
     {
         $this->assertFalse($this->validationResult);
@@ -84,6 +109,15 @@ abstract class TestCase extends BaseTestCase
     protected function thenValidationShouldSucceed()
     {
         $this->assertTrue($this->validationResult);
+    }
+
+
+    /**
+     * @param bool $expected
+     */
+    private function thenValidationShouldBe($expected)
+    {
+        $this->assertEquals($expected, $this->validationResult);
     }
 
 

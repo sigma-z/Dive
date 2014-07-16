@@ -17,9 +17,10 @@ require_once __DIR__ . '/TestCase.php';
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class TimestampOrmDataTypeValidatorTest extends TestCase
+class TimestampOrmDataTypeTest extends TestCase
 {
 
+    /** @var string */
     protected $type = DataTypeMapper::OTYPE_TIMESTAMP;
 
 
@@ -31,7 +32,9 @@ class TimestampOrmDataTypeValidatorTest extends TestCase
         $testCases = parent::provideValidationSucceeds();
         return array_merge($testCases, array(
             '2147483647' => array('2147483647'),
+            'int 2147483647' => array(2147483647),
             '1500000000' => array('1500000000'),
+            'int 0' => array(0),
         ));
     }
 
@@ -59,6 +62,36 @@ class TimestampOrmDataTypeValidatorTest extends TestCase
             'bool-false'    => array(false),
             'empty-string'  => array(''),
             'empty-array'   => array(array())
+        );
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideLengthValidation()
+    {
+        return array(
+            'int 2147483647' => array(
+                'value' => 2147483647,
+                'field' => array(),
+                'expected' => true
+            ),
+            'int 2147483648' => array(
+                'value' => 2147483648,
+                'field' => array(),
+                'expected' => false
+            ),
+            'int -1' => array(
+                'value' => -1,
+                'field' => array(),
+                'expected' => false
+            ),
+            'empty-string'  => array(
+                'value' => '',
+                'field' => array(),
+                'expected' => false
+            ),
         );
     }
 

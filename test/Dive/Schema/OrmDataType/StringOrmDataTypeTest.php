@@ -86,9 +86,9 @@ class StringOrmDataTypeTest extends TestCase
                 'field' => array('length' => 12),
                 'expected' => false
             ),
-            'string-utf16-handled-as-utf8' => array(
-                'value' => mb_convert_encoding('äöüß', 'UTF16', 'UTF8'),
-                'field' => array('length' => 4),
+            'string-utf8-handled-as-latin1' => array(
+                'value' => 'äöüß',
+                'field' => array('length' => 4, 'charset' => 'Latin1'),
                 'expected' => false
             ),
         );

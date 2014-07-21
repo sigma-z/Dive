@@ -17,10 +17,13 @@ class BooleanOrmDataType extends OrmDataType
 {
 
     /**
+     * Validates whether the value matches the field type, or not
+     *
      * @param  mixed $value
+     * @param  array $field
      * @return bool
      */
-    public function validate($value)
+    public function validateType($value, array $field)
     {
         if (!$this->canValueBeValidated($value)) {
             return true;
@@ -41,6 +44,8 @@ class BooleanOrmDataType extends OrmDataType
 
 
     /**
+     * Validates whether the value fits to the field length, or not
+     *
      * @param  mixed $value
      * @param  array $field
      * @return bool

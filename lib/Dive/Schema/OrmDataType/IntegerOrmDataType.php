@@ -15,11 +15,15 @@ namespace Dive\Schema\OrmDataType;
  */
 class IntegerOrmDataType extends OrmDataType
 {
+
     /**
+     * Validates whether the value matches the field type, or not
+     *
      * @param  mixed $value
+     * @param  array $field
      * @return bool
      */
-    public function validate($value)
+    public function validateType($value, array $field)
     {
         if (!$this->canValueBeValidated($value)) {
             return true;
@@ -32,4 +36,5 @@ class IntegerOrmDataType extends OrmDataType
         }
         return false;
     }
+
 }

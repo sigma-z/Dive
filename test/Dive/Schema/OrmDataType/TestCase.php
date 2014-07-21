@@ -85,7 +85,8 @@ abstract class TestCase extends BaseTestCase
      */
     protected function whenIValidateValue($value)
     {
-        $this->validationResult = $this->validator->validate($value);
+        $field = array('type' => $this->type);
+        $this->validationResult = $this->validator->validateType($value, $field);
     }
 
 

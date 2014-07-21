@@ -19,6 +19,7 @@ class TimeOrmDataType extends DateOrmDataType
     const DEFAULT_FORMAT = 'H:i:s';
 
 
+    /** @var string */
     protected $format = self::DEFAULT_FORMAT;
 
 }

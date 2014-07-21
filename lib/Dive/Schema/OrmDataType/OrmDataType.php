@@ -51,6 +51,7 @@ abstract class OrmDataType implements OrmDataTypeInterface
 
 
     /**
+     * Validates whether the value fits to the field length, or not
      * TODO: Implement validateLength() method.
      *
      * @param  mixed $value

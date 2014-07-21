@@ -17,10 +17,13 @@ class DecimalOrmDataType extends OrmDataType
 {
 
     /**
+     * Validates whether the value matches the field type, or not
+     *
      * @param  mixed $value
+     * @param  array $field
      * @return bool
      */
-    public function validate($value)
+    public function validateType($value, array $field)
     {
         if ($this->canValueBeValidated($value)) {
             return is_numeric($value);

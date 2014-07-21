@@ -124,9 +124,9 @@ class FieldValidator implements ValidatorInterface
     {
         $value = $record->get($fieldName);
         $table = $record->getTable();
-        $fieldType = $table->getFieldType($fieldName);
-        $validator = $this->getDataTypeValidator($fieldType);
-        return $validator->validate($value);
+        $field = $table->getField($fieldName);
+        $validator = $this->getDataTypeValidator($field['type']);
+        return $validator->validateType($value, $field);
     }
 
 

@@ -13,11 +13,10 @@ use Dive\Schema\DataTypeMapper\DataTypeMapper;
 require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class DecimalFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class DecimalFieldTest extends TestCase
+class DecimalOrmDataTypeTest extends TestCase
 {
 
     /** @var string */

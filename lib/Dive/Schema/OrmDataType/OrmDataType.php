@@ -49,18 +49,4 @@ abstract class OrmDataType implements OrmDataTypeInterface
         return !($value instanceof Expression);
     }
 
-
-    /**
-     * Validates whether the value fits to the field length, or not
-     * TODO: Implement validateLength() method.
-     *
-     * @param  mixed $value
-     * @param  array $field
-     * @return bool
-     */
-    public function validateLength($value, array $field)
-    {
-        return true;
-    }
-
 }

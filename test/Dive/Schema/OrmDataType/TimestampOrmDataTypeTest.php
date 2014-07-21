@@ -13,7 +13,6 @@ use Dive\Schema\DataTypeMapper\DataTypeMapper;
 require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class TimestampFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
@@ -48,7 +47,6 @@ class TimestampOrmDataTypeTest extends TestCase
             'string'        => array('string'),
             '2014-04-14'    => array('2014-04-14'),
             '000:000:000'   => array('000:000:000'),
-            '2147483648'    => array('2147483648'),
             '21474.83648'   => array('21474.83648'),
             '-21474'        => array('-21474'),
             '0:0:0'         => array('0:0:0'),

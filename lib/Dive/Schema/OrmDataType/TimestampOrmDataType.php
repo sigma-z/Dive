@@ -28,7 +28,7 @@ class TimestampOrmDataType extends OrmDataType
         if (!$this->canValueBeValidated($value)) {
             return true;
         }
-        if ($value >= 0 && $value < 2147483648 && preg_match('/^\d+$/', $value)) {
+        if (is_numeric($value) && preg_match('/^\d+$/', $value)) {
             return true;
         }
         return false;

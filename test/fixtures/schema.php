@@ -304,13 +304,13 @@ return array(
                 't_decimal_signed' => array(
                     'type' => 'decimal',
                     'length' => 13,
-                    'scale' => 3,
+                    'scale' => 2,
                     'nullable' => true
                 ),
                 't_decimal_unsigned' => array(
                     'type' => 'decimal',
                     'length' => 13,
-                    'scale' => 3,
+                    'scale' => 2,
                     'unsigned' => true,
                     'nullable' => true
                 ),

@@ -31,14 +31,14 @@ class IntegerOrmDataTypeTest extends TestCase
     {
         $testCases = parent::provideValidationSucceeds();
         return array_merge($testCases, array(
-            'int1'              => array(1),
-            'string1'           => array('1'),
-            'int0'              => array(0),
-            'string0'           => array('0'),
-            'negative-int'      => array(-1234),
-            'string-negative-int' => array(-1234),
-            'string-bigint'     => array('12345678987654321'),
-            'string-negative-bigint' => array('-12345678987654321'),
+            'int1'                      => array(1),
+            'string1'                   => array('1'),
+            'int0'                      => array(0),
+            'string0'                   => array('0'),
+            'negative-int'              => array(-1234),
+            'string-negative-int'       => array(-1234),
+            'string-bigint'             => array('12345678987654321'),
+            'string-negative-bigint'    => array('-12345678987654321'),
         ));
     }
 

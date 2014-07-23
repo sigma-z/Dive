@@ -67,30 +67,76 @@ class DecimalOrmDataTypeTest extends TestCase
 
 
     /**
-     * TODO implement test
-     *
-     * @dataProvider provideLengthValidation
-     * @param mixed $value
-     * @param array $field
-     * @param bool  $expected
-     */
-    public function testLengthValidation($value, array $field, $expected)
-    {
-        $this->markTestIncomplete();
-    }
-
-
-    /**
      * @return array[]
      */
     public function provideLengthValidation()
     {
         return array(
             array(
-                'value' => null,
-                'field' => array(),
+                'value' => 99,
+                'field' => array('length' => 2),
+                'expected' => true
+            ),
+            array(
+                'value' => 100,
+                'field' => array('length' => 2),
                 'expected' => false
-            )
+            ),
+            array(
+                'value' => -99,
+                'field' => array('length' => 2),
+                'expected' => true
+            ),
+            array(
+                'value' => -100,
+                'field' => array('length' => 2),
+                'expected' => false
+            ),
+            array(
+                'value' => 0,
+                'field' => array('length' => 2, 'unsigned' => true),
+                'expected' => true
+            ),
+            array(
+                'value' => -1,
+                'field' => array('length' => 2, 'unsigned' => true),
+                'expected' => false
+            ),
+            array(
+                'value' => 99.999,
+                'field' => array('length' => 6, 'scale' => 3),
+                'expected' => true
+            ),
+            array(
+                'value' => -99.999,
+                'field' => array('length' => 6, 'scale' => 3),
+                'expected' => true
+            ),
+            array(
+                'value' => 100.000,
+                'field' => array('length' => 6, 'scale' => 3),
+                'expected' => false
+            ),
+            array(
+                'value' => 99.9990,
+                'field' => array('length' => 6, 'scale' => 3),
+                'expected' => true
+            ),
+            array(
+                'value' => -99.9990,
+                'field' => array('length' => 6, 'scale' => 3),
+                'expected' => true
+            ),
+            array(
+                'value' => 99.9909,
+                'field' => array('length' => 6, 'scale' => 3),
+                'expected' => false
+            ),
+            array(
+                'value' => -99.9909,
+                'field' => array('length' => 6, 'scale' => 3),
+                'expected' => false
+            ),
         );
     }
 

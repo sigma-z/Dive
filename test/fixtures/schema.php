@@ -127,7 +127,7 @@ return array(
                 ),
                 'value' => array(
                     'type' => 'decimal',
-                    'precision' => 2,
+                    'scale' => 2,
                     'length' => 14,
                     'nullable' => true
                 )

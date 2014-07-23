@@ -231,9 +231,6 @@ abstract class SchemaImporter implements SchemaImporterInterface
             return $relation;
         }
 
-//        $relation['owningAlias'] = CamelCase::toCamelCase($relation['refTable']);
-//        $relation['refAlias'] = CamelCase::toCamelCase($relation['owningTable']);
-
         $relation['owningAlias'] = CamelCase::toCamelCase($relation['owningTable']);
         $relation['refAlias'] = CamelCase::toCamelCase($relation['refTable']);
 

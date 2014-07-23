@@ -250,8 +250,8 @@ class DataTypeMapper
 
         if (empty($recommendedDataType)
             && $defaultType
-            && (!isset($mapping['types'][$defaultType]) || $mapping['types'][$defaultType] >= $length))
-        {
+            && (!isset($mapping['types'][$defaultType]) || $mapping['types'][$defaultType] >= $length)
+        ) {
             return $defaultType;
         }
         return $recommendedDataType ?: $biggestDataType;

@@ -18,7 +18,6 @@ use Dive\UnitOfWork\UnitOfWork;
 use Dive\Validation\FieldValidator\FieldValidator;
 use Dive\Validation\UniqueValidator\UniqueRecordValidator;
 use Dive\Validation\ValidationContainer;
-use Dive\Validation\ValidatorInterface;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -472,9 +471,8 @@ class RecordManager
     {
         $recordValidationContainer = new ValidationContainer();
         $fieldTypeValidator = $this->createConfiguredFieldTypeValidator();
-        $recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_FIELD_TYPE, $fieldTypeValidator);
-        //$recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_FIELD_LENGTH, new FieldLengthValidator());
-        $recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_UNIQUE_CONSTRAINT, new UniqueRecordValidator());
+        $recordValidationContainer->addValidator(ValidationContainer::VALIDATOR_FIELD, $fieldTypeValidator);
+        $recordValidationContainer->addValidator(ValidationContainer::VALIDATOR_UNIQUE_CONSTRAINT, new UniqueRecordValidator());
         return $recordValidationContainer;
     }
 

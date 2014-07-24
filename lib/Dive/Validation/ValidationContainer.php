@@ -16,10 +16,14 @@ use Dive\Record;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 06.06.2014
  */
-class ValidationContainer implements ValidatorInterface
+class ValidationContainer extends RecordValidator
 {
 
-    /** @var ValidatorInterface[] */
+    const VALIDATOR_FIELD = 'field';
+    const VALIDATOR_UNIQUE_CONSTRAINT = 'uniqueConstraint';
+
+
+    /** @var RecordValidator[] */
     protected $validators = array();
 
 
@@ -68,8 +72,11 @@ class ValidationContainer implements ValidatorInterface
         }
 
         $record->getErrorStack()->clear();
+        $disabledChecks = $this->getDisabledChecks();
 
         foreach ($this->validators as $validator) {
+            $validator->setDisabledChecks($disabledChecks);
+
             if (!$validator->validate($record)) {
                 return false;
             }

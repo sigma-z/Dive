@@ -15,7 +15,7 @@ use Dive\Table\Behaviour\TimestampableBehaviour;
 use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
 use Dive\Validation\FieldValidator\FieldValidator;
-use Dive\Validation\ValidatorInterface;
+use Dive\Validation\ValidationContainer;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -174,19 +174,16 @@ class RecordManagerTest extends TestCase
         $this->assertNotNull($validationContainer);
         $this->assertInstanceOf('\Dive\Validation\ValidationContainer', $validationContainer);
 
-        $uniqueValidator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_UNIQUE_CONSTRAINT);
+        $uniqueValidator = $validationContainer->getValidator(ValidationContainer::VALIDATOR_UNIQUE_CONSTRAINT);
         $this->assertNotNull($uniqueValidator);
         $this->assertInstanceOf('\Dive\Validation\UniqueValidator\UniqueRecordValidator', $uniqueValidator);
 
         /** @var FieldValidator $fieldTypeValidator */
-        $fieldTypeValidator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_TYPE);
+        $fieldTypeValidator = $validationContainer->getValidator(ValidationContainer::VALIDATOR_FIELD);
         $this->assertNotNull($fieldTypeValidator);
         $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldValidator', $fieldTypeValidator);
         $booleanOrmDataTypeValidator = $fieldTypeValidator->getDataTypeValidator(DataTypeMapper::OTYPE_BOOLEAN);
         $this->assertInstanceOf('\Dive\Schema\OrmDataType\BooleanOrmDataType', $booleanOrmDataTypeValidator);
-
-//        $validator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_LENGTH);
-//        $this->assertNotNull($validator);
     }
 
 }

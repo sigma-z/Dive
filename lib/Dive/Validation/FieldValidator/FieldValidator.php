@@ -10,15 +10,15 @@ namespace Dive\Validation\FieldValidator;
 
 use Dive\Record;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
+use Dive\Validation\RecordValidator;
 use Dive\Validation\ValidationException;
-use Dive\Validation\ValidatorInterface;
 
 /**
  * Class FieldTypeValidator
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 10.06.2014
  */
-class FieldValidator implements ValidatorInterface
+class FieldValidator extends RecordValidator
 {
 
     /** @var DataTypeMapper */
@@ -75,18 +75,18 @@ class FieldValidator implements ValidatorInterface
             if (!$isValid) {
                 $this->addErrorToStack($record, $fieldName, 'notnull');
             }
-            return;
         }
-
-        $isValid = $this->validateFieldType($record, $fieldName);
-        if (!$isValid) {
-            $this->addErrorToStack($record, $fieldName, 'type');
-            return;
-        }
-
-        $isValid = $this->validateFieldLength($record, $fieldName);
-        if (!$isValid) {
-            $this->addErrorToStack($record, $fieldName, 'length');
+        else {
+            $isValid = $this->validateFieldType($record, $fieldName);
+            if (!$isValid) {
+                $this->addErrorToStack($record, $fieldName, 'type');
+            }
+            if ($isValid) {
+                $isValid = $this->validateFieldLength($record, $fieldName);
+                if (!$isValid) {
+                    $this->addErrorToStack($record, $fieldName, 'length');
+                }
+            }
         }
     }
 
@@ -98,6 +98,10 @@ class FieldValidator implements ValidatorInterface
      */
     protected function validateNull(Record $record, $fieldName)
     {
+        if ($this->isCheckDisabled(self::CODE_FIELD_NOTNULL)) {
+            return true;
+        }
+
         $table = $record->getTable();
         if ($table->isFieldNullable($fieldName)) {
             return true;
@@ -122,9 +126,12 @@ class FieldValidator implements ValidatorInterface
      */
     protected function validateFieldType(Record $record, $fieldName)
     {
+        if ($this->isCheckDisabled(self::CODE_FIELD_TYPE)) {
+            return true;
+        }
+
         $value = $record->get($fieldName);
-        $table = $record->getTable();
-        $field = $table->getField($fieldName);
+        $field = $record->getTable()->getField($fieldName);
         $validator = $this->getDataTypeValidator($field['type']);
         return $validator->validateType($value, $field);
     }
@@ -137,9 +144,12 @@ class FieldValidator implements ValidatorInterface
      */
     protected function validateFieldLength(Record $record, $fieldName)
     {
+        if ($this->isCheckDisabled(self::CODE_FIELD_LENGTH)) {
+            return true;
+        }
+
         $value = $record->get($fieldName);
-        $table = $record->getTable();
-        $field = $table->getField($fieldName);
+        $field = $record->getTable()->getField($fieldName);
         $validator = $this->getDataTypeValidator($field['type']);
         return $validator->validateLength($value, $field);
     }

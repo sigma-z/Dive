@@ -10,14 +10,10 @@ namespace Dive\Validation;
 
 /**
  * Interface ValidatorInterface
+ * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
 interface ValidatorInterface
 {
-
-    const VALIDATOR_FIELD_LENGTH = 'fieldLength';
-    const VALIDATOR_FIELD_TYPE = 'fieldType';
-    const VALIDATOR_UNIQUE_CONSTRAINT = 'uniqueConstraint';
-
 
     /**
      * @param  mixed $value

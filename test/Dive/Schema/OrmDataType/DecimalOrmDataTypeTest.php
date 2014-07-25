@@ -28,8 +28,7 @@ class DecimalOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             'int 0'         => array(0),
             'string 0'      => array('0'),
             'float .0'      => array(.0),
@@ -44,7 +43,7 @@ class DecimalOrmDataTypeTest extends TestCase
             'string -.1234' => array('-.1243'),
             'float 134567890.0987654321' => array(1234567890.0987654321),
             'string 1234567890.0987654321' => array('1234567890.0987654321')
-        ));
+        );
     }
 
 

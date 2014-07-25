@@ -25,9 +25,6 @@ class IntegerOrmDataType extends OrmDataType
      */
     public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
         if (is_int($value)) {
             return true;
         }

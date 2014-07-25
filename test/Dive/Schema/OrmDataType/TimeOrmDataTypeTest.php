@@ -27,12 +27,11 @@ class TimeOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             '12:23:34' => array('12:23:34'),
             '23:59:59' => array('23:59:59'),
             '00:00:00' => array('00:00:00'),
-        ));
+        );
     }
 
 

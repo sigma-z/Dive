@@ -28,11 +28,10 @@ class DateOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             '2014-04-14' => array('2014-04-14'),
             '9999-12-31' => array('9999-12-31'),
-        ));
+        );
     }
 
 

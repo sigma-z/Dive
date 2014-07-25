@@ -28,13 +28,12 @@ class TimestampOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             '2147483647' => array('2147483647'),
             'int 2147483647' => array(2147483647),
             '1500000000' => array('1500000000'),
             'int 0' => array(0),
-        ));
+        );
     }
 
 

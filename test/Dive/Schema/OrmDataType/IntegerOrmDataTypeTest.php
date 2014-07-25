@@ -28,8 +28,7 @@ class IntegerOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             'int1'                      => array(1),
             'string1'                   => array('1'),
             'int0'                      => array(0),
@@ -38,7 +37,7 @@ class IntegerOrmDataTypeTest extends TestCase
             'string-negative-int'       => array(-1234),
             'string-bigint'             => array('12345678987654321'),
             'string-negative-bigint'    => array('-12345678987654321'),
-        ));
+        );
     }
 
 

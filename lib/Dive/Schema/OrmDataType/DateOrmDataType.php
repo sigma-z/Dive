@@ -45,10 +45,6 @@ class DateOrmDataType extends OrmDataType
      */
     public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
-
         if (empty($value)) {
             return false;
         }
@@ -57,6 +53,7 @@ class DateOrmDataType extends OrmDataType
         if ($date === false) {
             return false;
         }
+
         $lastErrors = $date->getLastErrors();
         if ($lastErrors['warning_count'] > 0 || $lastErrors['error_count'] > 0) {
             return false;

@@ -28,15 +28,14 @@ class BooleanOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             'int1'       => array(1),
             'string1'    => array('1'),
             'bool-true'  => array(true),
             'int0'       => array(0),
             'string0'    => array('0'),
             'bool-false' => array(false),
-        ));
+        );
     }
 
 

@@ -28,8 +28,7 @@ class EnumOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             'enum-numbers-as-strings' => array(
                 'value' => '123',
                 'field' => array(
@@ -42,7 +41,7 @@ class EnumOrmDataTypeTest extends TestCase
                     'values' => array('abcd', 'hello world', 'dcba')
                 )
             )
-        ));
+        );
     }
 
 

@@ -13,7 +13,7 @@ namespace Dive\Schema\OrmDataType;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.07.2014
  */
-class EnumOrmDataType extends OrmDataType
+class EnumOrmDataType extends StringOrmDataType
 {
 
     /**
@@ -25,11 +25,7 @@ class EnumOrmDataType extends OrmDataType
      */
     public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
-
-        if (!is_string($value)) {
+        if (!parent::validateType($value, $field)) {
             return false;
         }
         $values = !empty($field['values']) ? $field['values'] : array();

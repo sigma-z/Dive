@@ -25,10 +25,7 @@ class TimestampOrmDataType extends OrmDataType
      */
     public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
-        if (is_numeric($value) && preg_match('/^\d+$/', $value)) {
+        if (is_numeric($value) && preg_match('/^\d+$/', $value) > 0) {
             return true;
         }
         return false;

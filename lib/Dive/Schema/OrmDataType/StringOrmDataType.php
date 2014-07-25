@@ -25,9 +25,7 @@ class StringOrmDataType extends OrmDataType
      */
     public function validateType($value, array $field)
     {
-        return $this->canValueBeValidated($value)
-            ? is_string($value)
-            : true;
+        return is_string($value);
     }
 
 

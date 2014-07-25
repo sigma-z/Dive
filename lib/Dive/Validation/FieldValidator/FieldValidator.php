@@ -8,6 +8,7 @@
  */
 namespace Dive\Validation\FieldValidator;
 
+use Dive\Expression;
 use Dive\Record;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Validation\RecordValidator;
@@ -70,6 +71,10 @@ class FieldValidator extends RecordValidator
     protected function validateFieldValue(Record $record, $fieldName)
     {
         $value = $record->get($fieldName);
+        if (!$this->canValueBeValidated($value)) {
+            return;
+        }
+
         if ($value === null) {
             $isValid = $this->validateNull($record, $fieldName);
             if (!$isValid) {
@@ -88,6 +93,16 @@ class FieldValidator extends RecordValidator
                 }
             }
         }
+    }
+
+
+    /**
+     * @param  mixed $value
+     * @return bool
+     */
+    protected function canValueBeValidated($value)
+    {
+        return !($value instanceof Expression);
     }
 
 

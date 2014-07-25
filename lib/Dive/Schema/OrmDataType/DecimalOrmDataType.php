@@ -25,10 +25,7 @@ class DecimalOrmDataType extends OrmDataType
      */
     public function validateType($value, array $field)
     {
-        if ($this->canValueBeValidated($value)) {
-            return is_numeric($value);
-        }
-        return true;
+        return is_numeric($value);
     }
 
 

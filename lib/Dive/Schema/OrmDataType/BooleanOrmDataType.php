@@ -25,10 +25,6 @@ class BooleanOrmDataType extends OrmDataType
      */
     public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
-
         if ($value === '1' || $value === '0') {
             return true;
         }

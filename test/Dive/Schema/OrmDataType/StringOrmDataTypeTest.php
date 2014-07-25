@@ -28,12 +28,11 @@ class StringOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             'empty-string' => array(''),
             'string-13' => array('13'),
             'string'    => array('some kind of string')
-        ));
+        );
     }
 
 

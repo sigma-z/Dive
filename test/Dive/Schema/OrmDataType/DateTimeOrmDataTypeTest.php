@@ -27,12 +27,11 @@ class DatetimeOrmDataTypeTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             '2013-02-28 12:23:34' => array('2013-02-28 12:23:34'),
             '2012-02-29 23:59:59' => array('2012-02-29 23:59:59'),
             '2012-02-29 00:00:00' => array('2012-02-29 00:00:00')
-        ));
+        );
     }
 
 

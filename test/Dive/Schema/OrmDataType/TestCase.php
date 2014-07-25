@@ -34,11 +34,12 @@ abstract class TestCase extends BaseTestCase
     /**
      * @dataProvider provideValidationSucceeds
      * @param mixed $value
+     * @param array $field
      */
-    public function testValidationSucceeds($value)
+    public function testValidationSucceeds($value, array $field = array())
     {
         $this->givenIHaveADataTypeOfType($this->type);
-        $this->whenIValidateValue($value);
+        $this->whenIValidateValue($value, $field);
         $this->thenValidationShouldSucceed();
     }
 
@@ -46,11 +47,12 @@ abstract class TestCase extends BaseTestCase
     /**
      * @dataProvider provideValidationFails
      * @param mixed $value
+     * @param array $field
      */
-    public function testValidationFails($value)
+    public function testValidationFails($value, array $field = array())
     {
         $this->givenIHaveADataTypeOfType($this->type);
-        $this->whenIValidateValue($value);
+        $this->whenIValidateValue($value, $field);
         $this->thenValidationShouldFail();
     }
 
@@ -82,10 +84,11 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * @param mixed $value
+     * @param array $field
      */
-    protected function whenIValidateValue($value)
+    protected function whenIValidateValue($value, array $field)
     {
-        $field = array('type' => $this->type);
+        $field['type'] = $this->type;
         $this->validationResult = $this->validator->validateType($value, $field);
     }
 

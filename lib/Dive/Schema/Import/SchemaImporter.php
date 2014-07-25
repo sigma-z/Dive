@@ -312,8 +312,9 @@ abstract class SchemaImporter implements SchemaImporterInterface
         // get length by longest value entry
         if (!empty($values)) {
             foreach ($values as $value) {
-                if ($length < strlen($value)) {
-                    $length = strlen($value);
+                $valueStringLength = strlen($value);
+                if ($length < $valueStringLength) {
+                    $length = $valueStringLength;
                 }
             }
             $definition['values'] = $values;

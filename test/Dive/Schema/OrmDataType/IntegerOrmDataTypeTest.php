@@ -13,7 +13,6 @@ use Dive\Schema\DataTypeMapper\DataTypeMapper;
 require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class IntegerOrmDataTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 11.04.14
  */

@@ -45,7 +45,7 @@ class DataTypeMapper
         self::OTYPE_TIME,
         self::OTYPE_TIMESTAMP,
         self::OTYPE_BLOB,
-        //self::OTYPE_ENUM
+        self::OTYPE_ENUM
     );
 
     /** @var array */

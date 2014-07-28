@@ -339,11 +339,11 @@ return array(
                     'type' => 'blob',
                     'nullable' => true
                 ),
-//                't_enum' => array(
-//                    'type' => 'enum',
-//                    'values' => array('123', 'abc', 'zyx', '0987'),
-//                    'nullable' => true
-//                )
+                't_enum' => array(
+                    'type' => 'enum',
+                    'values' => array('123', 'abc', 'zyx', '0987'),
+                    'nullable' => true
+                )
             )
         ),
         'unique_constraint_test' => array(

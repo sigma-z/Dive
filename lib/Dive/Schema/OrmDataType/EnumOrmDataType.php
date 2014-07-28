@@ -45,5 +45,4 @@ class EnumOrmDataType extends StringOrmDataType
         return true;
     }
 
-
 }

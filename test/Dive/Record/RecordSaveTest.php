@@ -57,7 +57,7 @@ class RecordSaveTest extends TestCase
         $recordsToInsert = self::getRecordsToInsertFromGraph($record);
         $recordReferenceMaps = self::getRecordsToInsertReferenceMaps($recordsToInsert);
 
-        $rm->save($record);
+        $rm->scheduleSave($record);
         $rm->commit();
 
         $this->assertRecordsInserted($recordsToInsert, $recordReferenceMaps);

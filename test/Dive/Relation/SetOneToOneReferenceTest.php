@@ -304,14 +304,14 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
     {
         $user = $this->createUser('UserOne');
         if ($userExists) {
-            $this->rm->save($user)->commit();
+            $this->rm->scheduleSave($user)->commit();
         }
         $author = $this->createAuthor('AuthorOne');
         if ($userExists) {
             $author->User = $user;
         }
         if ($authorExists) {
-            $this->rm->save($author)->commit();
+            $this->rm->scheduleSave($author)->commit();
         }
         return array($user, $author);
     }

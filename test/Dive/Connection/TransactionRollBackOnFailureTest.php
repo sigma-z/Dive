@@ -22,7 +22,7 @@ class ConnectionFailedTransactionTest extends TestCase
     {
         $rm = self::createDefaultRecordManager();
         $user = $rm->getTable('user')->createRecord();
-        $rm->save($user);
+        $rm->scheduleSave($user);
 
         try {
             $rm->commit();
@@ -34,7 +34,7 @@ class ConnectionFailedTransactionTest extends TestCase
         $user->set('username', 'user');
         $user->set('password', 'password');
 
-        $rm->save($user);
+        $rm->scheduleSave($user);
         $rm->commit();
     }
 

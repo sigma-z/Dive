@@ -163,7 +163,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
     private function givenIHaveStoredRecordWithData(array $recordData)
     {
         $record = $this->createRecordWithRandomData($recordData);
-        $this->rm->save($record);
+        $this->rm->scheduleSave($record);
         $this->rm->commit();
     }
 
@@ -176,7 +176,7 @@ class RecordSaveUniqueConstraintTest extends TestCase
         $this->raisedException = null;
         try {
             $this->record = $this->createRecordWithRandomData($recordData);
-            $this->rm->save($this->record);
+            $this->rm->scheduleSave($this->record);
             $this->rm->commit();
         }
         catch (RecordInvalidException $e) {

@@ -183,7 +183,7 @@ class RecordCollection extends Collection
             $id = $record->getInternalId();
             throw new CollectionException("$id is not in collection!");
         }
-        $this->table->getRecordManager()->delete($record);
+        $this->table->getRecordManager()->scheduleDelete($record);
         return $this->unlinkRecord($record);
     }
 

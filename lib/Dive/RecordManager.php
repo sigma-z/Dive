@@ -319,7 +319,7 @@ class RecordManager
      * @param  Record $record
      * @return $this
      */
-    public function save(Record $record)
+    public function scheduleSave(Record $record)
     {
         $this->unitOfWork->scheduleSave($record, true);
         return $this;
@@ -330,10 +330,32 @@ class RecordManager
      * @param  Record $record
      * @return $this
      */
-    public function delete(Record $record)
+    public function scheduleDelete(Record $record)
     {
         $this->unitOfWork->scheduleDelete($record);
         return $this;
+    }
+
+
+    /**
+     * @deprecated
+     * @param  Record $record
+     * @return $this
+     */
+    public function save(Record $record)
+    {
+        return $this->scheduleSave($record);
+    }
+
+
+    /**
+     * @deprecated
+     * @param  Record $record
+     * @return $this
+     */
+    public function delete(Record $record)
+    {
+        return $this->scheduleDelete($record);
     }
 
 

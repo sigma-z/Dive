@@ -527,7 +527,7 @@ class Record
     public function save()
     {
         $rm = $this->getRecordManager();
-        $rm->save($this)->commit();
+        $rm->scheduleSave($this)->commit();
     }
 
 
@@ -537,7 +537,7 @@ class Record
     public function delete()
     {
         $rm = $this->getRecordManager();
-        $rm->delete($this)->commit();
+        $rm->scheduleDelete($this)->commit();
     }
 
 

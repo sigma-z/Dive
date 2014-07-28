@@ -139,7 +139,7 @@ class FindOrCreateRecordTableTest extends TestCase
     private function givenIHaveARecordStoredWithData(array $recordData)
     {
         $this->storedRecord = self::getRecordWithRandomData($this->table, $recordData);
-        $this->rm->save($this->storedRecord)->commit();
+        $this->rm->scheduleSave($this->storedRecord)->commit();
     }
 
 

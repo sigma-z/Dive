@@ -82,7 +82,7 @@ class TimestampableBehaviourTest extends TestCase
         $this->assertFalse($article->exists());
 
         $rm = $article->getRecordManager();
-        $rm->save($article)->commit();
+        $rm->scheduleSave($article)->commit();
 
         $this->assertNotNull($article->created_on);
         $this->assertNotNull($article->saved_on);
@@ -102,7 +102,7 @@ class TimestampableBehaviourTest extends TestCase
 
         $article->teaser = 'Teaser changed ...';
         $rm = $article->getRecordManager();
-        $rm->save($article)->commit();
+        $rm->scheduleSave($article)->commit();
 
         $this->assertNotNull($article->created_on);
         $this->assertNotNull($article->saved_on);

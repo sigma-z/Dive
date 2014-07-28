@@ -68,7 +68,7 @@ class RecordDeleteTest extends TestCase
             $table = $rm->getTable($tableName);
             $record = $this->getGeneratedRecord($this->recordGenerator, $table, $deleteRecordKey);
 
-            $rm->delete($record);
+            $rm->scheduleDelete($record);
         }
 
         $expectedSaveRecords = $this->getRecordsForRecordKeys($rm, $expectedSaveRecordKeys);

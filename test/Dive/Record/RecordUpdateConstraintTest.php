@@ -43,7 +43,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
         $record->loadReferences($relationsToLoad);
         $this->modifyRecordGraphConstraintFields($record);
 
-        $rm->save($record);
+        $rm->scheduleSave($record);
     }
 
 
@@ -116,7 +116,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
         // clean event dispatcher with no listeners
         $this->addPreFieldValueChangeEventListener($rm);
 
-        $rm->save($record);
+        $rm->scheduleSave($record);
 
         $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledForSave, 0);
     }
@@ -206,7 +206,7 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
         // clean event dispatcher with no listeners
         $this->addPreFieldValueChangeEventListener($rm);
 
-        $rm->save($record);
+        $rm->scheduleSave($record);
 
         $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledForSave, 0);
     }

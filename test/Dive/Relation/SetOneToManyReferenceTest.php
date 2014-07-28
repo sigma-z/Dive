@@ -113,14 +113,14 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $this->assertEquals($editorOne->id, $authorOne->Editor->id);
         $this->assertNull($authorOne->getModifiedFieldValue('editor_id'));
 
-        $this->rm->save($authorOne)->commit();
+        $this->rm->scheduleSave($authorOne)->commit();
         $this->assertRelationReferences($editorOne, 'Author', $authorOne);
 
         $authorOneId = $authorOne->id;
 
         $authorTwo = $this->createAuthorWithUser('Two');
         $authorTwo->Editor = $editorTwo;
-        $this->rm->save($authorTwo)->commit();
+        $this->rm->scheduleSave($authorTwo)->commit();
         $this->assertRelationReferences($editorTwo, 'Author', $authorTwo);
 
         $this->rm->clearTables();
@@ -150,14 +150,14 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $this->assertNotEquals($authorOne->editor_id, $editorOne->id);
         $authorOne->Editor = $editorOne;
 
-        $this->rm->save($authorOne)->commit();
+        $this->rm->scheduleSave($authorOne)->commit();
         $this->assertRelationReferences($editorOne, 'Author', $authorOne);
 
         $this->assertNoRelationReferences($authorOne, 'Editor', array($authorOne, $editorTwo));
 
         $authorTwo = $this->createAuthorWithUser('Two');
         $authorTwo->Editor = $editorOne;
-        $this->rm->save($authorTwo)->commit();
+        $this->rm->scheduleSave($authorTwo)->commit();
         $this->assertRelationReferences($editorOne, 'Author', array($authorOne, $authorTwo));
 
         $this->rm->clearTables();
@@ -186,7 +186,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $user = $this->createUser('User' . $name);
         $author  = $this->createAuthor('Author' . $name);
         $author->User = $user;
-        $this->rm->save($author)->commit();
+        $this->rm->scheduleSave($author)->commit();
         return $author;
     }
 
@@ -200,23 +200,23 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
     private function createAuthorEditorUsers($authorExists, $editorExists)
     {
         $user = $this->createUser('UserOne');
-        $this->rm->save($user)->commit();
+        $this->rm->scheduleSave($user)->commit();
         $author = $this->createAuthor('Author');
         $user->Author = $author;
         $this->assertEquals($user->id, $author->user_id);
 
         $userEditor = $this->createUser('UserTwo');
-        $this->rm->save($userEditor)->commit();
+        $this->rm->scheduleSave($userEditor)->commit();
         $editor = $this->createAuthor('Editor');
         $userEditor->Author = $editor;
         $this->assertEquals($userEditor->id, $editor->user_id);
 
         if ($editorExists) {
-            $this->rm->save($editor)->commit();
+            $this->rm->scheduleSave($editor)->commit();
         }
 
         if ($authorExists) {
-            $this->rm->save($author)->commit();
+            $this->rm->scheduleSave($author)->commit();
         }
 
         return array($user, $userEditor);

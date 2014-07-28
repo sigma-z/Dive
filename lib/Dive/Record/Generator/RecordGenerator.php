@@ -202,7 +202,7 @@ class RecordGenerator
         // save record
         $row = $this->fieldValueGenerator->getRandomRecordData($table->getFields(), $row);
         $record = $this->rm->getOrCreateRecord($tableName, $row);
-        $this->rm->save($record);
+        $this->rm->scheduleSave($record);
         $this->rm->commit();
 
         // keep record identifier in the record map
@@ -345,7 +345,7 @@ class RecordGenerator
         foreach ($this->generatedRecords as $recordTableNameAndId) {
             $table = $this->rm->getTable($recordTableNameAndId['tableName']);
             $record = $table->findByPk($recordTableNameAndId['id']);
-            $this->rm->delete($record);
+            $this->rm->scheduleDelete($record);
         }
         $this->rm->commit();
 
@@ -443,7 +443,7 @@ class RecordGenerator
             throw new RecordGeneratorException("record not found");
         }
         $record->set($refField, $id);
-        $this->rm->save($record);
+        $this->rm->scheduleSave($record);
         $this->rm->commit();
     }
 

@@ -38,7 +38,7 @@ class RecordFieldValidationTest extends TestCase
         );
         $rm = self::createDefaultRecordManager();
         $record = $rm->getOrCreateRecord('data_types', $fieldValues);
-        $rm->save($record)->commit();
+        $rm->scheduleSave($record)->commit();
 
         $this->assertTrue($record->exists());
     }

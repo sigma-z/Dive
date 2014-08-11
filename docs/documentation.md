@@ -20,6 +20,9 @@ Call ``composer install`` from your command line to add ``Dive`` to your ``vendo
 If you don't know how Composer works, please check out
 their [Getting Started](http://getcomposer.org/doc/00-intro.md) to set up.
 
+Dive requires the [Symfony EventDispatcher](https://github.com/symfony/EventDispatcher).
+
+
 Configure database connection
 ---
 

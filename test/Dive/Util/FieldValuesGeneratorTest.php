@@ -35,21 +35,15 @@ class FieldValuesGeneratorTest extends TestCase
 
 
     /**
-     * @param string[]    $fieldDefinition
-     * @param string|null $expectedType
-     * @param int         $minLength
-     * @param int         $maxLength
-
      * @dataProvider provideGetRandomFieldValue
+     *
+     * @param array $fieldDefinition
+     * @param int   $minLength
+     * @param int   $maxLength
      */
-    public function testGetRandomFieldValue(array $fieldDefinition, $expectedType, $minLength, $maxLength)
+    public function testGetRandomFieldValue(array $fieldDefinition, $minLength, $maxLength)
     {
-        if ($expectedType === null) {
-            $this->setExpectedException('\Dive\Util\UnsupportedTypeException');
-        }
-
         $actual = $this->generator->getRandomFieldValue($fieldDefinition);
-        $this->assertInternalType($expectedType, $actual);
         $length = mb_strlen($actual);
 
         if ($minLength === $maxLength) {
@@ -63,16 +57,16 @@ class FieldValuesGeneratorTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetRandomFieldValue()
     {
         return array(
-            array(array('type' => DataTypeMapper::OTYPE_STRING, 'length' => '10'), 'string', 0, 10),
-            array(array('type' => DataTypeMapper::OTYPE_INTEGER), 'int', 0, 10),
-            array(array('type' => DataTypeMapper::OTYPE_DECIMAL), 'float', 0, 10),
-            array(array('type' => DataTypeMapper::OTYPE_DATETIME), 'string', 19, 19),
-            array(array('type' => 'nothing'), null, null, null),
+            array(array('type' => DataTypeMapper::OTYPE_STRING, 'length' => '10'), 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_INTEGER), 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_DECIMAL), 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_DATETIME), 19, 19),
+            array(array('type' => 'nothing'), 1, 1),
         );
     }
 

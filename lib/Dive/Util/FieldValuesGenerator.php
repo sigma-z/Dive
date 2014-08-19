@@ -122,7 +122,6 @@ class FieldValuesGenerator
 
 
     /**
-     * TODO move code for generating a random field value into OrmDataType classes?
      * This method generates a random value for a field, which is defined like given $fieldDefinition. If type is not
      *  supported it returns null.
      *
@@ -147,8 +146,8 @@ class FieldValuesGenerator
                 return $fieldDefinition['values'][$index];
 
             case DataTypeMapper::OTYPE_DECIMAL:
-                $length = $fieldDefinition['length'];
-                $scale = isset($fieldDefinition['scale']) ? $fieldDefinition['scale'] : 0;
+                $length   = isset($fieldDefinition['length'])   ? $fieldDefinition['length']   : 1;
+                $scale    = isset($fieldDefinition['scale'])    ? $fieldDefinition['scale']    : 0;
                 $unsigned = isset($fieldDefinition['unsigned']) ? $fieldDefinition['unsigned'] : false;
 
                 $numberLength = $scale > 0 ? $length - $scale - 1 : $length;
@@ -167,7 +166,7 @@ class FieldValuesGenerator
                 return mt_rand(0, 2147483647);
 
             case DataTypeMapper::OTYPE_INTEGER:
-                $length = $fieldDefinition['length'];
+                $length   = isset($fieldDefinition['length'])   ? $fieldDefinition['length']   : 1;
                 $unsigned = isset($fieldDefinition['unsigned']) ? $fieldDefinition['unsigned'] : false;
                 $maxValue = (pow(2, 8 * $length)) - 1;
                 if (!$unsigned) {
@@ -194,11 +193,11 @@ class FieldValuesGenerator
 
                 // init result, number of steps
                 $string = '';
-                $l = isset($fieldDefinition['length']) ? $fieldDefinition['length'] : 1;
-                while ($l > 0) {
+                $length = isset($fieldDefinition['length']) ? $fieldDefinition['length'] : 1;
+                while ($length > 0) {
                     $x = mt_rand($min, $max);
                     $string .= $chars[$x];
-                    $l--;
+                    $length--;
                 }
                 return $string;
         }

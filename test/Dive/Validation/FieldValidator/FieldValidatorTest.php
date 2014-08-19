@@ -43,26 +43,6 @@ class FieldValidatorTest extends BaseTestCase
     }
 
 
-    public function testValidateWithNonRegisteredTypeValidators()
-    {
-        $this->markTestIncomplete('Disabling of validation is not implemented, yet!');
-        $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveARecordOfTable('article');
-        $this->whenIValidateTheRecord();
-        $this->thenTheResultShouldBeValid();
-    }
-
-
-    public function testValidateWithRegisteredDateTimeTypeValidator()
-    {
-        $this->markTestIncomplete('Disabling of validation is not implemented, yet!');
-        $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveARecordOfTable('article');
-        $this->whenIValidateTheRecord();
-        $this->thenTheResultShouldBeValid();
-    }
-
-
     public function testValidateToFalseWithRegisteredDateTimeTypeValidator()
     {
         $this->givenIHaveAFieldTypeValidator();
@@ -102,13 +82,6 @@ class FieldValidatorTest extends BaseTestCase
     private function whenISetRecordField_to($fieldName, $value)
     {
         $this->record->set($fieldName, $value);
-    }
-
-
-    private function thenTheResultShouldBeValid()
-    {
-        echo $this->record->getErrorStack();
-        $this->assertTrue($this->validationResult);
     }
 
 

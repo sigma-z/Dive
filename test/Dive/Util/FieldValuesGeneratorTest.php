@@ -11,13 +11,14 @@
 namespace Dive\Test\Util;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
+use Dive\TestSuite\TestCase;
 use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author Steven Nikolic <steven@nindoo.de>
  * @created 25.10.13
  */
-class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
+class FieldValuesGeneratorTest extends TestCase
 {
     /**
      * @var FieldValuesGenerator
@@ -38,8 +39,8 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
      * @param string|null $expectedType
      * @param int         $minLength
      * @param int         $maxLength
-     *
-     * @dataProvider provdeGetRandomFieldValue
+
+     * @dataProvider provideGetRandomFieldValue
      */
     public function testGetRandomFieldValue(array $fieldDefinition, $expectedType, $minLength, $maxLength)
     {
@@ -64,7 +65,7 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    public function provdeGetRandomFieldValue()
+    public function provideGetRandomFieldValue()
     {
         return array(
             array(array('type' => DataTypeMapper::OTYPE_STRING, 'length' => '10'), 'string', 0, 10),
@@ -77,11 +78,11 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @param array  $inputFields
+     * @dataProvider provideTypeAliases
+     *
+     * @param array $inputFields
      * @param string $type
      * @param string $aliasFunction
-     *
-     *@dataProvider provideTypeAliases
      */
     public function testTypeAliases(array $inputFields, $type, $aliasFunction)
     {
@@ -98,7 +99,7 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideTypeAliases()
     {
@@ -136,4 +137,25 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
             )
         );
     }
+
+
+    public function testGenerateValidFieldValues()
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable('data_types');
+        $fieldValues = $this->generator->getRandomRecordData(
+            $table->getFields(),
+            array(),
+            FieldValuesGenerator::MAXIMAL_WITHOUT_AUTOINCREMENT
+        );
+
+        $dataTypeMapper = $rm->getDriver()->getDataTypeMapper();
+        foreach ($fieldValues as $fieldName => $value) {
+            $field = $table->getField($fieldName);
+            $fieldValidator = $dataTypeMapper->getOrmTypeInstance($field['type']);
+            $this->assertTrue($fieldValidator->validateType($value, $field), "Field type for '$fieldName' is not valid!");
+            $this->assertTrue($fieldValidator->validateLength($value, $field), "Field length for '$fieldName' is not valid!");
+        }
+    }
+
 }

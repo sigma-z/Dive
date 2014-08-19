@@ -277,7 +277,8 @@ return array(
                     'primary'   => true,
                     'type'      => 'integer',
                     'length'    => 10,
-                    'unsigned'  => true
+                    'unsigned'  => true,
+                    'autoIncrement' => true
                 ),
                 't_boolean' => array(
                     'type' => 'boolean',

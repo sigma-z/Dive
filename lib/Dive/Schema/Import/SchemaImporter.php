@@ -322,6 +322,7 @@ abstract class SchemaImporter implements SchemaImporterInterface
         if ($length !== null) {
             $definition['length'] = (int)$length;
         }
+        ksort($definition);
 
         return $definition;
     }

@@ -508,7 +508,9 @@ class UnitOfWork
         $modifiedFields = array();
         foreach ($table->getFields() as $fieldName => $fieldDef) {
             if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
-                $identifier[$fieldName] = $record->get($fieldName);
+                $identifier[$fieldName] = $record->isFieldModified($fieldName)
+                    ? $record->getModifiedFieldValue($fieldName)
+                    : $record->get($fieldName);
             }
             if ($record->isFieldModified($fieldName)) {
                 $modifiedFields[$fieldName] = $record->get($fieldName);

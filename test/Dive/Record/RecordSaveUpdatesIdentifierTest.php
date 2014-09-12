@@ -9,15 +9,18 @@
 namespace Dive\Test\Record;
 
 use Dive\Record;
+use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
 /**
- * Class RecordSaveUpdatesIdentifierTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 12.09.2014
  */
 class RecordSaveUpdatesIdentifierTest extends TestCase
 {
+
+    /** @var RecordManager */
+    private $rm;
 
     /** @var Record */
     private $storedRecord;
@@ -26,9 +29,20 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
     private $oldIdentifier;
 
 
+    protected function tearDown()
+    {
+        parent::tearDown();
+
+        if ($this->storedRecord) {
+            $this->rm->scheduleDelete($this->storedRecord);
+            $this->rm->commit();
+        }
+    }
+
+
     public function testSaveSingleRecord()
     {
-        $this->markTestIncomplete();
+        $this->givenIHaveARecordManager();
         $this->givenIHaveASingleRecordStored();
         $this->whenIChangeTheRecordIdentifierTo('123');
         $this->whenISaveTheRecord();
@@ -39,12 +53,12 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
     private function givenIHaveASingleRecordStored()
     {
-        $rm = self::createDefaultRecordManager();
-        $userTable = $rm->getTable('user');
-        $user = self::getRecordWithRandomData($userTable, array('user' => 'Hugo'));
-        $rm->scheduleSave($user);
-        $rm->commit();
+        $userTable = $this->rm->getTable('user');
+        $user = self::getRecordWithRandomData($userTable, array('id' => '1', 'username' => 'Hugo'));
+        $this->rm->scheduleSave($user);
+        $this->rm->commit();
 
+        $this->oldIdentifier = $user->getIdentifierAsString();
         $this->storedRecord = $user;
     }
 
@@ -55,16 +69,14 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
      */
     private function whenIChangeTheRecordIdentifierTo($identifier)
     {
-        $this->oldIdentifier = $this->storedRecord->get('id');
         $this->storedRecord->set('id', $identifier);
     }
 
 
     private function whenISaveTheRecord()
     {
-        $rm = $this->storedRecord->getRecordManager();
-        $rm->scheduleSave($this->storedRecord);
-        $rm->commit();
+        $this->rm->scheduleSave($this->storedRecord);
+        $this->rm->commit();
     }
 
 
@@ -84,6 +96,12 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $repository = $table->getRepository();
         $this->assertFalse($repository->hasByInternalId($this->oldIdentifier));
         $this->assertTrue($repository->hasByInternalId($identifier));
+    }
+
+
+    private function givenIHaveARecordManager()
+    {
+        $this->rm = self::createDefaultRecordManager();
     }
 
 }

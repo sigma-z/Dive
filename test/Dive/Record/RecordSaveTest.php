@@ -304,7 +304,9 @@ class RecordSaveTest extends TestCase
     private function assertIdentifierUpdatedInRepository(Record $record)
     {
         $repository = $record->getTable()->getRepository();
-        $this->assertTrue($repository->hasByInternalId($record->getInternalId()));
+        $internalId = $record->getInternalId();
+        $this->assertStringStartsNotWith('_', $internalId[0]);
+        $this->assertTrue($repository->hasByInternalId($internalId));
     }
 
 

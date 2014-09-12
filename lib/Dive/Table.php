@@ -632,7 +632,6 @@ class Table
     /**
      * Finds record by field values, if given fields matches primary key, if not try to find by unique indexes,
      * if no record could be found, then create one
-     * TODO If identifier is given, the repository could be checked instead of querying the database
      *
      * @param  array $fieldValues
      * @return \Dive\Record
@@ -641,7 +640,13 @@ class Table
     {
         $identifier = $this->getIdentifierFieldValues($fieldValues);
         if ($identifier) {
-            $record = $this->findByPk($identifier);
+            $identifierAsString = implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
+            if ($this->isInRepository($identifierAsString)) {
+                $record = $this->getFromRepository($identifierAsString);
+            }
+            else {
+                $record = $this->findByPk($identifier);
+            }
         }
         else {
             $record = $this->findByUniqueIndexes($fieldValues);
@@ -733,6 +738,20 @@ class Table
             $identifier[$fieldName] = $fieldValues[$fieldName];
         }
         return $identifier;
+    }
+
+
+    /**
+     * @param  array $fieldValues
+     * @return string|null
+     */
+    public function getIdentifierAsString(array $fieldValues)
+    {
+        $identifier = $this->getIdentifierFieldValues($fieldValues);
+        if ($identifier === null) {
+            return $identifier;
+        }
+        return implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
     }
 
 

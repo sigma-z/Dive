@@ -81,7 +81,7 @@ class UnitOfWork
      */
     public function getOrCreateRecord(Table $table, array $data, $exists = false)
     {
-        $id = $this->getIdentifierFromData($table, $data);
+        $id = $table->getIdentifierAsString($data);
         if ($id !== false && $table->isInRepository($id)) {
             $record = $table->getFromRepository($id);
         }
@@ -89,27 +89,6 @@ class UnitOfWork
             $record = $table->createRecord($data, $exists);
         }
         return $record;
-    }
-
-
-    /**
-     * Gets identifier as string, but returns false, if identifier could not be determined
-     *
-     * @param  Table $table
-     * @param  array $data
-     * @return bool|string
-     */
-    private function getIdentifierFromData(Table $table, array $data)
-    {
-        $identifierFields = $table->getIdentifierFields();
-        $identifier = array();
-        foreach ($identifierFields as $fieldName) {
-            if (!isset($data[$fieldName])) {
-                return false;
-            }
-            $identifier[] = $data[$fieldName];
-        }
-        return implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
     }
 
 

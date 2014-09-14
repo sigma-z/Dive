@@ -25,8 +25,14 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
     /** @var Record */
     private $storedRecord;
 
+    /** @var Record */
+    private $relatedRecord;
+
     /** @var string */
-    private $oldIdentifier;
+    private $oldIdentifierStoredRecord;
+
+    /** @var string */
+    private $oldIdentifierRelatedRecord;
 
 
     protected function tearDown()
@@ -37,6 +43,11 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
             $this->rm->scheduleDelete($this->storedRecord);
             $this->rm->commit();
         }
+
+        if ($this->relatedRecord) {
+            $this->rm->scheduleDelete($this->relatedRecord);
+            $this->rm->commit();
+        }
     }
 
 
@@ -44,10 +55,55 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
     {
         $this->givenIHaveARecordManager();
         $this->givenIHaveASingleRecordStored();
+
         $this->whenIChangeTheRecordIdentifierTo('123');
         $this->whenISaveTheRecord();
+
         $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
         $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+    }
+
+
+    public function testSaveOwningRecordOneToOne()
+    {
+        $this->givenIHaveARecordManager();
+        $this->givenIHaveAOwningRecordWithAnOneToOneRelatedRecord();
+
+        $this->whenIChangeTheRecordIdentifierTo('123');
+        $this->whenIChangeTheRelatedRecordIdentifierTo('321');
+        $this->whenISaveTheRecord();
+
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+
+        $this->assertEquals('321', $this->storedRecord->user_id);
+    }
+
+
+    public function testSaveReferencedRecordOneToOne()
+    {
+        $this->givenIHaveARecordManager();
+        $this->givenIHaveAReferencedRecordWithAnOneToOneRelatedRecord();
+
+        $this->whenIChangeTheRecordIdentifierTo('123');
+        $this->whenIChangeTheRelatedRecordIdentifierTo('321');
+        $this->whenISaveTheRecord();
+
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+
+        $this->assertEquals('123', $this->relatedRecord->user_id);
+    }
+
+
+    // given / when / then methods
+    private function givenIHaveARecordManager()
+    {
+        $this->rm = self::createDefaultRecordManager();
     }
 
 
@@ -58,8 +114,44 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $this->rm->scheduleSave($user);
         $this->rm->commit();
 
-        $this->oldIdentifier = $user->getIdentifierAsString();
+        $this->oldIdentifierStoredRecord = $user->getIdentifierAsString();
         $this->storedRecord = $user;
+    }
+
+
+    private function givenIHaveAOwningRecordWithAnOneToOneRelatedRecord()
+    {
+        $userTable = $this->rm->getTable('user');
+        $user = self::getRecordWithRandomData($userTable, array('id' => '1', 'username' => 'Hugo'));
+        $authorTable = $this->rm->getTable('author');
+        $authorData = array('id' => '1', 'lastname' => 'Smith', 'email' => 'smith@example.com');
+        $author = self::getRecordWithRandomData($authorTable, $authorData);
+        $author->User = $user;
+        $this->rm->scheduleSave($author);
+        $this->rm->commit();
+
+        $this->oldIdentifierStoredRecord = $author->getIdentifierAsString();
+        $this->oldIdentifierRelatedRecord = $user->getIdentifierAsString();
+        $this->storedRecord = $author;
+        $this->relatedRecord = $user;
+    }
+
+
+    private function givenIHaveAReferencedRecordWithAnOneToOneRelatedRecord()
+    {
+        $userTable = $this->rm->getTable('user');
+        $user = self::getRecordWithRandomData($userTable, array('id' => '1', 'username' => 'Hugo'));
+        $authorTable = $this->rm->getTable('author');
+        $authorData = array('id' => '1', 'lastname' => 'Smith', 'email' => 'smith@example.com');
+        $author = self::getRecordWithRandomData($authorTable, $authorData);
+        $user->Author = $author;
+        $this->rm->scheduleSave($user);
+        $this->rm->commit();
+
+        $this->oldIdentifierStoredRecord = $user->getIdentifierAsString();
+        $this->oldIdentifierRelatedRecord = $author->getIdentifierAsString();
+        $this->storedRecord = $user;
+        $this->relatedRecord = $author;
     }
 
 
@@ -80,10 +172,29 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
     }
 
 
+    /**
+     * @param  string $id
+     * @throws \Dive\Table\TableException
+     */
+    private function whenIChangeTheRelatedRecordIdentifierTo($id)
+    {
+        $this->relatedRecord->set('id', $id);
+    }
+
+
     private function thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase()
     {
         $identifier = $this->storedRecord->getIdentifierAsString();
         $table = $this->storedRecord->getTable();
+        $isStoredInDatabase = $table->createQuery()->where('id = ?', $identifier)->hasResult();
+        $this->assertTrue($isStoredInDatabase);
+    }
+
+
+    private function thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase()
+    {
+        $identifier = $this->relatedRecord->getIdentifierAsString();
+        $table = $this->relatedRecord->getTable();
         $isStoredInDatabase = $table->createQuery()->where('id = ?', $identifier)->hasResult();
         $this->assertTrue($isStoredInDatabase);
     }
@@ -94,14 +205,18 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $identifier = $this->storedRecord->getIdentifierAsString();
         $table = $this->storedRecord->getTable();
         $repository = $table->getRepository();
-        $this->assertFalse($repository->hasByInternalId($this->oldIdentifier));
+        $this->assertFalse($repository->hasByInternalId($this->oldIdentifierStoredRecord));
         $this->assertTrue($repository->hasByInternalId($identifier));
     }
 
 
-    private function givenIHaveARecordManager()
+    private function thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository()
     {
-        $this->rm = self::createDefaultRecordManager();
+        $identifier = $this->relatedRecord->getIdentifierAsString();
+        $table = $this->relatedRecord->getTable();
+        $repository = $table->getRepository();
+        $this->assertFalse($repository->hasByInternalId($this->oldIdentifierRelatedRecord));
+        $this->assertTrue($repository->hasByInternalId($identifier));
     }
 
 }

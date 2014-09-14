@@ -101,7 +101,7 @@ class UnitOfWork
         $oid = $record->getOid();
 
         if ($resetVisited) {
-            $this->visitedSaveRecords = array($oid);
+            $this->visitedSaveRecords = array();
         }
         else if (in_array($oid, $this->visitedSaveRecords)) {
             return;

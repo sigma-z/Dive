@@ -373,7 +373,7 @@ class Relation
     private function getReferenceQuery(Record $record, $relationName, array $identifiers = array())
     {
         if (empty($identifiers)) {
-            $identifiers = array($record->getIdentifierAsString());
+            $identifiers = array($record->getStoredIdentifierAsString());
         }
 
         $table = $record->getTable();

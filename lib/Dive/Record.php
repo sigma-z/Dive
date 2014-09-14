@@ -232,6 +232,25 @@ class Record
 
 
     /**
+     * @return null|string
+     */
+    public function getStoredIdentifierAsString()
+    {
+        if ($this->isModified()) {
+            $idFields = $this->_table->getIdentifierFields();
+            $identifierValues = array();
+            foreach ($idFields as $idField) {
+                $identifierValues[$idField] = $this->isFieldModified($idField)
+                    ? $this->getModifiedFieldValue($idField)
+                    : $this->get($idField);
+            }
+            return $this->_table->getIdentifierAsString($identifierValues);
+        }
+        return $this->getIdentifierAsString();
+    }
+
+
+    /**
      * @return array|null
      */
     public function getIdentifierFieldIndexed()
@@ -256,7 +275,7 @@ class Record
     {
         $id = '';
         if ($this->exists()) {
-            $id = $this->getIdentifierAsString();
+            $id = $this->getStoredIdentifierAsString();
         }
         if (empty($id)) {
             $id = self::NEW_RECORD_ID_MARK . $this->getOid();

@@ -10,6 +10,9 @@ namespace Dive\Test\Record;
 
 use Dive\Record;
 use Dive\RecordManager;
+use Dive\TestSuite\Model\Article;
+use Dive\TestSuite\Model\Author;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -100,7 +103,32 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
     }
 
 
-    // given / when / then methods
+    public function testSaveOwningRecordOneToMany()
+    {
+        $this->markTestIncomplete();
+        $this->givenIHaveARecordManager();
+        $this->givenIHaveAOwningRecordWithAnOneToManyRelatedRecord();
+
+        $this->whenIChangeTheRecordIdentifierTo('123');
+        $this->whenIChangeTheRelatedRecordIdentifierTo('321');
+        $this->whenISaveTheRecord();
+
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+
+        $this->assertEquals('321', $this->storedRecord->author_id);
+    }
+
+
+    public function testSaveReferencedRecordOneToMany()
+    {
+        $this->markTestIncomplete();
+    }
+
+
+    // #####  given / when / then methods  #####
     private function givenIHaveARecordManager()
     {
         $this->rm = self::createDefaultRecordManager();
@@ -109,8 +137,8 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
     private function givenIHaveASingleRecordStored()
     {
-        $userTable = $this->rm->getTable('user');
-        $user = self::getRecordWithRandomData($userTable, array('id' => '1', 'username' => 'Hugo'));
+        $user = $this->createUser();
+
         $this->rm->scheduleSave($user);
         $this->rm->commit();
 
@@ -121,12 +149,10 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
     private function givenIHaveAOwningRecordWithAnOneToOneRelatedRecord()
     {
-        $userTable = $this->rm->getTable('user');
-        $user = self::getRecordWithRandomData($userTable, array('id' => '1', 'username' => 'Hugo'));
-        $authorTable = $this->rm->getTable('author');
-        $authorData = array('id' => '1', 'lastname' => 'Smith', 'email' => 'smith@example.com');
-        $author = self::getRecordWithRandomData($authorTable, $authorData);
+        $user = $this->createUser();
+        $author = $this->createAuthor();
         $author->User = $user;
+
         $this->rm->scheduleSave($author);
         $this->rm->commit();
 
@@ -139,18 +165,34 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
     private function givenIHaveAReferencedRecordWithAnOneToOneRelatedRecord()
     {
-        $userTable = $this->rm->getTable('user');
-        $user = self::getRecordWithRandomData($userTable, array('id' => '1', 'username' => 'Hugo'));
-        $authorTable = $this->rm->getTable('author');
-        $authorData = array('id' => '1', 'lastname' => 'Smith', 'email' => 'smith@example.com');
-        $author = self::getRecordWithRandomData($authorTable, $authorData);
+        $user = $this->createUser();
+        $author = $this->createAuthor();
         $user->Author = $author;
+
         $this->rm->scheduleSave($user);
         $this->rm->commit();
 
         $this->oldIdentifierStoredRecord = $user->getIdentifierAsString();
         $this->oldIdentifierRelatedRecord = $author->getIdentifierAsString();
         $this->storedRecord = $user;
+        $this->relatedRecord = $author;
+    }
+
+
+    private function givenIHaveAOwningRecordWithAnOneToManyRelatedRecord()
+    {
+        $user = $this->createUser();
+        $author = $this->createAuthor();
+        $article = $this->createArticle();
+        $article->Author = $author;
+        $author->User = $user;
+
+        $this->rm->scheduleSave($article);
+        $this->rm->commit();
+
+        $this->oldIdentifierStoredRecord = $article->getIdentifierAsString();
+        $this->oldIdentifierRelatedRecord = $author->getIdentifierAsString();
+        $this->storedRecord = $article;
         $this->relatedRecord = $author;
     }
 
@@ -217,6 +259,43 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $repository = $table->getRepository();
         $this->assertFalse($repository->hasByInternalId($this->oldIdentifierRelatedRecord));
         $this->assertTrue($repository->hasByInternalId($identifier));
+    }
+
+
+    /**
+     * @return User
+     */
+    private function createUser()
+    {
+        $table = $this->rm->getTable('user');
+        return self::getRecordWithRandomData($table, array('id' => '1', 'username' => 'Hugo'));
+    }
+
+
+    /**
+     * @return Author
+     */
+    private function createAuthor()
+    {
+        $table = $this->rm->getTable('author');
+        $recordData = array('id' => '1', 'lastname' => 'Smith', 'email' => 'smith@example.com');
+        return self::getRecordWithRandomData($table, $recordData);
+    }
+
+
+    /**
+     * @return Article
+     */
+    private function createArticle()
+    {
+        $table = $this->rm->getTable('article');
+        $recordData = array(
+            'id' => '1',
+            'title' => 'Release announcement',
+            'teaser' => 'Dive release with some brand new features',
+            'text' => 'Dive into Dive'
+        );
+        return self::getRecordWithRandomData($table, $recordData);
     }
 
 }

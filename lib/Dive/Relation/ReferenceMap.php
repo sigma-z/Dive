@@ -220,7 +220,7 @@ class ReferenceMap
             }
             $refOid = $referencedRecord->getOid();
             if (isset($this->relatedCollections[$refOid])) {
-                $pos = $this->relatedCollections[$refOid]->key($record);
+                $pos = $this->relatedCollections[$refOid]->search($record);
                 if ($pos !== false) {
                     $this->relatedCollections[$refOid]->offsetUnset($pos);
                 }

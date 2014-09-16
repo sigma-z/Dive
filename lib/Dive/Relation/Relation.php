@@ -610,17 +610,21 @@ class Relation
 
 
     /**
-     * @param Record $record
-     * @param string $newId
-     * @param string $oldId
+     * @param Record $owningRecord
+     * @param string $newIdentifier
+     * @param string $oldIdentifier
      */
-    public function updateOwningReferenceByForeignKey(Record $record, $newId, $oldId)
+    public function updateOwningReferenceByForeignKey(Record $owningRecord, $newIdentifier, $oldIdentifier)
     {
-        if ($newId != $oldId) {
+        if ($this->map->updateReferenceIfReferencedRecordIdentifierHasChanged($newIdentifier, $oldIdentifier, $owningRecord)) {
+            return;
+        }
+
+        if ($newIdentifier != $oldIdentifier) {
             // remove old reference
-            $this->map->removeOwningReferenceForeignKey($record, $oldId);
+            $this->map->removeOwningReferenceForeignKey($owningRecord, $oldIdentifier);
             // setting new reference
-            $this->map->setOwningReferenceByForeignKey($record, $newId);
+            $this->map->setOwningReferenceByForeignKey($owningRecord, $newIdentifier);
         }
     }
 

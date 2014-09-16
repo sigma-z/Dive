@@ -10,6 +10,7 @@ namespace Dive\Test\Record;
 
 use Dive\Record;
 use Dive\RecordManager;
+use Dive\Relation\ReferenceMap;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
@@ -105,12 +106,12 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
     public function testSaveOwningRecordOneToMany()
     {
-        $this->markTestIncomplete();
         $this->givenIHaveARecordManager();
         $this->givenIHaveAOwningRecordWithAnOneToManyRelatedRecord();
 
         $this->whenIChangeTheRecordIdentifierTo('123');
         $this->whenIChangeTheRelatedRecordIdentifierTo('321');
+        $this->markTestIncomplete();
         $this->whenISaveTheRecord();
 
         $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
@@ -194,6 +195,11 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $this->oldIdentifierRelatedRecord = $author->getIdentifierAsString();
         $this->storedRecord = $article;
         $this->relatedRecord = $author;
+        $relation = $this->storedRecord->getTable()->getRelation('Author');
+        /** @var ReferenceMap $map */
+        $map = self::readAttribute($relation, 'map');
+        $this->assertTrue($map->hasFieldMapping($this->storedRecord->getOid()));
+        $this->assertEquals($this->relatedRecord->getOid(), $map->getFieldMapping($this->storedRecord->getOid()));
     }
 
 

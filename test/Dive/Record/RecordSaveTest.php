@@ -403,9 +403,6 @@ class RecordSaveTest extends TestCase
             $this->assertEquals($newIdentifier, $referenceMapping[$refId]);
         }
 
-        // assert FALSE, because object field mapping is only for records, that are not stored in database, yet
-        $this->assertFalse($referenceMap->hasFieldMapping($owningRecord->getOid()));
-
         // assert record collection
         if ($relation->isOneToMany()) {
             $recordCollection = $referenceMap->getRelatedCollection($referencedRecord->getOid());

@@ -526,6 +526,29 @@ class ReferenceMap
      * @param string $newIdentifier
      * @param string $oldIdentifier
      * @param Record $owningRecord
+     * @throws \Dive\Table\RepositoryException
+     * @return bool
+     */
+    public function updateReferenceIfReferencedRecordIdentifierHasChanged($newIdentifier, $oldIdentifier, Record $owningRecord)
+    {
+        $owningOid = $owningRecord->getOid();
+        if ($this->hasFieldMapping($owningOid)) {
+            $referencedOid = $this->getFieldMapping($owningOid);
+            $refRepository = $this->getRefRepository($owningRecord, $this->relation->getReferencedAlias());
+            $referencedRecord = $refRepository->getByOid($referencedOid);
+            if ($referencedRecord->getIdentifierAsString() == $newIdentifier) {
+                $this->updateReferencedIdentifier($newIdentifier, $oldIdentifier);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * @param string $newIdentifier
+     * @param string $oldIdentifier
+     * @param Record $owningRecord
      */
     public function updateOwningIdentifier($newIdentifier, $oldIdentifier, Record $owningRecord)
     {
@@ -533,9 +556,6 @@ class ReferenceMap
         if (!$this->relation->hasReferenceLoadedFor($owningRecord, $relationName)) {
             return;
         }
-
-        // unset mapping, because it is only for records, that does not exists, yet
-        unset($this->owningFieldOidMapping[$owningRecord->getOid()]);
 
         $referencedRecord = $this->relation->getReferenceFor($owningRecord, $relationName);
         if ($referencedRecord) {

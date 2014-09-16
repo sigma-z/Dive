@@ -252,7 +252,12 @@ class ReferenceMap
      */
     private function setFieldMapping($owningOid, $referencedOid)
     {
-        $this->owningFieldOidMapping[$owningOid] = $referencedOid;
+        if ($referencedOid) {
+            $this->owningFieldOidMapping[$owningOid] = $referencedOid;
+        }
+        else {
+            unset($this->owningFieldOidMapping[$owningOid]);
+        }
     }
 
 
@@ -290,24 +295,6 @@ class ReferenceMap
             return false;
         }
         return $this->getFieldMapping($owningOid) === $referencedOid;
-    }
-
-
-    /**
-     * Updates field mapping for referenced record to an owning record
-     *
-     * @param Record $owningRecord
-     * @param Record $referencedRecord
-     */
-    private function updateFieldMapping(Record $owningRecord, Record $referencedRecord = null)
-    {
-        $oid = $owningRecord->getOid();
-        if ($referencedRecord && !$referencedRecord->exists()) {
-            $this->setFieldMapping($oid, $referencedRecord->getOid());
-        }
-        else {
-            $this->removeFieldMapping($oid);
-        }
     }
 
 
@@ -486,9 +473,11 @@ class ReferenceMap
             $actualRefId = $this->getOldReferencedId($owningRecord);
         }
 
+        $refOid = null;
         // unlink the field mapping of the referenced record for the old owning record
         if ($referencedRecord) {
             $this->unlinkFieldMappingForOldOwningRecord($referencedRecord);
+            $refOid = $referencedRecord->getOid();
         }
 
         if ($owningRecord) {
@@ -496,7 +485,7 @@ class ReferenceMap
             $owningField = $this->relation->getOwningField();
             $refId = $referencedRecord && $referencedRecord->exists() ? $referencedRecord->getInternalId() : null;
             $owningRecord->set($owningField, $refId);
-            $this->updateFieldMapping($owningRecord, $referencedRecord);
+            $this->setFieldMapping($owningRecord->getOid(), $refOid);
         }
 
         // unlink old reference
@@ -508,7 +497,7 @@ class ReferenceMap
             $owningId = $owningRecord ? $owningRecord->getInternalId() : null;
             $this->assignReference($referencedRecord->getInternalId(), $owningId);
             if ($owningId && $this->relation->isOneToMany()) {
-                $relatedCollection = $this->getRelatedCollection($referencedRecord->getOid());
+                $relatedCollection = $this->getRelatedCollection($refOid);
                 // TODO exception, or if not set create one??
                 if ($relatedCollection) {
                     $relatedCollection->add($owningRecord);

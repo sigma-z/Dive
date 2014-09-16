@@ -245,7 +245,6 @@ class RecordDeleteTest extends TestCase
                 }
             }
 
-            $this->markTestIncomplete();
             $this->assertFalse($referenceMap->hasFieldMapping($oid));
         }
         else {

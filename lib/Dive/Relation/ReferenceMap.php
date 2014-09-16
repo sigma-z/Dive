@@ -229,6 +229,8 @@ class ReferenceMap
         else if ($owningId == $this->references[$refId]) {
             unset($this->references[$refId]);
         }
+        $owningOid = $record->getOid();
+        unset($this->owningFieldOidMapping[$owningOid]);
     }
 
 

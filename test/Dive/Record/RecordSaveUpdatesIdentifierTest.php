@@ -11,10 +11,12 @@ namespace Dive\Test\Record;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\Relation\ReferenceMap;
+use Dive\Relation\Relation;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
+use Dive\Util\CamelCase;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -45,13 +47,12 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
         if ($this->storedRecord) {
             $this->rm->scheduleDelete($this->storedRecord);
-            $this->rm->commit();
         }
 
         if ($this->relatedRecord) {
             $this->rm->scheduleDelete($this->relatedRecord);
-            $this->rm->commit();
         }
+        $this->rm->commit();
     }
 
 
@@ -81,8 +82,8 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
         $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
         $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
-
-        $this->assertEquals('321', $this->storedRecord->user_id);
+        $this->thenTheOwningFieldMappingShouldReferenceTheReferencedRecord();
+        $this->thenTheOwningFieldShouldBeEqualTheReferencedIdentifier();
     }
 
 
@@ -99,8 +100,8 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
         $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
         $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
-
-        $this->assertEquals('123', $this->relatedRecord->user_id);
+        $this->thenTheOwningFieldMappingShouldReferenceTheReferencedRecord();
+        $this->thenTheOwningFieldShouldBeEqualTheReferencedIdentifier();
     }
 
 
@@ -117,14 +118,26 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
         $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
         $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
-
-        $this->assertEquals('321', $this->storedRecord->author_id);
+        $this->thenTheOwningFieldMappingShouldReferenceTheReferencedRecord();
+        $this->thenTheOwningFieldShouldBeEqualTheReferencedIdentifier();
     }
 
 
     public function testSaveReferencedRecordOneToMany()
     {
-        $this->markTestIncomplete();
+        $this->givenIHaveARecordManager();
+        $this->givenIHaveAReferencedRecordWithAnOneToManyRelatedRecord();
+
+        $this->whenIChangeTheRecordIdentifierTo('123');
+        $this->whenIChangeTheRelatedRecordIdentifierTo('321');
+        $this->whenISaveTheRecord();
+
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();
+        $this->thenTheRelatedRecordIdentifierShouldHaveBeenUpdatedInTheRepository();
+        $this->thenTheOwningFieldMappingShouldReferenceTheReferencedRecord();
+        $this->thenTheOwningFieldShouldBeEqualTheReferencedIdentifier();
     }
 
 
@@ -194,11 +207,26 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $this->oldIdentifierRelatedRecord = $author->getIdentifierAsString();
         $this->storedRecord = $article;
         $this->relatedRecord = $author;
-        $relation = $this->storedRecord->getTable()->getRelation('Author');
-        /** @var ReferenceMap $map */
-        $map = self::readAttribute($relation, 'map');
-        $this->assertTrue($map->hasFieldMapping($this->storedRecord->getOid()));
-        $this->assertEquals($this->relatedRecord->getOid(), $map->getFieldMapping($this->storedRecord->getOid()));
+    }
+
+
+
+
+    private function givenIHaveAReferencedRecordWithAnOneToManyRelatedRecord()
+    {
+        $user = $this->createUser();
+        $author = $this->createAuthor();
+        $article = $this->createArticle();
+        $author->Article[] = $article;
+        $author->User = $user;
+
+        $this->rm->scheduleSave($author);
+        $this->rm->commit();
+
+        $this->oldIdentifierStoredRecord = $author->getIdentifierAsString();
+        $this->oldIdentifierRelatedRecord = $article->getIdentifierAsString();
+        $this->storedRecord = $author;
+        $this->relatedRecord = $article;
     }
 
 
@@ -301,6 +329,68 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
             'text' => 'Dive into Dive'
         );
         return self::getRecordWithRandomData($table, $recordData);
+    }
+
+
+    private function thenTheOwningFieldMappingShouldReferenceTheReferencedRecord()
+    {
+        $relation = $this->getRelation();
+        $relationName = CamelCase::toCamelCase($this->relatedRecord->getTable()->getTableName());
+        $owningRecord = $this->getOwningRecord($relation, $relationName);
+        $referencedRecord = $this->getReferencedRecord($relation, $relationName);
+
+        /** @var ReferenceMap $referenceMap */
+        $referenceMap = self::readAttribute($relation, 'map');
+        $owningOid = $owningRecord->getOid();
+        $this->assertTrue($referenceMap->hasFieldMapping($owningOid));
+        $this->assertEquals($referencedRecord->getOid(), $referenceMap->getFieldMapping($owningOid));
+    }
+
+
+    private function thenTheOwningFieldShouldBeEqualTheReferencedIdentifier()
+    {
+        $relation = $this->getRelation();
+        $relationName = CamelCase::toCamelCase($this->relatedRecord->getTable()->getTableName());
+        $owningRecord = $this->getOwningRecord($relation, $relationName);
+        $referencedRecord = $this->getReferencedRecord($relation, $relationName);
+
+        $this->assertEquals($referencedRecord->getIdentifierAsString(), $owningRecord->get($relation->getOwningField()));
+    }
+
+
+    /**
+     * @return Relation
+     */
+    private function getRelation()
+    {
+        $relationName = CamelCase::toCamelCase($this->relatedRecord->getTable()->getTableName());
+        return $this->storedRecord->getTableRelation($relationName);
+    }
+
+
+    /**
+     * @param  Relation $relation
+     * @param  string   $relationName
+     * @return Record
+     */
+    private function getOwningRecord(Relation $relation, $relationName)
+    {
+        return $relation->isOwningSide($relationName)
+            ? $this->relatedRecord
+            : $this->storedRecord;
+    }
+
+
+    /**
+     * @param  Relation $relation
+     * @param  string   $relationName
+     * @return Record
+     */
+    private function getReferencedRecord(Relation $relation, $relationName)
+    {
+        return $relation->isReferencedSide($relationName)
+            ? $this->relatedRecord
+            : $this->storedRecord;
     }
 
 }

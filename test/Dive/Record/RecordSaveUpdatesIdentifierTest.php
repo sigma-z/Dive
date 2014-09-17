@@ -111,7 +111,6 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
         $this->whenIChangeTheRecordIdentifierTo('123');
         $this->whenIChangeTheRelatedRecordIdentifierTo('321');
-        $this->markTestIncomplete();
         $this->whenISaveTheRecord();
 
         $this->thenTheRecordIdentifierShouldHaveBeenUpdatedInTheDatabase();

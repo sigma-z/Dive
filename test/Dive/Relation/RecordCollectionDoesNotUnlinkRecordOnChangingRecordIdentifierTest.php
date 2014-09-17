@@ -9,6 +9,7 @@
 namespace Dive\Test\Relation;
 
 use Dive\RecordManager;
+use Dive\Relation\ReferenceMap;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
@@ -33,13 +34,13 @@ class RecordCollectionDoesNotUnlinkRecordOnChangingRecordIdentifierTest extends 
 
     public function testRecordCollectionDoesNotUnlinkRecordOnChangingRelatedRecordIdentifier()
     {
-        $this->markTestIncomplete();
         $this->givenIHaveRecordManager();
         $this->givenIHaveAStoredRecordWithARelatedRecordCollection();
 
         $this->whenIChangeTheRecordIdentifierOfTheRelatedRecordInTheRecordCollection();
 
         $this->thenTheRecordCollectionRecordReferenceShouldNotHaveChanged();
+        $this->thenTheOwningFieldMappingShouldMapTheReferencedRecord();
     }
 
 
@@ -114,5 +115,15 @@ class RecordCollectionDoesNotUnlinkRecordOnChangingRecordIdentifierTest extends 
         $this->assertSame($this->recordCollectionRecord, $this->author->Article->first());
     }
 
+
+    private function thenTheOwningFieldMappingShouldMapTheReferencedRecord()
+    {
+        $relation = $this->recordCollectionRecord->getTableRelation('Author');
+        /** @var ReferenceMap $referenceMap */
+        $referenceMap = self::readAttribute($relation, 'map');
+        $owningOid = $this->recordCollectionRecord->getOid();
+        $this->assertTrue($referenceMap->hasFieldMapping($owningOid));
+        $this->assertEquals($this->author->getOid(), $referenceMap->getFieldMapping($owningOid));
+    }
 
 }

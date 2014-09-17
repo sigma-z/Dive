@@ -320,7 +320,9 @@ class ReferenceMap
      */
     public function getRelatedCollection($referencedOid)
     {
-        return isset($this->relatedCollections[$referencedOid]) ? $this->relatedCollections[$referencedOid] : null;
+        return isset($this->relatedCollections[$referencedOid])
+            ? $this->relatedCollections[$referencedOid]
+            : null;
     }
 
 

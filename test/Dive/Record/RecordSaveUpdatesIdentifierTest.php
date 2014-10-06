@@ -43,8 +43,6 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
     protected function tearDown()
     {
-        parent::tearDown();
-
         if ($this->storedRecord) {
             $this->rm->scheduleDelete($this->storedRecord);
         }
@@ -53,6 +51,8 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
             $this->rm->scheduleDelete($this->relatedRecord);
         }
         $this->rm->commit();
+
+        parent::tearDown();
     }
 
 

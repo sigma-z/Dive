@@ -1015,7 +1015,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         }
 
         $this->queryParts[$part] = array($partValue);
-        $this->params[$part] = array_values($params);
+        $this->params[$part] = $params;
         $this->isDirty = true;
     }
 
@@ -1034,7 +1034,7 @@ class Query implements QueryInterface, QueryHydrationInterface
 
         if (!empty($params)) {
             if (is_array($params)) {
-                $this->params[$part] = array_merge($this->params[$part], array_values($params));
+                $this->params[$part] = array_merge($this->params[$part], $params);
             }
             else {
                 $this->params[$part][] = $params;

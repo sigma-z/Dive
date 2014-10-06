@@ -340,7 +340,8 @@ class Connection
 
         if (!empty($params)) {
             $stmt = $this->prepare($sql);
-            $stmt->execute($params);
+            $this->bindParameters($stmt, $params);
+            $stmt->execute();
         }
         else {
             $stmt = $this->dbh->query($sql);
@@ -353,6 +354,62 @@ class Connection
             $this->throwErrorAsException($sql, $params);
         }
         return $stmt;
+    }
+
+
+    /**
+     * @param  \PDOStatement $stmt
+     * @param  array         $params
+     * @throws ConnectionException
+     */
+    private function bindParameters(\PDOStatement $stmt, array $params)
+    {
+        if ($params) {
+            $key = key($params);
+            $isPositional = is_int($key);
+            if ($isPositional) {
+                $index = 1;
+                foreach ($params as $key => $value) {
+                    if (!is_int($key)) {
+                        throw new ConnectionException("Mixed named and positional parameters is not supported!");
+                    }
+                    $type = $this->getBindValueType($value);
+                    $stmt->bindValue($index, $value, $type);
+                    $index++;
+                }
+            }
+            else {
+                foreach ($params as $name => $value) {
+                    if (is_int($name)) {
+                        throw new ConnectionException("Mixed named and positional parameters is not supported!");
+                    }
+                    $type = $this->getBindValueType($value);
+                    $stmt->bindValue(':' . $name, $value, $type);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * @param  mixed $value
+     * @return int
+     */
+    private function getBindValueType($value)
+    {
+        switch (gettype($value)) {
+            case 'integer':
+                return \PDO::PARAM_INT;
+
+            case 'boolean':
+                return \PDO::PARAM_BOOL;
+
+            case 'NULL':
+                return \PDO::PARAM_NULL;
+
+            default:
+                return \PDO::PARAM_STR;
+        }
     }
 
 

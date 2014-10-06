@@ -595,7 +595,8 @@ class Table
         $identifier = $this->getIdentifierFields();
         $this->throwExceptionIfIdentifierDoesNotMatchFields($id);
 
-        $query->where(implode(' = ? AND ', $identifier) . ' = ?', $id);
+        $params = is_array($id) ? array_values($id) : array($id);
+        $query->where(implode(' = ? AND ', $identifier) . ' = ?', $params);
         return $query->execute($fetchMode);
     }
 

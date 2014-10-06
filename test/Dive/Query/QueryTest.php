@@ -54,7 +54,68 @@ class QueryTest extends TestCase
 
 
     /**
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
+     */
+    public function testExecutingQueryWithIndexParameters(array $database)
+    {
+        $rm = self::createRecordManager($database);
+
+        $query = $rm->createQuery('user', 'u');
+        $query->select('IFNULL(? = ?, ?) = ? AS test', array(1, 1, 2, 1));
+        $query->limit(1);
+
+        $this->assertEquals('1', $query->fetchSingleScalar());
+    }
+
+
+    /**
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
+     */
+    public function testExecutingQueryWithNamedParameters(array $database)
+    {
+        $rm = self::createRecordManager($database);
+
+        $params = array(
+            'username' => 'John Doe',
+            'two' => 3,
+            'zero' => 0,
+        );
+        $query = $rm->createQuery('user', 'u');
+        $query->select('IFNULL(:zero = :two, :username) = :zero AS test, u.username', $params);
+        $query->where('u.username = :username', array('username' => 'Johanna Stuart'));
+
+        $expectedResult = array(
+            'test' => '1',
+            'username' => 'Johanna Stuart'
+        );
+        $this->assertEquals($expectedResult, $query->fetchOneAsArray());
+    }
+
+
+    /**
+     * @expectedException \Dive\Connection\ConnectionException
+     * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
+     */
+    public function testExecutingQueryMixedParametersWillRaiseException(array $database)
+    {
+        $rm = self::createRecordManager($database);
+
+        $query = $rm->createQuery('user', 'u');
+        $query->select('IFNULL(? != ?, :one) = :one AS test, ? AS test2', array(0, 2, 'one' => 1, 2));
+        $query->limit(1);
+
+        $this->assertEquals('1', $query->fetchSingleScalar());
+    }
+
+
+    /**
      * @dataProvider provideSqlParts
+     * @param  array  $operations
+     * @param  string $expected
+     * @throws \Dive\Query\QueryException
      */
     public function testGetSql(array $operations, $expected)
     {
@@ -74,7 +135,7 @@ class QueryTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideSqlParts()
     {
@@ -508,6 +569,9 @@ class QueryTest extends TestCase
 
     /**
      * @dataProvider provideGetSqlThrowsAliasException
+     * @param string $method
+     * @param array  $args
+     * @param string $expectedMessage
      */
     public function testGetSqlThrowsAliasException($method, array $args, $expectedMessage)
     {
@@ -520,7 +584,7 @@ class QueryTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetSqlThrowsAliasException()
     {
@@ -558,9 +622,14 @@ class QueryTest extends TestCase
 
     /**
      * @dataProvider provideSqlPartsDatabaseAware
+     * @param  array  $database
+     * @param  array  $operations
+     * @param  string $expectedSql
+     * @param  int    $expectedNumOfRows
+     * @throws \Dive\Query\QueryException
      */
     public function testFetchArray(
-        $database,
+        array $database,
         array $operations,
         /** @noinspection PhpUnusedParameterInspection */
         $expectedSql,
@@ -580,16 +649,21 @@ class QueryTest extends TestCase
         // skip that assertion if using limited queries
         if (!$query->getLimit()) {
             $message = 'Expected number of rows does not match query result!';
-            $this->assertEquals($expectedNumOfRows, count($result), $message);
+            $this->assertCount($expectedNumOfRows, $result, $message);
         }
     }
 
 
     /**
      * @dataProvider provideSqlPartsDatabaseAware
+     * @param  array  $database
+     * @param  array  $operations
+     * @param  string $expectedSql
+     * @param  int    $expectedNumOfRows
+     * @throws \Dive\Query\QueryException
      */
     public function testCount(
-        $database,
+        array $database,
         array $operations,
         /** @noinspection PhpUnusedParameterInspection */
         $expectedSql,
@@ -612,8 +686,11 @@ class QueryTest extends TestCase
 
     /**
      * @dataProvider provideSqlPartsDatabaseAware
+     * @param  array $database
+     * @param  array $operations
+     * @throws \Dive\Query\QueryException
      */
-    public function testCountByPk($database, array $operations)
+    public function testCountByPk(array $database, array $operations)
     {
         // prepare
         $rm = self::createRecordManager($database);
@@ -639,7 +716,7 @@ class QueryTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideSqlPartsDatabaseAware()
     {
@@ -649,8 +726,7 @@ class QueryTest extends TestCase
 
 
     /**
-     * @param RecordManager $rm
-     *
+     * @param  RecordManager $rm
      * @return array
      */
     private static function saveUserRecords(RecordManager $rm)
@@ -666,6 +742,10 @@ class QueryTest extends TestCase
 
     /**
      * @dataProvider provideExecute
+     * @param array  $database
+     * @param string $fetchMode
+     * @param string $method
+     * @param array  $expected
      */
     public function testExecute(array $database, $fetchMode, $method, $expected)
     {
@@ -729,7 +809,7 @@ class QueryTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideExecute()
     {
@@ -787,8 +867,9 @@ class QueryTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
-    public function testFindByFkOnNonExistingRecord($database)
+    public function testFindByFkOnNonExistingRecord(array $database)
     {
         $rm = self::createRecordManager($database);
         $table = $rm->getTable('user');
@@ -819,6 +900,9 @@ class QueryTest extends TestCase
 
     /**
      * @dataProvider provideQueryHasResult
+     * @param array $conditions
+     * @param array $params
+     * @param bool  $expected
      */
     public function testQueryHasResult(array $conditions, array $params, $expected)
     {

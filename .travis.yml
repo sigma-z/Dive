@@ -12,7 +12,5 @@ php:
 before_script:
   - composer self-update
   - composer install
-  - sqlite -version
-  - mysql --version
   - mysql -e 'create database dive;'
   - cp phpunit_db_config.travis.php phpunit_db_config.php

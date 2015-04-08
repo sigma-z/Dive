@@ -670,22 +670,16 @@ class Table
     {
         $uniqueIndexes = $this->getUniqueIndexes();
         if (!$uniqueIndexes) {
-            return false;
+            throw new TableException(
+                "There are no unique indexes for creating query to check whether the record is unique, or not!"
+            );
         }
 
-        $fieldNames = array_keys($fieldValues);
-        foreach ($uniqueIndexes as $uniqueName => $uniqueIndexDefinition) {
-            $uniqueFields = $uniqueIndexDefinition['fields'];
-            foreach ($uniqueFields as $uniqueField) {
-                if (!in_array($uniqueField, $fieldNames)) {
-                    unset($uniqueIndexes[$uniqueName]);
-                    continue;
-                }
-            }
-        }
-
+        $uniqueIndexes = $this->removeUnusedIndexes($uniqueIndexes, $fieldValues);
         if (!$uniqueIndexes) {
-            return false;
+            throw new TableException(
+                "There are no field values unique indexes for creating query to check whether the record is unique, or not!"
+            );
         }
 
         $conn = $this->getConnection();
@@ -948,6 +942,26 @@ class Table
     {
         $uniqueIndex = $this->getIndex($indexName);
         return $uniqueIndex['fields'];
+    }
+
+
+    /**
+     * @param array $indexes
+     * @param array $fieldValues
+     * @return array
+     */
+    private function removeUnusedIndexes(array $indexes, array $fieldValues)
+    {
+        foreach ($indexes as $indexName => $indexDefinition) {
+            $indexFields = $indexDefinition['fields'];
+            foreach ($indexFields as $fieldName) {
+                if (!isset($fieldValues[$fieldName]) && !array_key_exists($fieldName, $fieldValues)) {
+                    unset($indexes[$indexName]);
+                    continue;
+                }
+            }
+        }
+        return $indexes;
     }
 
 }

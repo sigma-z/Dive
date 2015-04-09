@@ -24,6 +24,7 @@ abstract class Hydrator implements HydratorInterface
      * @var \PDOStatement
      */
     protected $statement;
+
     /**
      * @var \Dive\RecordManager
      */

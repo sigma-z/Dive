@@ -258,6 +258,13 @@ interface PlatformInterface
      * @return string
      */
     public function getForeignKeyDefinitionSql($owningField, array $definition);
+
+    /**
+     * gets version sql
+     *
+     * @return string
+     */
+    public function getVersionSql();
     // </editor-fold>
 
 }

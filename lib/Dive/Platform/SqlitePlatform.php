@@ -271,4 +271,14 @@ class SqlitePlatform extends Platform
         throw new PlatformException('DROP FOREIGN KEY is not supported for SQLITE!');
     }
 
+
+    /**
+     * gets version sql
+     *
+     * @return string
+     */
+    public function getVersionSql()
+    {
+        return 'SELECT sqlite_version()';
+    }
 }

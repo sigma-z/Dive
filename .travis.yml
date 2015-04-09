@@ -25,5 +25,4 @@ install:
   - cp phpunit_db_config.travis.$DB.php phpunit_db_config.php;
 
 before_script:
-  - if [[ "$DB" == "sqlite" ]]; then sqlite3 -version; fi
-  - if [[ "$DB" == "mysql" ]]; then mysql --version; mysql -e 'create database dive;'; fi
+  - if [[ "$DB" == "mysql" ]]; then mysql -e 'create database dive;'; fi

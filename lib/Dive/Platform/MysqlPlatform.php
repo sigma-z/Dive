@@ -239,4 +239,14 @@ class MysqlPlatform extends Platform
         return $sql;
     }
 
+
+    /**
+     * gets version sql
+     *
+     * @return string
+     */
+    public function getVersionSql()
+    {
+        return 'SELECT VERSION()';
+    }
 }

@@ -9,10 +9,12 @@ php:
   - 5.3
   - 5.3.3
 
+env:
+ - DB=mysql
+ - DB=sqlite
+
 before_script:
   - composer self-update
   - composer install
-  - sqlite3 -version
-  - mysql --version
-  - mysql -e 'create database dive;'
-  - cp phpunit_db_config.travis.php phpunit_db_config.php
+  - if [[ "$DB" == "mysql" ]]; then sqlite3 -version; cp phpunit_db_config.travis.sqlite.php phpunit_db_config.php fi
+  - if [[ "$DB" == "mysql" ]]; then mysql --version; - mysql -e 'create database dive;'; cp phpunit_db_config.travis.mysql.php phpunit_db_config.php; fi

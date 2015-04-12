@@ -21,7 +21,7 @@ Requirements
 ---
  * PHP 5.3 or greater (UnitTests need 5.3.2)
  * [Symfony's EventDispatcher](https://github.com/symfony/EventDispatcher)
-
+ * Important: SQLite 3.8.5 up to 3.8.9 not supported! @see Issue #8
 
 Feature list
 ---

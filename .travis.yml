@@ -13,8 +13,10 @@ php:
 matrix:
   allow_failures:
     - php: nightly
-    - php: 5.5 env: DB=sqlite
-    - php: 5.6 env: DB=sqlite
+    - php: 5.5 
+      env: DB=sqlite
+    - php: 5.6 
+      env: DB=sqlite
     
 env:
  - DB=mysql

@@ -53,7 +53,16 @@ class SchemaImporterTest extends TestCase
         $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $importer = $this->getImporter($database);
         $expected = array(
-            'article', 'article2tag', 'author', 'comment', 'data_types', 'donation', 'tag', 'unique_constraint_test', 'user'
+            'article',
+            'article2tag',
+            'author',
+            'comment',
+            'data_types',
+            'donation',
+            'tag',
+            'tree_node',
+            'unique_constraint_test',
+            'user'
         );
 
         $actual = $importer->getTableNames(true);

@@ -224,6 +224,13 @@ return array(
                 ),
                 'datetime' => array(
                     'type'      => 'datetime'
+                ),
+                'comment_id'    => array(
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'foreign'   => 'comment.id',
+                    'nullable' => true
                 )
             ),
             'recordClass' => '\Dive\TestSuite\Model\Comment'
@@ -251,6 +258,28 @@ return array(
                 )
             ),
             'recordClass' => '\Dive\TestSuite\Model\Tag'
+        ),
+        'tree_node' => array(
+            'fields' => array(
+                'id'    => array(
+                    'primary'   => true,
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'autoIncrement' => true
+                ),
+                'name' => array(
+                    'type'      => 'string',
+                    'length'    => 64
+                ),
+                'tree_node_id'    => array(
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'nullable'  => true,
+                    'foreign'   => 'tree_node.id'
+                ),
+            )
         ),
         'article2tag' => array(
             'fields' => array(
@@ -474,6 +503,28 @@ return array(
             'refField' => 'id',
             'refTable' => 'article',
             'type' => '1-m',
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'CASCADE'
+        ),
+        'comment.comment_id' => array(
+            'owningAlias' => 'Parent',
+            'owningField' => 'comment_id',
+            'owningTable' => 'comment',
+            'refAlias' => 'Children',
+            'refField' => 'id',
+            'refTable' => 'comment',
+            'type' => '1-1',
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'CASCADE'
+        ),
+        'tree_node.tree_node_id' => array(
+            'owningAlias' => 'Parent',
+            'owningField' => 'tree_node_id',
+            'owningTable' => 'tree_node',
+            'refAlias' => 'Children',
+            'refField' => 'id',
+            'refTable' => 'tree_node',
+            'type' => '1-1',
             'onUpdate' => 'CASCADE',
             'onDelete' => 'CASCADE'
         ),

@@ -79,6 +79,9 @@ class Connection
     /** @var SqlLogger */
     protected $sqlLogger;
 
+    /** @var string[] */
+    private $lastInsertId = array();
+
 
     /**
      * @param   Driver\DriverInterface  $driver
@@ -229,7 +232,12 @@ class Connection
     {
         if (!$this->isConnected()) {
             $this->dispatchEvent(self::EVENT_PRE_CONNECT);
-            $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
+            try {
+                $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
+            }
+            catch (\PDOException $e) {
+                throw new ConnectionException($e->getMessage());
+            }
             $this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $encodingSql = $this->platform->getSetConnectionEncodingSql($this->encoding);
             $this->dbh->exec($encodingSql);
@@ -622,7 +630,6 @@ class Connection
             }
             $columns[] = $this->quoteIdentifier($fieldName);
             if ($value instanceof Expression) {
-                /** @var Expression $value */
                 $values[] = $value->getSql();
             }
             else {
@@ -643,7 +650,11 @@ class Connection
         }
 
         $this->dispatchRowEvent(self::EVENT_PRE_INSERT, $table, $fields, $identifier);
+
+        $this->lastInsertId[$table->getTableName()] = null;
         $affectedRows = $this->exec($query, $params);
+        $this->lastInsertId[$table->getTableName()] = $this->getLastInsertId($table->getTableName());
+
         if (empty($identifier) && count($identifierFields) == 1) {
             $identifier[$identifierFields[0]] = $this->getLastInsertId($table->getTableName());
         }
@@ -661,6 +672,10 @@ class Connection
      */
     public function getLastInsertId($tableName = null)
     {
+        // TODO: see insert code and comment on insert test introduced with same commit!
+        if ($tableName && isset($this->lastInsertId[$tableName])) {
+            return $this->lastInsertId[$tableName];
+        }
         return $this->dbh->lastInsertId($tableName);
     }
 

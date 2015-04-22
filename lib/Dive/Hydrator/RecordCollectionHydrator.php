@@ -28,10 +28,6 @@ class RecordCollectionHydrator extends Hydrator
      */
     public function getResult(Table $table = null)
     {
-        if (!($table instanceof Table)) {
-            self::throwMissingTableException($table);
-        }
-
         $collection = new RecordCollection($table);
         while (($row = $this->statement->fetch(\PDO::FETCH_ASSOC))) {
             $record = $this->hydrateRecord($table, $row);

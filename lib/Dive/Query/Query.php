@@ -729,7 +729,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         $stmt = $this->getConnection()->getStatement($sql, $query->getParamsFlattened());
         $hydrator = $this->rm->getHydrator(RecordManager::FETCH_SINGLE_SCALAR);
         $hydrator->setStatement($stmt);
-        return (int)$hydrator->getResult();
+        return (int)$hydrator->getResult($query->getRootTable());
     }
 
 

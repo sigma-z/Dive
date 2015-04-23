@@ -112,14 +112,15 @@ class QueryTest extends TestCase
 
 
     /**
-     * @dataProvider provideSqlParts
+     * @dataProvider provideSqlPartsDatabaseAware
+     * @param  array  $database
      * @param  array  $operations
      * @param  string $expected
      * @throws \Dive\Query\QueryException
      */
-    public function testGetSql(array $operations, $expected)
+    public function testGetSql(array $database, array $operations, $expected)
     {
-        $rm = self::createDefaultRecordManager();
+        $rm = self::createRecordManager($database);
         $query = $rm->createQuery('user', 'u');
         self::applyQueryObjectOperations($query, $operations);
 

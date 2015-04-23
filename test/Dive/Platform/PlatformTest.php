@@ -12,6 +12,7 @@ namespace Dive\TestSuite\Platform;
 use Dive\Exception;
 use Dive\Platform\PlatformException;
 use Dive\Platform\PlatformInterface;
+use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\TestSuite\TestCase;
 
 
@@ -217,21 +218,19 @@ class PlatformTest extends TestCase
     {
         $testCases = array();
 
-        // boolean
-        $testCases[] = array(
+        $testCases['boolean'] = array(
             'definition' => array(
-                'type' => 'boolean'
+                'type' => DataTypeMapper::OTYPE_BOOLEAN
             ),
             'expectedArray' => array(
                 'sqlite' => 'boolean NOT NULL',
-                'mysql' => 'boolean NOT NULL'
+                'mysql' => 'tinyint NOT NULL'
             )
         );
 
-        // unsigned decimal
-        $testCases[] = array(
+        $testCases['unsigned decimal'] = array(
             'definition' => array(
-                'type' => 'decimal',
+                'type' => DataTypeMapper::OTYPE_DECIMAL,
                 'scale' => 3,
                 'length' => 9,
                 'unsigned' => true
@@ -242,10 +241,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        // signed decimal
-        $testCases[] = array(
+        $testCases['signed decimal'] = array(
             'definition' => array(
-                'type' => 'decimal',
+                'type' => DataTypeMapper::OTYPE_DECIMAL,
                 'scale' => 3,
                 'length' => 7,
                 'nullable' => true
@@ -256,10 +254,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        // double
-        $testCases[] = array(
+        $testCases['double'] = array(
             'definition' => array(
-                'type' => 'decimal',
+                'type' => DataTypeMapper::OTYPE_DECIMAL,
                 'length' => 7,
                 'nullable' => true
             ),
@@ -269,10 +266,10 @@ class PlatformTest extends TestCase
             )
         );
 
-        // unsigned zerofill integer (only supported by mysql)
-        $testCases[] = array(
+        // (only supported by mysql)
+        $testCases['unsigned zerofill integer'] = array(
             'definition' => array(
-                'type' => 'integer',
+                'type' => DataTypeMapper::OTYPE_INTEGER,
                 'length' => 6,
                 'zerofill' => true,
                 'unsigned' => true,
@@ -284,10 +281,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        // string
-        $testCases[] = array(
+        $testCases['string'] = array(
             'definition' => array(
-                'type' => 'string',
+                'type' => DataTypeMapper::OTYPE_STRING,
                 'length' => 255,
                 'nullable' => true
             ),
@@ -297,9 +293,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        $testCases[] = array(
+        $testCases['datetime'] = array(
             'definition' => array(
-                'type' => 'datetime',
+                'type' => DataTypeMapper::OTYPE_DATETIME,
             ),
             'expectedArray' => array(
                 'sqlite' => 'datetime NOT NULL',
@@ -307,9 +303,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        $testCases[] = array(
+        $testCases['date'] = array(
             'definition' => array(
-                'type' => 'date',
+                'type' => DataTypeMapper::OTYPE_DATE,
             ),
             'expectedArray' => array(
                 'sqlite' => 'date NOT NULL',
@@ -317,9 +313,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        $testCases[] = array(
+        $testCases['time'] = array(
             'definition' => array(
-                'type' => 'time',
+                'type' => DataTypeMapper::OTYPE_TIME,
             ),
             'expectedArray' => array(
                 'sqlite' => 'character(8) NOT NULL',
@@ -327,19 +323,19 @@ class PlatformTest extends TestCase
             )
         );
 
-        $testCases[] = array(
+        $testCases['timestamp'] = array(
             'definition' => array(
-                'type' => 'timestamp',
+                'type' => DataTypeMapper::OTYPE_TIMESTAMP,
             ),
             'expectedArray' => array(
-               'sqlite' => 'integer NOT NULL',
+               'sqlite' => 'timestamp NOT NULL',
                'mysql' => 'timestamp NOT NULL'
             )
         );
 
-        $testCases[] = array(
+        $testCases['blob'] = array(
             'definition' => array(
-                'type' => 'blob',
+                'type' => DataTypeMapper::OTYPE_BLOB,
                 'nullable' => true
             ),
             'expectedArray' => array(
@@ -348,10 +344,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        // enum
-        $testCases[] = array(
+        $testCases['enum'] = array(
             'definition' => array(
-                'type' => 'enum',
+                'type' => DataTypeMapper::OTYPE_ENUM,
                 'values' => array('a', 'b', 'c'),
                 'nullable' => true
             ),
@@ -361,10 +356,9 @@ class PlatformTest extends TestCase
             )
         );
 
-        // primary key
-        $testCases[] = array(
+        $testCases['primary key'] = array(
             'definition' => array(
-                'type' => 'integer',
+                'type' => DataTypeMapper::OTYPE_INTEGER,
                 'primary' => true,
                 'autoIncrement' => true,
                 'length' => 10
@@ -375,10 +369,10 @@ class PlatformTest extends TestCase
             )
         );
 
-        // custom type (unsigned will be ignored)
-        $testCases[] = array(
+        // (unsigned will be ignored)
+        $testCases['custom type'] = array(
             'definition' => array(
-                'dbType' => 'integer',
+                'dbType' => DataTypeMapper::OTYPE_INTEGER,
                 'nullable' => false,
                 'unsigned' => true
             ),

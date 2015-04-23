@@ -609,9 +609,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         foreach ($testCases as $testCaseName => $testCase) {
             foreach ($databases as $dbName => $database) {
                 $testCaseKey = $dbName;
-                if (is_string($testCaseName)) {
-                    $testCaseKey .= ':' . $testCaseName;
-                }
+                $testCaseKey .= ':' . $testCaseName;
                 $testCasesWithDatabases[$testCaseKey] = array_merge(array('database' => $database), $testCase);
             }
         }

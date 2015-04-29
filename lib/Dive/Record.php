@@ -537,7 +537,7 @@ class Record
      */
     public function __toString()
     {
-        return $this->_table->getTableName() . ' id: ' . $this->getIdentifierAsString();
+        return $this->_table->getTableName() . ' id: ' . ($this->getIdentifierAsString() ?: $this->getInternalId());
     }
 
 

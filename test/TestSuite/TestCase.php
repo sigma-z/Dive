@@ -317,6 +317,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $conn = new Connection($driver, $dsn, $database['user'], $database['password']);
             $eventDispatcher = $conn->getEventDispatcher();
             $eventDispatcher->addListener(Connection::EVENT_POST_INSERT, array(__CLASS__, 'addToDatasetRegistry'));
+
+            $dbInit = new DbInit($conn, self::getSchema());
+            $dbInit->init();
+
             self::$connectionPoolTestClass[$dsn] = $conn;
         }
         return self::$connectionPoolTestClass[$dsn];

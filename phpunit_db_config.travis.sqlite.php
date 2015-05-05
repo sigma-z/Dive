@@ -12,5 +12,5 @@
  */
 
 return array(
-    'sqlite:' . FIXTURE_DIR . '/test.db'
+    'sqlite::memory:'
 );

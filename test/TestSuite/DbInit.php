@@ -46,6 +46,12 @@ class DbInit
 
     public function init()
     {
+        $this->conn->getEventDispatcher()->addListener(Connection::EVENT_POST_CONNECT, array($this, 'initSchema'));
+    }
+
+
+    public function initSchema()
+    {
         $driver = $this->conn->getDriver();
 
         // (re)create tables

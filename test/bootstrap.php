@@ -16,14 +16,9 @@ $classLoader->setNamespaceOmission('Dive\TestSuite');
 $classLoader->register();
 
 $databases = TestCase::getDatabases();
-$schema = TestCase::getSchema();
 foreach ($databases as $database) {
     $conn = TestCase::createDatabaseConnection($database);
-    $dbInit = new \Dive\TestSuite\DbInit($conn, $schema);
-    $dbInit->init();
-
     $platform = $conn->getDriver()->getPlatform();
     echo get_class($platform) . '.version=' . $conn->querySingleScalar($platform->getVersionSql()) . "\n";
-
     $conn->disconnect();
 }

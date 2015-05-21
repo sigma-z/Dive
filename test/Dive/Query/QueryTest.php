@@ -632,7 +632,7 @@ class QueryTest extends TestCase
     public function testFetchArray(
         array $database,
         array $operations,
-        /** @noinspection PhpUnusedParameterInspection */
+        /* @noinspection PhpUnusedParameterInspection */
         $expectedSql,
         $expectedNumOfRows
     ) {
@@ -666,7 +666,7 @@ class QueryTest extends TestCase
     public function testCount(
         array $database,
         array $operations,
-        /** @noinspection PhpUnusedParameterInspection */
+        /* @noinspection PhpUnusedParameterInspection */
         $expectedSql,
         $expectedNumOfRows
     ) {

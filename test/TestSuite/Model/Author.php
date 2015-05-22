@@ -30,4 +30,9 @@ use Dive\TestSuite\Record\Record;
 class Author extends Record
 {
 
+    public function __toString()
+    {
+        return parent::__toString() . ' ' . $this->get('firstname') . ' ' . $this->get('lastname');
+    }
+
 }

@@ -97,6 +97,13 @@ class RecordDeleteTest extends TestCase
         $testCases = array();
 
         $testCases[] = array(
+            'loadRecordKeys'            => array(),
+            'deleteRecordKeys'          => array('DiveORM released#1' => 'comment'),
+            'expectedDeleteRecordKeys'  => array('DiveORM released#1' => 'comment'),
+            'expectedSaveRecordKeys'    => array()
+        );
+
+        $testCases[] = array(
             'loadRecordKeys' => array(
                 'DiveORM released' => 'article',
                 'JohnD' => 'user'

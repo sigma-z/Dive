@@ -25,4 +25,9 @@ use Dive\TestSuite\Record\Record;
 class User extends Record
 {
 
+    public function __toString()
+    {
+        return parent::__toString() . ' ' . $this->get('username');
+    }
+
 }

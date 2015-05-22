@@ -751,8 +751,16 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
                 $actualCountScheduledSaves++;
             }
         }
-        $this->assertEquals($expectedCountScheduledSaves, $actualCountScheduledSaves);
-        $this->assertEquals($expectedCountScheduledDeletes, $actualCountScheduledDeletes);
+        $this->assertEquals(
+            $expectedCountScheduledSaves,
+            $actualCountScheduledSaves,
+            "Expected $expectedCountScheduledSaves record to be saved!"
+        );
+        $this->assertEquals(
+            $expectedCountScheduledDeletes,
+            $actualCountScheduledDeletes,
+            "Expected $expectedCountScheduledDeletes record to be deleted!"
+        );
     }
 
 

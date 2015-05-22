@@ -284,11 +284,23 @@ class UnitOfWork
             $relationName = $relation->getReferencedAlias();
             if ($relation->hasReferenceLoadedFor($record, $relationName)) {
                 $referencedRecord = $relation->getReferenceFor($record, $relationName);
-                if ($referencedRecord) {
+                if (!$referencedRecord->exists() || $this->hasRecordIdentifierChanged($record)) {
                     $this->scheduleSave($referencedRecord);
                 }
             }
         }
+    }
+
+
+    /**
+     * @param Record $record
+     * @return bool
+     */
+    private function hasRecordIdentifierChanged(Record $record)
+    {
+        $identifierFields = $record->getTable()->getIdentifierFields();
+        $modifiedFields = $record->getModifiedFields();
+        return (bool)array_intersect($identifierFields, array_keys($modifiedFields));
     }
 
 

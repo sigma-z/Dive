@@ -13,6 +13,7 @@ require_once __DIR__ . '/RelationSetReferenceTestCase.php';
 
 use Dive\Collection\RecordCollection;
 use Dive\Record;
+use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 
 /**
@@ -81,6 +82,32 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $user->Author = $author;
         $userEditor->Author = $editor;
         $this->assertEquals($userEditor, $user->Author->Editor->User);
+    }
+
+
+    public function testOneToManyOwningSide2()
+    {
+        /** @var Author $author */
+        $author = $this->createAuthorWithUser('A');
+        $this->rm->commit();
+        $authorId = $author->id;
+        unset($author);
+        $this->rm->clearTables();
+
+//        $author = $this->rm->findOrCreateRecord('author', array('lastname' => 'AuthorA', 'firstname' => 'AuthorA'));
+//        $this->assertInstanceOf('\Dive\Record', $author);
+//        $this->assertEquals($authorId, $author->id);
+
+        $articleTable = $this->rm->getTable('article');
+        /** @var Article $article */
+        $article = $articleTable->createRecord(array('author_id' => $authorId));
+        $article->title = 'Title';
+        $article->teaser = 'Teaser';
+        $article->text = 'Text';
+        $this->rm->scheduleSave($article);
+
+        //$this->assertRelationReferences($article, 'Author', $author);
+        $this->rm->commit();
     }
 
 

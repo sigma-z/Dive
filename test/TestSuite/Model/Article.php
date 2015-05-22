@@ -32,4 +32,9 @@ use Dive\TestSuite\Record\Record;
 class Article extends Record
 {
 
+    public function __toString()
+    {
+        return parent::__toString() . ' ' . $this->get('title');
+    }
+
 }

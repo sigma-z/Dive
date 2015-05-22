@@ -203,6 +203,7 @@ class ReferenceMap
     {
         $referencedAlias = $this->relation->getReferencedAlias();
         if (!$this->relation->hasReferenceLoadedFor($record, $referencedAlias)) {
+            $this->unsetReferenceForOwningRecordOnUnloadedReference($record);
             return;
         }
         $referencedRecord = $this->relation->getReferenceFor($record, $referencedAlias);
@@ -229,6 +230,34 @@ class ReferenceMap
         else if ($owningId == $this->references[$refId]) {
             unset($this->references[$refId]);
         }
+        $owningOid = $record->getOid();
+        unset($this->owningFieldOidMapping[$owningOid]);
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function unsetReferenceForOwningRecordOnUnloadedReference(Record $record)
+    {
+        $isOneToMany = $this->relation->isOneToMany();
+        $owningId = $record->getInternalId();
+        if ($isOneToMany) {
+            foreach ($this->references as $refId => $owningIds) {
+                $pos = array_search($owningId, $owningIds);
+                if ($pos !== false) {
+                    unset($this->references[$refId][$pos]);
+                    break;
+                }
+            }
+        }
+        else {
+            $refId = array_search($owningId, $this->references);
+            if ($refId) {
+                unset($this->references[$refId]);
+            }
+        }
+
         $owningOid = $record->getOid();
         unset($this->owningFieldOidMapping[$owningOid]);
     }

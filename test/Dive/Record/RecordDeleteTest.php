@@ -226,8 +226,12 @@ class RecordDeleteTest extends TestCase
         /** @var ReferenceMap $referenceMap */
         $referenceMap = self::readAttribute($relation, 'map');
 
+        $isOneToMany = $relation->isOneToMany();
+
         /** @var RecordCollection[] $relatedCollections */
-        $relatedCollections = self::readAttribute($referenceMap, 'relatedCollections');
+        $relatedCollections = $isOneToMany
+            ? self::readAttribute($referenceMap, 'relatedCollections')
+            : null;
 
         $references = $referenceMap->getMapping();
         $referencedMessage = $message . " expected not be referenced (relation '$relationName')";
@@ -236,7 +240,6 @@ class RecordDeleteTest extends TestCase
 
         $oid = $record->getOid();
         if ($isReferencedSide) {
-            $isOneToMany = $relation->isOneToMany();
             foreach ($references as $owningIds) {
                 if ($isOneToMany) {
                     $this->assertNotContains($internalId, $owningIds, $referencedMessage);
@@ -256,7 +259,9 @@ class RecordDeleteTest extends TestCase
         }
         else {
             $this->assertArrayNotHasKey($internalId, $references, $referencedMessage);
-            $this->assertArrayNotHasKey($oid, $relatedCollections, $relatedCollectionMessage);
+            if ($isOneToMany) {
+                $this->assertArrayNotHasKey($oid, $relatedCollections, $relatedCollectionMessage);
+            }
         }
     }
 

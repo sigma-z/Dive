@@ -111,7 +111,7 @@ class Relation
         $this->onUpdate   = $onUpdate;
         $this->orderBy    = $orderBy;
 
-        $this->map = new ReferenceMap($this);
+        $this->map = $this->isOneToMany() ? new ToManyReferenceMap($this) : new ToOneReferenceMap($this);
     }
 
 

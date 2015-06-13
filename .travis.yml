@@ -13,6 +13,7 @@ php:
 matrix:
   allow_failures:
     - php: nightly
+      env: DB=mysql # not failing, but phpunit currently returns with exit code 139
     - php: hhvm-nightly # currently not supported by travis (no nightly bilds on precise)
     - php: 5.5 
       env: DB=sqlite

@@ -377,7 +377,7 @@ class Table
     {
         foreach ($this->identifierFields as $idFieldName) {
             $idField = $this->fields[$idFieldName];
-            if (isset($idField['autoIncrement']) && $idField['autoIncrement'] == true) {
+            if (isset($idField['autoIncrement']) && $idField['autoIncrement'] === true) {
                 return true;
             }
         }
@@ -433,7 +433,7 @@ class Table
     public function isFieldNullable($fieldName)
     {
         $this->throwExceptionIfFieldNotExists($fieldName);
-        return isset($this->fields[$fieldName]['nullable']) && $this->fields[$fieldName]['nullable'] == true;
+        return isset($this->fields[$fieldName]['nullable']) && $this->fields[$fieldName]['nullable'] === true;
     }
 
 

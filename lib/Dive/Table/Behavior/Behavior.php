@@ -8,17 +8,17 @@
  */
 
 
-namespace Dive\Table\Behaviour;
+namespace Dive\Table\Behavior;
 
 use Dive\Record;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Class Behaviour
+ * Class Behavior
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-abstract class Behaviour implements EventSubscriberInterface
+abstract class Behavior implements EventSubscriberInterface
 {
 
     /** @var array[] */

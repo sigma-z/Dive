@@ -7,31 +7,31 @@
  * file that was distributed with this source code.
  */
 
-namespace Dive\Test\Table\Behaviour;
+namespace Dive\Test\Table\Behavior;
 
 use Dive\Record;
-use Dive\Table\Behaviour\TimestampableBehaviour;
+use Dive\Table\Behavior\TimestampableBehavior;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
 use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 
 /**
- * Class TimestampableBehaviourTest
+ * Class TimestampableBehaviorTest
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class TimestampableBehaviourTest extends TestCase
+class TimestampableBehaviorTest extends TestCase
 {
 
-    /** @var TimestampableBehaviour */
+    /** @var TimestampableBehavior */
     private $timestampable;
 
 
     protected function setUp()
     {
         parent::setUp();
-        $this->timestampable = new TimestampableBehaviour();
+        $this->timestampable = new TimestampableBehavior();
     }
 
 

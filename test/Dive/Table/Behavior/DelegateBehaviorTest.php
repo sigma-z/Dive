@@ -6,7 +6,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Test\Table\Behaviour;
+namespace Dive\Test\Table\Behavior;
 
 require_once __DIR__ . '/../../../TestSuite/Record/Record.php';
 
@@ -14,15 +14,15 @@ use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
 
 /**
- * Class DelegateBehaviourTest
+ * Class DelegateBehaviorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 10.03.14
  */
-class DelegateBehaviourTest extends TestCase
+class DelegateBehaviorTest extends TestCase
 {
 
     /**
-     * class table inheritance by delegate behaviour
+     * class table inheritance by delegate behavior
      *          ----------
      *          | person |
      *          ----------
@@ -75,9 +75,9 @@ class DelegateBehaviourTest extends TestCase
                         'unsigned'  => true
                     )
                 ),
-                'behaviours' => array(
+                'behaviors' => array(
                     array(
-                        'class' => 'DelegateBehaviour',
+                        'class' => 'DelegateBehavior',
                         'config' => array(
                             'delegateToRelation' => 'Person'
                         ),
@@ -101,9 +101,9 @@ class DelegateBehaviourTest extends TestCase
                         'nullable'  => true
                     )
                 ),
-                'behaviours' => array(
+                'behaviors' => array(
                     array(
-                        'class' => 'DelegateBehaviour',
+                        'class' => 'DelegateBehavior',
                         'config' => array(
                             'delegateToRelation' => 'Employee'
                         ),

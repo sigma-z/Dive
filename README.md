@@ -33,6 +33,6 @@ Feature list
  * Event handling
  * Query building
  * Query result hydration
- * Behaviours
+ * Behaviors
    * Timestampable
    * Delegate (for implementing [Class Table Inheritance](http://martinfowler.com/eaaCatalog/classTableInheritance.html))

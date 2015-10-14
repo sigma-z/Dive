@@ -53,9 +53,9 @@ return array(
                     )
                 )
             ),
-            'behaviours' => array(
+            'behaviors' => array(
                 array(
-                    'class' => 'DelegateBehaviour',
+                    'class' => 'DelegateBehavior',
                     'config' => array(
                         'delegateToRelation' => 'User'
                     ),
@@ -180,9 +180,9 @@ return array(
                     'nullable'  => true
                 )
             ),
-            'behaviours' => array(
+            'behaviors' => array(
                 array(
-                    'class' => 'TimestampableBehaviour',
+                    'class' => 'TimestampableBehavior',
                     'instanceShared' => true,
                     'config' => array(
                         'onInsert' => 'created_on',

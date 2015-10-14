@@ -48,8 +48,8 @@ class RecordManager
     /** @var \Dive\Relation\Relation[] */
     private $relations = array();
 
-    /** @var Table\Behaviour\Behaviour[] */
-    private $tableBehaviours = array();
+    /** @var Table\Behavior\Behavior[] */
+    private $tableBehaviors = array();
 
     /** @var \Dive\Hydrator\HydratorInterface[] */
     private $hydrators = array();
@@ -176,7 +176,7 @@ class RecordManager
         $relations = $this->instantiateRelations($relationsData);
 
         $indexes = $this->schema->getTableIndexes($tableName);
-        $this->initTableBehaviours($tableName);
+        $this->initTableBehaviors($tableName);
 
         return new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
     }
@@ -239,14 +239,14 @@ class RecordManager
     /**
      * @param string $tableName
      */
-    private function initTableBehaviours($tableName)
+    private function initTableBehaviors($tableName)
     {
-        $behaviours = $this->schema->getTableBehaviours($tableName);
-        foreach ($behaviours as $behaviourDefinition) {
-            $behaviour = $this->getBehaviourInstance($behaviourDefinition);
-            $this->getEventDispatcher()->addSubscriber($behaviour);
-            if (!empty($behaviourDefinition['config'])) {
-                $behaviour->setTableConfig($tableName, $behaviourDefinition['config']);
+        $behaviors = $this->schema->getTableBehaviors($tableName);
+        foreach ($behaviors as $behaviorDefinition) {
+            $behavior = $this->getBehaviorInstance($behaviorDefinition);
+            $this->getEventDispatcher()->addSubscriber($behavior);
+            if (!empty($behaviorDefinition['config'])) {
+                $behavior->setTableConfig($tableName, $behaviorDefinition['config']);
             }
         }
     }
@@ -254,29 +254,29 @@ class RecordManager
 
     /**
      * @param  array $definition
-     * @return Table\Behaviour\Behaviour
+     * @return Table\Behavior\Behavior
      * @throws Exception
      */
-    private function getBehaviourInstance(array $definition)
+    private function getBehaviorInstance(array $definition)
     {
         if (!isset($definition['class'])) {
-            throw new Exception("Missing table behaviour class in schema definition!");
+            throw new Exception("Missing table behavior class in schema definition!");
         }
 
         $sharedInstance = isset($definition['instanceShared']) && $definition['instanceShared'] === true;
         $className = $definition['class'];
         if ($className[0] != '\\') {
-            $className = "\\Dive\\Table\\Behaviour\\$className";
+            $className = "\\Dive\\Table\\Behavior\\$className";
         }
-        if ($sharedInstance && isset($this->tableBehaviours[$className])) {
-            return $this->tableBehaviours[$className];
+        if ($sharedInstance && isset($this->tableBehaviors[$className])) {
+            return $this->tableBehaviors[$className];
         }
 
-        $behaviour = new $className;
+        $behavior = new $className;
         if ($sharedInstance) {
-            $this->tableBehaviours[$className] = $behaviour;
+            $this->tableBehaviors[$className] = $behavior;
         }
-        return $behaviour;
+        return $behavior;
     }
 
 

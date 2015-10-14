@@ -11,7 +11,7 @@ namespace Dive\Test;
 use Dive\Hydrator\HydratorInterface;
 use Dive\RecordManager;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
-use Dive\Table\Behaviour\TimestampableBehaviour;
+use Dive\Table\Behavior\TimestampableBehavior;
 use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
 use Dive\Validation\FieldValidator\FieldValidator;
@@ -148,17 +148,17 @@ class RecordManagerTest extends TestCase
     }
 
 
-    public function testGetTableWithBehaviour()
+    public function testGetTableWithBehavior()
     {
         $tableName = 'article';
-        // initializes article table and instances TimestampableBehaviour as shared instance
+        // initializes article table and instances TimestampableBehavior as shared instance
         $this->rm->getTable($tableName);
 
-        $tableBehaviours = self::readAttribute($this->rm, 'tableBehaviours');
-        $this->assertCount(1, $tableBehaviours);
-        /** @var TimestampableBehaviour $timestampableBehaviour */
-        $timestampableBehaviour = current($tableBehaviours);
-        $this->assertInstanceOf('\Dive\Table\Behaviour\TimestampableBehaviour', $timestampableBehaviour);
+        $tableBehaviors = self::readAttribute($this->rm, 'tableBehaviors');
+        $this->assertCount(1, $tableBehaviors);
+        /** @var TimestampableBehavior $timestampableBehavior */
+        $timestampableBehavior = current($tableBehaviors);
+        $this->assertInstanceOf('\Dive\Table\Behavior\TimestampableBehavior', $timestampableBehavior);
 
         $eventDispatcher = $this->rm->getEventDispatcher();
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_SAVE));

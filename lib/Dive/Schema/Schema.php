@@ -70,13 +70,13 @@ class Schema
 
         if (!empty($this->definition['tables'])) {
             foreach ($this->definition['tables'] as $name => $tableDefinition) {
-                $this->initTable($name, $tableDefinition);
+                $this->initTable($name);
             }
         }
 
         if (!empty($this->definition['views'])) {
             foreach ($this->definition['views'] as $name => $viewDefinition) {
-                $this->initView($name, $viewDefinition);
+                $this->initView($name);
             }
         }
 
@@ -307,15 +307,16 @@ class Schema
 
     /**
      * Adds table
+
      *
-     * @param  string $name
+*@param  string $name
      * @param  array  $fields
      * @param  array  $indexes
-     * @param  array  $behaviours
+     * @param  array $behaviors
      * @throws SchemaException
      * @return $this
      */
-    public function addTable($name, array $fields, array $indexes = array(), array $behaviours = array())
+    public function addTable($name, array $fields, array $indexes = array(), array $behaviors = array())
     {
         if (empty($fields)) {
             throw new SchemaException("Missing fields for table '$name'!");
@@ -335,8 +336,8 @@ class Schema
         if ($indexes) {
             $this->tableSchemes[$name]['indexes'] = $indexes;
         }
-        if ($behaviours) {
-            $this->tableSchemes[$name]['behaviours'] = $behaviours;
+        if ($behaviors) {
+            $this->tableSchemes[$name]['behaviors'] = $behaviors;
         }
 
         return $this;
@@ -352,10 +353,10 @@ class Schema
      */
     public function addTableByDefinition($name, array $definition)
     {
-        $fields     = isset($definition['fields'])      ? $definition['fields']     : array();
-        $indexes    = isset($definition['indexes'])     ? $definition['indexes']    : array();
-        $behaviours = isset($definition['behaviours'])  ? $definition['behaviours'] : array();
-        $this->addTable($name, $fields, $indexes, $behaviours);
+        $fields    = isset($definition['fields'])       ? $definition['fields']     : array();
+        $indexes   = isset($definition['indexes'])      ? $definition['indexes']    : array();
+        $behaviors = isset($definition['behaviors'])    ? $definition['behaviors']  : array();
+        $this->addTable($name, $fields, $indexes, $behaviors);
         if (isset($definition['recordClass'])) {
             $this->setRecordClass($name, $definition['recordClass']);
         }
@@ -511,10 +512,10 @@ class Schema
      * @param  string $tableName
      * @return array
      */
-    public function getTableBehaviours($tableName)
+    public function getTableBehaviors($tableName)
     {
-        if (isset($this->tableSchemes[$tableName]['behaviours'])) {
-            return $this->tableSchemes[$tableName]['behaviours'];
+        if (isset($this->tableSchemes[$tableName]['behaviors'])) {
+            return $this->tableSchemes[$tableName]['behaviors'];
         }
         return array();
     }

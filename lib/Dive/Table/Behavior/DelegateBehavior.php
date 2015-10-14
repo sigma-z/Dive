@@ -6,18 +6,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Dive\Table\Behaviour;
+namespace Dive\Table\Behavior;
 
 use Dive\Record;
 use Dive\Record\RecordPropertyEvent;
 use Dive\Table;
 
 /**
- * Class DelegateBehaviour
+ * Class DelegateBehavior
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 10.03.14
  */
-class DelegateBehaviour extends Behaviour
+class DelegateBehavior extends Behavior
 {
 
     /**

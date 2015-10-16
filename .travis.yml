@@ -1,14 +1,38 @@
 language: php
 php:
+  - hhvm-nightly
+  - hhvm
+  - nightly
   - 5.6
   - 5.5
+  - 5.5.9
   - 5.4
-  - 5.3.3
   - 5.3
-  - hhvm
+  - 5.3.3
 
-before_script:
+matrix:
+  allow_failures:
+    - php: 5.5
+      env: DB=sqlite # sqlite below 3.8.10.2 has a bug
+    - php: 5.6
+      env: DB=sqlite # sqlite below 3.8.10.2 has a bug
+    - php: hhvm-nightly # currently not supported by travis (no nightly bilds on precise)
+
+env:
+ - DB=mysql
+ - DB=sqlite
+
+sudo: false
+#sudo: required
+#
+#before_install:
+#  - sudo apt-get update
+#  - sudo apt-get install sqlite3 (alternative version?)
+
+install:
   - composer self-update
   - composer install
-  - mysql -e 'create database dive;'
-  - cp phpunit_db_config.travis.php phpunit_db_config.php
+  - cp phpunit_db_config.travis.$DB.php phpunit_db_config.php;
+
+before_script:
+  - if [[ "$DB" == "mysql" ]]; then mysql -e 'create database dive;'; fi

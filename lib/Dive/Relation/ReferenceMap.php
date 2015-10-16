@@ -215,9 +215,11 @@ class ReferenceMap
         $owningId = $record->getInternalId();
         $refId = $referencedRecord->getInternalId();
         if ($isOneToMany) {
-            $pos = array_search($owningId, $this->references[$refId]);
-            if ($pos !== false) {
-                unset($this->references[$refId][$pos]);
+            if ($this->isReferenced($refId)) {
+                $pos = array_search($owningId, $this->references[$refId]);
+                if ($pos !== false) {
+                    unset($this->references[$refId][$pos]);
+                }
             }
             $refOid = $referencedRecord->getOid();
             if (isset($this->relatedCollections[$refOid])) {

@@ -23,7 +23,6 @@ use Dive\TestSuite\TestCase;
  */
 class RecordDeleteTest extends TestCase
 {
-
     /** @var RecordGenerator */
     private $recordGenerator;
 
@@ -263,6 +262,48 @@ class RecordDeleteTest extends TestCase
                 $this->assertArrayNotHasKey($oid, $relatedCollections, $relatedCollectionMessage);
             }
         }
+    }
+
+
+    /**
+     * @see issue #11 (https://github.com/sigma-z/Dive/issues/11)
+     */
+    public function testDeleteRecordWithCascadedForeignRelatedRecords()
+    {
+        $this->givenIHaveUser('PreparedForDeletion');
+        $this->givenUser_HasStillACommentOnAnArticle('PreparedForDeletion');
+        $this->whenIDeleteUser('PreparedForDeletion');
+        $this->thenUser_AndHisCommentIsDeleted('PreparedForDeletion');
+    }
+
+    private function givenIHaveUser($name)
+    {
+        $recordGenerator = $this->recordGenerator;
+        $recordGenerator->setTablesRows(array('user' => array($name)));
+        $recordGenerator->generate();
+    }
+
+    private function givenUser_HasStillACommentOnAnArticle($name)
+    {
+        $recordGenerator = $this->recordGenerator;
+        $recordGenerator->setTablesRows(array('comment' => array(array('User' => $name))));
+        $recordGenerator->generate();
+    }
+
+    private function whenIDeleteUser($name)
+    {
+        // use an new record manager with empty repository
+        $rm = self::createDefaultRecordManager();
+        $userRecord = $rm->findOrCreateRecord('user', array('username' => $name));
+        $rm->delete($userRecord)->commit();
+    }
+
+
+    private function thenUser_AndHisCommentIsDeleted($name)
+    {
+        // there is a warning (undefined offset). when this code is reached that issue is fixed
+
+        // TODO: check if records are really deleted
     }
 
 }

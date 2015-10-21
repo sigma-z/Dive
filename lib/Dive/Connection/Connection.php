@@ -501,6 +501,7 @@ class Connection
         $this->startSqlLogger($sql, $params);
 
         if (!empty($params)) {
+            $params = array_map(array($this, 'castToString'), $params);
             $stmt = $this->prepare($sql);
             $stmt->execute($params);
             $return = $stmt->rowCount();
@@ -518,6 +519,22 @@ class Connection
             );
         }
         return $return;
+    }
+
+
+    /**
+     * @param mixed $input
+     * @return string
+     */
+    private function castToString($input)
+    {
+        if ($input === null) {
+            return null;
+        }
+        if (is_bool($input)) {
+            return $input ? '1' : '0';
+        }
+        return (string)$input;
     }
 
 

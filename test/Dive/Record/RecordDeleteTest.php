@@ -276,6 +276,10 @@ class RecordDeleteTest extends TestCase
         $this->thenUser_AndHisCommentIsDeleted('PreparedForDeletion');
     }
 
+
+    /**
+     * @param string $name
+     */
     private function givenIHaveUser($name)
     {
         $recordGenerator = $this->recordGenerator;
@@ -283,27 +287,48 @@ class RecordDeleteTest extends TestCase
         $recordGenerator->generate();
     }
 
+
+    /**
+     * @param string $name
+     */
     private function givenUser_HasStillACommentOnAnArticle($name)
     {
         $recordGenerator = $this->recordGenerator;
-        $recordGenerator->setTablesRows(array('comment' => array(array('User' => $name))));
+        $recordGenerator->setTablesRows(array('comment' => array('PreparedForDeletion' => array('User' => $name))));
         $recordGenerator->generate();
     }
 
+
+    /**
+     * @param string $name
+     */
     private function whenIDeleteUser($name)
     {
         // use an new record manager with empty repository
         $rm = self::createDefaultRecordManager();
         $userRecord = $rm->findOrCreateRecord('user', array('username' => $name));
-        $rm->delete($userRecord)->commit();
+        $rm->scheduleDelete($userRecord)
+            ->commit();
     }
 
 
+    /**
+     * @param string $name
+     */
     private function thenUser_AndHisCommentIsDeleted($name)
     {
         // there is a warning (undefined offset). when this code is reached that issue is fixed
+        $rm = self::createDefaultRecordManager();
+        $queryHasResult = $rm->createQuery('user')
+            ->andWhere('username = ?', $name)
+            ->hasResult();
+        $this->assertFalse($queryHasResult, "Expected, that user {$name} has been deleted");
 
-        // TODO: check if records are really deleted
+        $userCommentId = $this->recordGenerator->getRecordIdFromMap('comment', 'PreparedForDeletion');
+        $queryHasResult = $rm->createQuery('comment')
+            ->andWhere('id = ?', $userCommentId)
+            ->hasResult();
+        $this->assertFalse($queryHasResult,"Expected, that user comment of user {$name} has been deleted");
     }
 
 }

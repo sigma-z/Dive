@@ -133,6 +133,7 @@ class FieldValuesGenerator
         $type = $fieldDefinition['type'];
         switch ($type) {
             case DataTypeMapper::OTYPE_DATETIME:
+            case DataTypeMapper::OTYPE_TIMESTAMP:
                 return date('Y-m-d h:s:i');
 
             case DataTypeMapper::OTYPE_DATE:
@@ -161,9 +162,6 @@ class FieldValuesGenerator
                     $value *= -1;
                 }
                 return $value;
-
-            case DataTypeMapper::OTYPE_TIMESTAMP:
-                return mt_rand(0, 2147483647);
 
             case DataTypeMapper::OTYPE_INTEGER:
                 $length   = isset($fieldDefinition['length'])   ? $fieldDefinition['length']   : 1;

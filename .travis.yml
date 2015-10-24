@@ -1,6 +1,5 @@
 language: php
 php:
-  - hhvm-nightly
   - hhvm
   - nightly
   - 5.6
@@ -16,7 +15,6 @@ matrix:
       env: DB=sqlite # sqlite below 3.8.10.2 has a bug
     - php: 5.6
       env: DB=sqlite # sqlite below 3.8.10.2 has a bug
-    - php: hhvm-nightly # currently not supported by travis (no nightly bilds on precise)
 
 env:
  - DB=mysql

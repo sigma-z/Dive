@@ -203,4 +203,40 @@ class Collection implements CollectionInterface
         return array_keys($this->items);
     }
 
+
+    /**
+     * @return mixed
+     */
+    public function first()
+    {
+        return reset($this->items);
+    }
+
+
+    /**
+     * @return mixed
+     */
+    public function last()
+    {
+        return end($this->items);
+    }
+
+
+    /**
+     * @return int|string
+     */
+    public function key()
+    {
+        return key($this->items);
+    }
+
+
+    /**
+     * @return mixed
+     */
+    public function next()
+    {
+        return next($this->items);
+    }
+
 }

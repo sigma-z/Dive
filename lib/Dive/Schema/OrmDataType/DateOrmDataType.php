@@ -37,15 +37,14 @@ class DateOrmDataType extends OrmDataType
 
 
     /**
+     * Validates whether the value matches the field type, or not
+     *
      * @param  mixed $value
+     * @param  array $field
      * @return bool
      */
-    public function validate($value)
+    public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
-
         if (empty($value)) {
             return false;
         }
@@ -54,6 +53,7 @@ class DateOrmDataType extends OrmDataType
         if ($date === false) {
             return false;
         }
+
         $lastErrors = $date->getLastErrors();
         if ($lastErrors['warning_count'] > 0 || $lastErrors['error_count'] > 0) {
             return false;
@@ -61,4 +61,16 @@ class DateOrmDataType extends OrmDataType
         return true;
     }
 
+
+    /**
+     * Validates whether the value fits to the field length, or not
+     *
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        return $value !== '';
+    }
 }

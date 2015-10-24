@@ -6,6 +6,7 @@ use Dive\Connection\Connection;
 use Dive\Connection\ConnectionRowChangeEvent;
 use Dive\Event\EventDispatcher;
 use Dive\Event\Event;
+use Dive\Exception;
 use Dive\Relation\ReferenceMap;
 use Dive\TestSuite\Record\Record;
 use Dive\Record\Generator\RecordGenerator;
@@ -162,9 +163,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         array $events,
         array &$expectedEventsCalled
     ) {
-        $callOnEvent = function(Event $event) use (&$expectedEventsCalled) {
-            // TODO Event::getName() will be deprecated in symfony/event-dispatcher 3
-            $expectedEventsCalled[] = $event->getName();
+        $callOnEvent = function(Event $event, $eventName) use (&$expectedEventsCalled) {
+            $expectedEventsCalled[] = $eventName;
         };
         foreach ($events as $eventName) {
             $eventDispatcher->addListener($eventName, $callOnEvent);
@@ -317,6 +317,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $conn = new Connection($driver, $dsn, $database['user'], $database['password']);
             $eventDispatcher = $conn->getEventDispatcher();
             $eventDispatcher->addListener(Connection::EVENT_POST_INSERT, array(__CLASS__, 'addToDatasetRegistry'));
+
+            $dbInit = new DbInit($conn, self::getSchema());
+            $dbInit->init();
+
             self::$connectionPoolTestClass[$dsn] = $conn;
         }
         return self::$connectionPoolTestClass[$dsn];
@@ -598,6 +602,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      *
      * @param  array $testCases
      * @return array
+     * @throws Exception
      */
     protected static function getDatabaseAwareTestCases($testCases = array())
     {
@@ -608,9 +613,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $testCasesWithDatabases = array();
         foreach ($testCases as $testCaseName => $testCase) {
             foreach ($databases as $dbName => $database) {
-                $testCaseKey = $dbName;
-                if (is_string($testCaseName)) {
-                    $testCaseKey .= ':' . $testCaseName;
+                $testCaseKey = $dbName . ':' . $testCaseName;
+                if (isset($testCasesWithDatabases[$testCaseKey])) {
+                    // IMPORTANT: error prevention like issue #10 (overwriting testCases)
+                    // - it is possible still not safe to assume that $testCaseKey is UNIQUE
+                    // example: dbNames => ["A", "A:B"] && testCaseNames => ["abc", "B:abc"]
+                    // -> so fail on providing, not hide tests (another solution would be incrementing test key)
+                    throw new Exception("Tried to set test case with key '$testCaseKey' twice!");
                 }
                 $testCasesWithDatabases[$testCaseKey] = array_merge(array('database' => $database), $testCase);
             }
@@ -742,8 +751,16 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
                 $actualCountScheduledSaves++;
             }
         }
-        $this->assertEquals($expectedCountScheduledSaves, $actualCountScheduledSaves);
-        $this->assertEquals($expectedCountScheduledDeletes, $actualCountScheduledDeletes);
+        $this->assertEquals(
+            $expectedCountScheduledSaves,
+            $actualCountScheduledSaves,
+            "Expected $expectedCountScheduledSaves record to be saved!"
+        );
+        $this->assertEquals(
+            $expectedCountScheduledDeletes,
+            $actualCountScheduledDeletes,
+            "Expected $expectedCountScheduledDeletes record to be deleted!"
+        );
     }
 
 

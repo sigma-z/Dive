@@ -9,7 +9,7 @@
 namespace Dive\Schema\OrmDataType;
 
 /**
- * Class BooleanDataType
+ * Class BooleanOrmDataType
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 04.07.2014
  */
@@ -17,15 +17,14 @@ class BooleanOrmDataType extends OrmDataType
 {
 
     /**
+     * Validates whether the value matches the field type, or not
+     *
      * @param  mixed $value
+     * @param  array $field
      * @return bool
      */
-    public function validate($value)
+    public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
-
         if ($value === '1' || $value === '0') {
             return true;
         }
@@ -37,6 +36,19 @@ class BooleanOrmDataType extends OrmDataType
         }
 
         return false;
+    }
+
+
+    /**
+     * Validates whether the value fits to the field length, or not
+     *
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        return $value !== '';
     }
 
 }

@@ -27,4 +27,9 @@ use Dive\TestSuite\Record\Record;
 class Comment extends Record
 {
 
+    public function __toString()
+    {
+        return parent::__toString() . ' ' . $this->get('title');
+    }
+
 }

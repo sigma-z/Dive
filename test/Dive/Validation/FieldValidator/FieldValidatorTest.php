@@ -11,19 +11,19 @@ namespace Dive\Test\Validation\FieldValidator;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase as BaseTestCase;
-use Dive\Validation\FieldValidator\FieldTypeValidator;
+use Dive\Validation\FieldValidator\FieldValidator;
 
 /**
  * TODO Refactor, this test does not make sense anymore!
  *
- * Class FieldTypeValidatorTest
+ * Class FieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 10.06.2014
  */
-class FieldTypeValidatorTest extends BaseTestCase
+class FieldValidatorTest extends BaseTestCase
 {
 
-    /** @var FieldTypeValidator */
+    /** @var FieldValidator */
     private $validator;
 
     /** @var RecordManager */
@@ -43,26 +43,6 @@ class FieldTypeValidatorTest extends BaseTestCase
     }
 
 
-    public function testValidateWithNonRegisteredTypeValidators()
-    {
-        $this->markTestIncomplete('Disabling of validation is not implemented, yet!');
-        $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveARecordOfTable('article');
-        $this->whenIValidateTheRecord();
-        $this->thenTheResultShouldBeValid();
-    }
-
-
-    public function testValidateWithRegisteredDateTimeTypeValidator()
-    {
-        $this->markTestIncomplete('Disabling of validation is not implemented, yet!');
-        $this->givenIHaveAFieldTypeValidator();
-        $this->givenIHaveARecordOfTable('article');
-        $this->whenIValidateTheRecord();
-        $this->thenTheResultShouldBeValid();
-    }
-
-
     public function testValidateToFalseWithRegisteredDateTimeTypeValidator()
     {
         $this->givenIHaveAFieldTypeValidator();
@@ -76,7 +56,7 @@ class FieldTypeValidatorTest extends BaseTestCase
     private function givenIHaveAFieldTypeValidator()
     {
         $dataTypeMapper = $this->rm->getDriver()->getDataTypeMapper();
-        $this->validator = new FieldTypeValidator($dataTypeMapper);
+        $this->validator = new FieldValidator($dataTypeMapper);
     }
 
 
@@ -102,13 +82,6 @@ class FieldTypeValidatorTest extends BaseTestCase
     private function whenISetRecordField_to($fieldName, $value)
     {
         $this->record->set($fieldName, $value);
-    }
-
-
-    private function thenTheResultShouldBeValid()
-    {
-        echo $this->record->getErrorStack();
-        $this->assertTrue($this->validationResult);
     }
 
 

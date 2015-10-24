@@ -57,7 +57,7 @@ class RecordSaveTest extends TestCase
         $recordsToInsert = self::getRecordsToInsertFromGraph($record);
         $recordReferenceMaps = self::getRecordsToInsertReferenceMaps($recordsToInsert);
 
-        $rm->save($record);
+        $rm->scheduleSave($record);
         $rm->commit();
 
         $this->assertRecordsInserted($recordsToInsert, $recordReferenceMaps);
@@ -304,7 +304,9 @@ class RecordSaveTest extends TestCase
     private function assertIdentifierUpdatedInRepository(Record $record)
     {
         $repository = $record->getTable()->getRepository();
-        $this->assertTrue($repository->hasByInternalId($record->getInternalId()));
+        $internalId = $record->getInternalId();
+        $this->assertStringStartsNotWith('_', $internalId[0]);
+        $this->assertTrue($repository->hasByInternalId($internalId));
     }
 
 
@@ -400,9 +402,6 @@ class RecordSaveTest extends TestCase
         else {
             $this->assertEquals($newIdentifier, $referenceMapping[$refId]);
         }
-
-        // assert FALSE, because object field mapping is only for records, that are not stored in database, yet
-        $this->assertFalse($referenceMap->hasFieldMapping($owningRecord->getOid()));
 
         // assert record collection
         if ($relation->isOneToMany()) {

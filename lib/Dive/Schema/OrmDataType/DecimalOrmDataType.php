@@ -17,14 +17,54 @@ class DecimalOrmDataType extends OrmDataType
 {
 
     /**
+     * Validates whether the value matches the field type, or not
+     *
      * @param  mixed $value
+     * @param  array $field
      * @return bool
      */
-    public function validate($value)
+    public function validateType($value, array $field)
     {
-        if ($this->canValueBeValidated($value)) {
-            return is_numeric($value);
+        return is_numeric($value);
+    }
+
+
+    /**
+     * Validates whether the value fits to the field length, or not
+     *
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        if (!isset($field['length'])) {
+            return true;
         }
+
+        $length = $field['length'];
+        $valueStringLength = strlen(ltrim($value, '-'));
+        if ($valueStringLength > $length) {
+            return false;
+        }
+
+        $scale = isset($field['scale']) ? $field['scale'] : 0;
+        $unsigned = isset($field['unsigned']) ? $field['unsigned'] : false;
+
+        $numberLength = $scale > 0 ? $length - $scale - 1 : $length;
+        $maxValue = pow(10, $numberLength);
+        $maxValue -= $scale ? pow(10, $scale * -1) : 1;
+        $minValue = $unsigned ? 0 : $maxValue * -1;
+
+        if ($maxValue < $value || $minValue > $value) {
+            return false;
+        }
+
+        $commaPos = strpos($value, '.');
+        if ($commaPos !== false && $scale < $valueStringLength - $commaPos - 1) {
+            return false;
+        }
+
         return true;
     }
 

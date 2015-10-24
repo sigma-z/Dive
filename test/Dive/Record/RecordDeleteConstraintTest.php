@@ -11,7 +11,6 @@ namespace Dive\Test\Record;
 use Dive\Collection\RecordCollection;
 use Dive\Platform\PlatformInterface;
 use Dive\Record;
-use Dive\RecordManager;
 use Dive\TestSuite\ConstraintTestCase;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
@@ -60,7 +59,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
                 throw new \Exception("Test for $tableName is not supported!");
         }
 
-        $rm->delete($recordToDelete);
+        $rm->scheduleDelete($recordToDelete);
 
         $this->assertScheduledOperationsForCommit($rm, 0, 0);
     }
@@ -92,7 +91,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, 'onDelete', $constraints);
         $table = $rm->getTable($tableName);
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
-        $rm->delete($record);
+        $rm->scheduleDelete($record);
         $rm->commit();
     }
 
@@ -182,7 +181,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
                 $restrictedByRelation => $restrictedByRecord
             );
             foreach ($deleteOrder as $deleteKey) {
-                $rm->delete($deleteMap[$deleteKey]);
+                $rm->scheduleDelete($deleteMap[$deleteKey]);
             }
 
             // commit should NOT throw Exception
@@ -237,7 +236,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         );
         $table = $rm->getTable($tableName);
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
-        $rm->delete($record);
+        $rm->scheduleDelete($record);
 
         $this->assertScheduledOperationsForCommit($rm, 0, $expectedCountScheduledDeletes);
     }
@@ -300,7 +299,7 @@ class RecordDeleteConstraintTest extends ConstraintTestCase
         $rm = $this->getRecordManagerWithOverWrittenConstraints($tableName, 'onDelete', $constraints);
         $table = $rm->getTable($tableName);
         $record = $this->getGeneratedRecord(self::$recordGenerator, $table, $recordKey);
-        $rm->delete($record);
+        $rm->scheduleDelete($record);
 
         $this->assertScheduledOperationsForCommit($rm, $expectedCountScheduledSaves, $expectedCountScheduledDeletes);
     }

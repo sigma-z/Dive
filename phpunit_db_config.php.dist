@@ -12,10 +12,11 @@
  */
 
 return array(
-    'SQLite' => 'sqlite:file::memory:',
-    /*'MySQL' => array(
-        'dsn' => 'mysql:host=localhost;dbname=test',
-        'user' => 'root',
-        'password' => ''
-    )*/
+    'SQLiteInFixtureFile' => 'sqlite:' . FIXTURE_DIR . '/test.db',
+    //'SQLiteInMemory' => 'sqlite::memory:', // currently not supported: @see https://github.com/sigma-z/Dive/issues/7
+    //'MySQL' => array(
+    //    'dsn' => 'mysql:host=localhost;dbname=test',
+    //    'user' => 'root',
+    //    'password' => ''
+    //)
 );

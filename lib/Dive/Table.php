@@ -377,7 +377,7 @@ class Table
     {
         foreach ($this->identifierFields as $idFieldName) {
             $idField = $this->fields[$idFieldName];
-            if (isset($idField['autoIncrement']) && $idField['autoIncrement'] == true) {
+            if (isset($idField['autoIncrement']) && $idField['autoIncrement'] === true) {
                 return true;
             }
         }
@@ -433,7 +433,7 @@ class Table
     public function isFieldNullable($fieldName)
     {
         $this->throwExceptionIfFieldNotExists($fieldName);
-        return isset($this->fields[$fieldName]['nullable']) && $this->fields[$fieldName]['nullable'] == true;
+        return isset($this->fields[$fieldName]['nullable']) && $this->fields[$fieldName]['nullable'] === true;
     }
 
 
@@ -595,7 +595,8 @@ class Table
         $identifier = $this->getIdentifierFields();
         $this->throwExceptionIfIdentifierDoesNotMatchFields($id);
 
-        $query->where(implode(' = ? AND ', $identifier) . ' = ?', $id);
+        $params = is_array($id) ? array_values($id) : array($id);
+        $query->where(implode(' = ? AND ', $identifier) . ' = ?', $params);
         return $query->execute($fetchMode);
     }
 
@@ -632,7 +633,6 @@ class Table
     /**
      * Finds record by field values, if given fields matches primary key, if not try to find by unique indexes,
      * if no record could be found, then create one
-     * TODO If identifier is given, the repository could be checked instead of querying the database
      *
      * @param  array $fieldValues
      * @return \Dive\Record
@@ -641,7 +641,13 @@ class Table
     {
         $identifier = $this->getIdentifierFieldValues($fieldValues);
         if ($identifier) {
-            $record = $this->findByPk($identifier);
+            $identifierAsString = implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
+            if ($this->isInRepository($identifierAsString)) {
+                $record = $this->getFromRepository($identifierAsString);
+            }
+            else {
+                $record = $this->findByPk($identifier);
+            }
         }
         else {
             $record = $this->findByUniqueIndexes($fieldValues);
@@ -664,22 +670,16 @@ class Table
     {
         $uniqueIndexes = $this->getUniqueIndexes();
         if (!$uniqueIndexes) {
-            return false;
+            throw new TableException(
+                "There are no unique indexes for creating query to check whether the record is unique, or not!"
+            );
         }
 
-        $fieldNames = array_keys($fieldValues);
-        foreach ($uniqueIndexes as $uniqueName => $uniqueIndexDefinition) {
-            $uniqueFields = $uniqueIndexDefinition['fields'];
-            foreach ($uniqueFields as $uniqueField) {
-                if (!in_array($uniqueField, $fieldNames)) {
-                    unset($uniqueIndexes[$uniqueName]);
-                    continue;
-                }
-            }
-        }
-
+        $uniqueIndexes = $this->removeUnusedIndexes($uniqueIndexes, $fieldValues);
         if (!$uniqueIndexes) {
-            return false;
+            throw new TableException(
+                "There are no field values unique indexes for creating query to check whether the record is unique, or not!"
+            );
         }
 
         $conn = $this->getConnection();
@@ -733,6 +733,20 @@ class Table
             $identifier[$fieldName] = $fieldValues[$fieldName];
         }
         return $identifier;
+    }
+
+
+    /**
+     * @param  array $fieldValues
+     * @return string|null
+     */
+    public function getIdentifierAsString(array $fieldValues)
+    {
+        $identifier = $this->getIdentifierFieldValues($fieldValues);
+        if ($identifier === null) {
+            return $identifier;
+        }
+        return implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
     }
 
 
@@ -928,6 +942,26 @@ class Table
     {
         $uniqueIndex = $this->getIndex($indexName);
         return $uniqueIndex['fields'];
+    }
+
+
+    /**
+     * @param array $indexes
+     * @param array $fieldValues
+     * @return array
+     */
+    private function removeUnusedIndexes(array $indexes, array $fieldValues)
+    {
+        foreach ($indexes as $indexName => $indexDefinition) {
+            $indexFields = $indexDefinition['fields'];
+            foreach ($indexFields as $fieldName) {
+                if (!isset($fieldValues[$fieldName]) && !array_key_exists($fieldName, $fieldValues)) {
+                    unset($indexes[$indexName]);
+                    continue;
+                }
+            }
+        }
+        return $indexes;
     }
 
 }

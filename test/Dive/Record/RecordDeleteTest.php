@@ -67,7 +67,7 @@ class RecordDeleteTest extends TestCase
             $table = $rm->getTable($tableName);
             $record = $this->getGeneratedRecord($this->recordGenerator, $table, $deleteRecordKey);
 
-            $rm->delete($record);
+            $rm->scheduleDelete($record);
         }
 
         $expectedSaveRecords = $this->getRecordsForRecordKeys($rm, $expectedSaveRecordKeys);
@@ -81,7 +81,7 @@ class RecordDeleteTest extends TestCase
         $rm->commit();
 
         // assert that records has been deleted and all references to them are unset
-        $this->assertRecordsDeleted($expectedDeleteRecords);
+        $this->assertRecordsAreDeleted($expectedDeleteRecords);
 
         // assert that no record is scheduled for commit anymore
         $this->assertScheduledOperationsForCommit($rm, 0, 0);
@@ -94,6 +94,13 @@ class RecordDeleteTest extends TestCase
     public function provideDelete()
     {
         $testCases = array();
+
+        $testCases[] = array(
+            'loadRecordKeys'            => array(),
+            'deleteRecordKeys'          => array('DiveORM released#1' => 'comment'),
+            'expectedDeleteRecordKeys'  => array('DiveORM released#1' => 'comment'),
+            'expectedSaveRecordKeys'    => array()
+        );
 
         $testCases[] = array(
             'loadRecordKeys' => array(
@@ -169,7 +176,7 @@ class RecordDeleteTest extends TestCase
     /**
      * @param Record[] $expectedDeletedRecords
      */
-    private function assertRecordsDeleted(array $expectedDeletedRecords)
+    private function assertRecordsAreDeleted(array $expectedDeletedRecords)
     {
         /** @noinspection PhpUnusedLocalVariableInspection */
         foreach ($expectedDeletedRecords as $recordKey => $record) {
@@ -184,7 +191,7 @@ class RecordDeleteTest extends TestCase
             $identifierAsString = $record->getIdentifierAsString();
             $this->assertFalse($table->isInRepository($identifierAsString));
 
-            $this->assertRecordNotReferenced($record);
+            $this->assertRecordIsNotReferenced($record);
         }
     }
 
@@ -192,14 +199,14 @@ class RecordDeleteTest extends TestCase
     /**
      * @param Record $record
      */
-    private function assertRecordNotReferenced(Record $record)
+    private function assertRecordIsNotReferenced(Record $record)
     {
         $internalId = $record->getInternalId();
         $table = $record->getTable();
         $relations = $table->getRelations();
         $message = "Record with id '$internalId' in table '" . $table->getTableName() . "'";
         foreach ($relations as $relationName => $relation) {
-            $this->assertRecordNotReferencedByRelation($record, $relationName, $message);
+            $this->assertRecordIsNotReferencedByRelation($record, $relationName, $message);
         }
     }
 
@@ -209,7 +216,7 @@ class RecordDeleteTest extends TestCase
      * @param string $relationName
      * @param string $message
      */
-    private function assertRecordNotReferencedByRelation(Record $record, $relationName, $message = '')
+    private function assertRecordIsNotReferencedByRelation(Record $record, $relationName, $message = '')
     {
         $internalId = $record->getInternalId();
         $relation = $record->getTableRelation($relationName);
@@ -218,8 +225,12 @@ class RecordDeleteTest extends TestCase
         /** @var ReferenceMap $referenceMap */
         $referenceMap = self::readAttribute($relation, 'map');
 
+        $isOneToMany = $relation->isOneToMany();
+
         /** @var RecordCollection[] $relatedCollections */
-        $relatedCollections = self::readAttribute($referenceMap, 'relatedCollections');
+        $relatedCollections = $isOneToMany
+            ? self::readAttribute($referenceMap, 'relatedCollections')
+            : null;
 
         $references = $referenceMap->getMapping();
         $referencedMessage = $message . " expected not be referenced (relation '$relationName')";
@@ -228,7 +239,6 @@ class RecordDeleteTest extends TestCase
 
         $oid = $record->getOid();
         if ($isReferencedSide) {
-            $isOneToMany = $relation->isOneToMany();
             foreach ($references as $owningIds) {
                 if ($isOneToMany) {
                     $this->assertNotContains($internalId, $owningIds, $referencedMessage);
@@ -248,8 +258,77 @@ class RecordDeleteTest extends TestCase
         }
         else {
             $this->assertArrayNotHasKey($internalId, $references, $referencedMessage);
-            $this->assertArrayNotHasKey($oid, $relatedCollections, $relatedCollectionMessage);
+            if ($isOneToMany) {
+                $this->assertArrayNotHasKey($oid, $relatedCollections, $relatedCollectionMessage);
+            }
         }
+    }
+
+
+    /**
+     * @see issue #11 (https://github.com/sigma-z/Dive/issues/11)
+     */
+    public function testDeleteRecordWithCascadedForeignRelatedRecords()
+    {
+        $this->givenIHaveUser('PreparedForDeletion');
+        $this->givenUser_HasStillACommentOnAnArticle('PreparedForDeletion');
+        $this->whenIDeleteUser('PreparedForDeletion');
+        $this->thenUser_AndHisCommentIsDeleted('PreparedForDeletion');
+    }
+
+
+    /**
+     * @param string $name
+     */
+    private function givenIHaveUser($name)
+    {
+        $recordGenerator = $this->recordGenerator;
+        $recordGenerator->setTablesRows(array('user' => array($name)));
+        $recordGenerator->generate();
+    }
+
+
+    /**
+     * @param string $name
+     */
+    private function givenUser_HasStillACommentOnAnArticle($name)
+    {
+        $recordGenerator = $this->recordGenerator;
+        $recordGenerator->setTablesRows(array('comment' => array('PreparedForDeletion' => array('User' => $name))));
+        $recordGenerator->generate();
+    }
+
+
+    /**
+     * @param string $name
+     */
+    private function whenIDeleteUser($name)
+    {
+        // use an new record manager with empty repository
+        $rm = self::createDefaultRecordManager();
+        $userRecord = $rm->findOrCreateRecord('user', array('username' => $name));
+        $rm->scheduleDelete($userRecord)
+            ->commit();
+    }
+
+
+    /**
+     * @param string $name
+     */
+    private function thenUser_AndHisCommentIsDeleted($name)
+    {
+        // there is a warning (undefined offset). when this code is reached that issue is fixed
+        $rm = self::createDefaultRecordManager();
+        $queryHasResult = $rm->createQuery('user')
+            ->andWhere('username = ?', $name)
+            ->hasResult();
+        $this->assertFalse($queryHasResult, "Expected, that user {$name} has been deleted");
+
+        $userCommentId = $this->recordGenerator->getRecordIdFromMap('comment', 'PreparedForDeletion');
+        $queryHasResult = $rm->createQuery('comment')
+            ->andWhere('id = ?', $userCommentId)
+            ->hasResult();
+        $this->assertFalse($queryHasResult,"Expected, that user comment of user {$name} has been deleted");
     }
 
 

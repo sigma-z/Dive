@@ -8,14 +8,14 @@
  */
 namespace Dive\Schema\OrmDataType;
 
-use Dive\Validation\ValidatorInterface;
+use Dive\Validation\FieldValidator\FieldValidatorInterface;
 
 /**
  * Interface OrmDataTypeInterface
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 04.07.14
  */
-interface OrmDataTypeInterface extends ValidatorInterface
+interface OrmDataTypeInterface extends FieldValidatorInterface
 {
 
     /**

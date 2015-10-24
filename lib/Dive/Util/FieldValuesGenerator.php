@@ -126,7 +126,6 @@ class FieldValuesGenerator
      *  supported it returns null.
      *
      * @param  array $fieldDefinition
-     * @throws UnsupportedTypeException
      * @return string|int|float
      */
     public function getRandomFieldValue(array $fieldDefinition)
@@ -134,16 +133,56 @@ class FieldValuesGenerator
         $type = $fieldDefinition['type'];
         switch ($type) {
             case DataTypeMapper::OTYPE_DATETIME:
+            case DataTypeMapper::OTYPE_TIMESTAMP:
                 return date('Y-m-d h:s:i');
 
-            // TODO: create float/int really from supported interval with supported decimals
+            case DataTypeMapper::OTYPE_DATE:
+                return date('Y-m-d');
+
+            case DataTypeMapper::OTYPE_TIME:
+                return date('h:s:i');
+
+            case DataTypeMapper::OTYPE_ENUM:
+                $index = array_rand($fieldDefinition['values']);
+                return $fieldDefinition['values'][$index];
+
             case DataTypeMapper::OTYPE_DECIMAL:
-                return (float)mt_rand(0, 100000000);
+                $length   = isset($fieldDefinition['length'])   ? $fieldDefinition['length']   : 1;
+                $scale    = isset($fieldDefinition['scale'])    ? $fieldDefinition['scale']    : 0;
+                $unsigned = isset($fieldDefinition['unsigned']) ? $fieldDefinition['unsigned'] : false;
+
+                $numberLength = $scale > 0 ? $length - $scale - 1 : $length;
+                $maxValue = pow(10, $numberLength);
+                $maxValue -= $scale ? pow(10, $scale * -1) : 1;
+                if ($maxValue > 100000000) {
+                    $maxValue = 100000000;
+                }
+                $value = mt_rand(0, $maxValue);
+                if (!$unsigned && rand(0, 1) === 1) {
+                    $value *= -1;
+                }
+                return $value;
 
             case DataTypeMapper::OTYPE_INTEGER:
-                return mt_rand(0, 100000000);
+                $length   = isset($fieldDefinition['length'])   ? $fieldDefinition['length']   : 1;
+                $unsigned = isset($fieldDefinition['unsigned']) ? $fieldDefinition['unsigned'] : false;
+                $maxValue = (pow(2, 8 * $length)) - 1;
+                if (!$unsigned) {
+                    $maxValue = ($maxValue - 1) / 2;
+                }
+                if ($maxValue > 100000000) {
+                    $maxValue = 100000000;
+                }
+                $value = mt_rand(0, $maxValue);
+                if (!$unsigned && rand(0, 1) === 1) {
+                    $value *= -1;
+                }
+                return $value;
 
-            case DataTypeMapper::OTYPE_STRING:
+            case DataTypeMapper::OTYPE_BOOLEAN:
+                return mt_rand(0, 1) === 1;
+
+            default:
                 // used chars - TODO: check more e.g. chars, that have to be quoted by inserting
                 $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321';
                 // build min and max for calling random-function
@@ -152,19 +191,14 @@ class FieldValuesGenerator
 
                 // init result, number of steps
                 $string = '';
-                $l = $fieldDefinition['length'];
-                while ($l > 0) {
+                $length = isset($fieldDefinition['length']) ? $fieldDefinition['length'] : 1;
+                while ($length > 0) {
                     $x = mt_rand($min, $max);
                     $string .= $chars[$x];
-                    $l--;
+                    $length--;
                 }
                 return $string;
-
-            case DataTypeMapper::OTYPE_BOOLEAN:
-                return mt_rand(0, 1) === 1;
         }
-
-        throw new UnsupportedTypeException("unsupported field type: $type");
     }
 
 

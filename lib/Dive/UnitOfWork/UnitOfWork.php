@@ -81,7 +81,7 @@ class UnitOfWork
      */
     public function getOrCreateRecord(Table $table, array $data, $exists = false)
     {
-        $id = $this->getIdentifierFromData($table, $data);
+        $id = $table->getIdentifierAsString($data);
         if ($id !== false && $table->isInRepository($id)) {
             $record = $table->getFromRepository($id);
         }
@@ -89,27 +89,6 @@ class UnitOfWork
             $record = $table->createRecord($data, $exists);
         }
         return $record;
-    }
-
-
-    /**
-     * Gets identifier as string, but returns false, if identifier could not be determined
-     *
-     * @param  Table $table
-     * @param  array $data
-     * @return bool|string
-     */
-    private function getIdentifierFromData(Table $table, array $data)
-    {
-        $identifierFields = $table->getIdentifierFields();
-        $identifier = array();
-        foreach ($identifierFields as $fieldName) {
-            if (!isset($data[$fieldName])) {
-                return false;
-            }
-            $identifier[] = $data[$fieldName];
-        }
-        return implode(Record::COMPOSITE_ID_SEPARATOR, $identifier);
     }
 
 
@@ -122,7 +101,7 @@ class UnitOfWork
         $oid = $record->getOid();
 
         if ($resetVisited) {
-            $this->visitedSaveRecords = array($oid);
+            $this->visitedSaveRecords = array();
         }
         else if (in_array($oid, $this->visitedSaveRecords)) {
             return;
@@ -305,11 +284,23 @@ class UnitOfWork
             $relationName = $relation->getReferencedAlias();
             if ($relation->hasReferenceLoadedFor($record, $relationName)) {
                 $referencedRecord = $relation->getReferenceFor($record, $relationName);
-                if ($referencedRecord) {
+                if (!$referencedRecord->exists() || $this->hasRecordIdentifierChanged($record)) {
                     $this->scheduleSave($referencedRecord);
                 }
             }
         }
+    }
+
+
+    /**
+     * @param Record $record
+     * @return bool
+     */
+    private function hasRecordIdentifierChanged(Record $record)
+    {
+        $identifierFields = $record->getTable()->getIdentifierFields();
+        $modifiedFields = $record->getModifiedFields();
+        return (bool)array_intersect($identifierFields, array_keys($modifiedFields));
     }
 
 
@@ -456,7 +447,7 @@ class UnitOfWork
         $this->invokeRecordEvent(Record::EVENT_PRE_INSERT, $record);
         $this->invokeRecordEvent(Record::EVENT_PRE_SAVE, $record);
 
-        $identifier = $record->getIdentifierFieldIndexed();
+        $identifier = $record->getIdentifier();
         $table = $record->getTable();
         $data = array();
         foreach ($table->getFields() as $fieldName => $fieldDef) {
@@ -467,11 +458,8 @@ class UnitOfWork
         $oldIdentifier = $record->getInternalId();
 
         if (!$table->hasCompositePrimaryKey()) {
-            $id = $conn->getLastInsertId($table->getTableName());
-            $identifierFields = $table->getIdentifierFields();
-            $identifier = array($identifierFields[0] => $id);
-
-            $this->setForeignKeyFieldOfRelatedRecords($record, $id);
+            $identifier = $conn->getLastInsertId($table->getTableName());
+            $this->setForeignKeyFieldOfRelatedRecords($record, $identifier);
         }
 
         // assign record identifier
@@ -525,11 +513,16 @@ class UnitOfWork
         $this->invokeRecordEvent(Record::EVENT_PRE_SAVE, $record);
 
         $table = $record->getTable();
-        $identifier = array();
+        $newIdentifierValues = array();
+        $identifierValues = array();
         $modifiedFields = array();
         foreach ($table->getFields() as $fieldName => $fieldDef) {
             if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
-                $identifier[$fieldName] = $record->get($fieldName);
+                $fieldValue = $record->get($fieldName);
+                $identifierValues[] = $record->isFieldModified($fieldName)
+                    ? $record->getModifiedFieldValue($fieldName)
+                    : $fieldValue;
+                $newIdentifierValues[] = $fieldValue;
             }
             if ($record->isFieldModified($fieldName)) {
                 $modifiedFields[$fieldName] = $record->get($fieldName);
@@ -537,7 +530,12 @@ class UnitOfWork
         }
 
         $conn = $table->getConnection();
-        $conn->update($table, $modifiedFields, $identifier);
+        $conn->update($table, $modifiedFields, $identifierValues);
+
+        // assign record identifier
+        if ($newIdentifierValues !== $identifierValues) {
+            $record->assignIdentifier($newIdentifierValues, $identifierValues);
+        }
 
         $this->invokeRecordEvent(Record::EVENT_POST_SAVE, $record);
         $this->invokeRecordEvent(Record::EVENT_POST_UPDATE, $record);

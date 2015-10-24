@@ -148,7 +148,7 @@ class RecordCollection extends Collection
      */
     public function unlinkRecord(Record $record)
     {
-        $key = $this->key($record);
+        $key = $this->search($record);
         if ($key === false) {
             return false;
         }
@@ -164,7 +164,7 @@ class RecordCollection extends Collection
      * @param  Record $record
      * @return int|bool FALSE if not found
      */
-    public function key(Record $record)
+    public function search(Record $record)
     {
         return array_search($record, $this->items, true);
     }
@@ -183,7 +183,7 @@ class RecordCollection extends Collection
             $id = $record->getInternalId();
             throw new CollectionException("$id is not in collection!");
         }
-        $this->table->getRecordManager()->delete($record);
+        $this->table->getRecordManager()->scheduleDelete($record);
         return $this->unlinkRecord($record);
     }
 

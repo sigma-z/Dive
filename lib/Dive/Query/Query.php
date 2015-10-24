@@ -729,7 +729,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         $stmt = $this->getConnection()->getStatement($sql, $query->getParamsFlattened());
         $hydrator = $this->rm->getHydrator(RecordManager::FETCH_SINGLE_SCALAR);
         $hydrator->setStatement($stmt);
-        return (int)$hydrator->getResult();
+        return (int)$hydrator->getResult($query->getRootTable());
     }
 
 
@@ -1015,7 +1015,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         }
 
         $this->queryParts[$part] = array($partValue);
-        $this->params[$part] = array_values($params);
+        $this->params[$part] = $params;
         $this->isDirty = true;
     }
 
@@ -1034,7 +1034,7 @@ class Query implements QueryInterface, QueryHydrationInterface
 
         if (!empty($params)) {
             if (is_array($params)) {
-                $this->params[$part] = array_merge($this->params[$part], array_values($params));
+                $this->params[$part] = array_merge($this->params[$part], $params);
             }
             else {
                 $this->params[$part][] = $params;

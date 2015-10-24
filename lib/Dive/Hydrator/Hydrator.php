@@ -24,6 +24,7 @@ abstract class Hydrator implements HydratorInterface
      * @var \PDOStatement
      */
     protected $statement;
+
     /**
      * @var \Dive\RecordManager
      */
@@ -59,24 +60,7 @@ abstract class Hydrator implements HydratorInterface
      */
     protected function hydrateRecord(Table $table, array $row)
     {
-        if (!($table instanceof Table)) {
-            self::throwMissingTableException($table);
-        }
         $record = $this->recordManager->getOrCreateRecord($table->getTableName(), $row, true);
         return $record;
     }
-
-
-    /**
-     * Throws missing table exception
-     *
-     * @param  \Dive\Table $table
-     * @throws HydratorException
-     */
-    protected static function throwMissingTableException($table = null)
-    {
-        $argumentType = is_object($table) ? get_class($table) : gettype($table);
-        throw new HydratorException("Hydrator needs table instance! You gave me: " . $argumentType);
-    }
-
 }

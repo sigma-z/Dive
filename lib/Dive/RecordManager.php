@@ -15,10 +15,9 @@ use Dive\Relation\Relation;
 use Dive\Table;
 use Dive\Platform\PlatformInterface;
 use Dive\UnitOfWork\UnitOfWork;
-use Dive\Validation\FieldValidator\FieldTypeValidator;
+use Dive\Validation\FieldValidator\FieldValidator;
 use Dive\Validation\UniqueValidator\UniqueRecordValidator;
 use Dive\Validation\ValidationContainer;
-use Dive\Validation\ValidatorInterface;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -49,8 +48,8 @@ class RecordManager
     /** @var \Dive\Relation\Relation[] */
     private $relations = array();
 
-    /** @var Table\Behaviour\Behaviour[] */
-    private $tableBehaviours = array();
+    /** @var Table\Behavior\Behavior[] */
+    private $tableBehaviors = array();
 
     /** @var \Dive\Hydrator\HydratorInterface[] */
     private $hydrators = array();
@@ -177,7 +176,7 @@ class RecordManager
         $relations = $this->instantiateRelations($relationsData);
 
         $indexes = $this->schema->getTableIndexes($tableName);
-        $this->initTableBehaviours($tableName);
+        $this->initTableBehaviors($tableName);
 
         return new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
     }
@@ -240,14 +239,14 @@ class RecordManager
     /**
      * @param string $tableName
      */
-    private function initTableBehaviours($tableName)
+    private function initTableBehaviors($tableName)
     {
-        $behaviours = $this->schema->getTableBehaviours($tableName);
-        foreach ($behaviours as $behaviourDefinition) {
-            $behaviour = $this->getBehaviourInstance($behaviourDefinition);
-            $this->getEventDispatcher()->addSubscriber($behaviour);
-            if (!empty($behaviourDefinition['config'])) {
-                $behaviour->setTableConfig($tableName, $behaviourDefinition['config']);
+        $behaviors = $this->schema->getTableBehaviors($tableName);
+        foreach ($behaviors as $behaviorDefinition) {
+            $behavior = $this->getBehaviorInstance($behaviorDefinition);
+            $this->getEventDispatcher()->addSubscriber($behavior);
+            if (!empty($behaviorDefinition['config'])) {
+                $behavior->setTableConfig($tableName, $behaviorDefinition['config']);
             }
         }
     }
@@ -255,29 +254,29 @@ class RecordManager
 
     /**
      * @param  array $definition
-     * @return Table\Behaviour\Behaviour
+     * @return Table\Behavior\Behavior
      * @throws Exception
      */
-    private function getBehaviourInstance(array $definition)
+    private function getBehaviorInstance(array $definition)
     {
         if (!isset($definition['class'])) {
-            throw new Exception("Missing table behaviour class in schema definition!");
+            throw new Exception("Missing table behavior class in schema definition!");
         }
 
         $sharedInstance = isset($definition['instanceShared']) && $definition['instanceShared'] === true;
         $className = $definition['class'];
         if ($className[0] != '\\') {
-            $className = "\\Dive\\Table\\Behaviour\\$className";
+            $className = "\\Dive\\Table\\Behavior\\$className";
         }
-        if ($sharedInstance && isset($this->tableBehaviours[$className])) {
-            return $this->tableBehaviours[$className];
+        if ($sharedInstance && isset($this->tableBehaviors[$className])) {
+            return $this->tableBehaviors[$className];
         }
 
-        $behaviour = new $className;
+        $behavior = new $className;
         if ($sharedInstance) {
-            $this->tableBehaviours[$className] = $behaviour;
+            $this->tableBehaviors[$className] = $behavior;
         }
-        return $behaviour;
+        return $behavior;
     }
 
 
@@ -320,7 +319,7 @@ class RecordManager
      * @param  Record $record
      * @return $this
      */
-    public function save(Record $record)
+    public function scheduleSave(Record $record)
     {
         $this->unitOfWork->scheduleSave($record, true);
         return $this;
@@ -331,10 +330,32 @@ class RecordManager
      * @param  Record $record
      * @return $this
      */
-    public function delete(Record $record)
+    public function scheduleDelete(Record $record)
     {
         $this->unitOfWork->scheduleDelete($record);
         return $this;
+    }
+
+
+    /**
+     * @deprecated
+     * @param  Record $record
+     * @return $this
+     */
+    public function save(Record $record)
+    {
+        return $this->scheduleSave($record);
+    }
+
+
+    /**
+     * @deprecated
+     * @param  Record $record
+     * @return $this
+     */
+    public function delete(Record $record)
+    {
+        return $this->scheduleDelete($record);
     }
 
 
@@ -472,20 +493,19 @@ class RecordManager
     {
         $recordValidationContainer = new ValidationContainer();
         $fieldTypeValidator = $this->createConfiguredFieldTypeValidator();
-        $recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_FIELD_TYPE, $fieldTypeValidator);
-        //$recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_FIELD_LENGTH, new FieldLengthValidator());
-        $recordValidationContainer->addValidator(ValidatorInterface::VALIDATOR_UNIQUE_CONSTRAINT, new UniqueRecordValidator());
+        $recordValidationContainer->addValidator(ValidationContainer::VALIDATOR_FIELD, $fieldTypeValidator);
+        $recordValidationContainer->addValidator(ValidationContainer::VALIDATOR_UNIQUE_CONSTRAINT, new UniqueRecordValidator());
         return $recordValidationContainer;
     }
 
 
     /**
-     * @return FieldTypeValidator
+     * @return FieldValidator
      */
     protected function createConfiguredFieldTypeValidator()
     {
         $dataTypeMapper = $this->getDriver()->getDataTypeMapper();
-        $fieldTypeValidator = new FieldTypeValidator($dataTypeMapper);
+        $fieldTypeValidator = new FieldValidator($dataTypeMapper);
         return $fieldTypeValidator;
     }
 

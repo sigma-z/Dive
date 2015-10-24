@@ -21,7 +21,9 @@ Requirements
 ---
  * PHP 5.3 or greater (UnitTests need 5.3.2)
  * [Symfony's EventDispatcher](https://github.com/symfony/EventDispatcher)
-
+ * Important: SQLite 3.8.5 up to 3.8.9 not supported! @see Issue #8
+   * PHP versions bundled with incompatible SQLite libraries: 5.5.21 to 25 and 5.6.5 to 9
+   * PHP 5.5.26 and 5.6.10 bundle SQLite 3.8.10.2 where that bug is fixed!
 
 Feature list
 ---
@@ -31,6 +33,6 @@ Feature list
  * Event handling
  * Query building
  * Query result hydration
- * Behaviours
+ * Behaviors
    * Timestampable
    * Delegate (for implementing [Class Table Inheritance](http://martinfowler.com/eaaCatalog/classTableInheritance.html))

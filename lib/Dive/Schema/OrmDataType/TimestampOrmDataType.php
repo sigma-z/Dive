@@ -13,22 +13,6 @@ namespace Dive\Schema\OrmDataType;
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 04.07.2014
  */
-class TimestampOrmDataType extends OrmDataType
+class TimestampOrmDataType extends DatetimeOrmDataType
 {
-
-    /**
-     * @param  mixed $value
-     * @return bool
-     */
-    public function validate($value)
-    {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
-        if ($value > 0 && $value < 2147483648 && preg_match('/^\d+$/', $value)) {
-            return true;
-        }
-        return false;
-    }
-
 }

@@ -11,11 +11,11 @@ namespace Dive\Test;
 use Dive\Hydrator\HydratorInterface;
 use Dive\RecordManager;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
-use Dive\Table\Behaviour\TimestampableBehaviour;
+use Dive\Table\Behavior\TimestampableBehavior;
 use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
-use Dive\Validation\FieldValidator\FieldTypeValidator;
-use Dive\Validation\ValidatorInterface;
+use Dive\Validation\FieldValidator\FieldValidator;
+use Dive\Validation\ValidationContainer;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -148,17 +148,17 @@ class RecordManagerTest extends TestCase
     }
 
 
-    public function testGetTableWithBehaviour()
+    public function testGetTableWithBehavior()
     {
         $tableName = 'article';
-        // initializes article table and instances TimestampableBehaviour as shared instance
+        // initializes article table and instances TimestampableBehavior as shared instance
         $this->rm->getTable($tableName);
 
-        $tableBehaviours = self::readAttribute($this->rm, 'tableBehaviours');
-        $this->assertCount(1, $tableBehaviours);
-        /** @var TimestampableBehaviour $timestampableBehaviour */
-        $timestampableBehaviour = current($tableBehaviours);
-        $this->assertInstanceOf('\Dive\Table\Behaviour\TimestampableBehaviour', $timestampableBehaviour);
+        $tableBehaviors = self::readAttribute($this->rm, 'tableBehaviors');
+        $this->assertCount(1, $tableBehaviors);
+        /** @var TimestampableBehavior $timestampableBehavior */
+        $timestampableBehavior = current($tableBehaviors);
+        $this->assertInstanceOf('\Dive\Table\Behavior\TimestampableBehavior', $timestampableBehavior);
 
         $eventDispatcher = $this->rm->getEventDispatcher();
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_SAVE));
@@ -174,19 +174,16 @@ class RecordManagerTest extends TestCase
         $this->assertNotNull($validationContainer);
         $this->assertInstanceOf('\Dive\Validation\ValidationContainer', $validationContainer);
 
-        $uniqueValidator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_UNIQUE_CONSTRAINT);
+        $uniqueValidator = $validationContainer->getValidator(ValidationContainer::VALIDATOR_UNIQUE_CONSTRAINT);
         $this->assertNotNull($uniqueValidator);
         $this->assertInstanceOf('\Dive\Validation\UniqueValidator\UniqueRecordValidator', $uniqueValidator);
 
-        /** @var FieldTypeValidator $fieldTypeValidator */
-        $fieldTypeValidator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_TYPE);
+        /** @var FieldValidator $fieldTypeValidator */
+        $fieldTypeValidator = $validationContainer->getValidator(ValidationContainer::VALIDATOR_FIELD);
         $this->assertNotNull($fieldTypeValidator);
-        $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldTypeValidator', $fieldTypeValidator);
+        $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldValidator', $fieldTypeValidator);
         $booleanOrmDataTypeValidator = $fieldTypeValidator->getDataTypeValidator(DataTypeMapper::OTYPE_BOOLEAN);
         $this->assertInstanceOf('\Dive\Schema\OrmDataType\BooleanOrmDataType', $booleanOrmDataTypeValidator);
-
-//        $validator = $validationContainer->getValidator(ValidatorInterface::VALIDATOR_FIELD_LENGTH);
-//        $this->assertNotNull($validator);
     }
 
 }

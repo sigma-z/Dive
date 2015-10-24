@@ -85,6 +85,30 @@ class ConnectionTest extends TestCase
         $this->assertEquals($events, $expectedEventsCalled);
     }
 
+    /**
+     * @dataProvider provideTestConnectDisconnect
+     */
+    public function testConnectFails(array $database)
+    {
+        if (substr($database['dsn'], 0, 7) === 'sqlite:') {
+            $this->markTestSkipped('sqlite db has no password');
+        }
+        $e = null;
+        $database['user'] = 'someDbUser';
+        $database['password'] = 'someSecret';
+        $conn = $this->createConnection($database);
+        try {
+            $conn->connect();
+        }
+        catch (\Exception $e) {
+
+        }
+        $this->assertNotNull($e);
+        $this->assertNotContains($database['password'], $e->getTraceAsString(), 'password within getTraceAsString');
+        $this->assertNotContains($database['password'], $e->getMessage(), 'password within getMessage');
+        $this->assertNotContains($database['password'], $e->__toString(), 'password within __toString');
+    }
+
 
     /**
      * @return array
@@ -351,6 +375,22 @@ class ConnectionTest extends TestCase
         $insertTypes = $randomGenerator->getTypes();
         $conn = $rm->getConnection();
 
+        // example for issue: https://github.com/sigma-z/Dive/issues/6
+        $destroySequence = function () use ($conn) {
+            // important: use dbh exec, because problem occurs within dbms
+            try {
+                $conn->getDbh()->exec('DROP VIEW some_exec_that_destroys_sequence');
+            }
+            catch (\Exception $e) {}
+            $conn->getDbh()->exec('CREATE VIEW some_exec_that_destroys_sequence AS SELECT 1 as id');
+            $conn->getDbh()->exec('DROP VIEW some_exec_that_destroys_sequence');
+        };
+
+        // this case is fixed with the commit inserting this line - BUT ..
+        $conn->getEventDispatcher()->addListener($conn::EVENT_POST_INSERT, $destroySequence);
+        // following causes indirect same problem -> not fixed!? how to fix? correct behavior should be discussed!
+        //$conn->getEventDispatcher()->addListener($conn::EVENT_POST_EXEC, $destroySequence);
+
         $table = $rm->getTable($tableName);
         $owningRelations = $table->getReferencedRelationsIndexedByOwningField();
 
@@ -370,6 +410,8 @@ class ConnectionTest extends TestCase
             $data = $randomGenerator->getRandomRecordData($fields, $data, $type);
             $rowCount = $conn->insert($table, $data);
             $id = $conn->getLastInsertId($tableName);
+            $this->assertNotSame('0', $id, 'https://github.com/sigma-z/Dive/issues/6');
+
             $msg = "insert into $tableName with data: ";
             $this->assertEquals(1, $rowCount, $msg . print_r($data, true));
 

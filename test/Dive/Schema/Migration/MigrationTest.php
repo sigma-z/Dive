@@ -370,8 +370,7 @@ class MigrationTest extends TestCase
     {
         $testCases = array();
 
-        // add column
-        $testCases[] = array(
+        $testCases['add column'] = array(
             'tableName' => 'user',
             'operations' => array(
                 array(
@@ -393,8 +392,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // change column
-        $testCases[] = array(
+        $testCases['change column'] = array(
             'tableName' => 'user',
             'operations' => array(
                 array(
@@ -425,8 +423,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // drop column
-        $testCases[] = array(
+        $testCases['drop column'] = array(
             'tableName' => 'user',
             'operations' => array(
                 array(
@@ -448,8 +445,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // add column and index
-        $testCases[] = array(
+        $testCases['add column and index'] = array(
             'tableName' => 'user',
             'operations' => array(
                 array(
@@ -474,14 +470,13 @@ class MigrationTest extends TestCase
                     'CREATE INDEX IF NOT EXISTS "user_IX_is_active" ON "user" ("is_active")'
                 ),
                 'mysql' => array(
-                    'ALTER TABLE `user` ADD COLUMN `is_active` boolean DEFAULT TRUE NOT NULL',
+                    'ALTER TABLE `user` ADD COLUMN `is_active` tinyint DEFAULT TRUE NOT NULL',
                     'CREATE INDEX IF NOT EXISTS `IX_is_active` ON `user` (`is_active`)'
                 )
             )
         );
 
-        // add column and index and foreign key
-        $testCases[] = array(
+        $testCases['add column and index and foreign key'] = array(
             'tableName' => 'user',
             'operations' => array(
                 array(
@@ -524,8 +519,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // add composite unique index
-        $testCases[] = array(
+        $testCases['add composite unique index'] = array(
             'tableName' => 'user',
             'operations' => array(
                 array(
@@ -545,8 +539,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // add index (that becomes a change index, because it exists already)
-        $testCases[] = array(
+        $testCases['add index (that becomes a change index, because it exists already)'] = array(
             'tableName' => 'user',
             'operations' => array(
                 array(
@@ -566,8 +559,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // drop foreign
-        $testCases[] = array(
+        $testCases['drop foreign'] = array(
             'tableName' => 'author',
             'operations' => array(
                 array(
@@ -599,8 +591,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // change foreign key
-        $testCases[] = array(
+        $testCases['change foreign key'] = array(
             'tableName' => 'author',
             'operations' => array(
                 array(
@@ -634,8 +625,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // drop column having a foreign key on
-        $testCases[] = array(
+        $testCases['drop column having a foreign key on'] = array(
             'tableName' => 'author',
             'operations' => array(
                 array(
@@ -667,8 +657,7 @@ class MigrationTest extends TestCase
             )
         );
 
-        // rename table
-        $testCases[] = array(
+        $testCases['rename table'] = array(
             'tableName' => 'author',
             'operations' => array(
                 array(

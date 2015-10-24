@@ -59,7 +59,7 @@ class RecordRelationSaveTest extends TestCase
         $this->assertCount($itemCount, $author->Article);
 
         $start = microtime(true);
-        $rm->save($author)->commit();
+        $rm->scheduleSave($author)->commit();
         echo "\n$i: " . (microtime(true) - $start) . "\n";
 
         $this->assertEquals($itemCount, $articleTable->createQuery()->count());

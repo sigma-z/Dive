@@ -13,13 +13,13 @@ use Dive\Schema\DataTypeMapper\DataTypeMapper;
 require_once __DIR__ . '/TestCase.php';
 
 /**
- * Class DateFieldValidatorTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 25.04.2014
  */
-class DateOrmDataTypeValidatorTest extends TestCase
+class DateOrmDataTypeTest extends TestCase
 {
 
+    /** @var string */
     protected $type = DataTypeMapper::OTYPE_DATE;
 
 
@@ -28,11 +28,10 @@ class DateOrmDataTypeValidatorTest extends TestCase
      */
     public function provideValidationSucceeds()
     {
-        $testCases = parent::provideValidationSucceeds();
-        return array_merge($testCases, array(
+        return array(
             '2014-04-14' => array('2014-04-14'),
             '9999-12-31' => array('9999-12-31'),
-        ));
+        );
     }
 
 
@@ -52,6 +51,31 @@ class DateOrmDataTypeValidatorTest extends TestCase
             'bool-false'    => array(false),
             'empty-string'  => array(''),
             'empty-array'   => array(array())
+        );
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideLengthValidation()
+    {
+        return array(
+            '2014-04-14' => array(
+                'value' => '2014-04-14',
+                'field' => array(),
+                'expected' => true
+            ),
+            '9999-12-31' => array(
+                'value' => '9999-12-31',
+                'field' => array(),
+                'expected' => true
+            ),
+            'empty-string'  => array(
+                'value' => '',
+                'field' => array(),
+                'expected' => false
+            ),
         );
     }
 

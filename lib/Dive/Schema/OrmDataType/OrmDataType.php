@@ -8,8 +8,6 @@
  */
 namespace Dive\Schema\OrmDataType;
 
-use Dive\Expression;
-
 /**
  * Class OrmDataType
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -37,16 +35,6 @@ abstract class OrmDataType implements OrmDataTypeInterface
     public function getType()
     {
         return $this->type;
-    }
-
-
-    /**
-     * @param  mixed $value
-     * @return bool
-     */
-    protected function canValueBeValidated($value)
-    {
-        return !($value instanceof Expression);
     }
 
 }

@@ -72,6 +72,16 @@ class FindOrCreateRecordTableTest extends TestCase
     }
 
 
+    public function testFindOrCreateRecordByRepository()
+    {
+        $this->givenIHaveARecordManager();
+        $this->givenIHaveAUserTable();
+        $this->givenIHaveARecordStoredWithData(array('username' => 'Hugo'));
+        $this->whenIFindOrCreateTheRecordFromRepository();
+        $this->thenItShouldHaveFoundRecord();
+    }
+
+
     /**
      * @expectedException \Dive\Hydrator\HydratorException
      */
@@ -139,7 +149,7 @@ class FindOrCreateRecordTableTest extends TestCase
     private function givenIHaveARecordStoredWithData(array $recordData)
     {
         $this->storedRecord = self::getRecordWithRandomData($this->table, $recordData);
-        $this->rm->save($this->storedRecord)->commit();
+        $this->rm->scheduleSave($this->storedRecord)->commit();
     }
 
 
@@ -175,6 +185,15 @@ class FindOrCreateRecordTableTest extends TestCase
         foreach ($recordData as $fieldName => $fieldValue) {
             $this->assertEquals($fieldValue, $this->resultRecord->get($fieldName));
         }
+    }
+
+
+    private function whenIFindOrCreateTheRecordFromRepository()
+    {
+        // use fresh instances
+        $rm = self::createDefaultRecordManager();
+        $userTable = $rm->getTable('user');
+        $this->resultRecord = $userTable->findOrCreateRecord(array('id' => $this->storedRecord->id));
     }
 
 }

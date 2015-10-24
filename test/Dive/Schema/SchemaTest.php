@@ -144,7 +144,16 @@ class SchemaTest extends TestCase
     public function testGetTableNames()
     {
         $expected = array(
-            'article', 'article2tag', 'author', 'comment', 'data_types', 'donation', 'tag', 'unique_constraint_test', 'user'
+            'article',
+            'article2tag',
+            'author',
+            'comment',
+            'data_types',
+            'donation',
+            'tag',
+            'tree_node',
+            'unique_constraint_test',
+            'user'
         );
         $actual = $this->schema->getTableNames();
         sort($actual);
@@ -258,8 +267,8 @@ class SchemaTest extends TestCase
         $testCases[] = array(
             'table' => 'comment',
             'expected' => array(
-                'owning' => array('comment.article_id', 'comment.user_id'),
-                'referenced' => array()
+                'owning' => array('comment.article_id', 'comment.comment_id', 'comment.user_id'),
+                'referenced' => array('comment.comment_id')
             )
         );
         $testCases[] = array(

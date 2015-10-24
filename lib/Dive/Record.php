@@ -178,16 +178,19 @@ class Record
     public function setData(array $data)
     {
         $fields = $this->_table->getFields();
-        foreach ($fields as $field => $def) {
-            if (isset($data[$field])) {
-                $this->_data[$field] = $data[$field];
+        foreach ($fields as $fieldName => $definition) {
+            if (isset($data[$fieldName])) {
+                $value = $data[$fieldName];
             }
-            else if (array_key_exists($field, $data)) {
-                $this->_data[$field] = null;
+            else if (array_key_exists($fieldName, $data)) {
+                $value = null;
             }
             else {
-                $this->_data[$field] = isset($def['default']) ? $def['default'] : null;
+                $value = isset($definition['default']) ? $definition['default'] : null;
             }
+
+            $this->_data[$fieldName] = $value;
+            $this->handleOwningFieldRelation($fieldName, null);
         }
     }
 
@@ -204,13 +207,13 @@ class Record
 
 
     /**
-     * @return array|string
+     * @return array|string|null
      */
     public function getIdentifier()
     {
         $identifier = $this->getIdentifierFieldIndexed();
         if ($identifier === null) {
-            return $identifier;
+            return null;
         }
         return $this->_table->hasCompositePrimaryKey() ? $identifier : current($identifier);
     }
@@ -223,9 +226,28 @@ class Record
     {
         $identifier = $this->getIdentifierFieldIndexed();
         if ($identifier === null) {
-            return $identifier;
+            return null;
         }
         return implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
+    }
+
+
+    /**
+     * @return null|string
+     */
+    public function getStoredIdentifierAsString()
+    {
+        if ($this->isModified()) {
+            $idFields = $this->_table->getIdentifierFields();
+            $identifierValues = array();
+            foreach ($idFields as $idField) {
+                $identifierValues[$idField] = $this->isFieldModified($idField)
+                    ? $this->getModifiedFieldValue($idField)
+                    : $this->get($idField);
+            }
+            return $this->_table->getIdentifierAsString($identifierValues);
+        }
+        return $this->getIdentifierAsString();
     }
 
 
@@ -254,7 +276,7 @@ class Record
     {
         $id = '';
         if ($this->exists()) {
-            $id = $this->getIdentifierAsString();
+            $id = $this->getStoredIdentifierAsString();
         }
         if (empty($id)) {
             $id = self::NEW_RECORD_ID_MARK . $this->getOid();
@@ -265,15 +287,13 @@ class Record
 
     /**
      * @param  array|string $identifier
-     * @param  string       $oldIdentifier
+     * @param  array|string $oldIdentifier
      * @throws Record\RecordException
      */
     public function assignIdentifier($identifier, $oldIdentifier = null)
     {
         $identifierFields = $this->_table->getIdentifierFields();
-        if (!is_array($identifier)) {
-            $identifier = array($identifierFields[0] => $identifier);
-        }
+        $identifier = array_combine($identifierFields, (array)$identifier);
         if (count($identifier) != count($identifierFields)) {
             throw new RecordException(
                 "Identifier '"
@@ -286,17 +306,18 @@ class Record
             $this->_data[$fieldName] = $id;
         }
 
-        $newIdentifier = implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
+        $newIdentifierAsString = implode(self::COMPOSITE_ID_SEPARATOR, $identifier);
+        $oldIdentifierAsString = is_string($oldIdentifier) ? $oldIdentifier : implode(self::COMPOSITE_ID_SEPARATOR, $oldIdentifier);
         $relations = $this->_table->getRelations();
         foreach ($relations as $relationName => $relation) {
-            $relation->updateRecordIdentifier($this, $relationName, $newIdentifier, $oldIdentifier);
+            $relation->updateRecordIdentifier($this, $relationName, $newIdentifierAsString, $oldIdentifierAsString);
         }
 
         $this->_modifiedFields = array();
         $this->_exists = true;
 
         $repository = $this->_table->getRepository();
-        $repository->refreshIdentity($this, $oldIdentifier);
+        $repository->refreshIdentity($this, $oldIdentifierAsString);
     }
 
 
@@ -517,7 +538,7 @@ class Record
      */
     public function __toString()
     {
-        return $this->_table->getTableName() . ' id: ' . $this->getIdentifierAsString();
+        return $this->_table->getTableName() . ' id: ' . ($this->getIdentifierAsString() ?: $this->getInternalId());
     }
 
 
@@ -527,7 +548,7 @@ class Record
     public function save()
     {
         $rm = $this->getRecordManager();
-        $rm->save($this)->commit();
+        $rm->scheduleSave($this)->commit();
     }
 
 
@@ -537,7 +558,7 @@ class Record
     public function delete()
     {
         $rm = $this->getRecordManager();
-        $rm->delete($this)->commit();
+        $rm->scheduleDelete($this)->commit();
     }
 
 

@@ -53,9 +53,9 @@ return array(
                     )
                 )
             ),
-            'behaviours' => array(
+            'behaviors' => array(
                 array(
-                    'class' => 'DelegateBehaviour',
+                    'class' => 'DelegateBehavior',
                     'config' => array(
                         'delegateToRelation' => 'User'
                     ),
@@ -127,7 +127,7 @@ return array(
                 ),
                 'value' => array(
                     'type' => 'decimal',
-                    'precision' => 2,
+                    'scale' => 2,
                     'length' => 14,
                     'nullable' => true
                 )
@@ -180,9 +180,9 @@ return array(
                     'nullable'  => true
                 )
             ),
-            'behaviours' => array(
+            'behaviors' => array(
                 array(
-                    'class' => 'TimestampableBehaviour',
+                    'class' => 'TimestampableBehavior',
                     'instanceShared' => true,
                     'config' => array(
                         'onInsert' => 'created_on',
@@ -224,6 +224,13 @@ return array(
                 ),
                 'datetime' => array(
                     'type'      => 'datetime'
+                ),
+                'comment_id'    => array(
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'foreign'   => 'comment.id',
+                    'nullable' => true
                 )
             ),
             'recordClass' => '\Dive\TestSuite\Model\Comment'
@@ -252,6 +259,28 @@ return array(
             ),
             'recordClass' => '\Dive\TestSuite\Model\Tag'
         ),
+        'tree_node' => array(
+            'fields' => array(
+                'id'    => array(
+                    'primary'   => true,
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'autoIncrement' => true
+                ),
+                'name' => array(
+                    'type'      => 'string',
+                    'length'    => 64
+                ),
+                'tree_node_id'    => array(
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'nullable'  => true,
+                    'foreign'   => 'tree_node.id'
+                ),
+            )
+        ),
         'article2tag' => array(
             'fields' => array(
                 'article_id' => array(
@@ -277,7 +306,8 @@ return array(
                     'primary'   => true,
                     'type'      => 'integer',
                     'length'    => 10,
-                    'unsigned'  => true
+                    'unsigned'  => true,
+                    'autoIncrement' => true
                 ),
                 't_boolean' => array(
                     'type' => 'boolean',
@@ -304,13 +334,13 @@ return array(
                 't_decimal_signed' => array(
                     'type' => 'decimal',
                     'length' => 13,
-                    'scale' => 3,
+                    'scale' => 2,
                     'nullable' => true
                 ),
                 't_decimal_unsigned' => array(
                     'type' => 'decimal',
                     'length' => 13,
-                    'scale' => 3,
+                    'scale' => 2,
                     'unsigned' => true,
                     'nullable' => true
                 ),
@@ -339,11 +369,11 @@ return array(
                     'type' => 'blob',
                     'nullable' => true
                 ),
-//                't_enum' => array(
-//                    'type' => 'enum',
-//                    'values' => array('123', 'abc', 'zyx', '0987'),
-//                    'nullable' => true
-//                )
+                't_enum' => array(
+                    'type' => 'enum',
+                    'values' => array('123', 'abc', 'zyx', '0987'),
+                    'nullable' => true
+                )
             )
         ),
         'unique_constraint_test' => array(
@@ -473,6 +503,28 @@ return array(
             'refField' => 'id',
             'refTable' => 'article',
             'type' => '1-m',
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'CASCADE'
+        ),
+        'comment.comment_id' => array(
+            'owningAlias' => 'Parent',
+            'owningField' => 'comment_id',
+            'owningTable' => 'comment',
+            'refAlias' => 'Children',
+            'refField' => 'id',
+            'refTable' => 'comment',
+            'type' => '1-1',
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'CASCADE'
+        ),
+        'tree_node.tree_node_id' => array(
+            'owningAlias' => 'Parent',
+            'owningField' => 'tree_node_id',
+            'owningTable' => 'tree_node',
+            'refAlias' => 'Children',
+            'refField' => 'id',
+            'refTable' => 'tree_node',
+            'type' => '1-1',
             'onUpdate' => 'CASCADE',
             'onDelete' => 'CASCADE'
         ),

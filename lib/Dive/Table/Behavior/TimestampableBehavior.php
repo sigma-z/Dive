@@ -7,17 +7,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Dive\Table\Behaviour;
+namespace Dive\Table\Behavior;
 
 use Dive\Record;
 use Dive\Record\RecordEvent;
 
 /**
- * Class TimestampableBehaviour
+ * Class TimestampableBehavior
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class TimestampableBehaviour extends Behaviour
+class TimestampableBehavior extends Behavior
 {
 
     /**

@@ -310,6 +310,7 @@ class RecordGeneratorTest extends TestCase
         $this->then_ShouldBeEqual($doe, $editor);
     }
 
+
     private function givenRecordGenerator()
     {
         $this->rm = self::createDefaultRecordManager();

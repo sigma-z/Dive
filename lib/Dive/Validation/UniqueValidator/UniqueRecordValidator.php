@@ -11,14 +11,14 @@ namespace Dive\Validation\UniqueValidator;
 use Dive\Exception;
 use Dive\Query\Query;
 use Dive\Record;
-use Dive\Validation\ValidatorInterface;
+use Dive\Validation\RecordValidator;
 
 /**
  * Class UniqueRecordValidator
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 30.05.2014
  */
-class UniqueRecordValidator implements ValidatorInterface
+class UniqueRecordValidator extends RecordValidator
 {
 
     /**
@@ -28,6 +28,10 @@ class UniqueRecordValidator implements ValidatorInterface
      */
     public function validate($record)
     {
+        if ($this->isCheckDisabled(self::CODE_RECORD_UNIQUE)) {
+            return true;
+        }
+
         if (!($record instanceof Record)) {
             throw new \InvalidArgumentException("Expects record instance as #1 argument");
         }

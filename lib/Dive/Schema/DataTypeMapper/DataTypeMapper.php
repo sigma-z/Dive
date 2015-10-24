@@ -45,7 +45,7 @@ class DataTypeMapper
         self::OTYPE_TIME,
         self::OTYPE_TIMESTAMP,
         self::OTYPE_BLOB,
-        //self::OTYPE_ENUM
+        self::OTYPE_ENUM
     );
 
     /** @var array */
@@ -250,8 +250,8 @@ class DataTypeMapper
 
         if (empty($recommendedDataType)
             && $defaultType
-            && (!isset($mapping['types'][$defaultType]) || $mapping['types'][$defaultType] >= $length))
-        {
+            && (!isset($mapping['types'][$defaultType]) || $mapping['types'][$defaultType] >= $length)
+        ) {
             return $defaultType;
         }
         return $recommendedDataType ?: $biggestDataType;

@@ -79,6 +79,9 @@ class Connection
     /** @var SqlLogger */
     protected $sqlLogger;
 
+    /** @var string[] */
+    private $lastInsertId = array();
+
 
     /**
      * @param   Driver\DriverInterface  $driver
@@ -229,7 +232,12 @@ class Connection
     {
         if (!$this->isConnected()) {
             $this->dispatchEvent(self::EVENT_PRE_CONNECT);
-            $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
+            try {
+                $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
+            }
+            catch (\PDOException $e) {
+                throw new ConnectionException($e->getMessage());
+            }
             $this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $encodingSql = $this->platform->getSetConnectionEncodingSql($this->encoding);
             $this->dbh->exec($encodingSql);
@@ -340,7 +348,8 @@ class Connection
 
         if (!empty($params)) {
             $stmt = $this->prepare($sql);
-            $stmt->execute($params);
+            $this->bindParameters($stmt, $params);
+            $stmt->execute();
         }
         else {
             $stmt = $this->dbh->query($sql);
@@ -353,6 +362,62 @@ class Connection
             $this->throwErrorAsException($sql, $params);
         }
         return $stmt;
+    }
+
+
+    /**
+     * @param  \PDOStatement $stmt
+     * @param  array         $params
+     * @throws ConnectionException
+     */
+    private function bindParameters(\PDOStatement $stmt, array $params)
+    {
+        if ($params) {
+            $key = key($params);
+            $isPositional = is_int($key);
+            if ($isPositional) {
+                $index = 1;
+                foreach ($params as $key => $value) {
+                    if (!is_int($key)) {
+                        throw new ConnectionException("Mixed named and positional parameters is not supported!");
+                    }
+                    $type = $this->getBindValueType($value);
+                    $stmt->bindValue($index, $value, $type);
+                    $index++;
+                }
+            }
+            else {
+                foreach ($params as $name => $value) {
+                    if (is_int($name)) {
+                        throw new ConnectionException("Mixed named and positional parameters is not supported!");
+                    }
+                    $type = $this->getBindValueType($value);
+                    $stmt->bindValue(':' . $name, $value, $type);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * @param  mixed $value
+     * @return int
+     */
+    private function getBindValueType($value)
+    {
+        switch (gettype($value)) {
+            case 'integer':
+                return \PDO::PARAM_INT;
+
+            case 'boolean':
+                return \PDO::PARAM_BOOL;
+
+            case 'NULL':
+                return \PDO::PARAM_NULL;
+
+            default:
+                return \PDO::PARAM_STR;
+        }
     }
 
 
@@ -436,6 +501,7 @@ class Connection
         $this->startSqlLogger($sql, $params);
 
         if (!empty($params)) {
+            $params = array_map(array($this, 'castToString'), $params);
             $stmt = $this->prepare($sql);
             $stmt->execute($params);
             $return = $stmt->rowCount();
@@ -453,6 +519,22 @@ class Connection
             );
         }
         return $return;
+    }
+
+
+    /**
+     * @param mixed $input
+     * @return string
+     */
+    private function castToString($input)
+    {
+        if ($input === null) {
+            return null;
+        }
+        if (is_bool($input)) {
+            return $input ? '1' : '0';
+        }
+        return (string)$input;
     }
 
 
@@ -565,7 +647,6 @@ class Connection
             }
             $columns[] = $this->quoteIdentifier($fieldName);
             if ($value instanceof Expression) {
-                /** @var Expression $value */
                 $values[] = $value->getSql();
             }
             else {
@@ -586,7 +667,11 @@ class Connection
         }
 
         $this->dispatchRowEvent(self::EVENT_PRE_INSERT, $table, $fields, $identifier);
+
+        $this->lastInsertId[$table->getTableName()] = null;
         $affectedRows = $this->exec($query, $params);
+        $this->lastInsertId[$table->getTableName()] = $this->getLastInsertId($table->getTableName());
+
         if (empty($identifier) && count($identifierFields) == 1) {
             $identifier[$identifierFields[0]] = $this->getLastInsertId($table->getTableName());
         }
@@ -604,6 +689,10 @@ class Connection
      */
     public function getLastInsertId($tableName = null)
     {
+        // TODO: see insert code and comment on insert test introduced with same commit!
+        if ($tableName && isset($this->lastInsertId[$tableName])) {
+            return $this->lastInsertId[$tableName];
+        }
         return $this->dbh->lastInsertId($tableName);
     }
 

@@ -203,6 +203,7 @@ class ReferenceMap
     {
         $referencedAlias = $this->relation->getReferencedAlias();
         if (!$this->relation->hasReferenceLoadedFor($record, $referencedAlias)) {
+            $this->unsetReferenceForOwningRecordOnUnloadedReference($record);
             return;
         }
         $referencedRecord = $this->relation->getReferenceFor($record, $referencedAlias);
@@ -222,7 +223,7 @@ class ReferenceMap
             }
             $refOid = $referencedRecord->getOid();
             if (isset($this->relatedCollections[$refOid])) {
-                $pos = $this->relatedCollections[$refOid]->key($record);
+                $pos = $this->relatedCollections[$refOid]->search($record);
                 if ($pos !== false) {
                     $this->relatedCollections[$refOid]->offsetUnset($pos);
                 }
@@ -231,6 +232,34 @@ class ReferenceMap
         else if ($owningId == $this->references[$refId]) {
             unset($this->references[$refId]);
         }
+        $owningOid = $record->getOid();
+        unset($this->owningFieldOidMapping[$owningOid]);
+    }
+
+
+    /**
+     * @param Record $record
+     */
+    private function unsetReferenceForOwningRecordOnUnloadedReference(Record $record)
+    {
+        $isOneToMany = $this->relation->isOneToMany();
+        $owningId = $record->getInternalId();
+        if ($isOneToMany) {
+            foreach ($this->references as $refId => $owningIds) {
+                $pos = array_search($owningId, $owningIds);
+                if ($pos !== false) {
+                    unset($this->references[$refId][$pos]);
+                    break;
+                }
+            }
+        }
+        else {
+            $refId = array_search($owningId, $this->references);
+            if ($refId) {
+                unset($this->references[$refId]);
+            }
+        }
+
         $owningOid = $record->getOid();
         unset($this->owningFieldOidMapping[$owningOid]);
     }
@@ -256,7 +285,12 @@ class ReferenceMap
      */
     private function setFieldMapping($owningOid, $referencedOid)
     {
-        $this->owningFieldOidMapping[$owningOid] = $referencedOid;
+        if ($referencedOid) {
+            $this->owningFieldOidMapping[$owningOid] = $referencedOid;
+        }
+        else {
+            unset($this->owningFieldOidMapping[$owningOid]);
+        }
     }
 
 
@@ -298,24 +332,6 @@ class ReferenceMap
 
 
     /**
-     * Updates field mapping for referenced record to an owning record
-     *
-     * @param Record $owningRecord
-     * @param Record $referencedRecord
-     */
-    private function updateFieldMapping(Record $owningRecord, Record $referencedRecord = null)
-    {
-        $oid = $owningRecord->getOid();
-        if ($referencedRecord && !$referencedRecord->exists()) {
-            $this->setFieldMapping($oid, $referencedRecord->getOid());
-        }
-        else {
-            $this->removeFieldMapping($oid);
-        }
-    }
-
-
-    /**
      * Sets related collection for a referenced record by a given oid
      *
      * @param string           $referencedOid
@@ -335,7 +351,9 @@ class ReferenceMap
      */
     public function getRelatedCollection($referencedOid)
     {
-        return isset($this->relatedCollections[$referencedOid]) ? $this->relatedCollections[$referencedOid] : null;
+        return isset($this->relatedCollections[$referencedOid])
+            ? $this->relatedCollections[$referencedOid]
+            : null;
     }
 
 
@@ -490,9 +508,11 @@ class ReferenceMap
             $actualRefId = $this->getOldReferencedId($owningRecord);
         }
 
+        $refOid = null;
         // unlink the field mapping of the referenced record for the old owning record
         if ($referencedRecord) {
             $this->unlinkFieldMappingForOldOwningRecord($referencedRecord);
+            $refOid = $referencedRecord->getOid();
         }
 
         if ($owningRecord) {
@@ -500,7 +520,7 @@ class ReferenceMap
             $owningField = $this->relation->getOwningField();
             $refId = $referencedRecord && $referencedRecord->exists() ? $referencedRecord->getInternalId() : null;
             $owningRecord->set($owningField, $refId);
-            $this->updateFieldMapping($owningRecord, $referencedRecord);
+            $this->setFieldMapping($owningRecord->getOid(), $refOid);
         }
 
         // unlink old reference
@@ -512,7 +532,7 @@ class ReferenceMap
             $owningId = $owningRecord ? $owningRecord->getInternalId() : null;
             $this->assignReference($referencedRecord->getInternalId(), $owningId);
             if ($owningId && $this->relation->isOneToMany()) {
-                $relatedCollection = $this->getRelatedCollection($referencedRecord->getOid());
+                $relatedCollection = $this->getRelatedCollection($refOid);
                 // TODO exception, or if not set create one??
                 if ($relatedCollection) {
                     $relatedCollection->add($owningRecord);
@@ -539,6 +559,29 @@ class ReferenceMap
      * @param string $newIdentifier
      * @param string $oldIdentifier
      * @param Record $owningRecord
+     * @throws \Dive\Table\RepositoryException
+     * @return bool
+     */
+    public function updateReferenceIfReferencedRecordIdentifierHasChanged($newIdentifier, $oldIdentifier, Record $owningRecord)
+    {
+        $owningOid = $owningRecord->getOid();
+        if ($this->hasFieldMapping($owningOid)) {
+            $referencedOid = $this->getFieldMapping($owningOid);
+            $refRepository = $this->getRefRepository($owningRecord, $this->relation->getReferencedAlias());
+            $referencedRecord = $refRepository->getByOid($referencedOid);
+            if ($referencedRecord->getIdentifierAsString() == $newIdentifier) {
+                $this->updateReferencedIdentifier($newIdentifier, $oldIdentifier);
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * @param string $newIdentifier
+     * @param string $oldIdentifier
+     * @param Record $owningRecord
      */
     public function updateOwningIdentifier($newIdentifier, $oldIdentifier, Record $owningRecord)
     {
@@ -546,9 +589,6 @@ class ReferenceMap
         if (!$this->relation->hasReferenceLoadedFor($owningRecord, $relationName)) {
             return;
         }
-
-        // unset mapping, because it is only for records, that does not exists, yet
-        unset($this->owningFieldOidMapping[$owningRecord->getOid()]);
 
         $referencedRecord = $this->relation->getReferenceFor($owningRecord, $relationName);
         if ($referencedRecord) {

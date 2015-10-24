@@ -32,13 +32,13 @@ class RecordFieldValidationTest extends TestCase
             't_datetime' => '2014-07-14 10:25:52',
             't_date' => '2014-07-14',
             't_time' => '10:25:52',
-            't_timestamp' => '1405326368',
+            't_timestamp' => '2014-07-14 23:25:52',
             't_blob' => 'hello world!',
             't_enum' => 'abc'
         );
         $rm = self::createDefaultRecordManager();
         $record = $rm->getOrCreateRecord('data_types', $fieldValues);
-        $rm->save($record)->commit();
+        $rm->scheduleSave($record)->commit();
 
         $this->assertTrue($record->exists());
     }

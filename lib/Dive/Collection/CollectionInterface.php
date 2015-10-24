@@ -63,4 +63,28 @@ interface CollectionInterface extends \Countable, \ArrayAccess, \IteratorAggrega
      */
     public function isEmpty();
 
+
+    /**
+     * @return mixed
+     */
+    public function first();
+
+
+    /**
+     * @return mixed
+     */
+    public function last();
+
+
+    /**
+     * @return mixed
+     */
+    public function next();
+
+
+    /**
+     * @return string|int
+     */
+    public function key();
+
 }

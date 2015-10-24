@@ -11,13 +11,14 @@
 namespace Dive\Test\Util;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
+use Dive\TestSuite\TestCase;
 use Dive\Util\FieldValuesGenerator;
 
 /**
  * @author Steven Nikolic <steven@nindoo.de>
  * @created 25.10.13
  */
-class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
+class FieldValuesGeneratorTest extends TestCase
 {
     /**
      * @var FieldValuesGenerator
@@ -34,21 +35,15 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @param string[]    $fieldDefinition
-     * @param string|null $expectedType
-     * @param int         $minLength
-     * @param int         $maxLength
+     * @dataProvider provideGetRandomFieldValue
      *
-     * @dataProvider provdeGetRandomFieldValue
+     * @param array $fieldDefinition
+     * @param int   $minLength
+     * @param int   $maxLength
      */
-    public function testGetRandomFieldValue(array $fieldDefinition, $expectedType, $minLength, $maxLength)
+    public function testGetRandomFieldValue(array $fieldDefinition, $minLength, $maxLength)
     {
-        if ($expectedType === null) {
-            $this->setExpectedException('\Dive\Util\UnsupportedTypeException');
-        }
-
         $actual = $this->generator->getRandomFieldValue($fieldDefinition);
-        $this->assertInternalType($expectedType, $actual);
         $length = mb_strlen($actual);
 
         if ($minLength === $maxLength) {
@@ -62,26 +57,26 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
-    public function provdeGetRandomFieldValue()
+    public function provideGetRandomFieldValue()
     {
         return array(
-            array(array('type' => DataTypeMapper::OTYPE_STRING, 'length' => '10'), 'string', 0, 10),
-            array(array('type' => DataTypeMapper::OTYPE_INTEGER), 'int', 0, 10),
-            array(array('type' => DataTypeMapper::OTYPE_DECIMAL), 'float', 0, 10),
-            array(array('type' => DataTypeMapper::OTYPE_DATETIME), 'string', 19, 19),
-            array(array('type' => 'nothing'), null, null, null),
+            array(array('type' => DataTypeMapper::OTYPE_STRING, 'length' => '10'), 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_INTEGER), 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_DECIMAL), 0, 10),
+            array(array('type' => DataTypeMapper::OTYPE_DATETIME), 19, 19),
+            array(array('type' => 'nothing'), 1, 1),
         );
     }
 
 
     /**
-     * @param array  $inputFields
+     * @dataProvider provideTypeAliases
+     *
+     * @param array $inputFields
      * @param string $type
      * @param string $aliasFunction
-     *
-     *@dataProvider provideTypeAliases
      */
     public function testTypeAliases(array $inputFields, $type, $aliasFunction)
     {
@@ -98,7 +93,7 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideTypeAliases()
     {
@@ -136,4 +131,25 @@ class FieldValuesGeneratorTest extends \PHPUnit_Framework_TestCase
             )
         );
     }
+
+
+    public function testGenerateValidFieldValues()
+    {
+        $rm = self::createDefaultRecordManager();
+        $table = $rm->getTable('data_types');
+        $fieldValues = $this->generator->getRandomRecordData(
+            $table->getFields(),
+            array(),
+            FieldValuesGenerator::MAXIMAL_WITHOUT_AUTOINCREMENT
+        );
+
+        $dataTypeMapper = $rm->getDriver()->getDataTypeMapper();
+        foreach ($fieldValues as $fieldName => $value) {
+            $field = $table->getField($fieldName);
+            $fieldValidator = $dataTypeMapper->getOrmTypeInstance($field['type']);
+            $this->assertTrue($fieldValidator->validateType($value, $field), "Field type for '$fieldName' is not valid!");
+            $this->assertTrue($fieldValidator->validateLength($value, $field), "Field length for '$fieldName' is not valid!");
+        }
+    }
+
 }

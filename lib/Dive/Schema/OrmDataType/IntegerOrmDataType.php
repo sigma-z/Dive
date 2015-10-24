@@ -15,15 +15,16 @@ namespace Dive\Schema\OrmDataType;
  */
 class IntegerOrmDataType extends OrmDataType
 {
+
     /**
+     * Validates whether the value matches the field type, or not
+     *
      * @param  mixed $value
+     * @param  array $field
      * @return bool
      */
-    public function validate($value)
+    public function validateType($value, array $field)
     {
-        if (!$this->canValueBeValidated($value)) {
-            return true;
-        }
         if (is_int($value)) {
             return true;
         }
@@ -32,4 +33,33 @@ class IntegerOrmDataType extends OrmDataType
         }
         return false;
     }
+
+
+
+    /**
+     * Validates whether the value fits to the field length, or not
+     *
+     * @param  mixed $value
+     * @param  array $field
+     * @return bool
+     */
+    public function validateLength($value, array $field)
+    {
+        if (!isset($field['length'])) {
+            return true;
+        }
+        $length = $field['length'];
+        $unsigned = isset($field['unsigned']) ? $field['unsigned'] : false;
+        $minValue = 0;
+        $maxValue = (pow(2, 8 * $length)) - 1;
+        if (!$unsigned) {
+            $maxValue = ($maxValue - 1) / 2;
+            $minValue = ($maxValue + 1) * -1;
+        }
+        if ($value >= $minValue && $value <= $maxValue) {
+            return true;
+        }
+        return false;
+    }
+
 }

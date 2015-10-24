@@ -8,10 +8,9 @@
  */
 namespace Dive\Test\Schema\OrmDataType;
 
-use Dive\Expression;
 use Dive\TestSuite\TestCase as BaseTestCase;
 use Dive\Util\CamelCase;
-use Dive\Validation\ValidatorInterface;
+use Dive\Validation\FieldValidator\FieldValidatorInterface;
 
 /**
  * Class FieldValidatorTestCase
@@ -24,7 +23,7 @@ abstract class TestCase extends BaseTestCase
     /** @var string */
     protected $type;
 
-    /** @var  ValidatorInterface */
+    /** @var FieldValidatorInterface */
     protected $validator;
 
     /** @var bool */
@@ -34,11 +33,12 @@ abstract class TestCase extends BaseTestCase
     /**
      * @dataProvider provideValidationSucceeds
      * @param mixed $value
+     * @param array $field
      */
-    public function testValidationSucceeds($value)
+    public function testValidationSucceeds($value, array $field = array())
     {
         $this->givenIHaveADataTypeOfType($this->type);
-        $this->whenIValidateValue($value);
+        $this->whenIValidateValue($value, $field);
         $this->thenValidationShouldSucceed();
     }
 
@@ -46,12 +46,27 @@ abstract class TestCase extends BaseTestCase
     /**
      * @dataProvider provideValidationFails
      * @param mixed $value
+     * @param array $field
      */
-    public function testValidationFails($value)
+    public function testValidationFails($value, array $field = array())
     {
         $this->givenIHaveADataTypeOfType($this->type);
-        $this->whenIValidateValue($value);
+        $this->whenIValidateValue($value, $field);
         $this->thenValidationShouldFail();
+    }
+
+
+    /**
+     * @dataProvider provideLengthValidation
+     * @param mixed $value
+     * @param array $field
+     * @param bool  $expected
+     */
+    public function testLengthValidation($value, array $field, $expected)
+    {
+        $this->givenIHaveADataTypeOfType($this->type);
+        $this->whenIValidateValueLength($value, $field);
+        $this->thenValidationShouldBe($expected);
     }
 
 
@@ -68,10 +83,23 @@ abstract class TestCase extends BaseTestCase
 
     /**
      * @param mixed $value
+     * @param array $field
      */
-    protected function whenIValidateValue($value)
+    protected function whenIValidateValue($value, array $field)
     {
-        $this->validationResult = $this->validator->validate($value);
+        $field['type'] = $this->type;
+        $this->validationResult = $this->validator->validateType($value, $field);
+    }
+
+
+    /**
+     * @param mixed $value
+     * @param array $field
+     */
+    private function whenIValidateValueLength($value, array $field)
+    {
+        $field['type'] = $this->type;
+        $this->validationResult = $this->validator->validateLength($value, $field);
     }
 
 
@@ -88,13 +116,11 @@ abstract class TestCase extends BaseTestCase
 
 
     /**
-     * @return array[]
+     * @param bool $expected
      */
-    public function provideValidationSucceeds()
+    private function thenValidationShouldBe($expected)
     {
-        return array(
-            'expr' => array(new Expression(''))
-        );
+        $this->assertEquals($expected, $this->validationResult);
     }
 
 }

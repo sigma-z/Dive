@@ -20,6 +20,9 @@ Call ``composer install`` from your command line to add ``Dive`` to your ``vendo
 If you don't know how Composer works, please check out
 their [Getting Started](http://getcomposer.org/doc/00-intro.md) to set up.
 
+Dive requires the [Symfony EventDispatcher](https://github.com/symfony/EventDispatcher).
+
+
 Configure database connection
 ---
 
@@ -38,13 +41,14 @@ To import the schema from an existing database you can execute a console command
 $> php ./cli/dive.php importSchema /path/to/schema.php
 ```
 
-See also [Section Command importSchema](#command-importschema)
+See also [Section Command importSchema](#console-dive-commands-command-importschema)
 
 
 Creating record classes (Models)
 ---
 
-To generate record classes as the model layer you can run the console command [generateModels](#command-generatemodels).
+To generate record classes as the model layer you can run
+the console command [generateModels](#console-dive-commands-command-generatemodels).
 
 ```bash
 $> php ./cli/dive.php generateModels /path/to/schema.php /path/to/models-dir
@@ -79,59 +83,159 @@ This is a short overview of the Dive schema definition.
 
 ```php
 <?php
-return array(
-    'tables' => array(
-        'table_name' => array(
-            'fields' => array(
-                'id_field' => array(
-                    'primary'   => true,
-                    'type' => 'integer'
-                ),
-                /* and more */
-            ),
-            'behaviours' => array(),
-            'validators' => array()
-        ),
-        /* and more */
-    ),
-    'views' => array(
-        'view_name' => array(
-            'fields' => array(
-                'id_field' => array(
-                    'type' => 'integer'
-                ),
-                /* and more */
-            )
-        ),
-        /* and more */
-    ),
-    'relations' => array(
-        'table_with_fk.fk_field' => array(
-            'owningAlias' => 'TableWithFk',
-            'owningField' => 'fk_field',
-            'owningTable' => 'table_with_fk',
-            'refAlias' => 'TableRef',
-            'refField' => 'id',
-            'refTable' => 'table_ref',
-            'type' => '1-m',
-            'onUpdate' => 'CASCADE',
-            'onDelete' => 'CASCADE'
-        ),
-        /* and more */
-    ),
+return [
+    'tables' => [
+        // see table/view definition below
+    ],
+    'views' => [
+        // see table/view definition below
+    ],
+    'relations' => [
+        // see relation definition below 
+    ],
     'baseRecordClass' => '\\Your\\Custom\\BaseRecordClass',
     'baseTableClass' => '\\Your\\Custom\\BaseTableClass'
-);
+];
 ```
 
-Tables and Views
+By defining ``baseRecordClass`` every record class will extend from that class.
+By defining ``baseTableClass`` every table class will extend from that class.
+
+
+Table / view definition
 ---
 
-Tables were defined by the key ``tables``, view by the key ``views``.
+This is an example for a table/view definition.
 
-Their fields is the sub-key ``fields``.
 
-More about fields and their data types see [next section](#field-types-vs-database-column-types).
+```php
+<?php
+return [
+    'tables' => [
+        'table_name' => [
+            'fields' => [
+                // see field definition
+            ],
+            'behaviors' => [],
+            'validators' => []
+        ],
+        // and more ...
+    ],
+    'views' => [
+        'view_name' => [
+            'fields' => [
+                // see field definition
+            ]
+        ],
+        // and more ...
+    ],
+    // and more ...
+];
+```
+
+Tables were defined by the key ``tables``, view by the key ``views``. Every entry uses its name as key in the definition.
+
+A table/view definition must define its [fields](#schema-field-definition) with the sub-key ``fields``.
+
+A table can define [indexes](#schema-index-definition) using the sub-key ``indexes``.
+
+Table definitions can also define [validators](#schema-validators) and [behaviors](#schema-behaviors).
+
+To define a special record class or table class for a table use the keys ``recordClass`` and ``tableClass``.
+
+
+Field definition
+---
+
+Table and view fields are indexed by its names. 
+
+```php
+<?php
+// part of table/view definition
+'fields' => [
+    'id_field' => [
+        'primary'   => true,
+        'type' => 'integer'
+    ],
+    // and more ...
+]
+```
+
+Every field must define at least its [field types](#schema-field-types-vs-database-column-types).
+
+
+Relation definition
+---
+
+A table relation is defined by the field, that owns the foreign key reference using the sub-key ``foreign``.
+
+The sub-key ``foreign`` references to the column of referenced table. In this example the table ``article`` has a field ``author_id``
+that references table ``author`` and field ``id``.
+
+The relation details are defined in the key ``relations``. Supported relation types are ``1-m`` as One-to-Many relation,
+and ``1-1`` as One-to-One relation.
+
+``owningAlias`` is used to define a left join in a query and refers to the table that owns the foreign key column, here ``author_id``.
+``refAlias`` is used to define a left join in a query to refer to the table on the other side, in this example ``author``. 
+
+``onUpdate`` and ``onDelete`` defines constraints for update and delete operations. __Note__: These constraints are implemented as an
+abstract layer - database independently - by the ORM.
+
+
+```php
+<?php
+return [
+    'tables' => [
+        'author' => [
+            'fields' => [
+                'id' => [
+                    'primary'   => true,
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'autoIncrement' => true
+                ],
+                'name' => [
+                    'type'      => 'string',
+                    'length'    => 64,
+                    'nullable'  => true
+                ]
+            ]
+        ],
+        'article' => [
+            'fields' => [
+                'id'    => [
+                    'primary'   => true,
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'autoIncrement' => true
+                ],
+                'author_id' => [
+                    'type'      => 'integer',
+                    'length'    => 10,
+                    'unsigned'  => true,
+                    'foreign'   => 'author.id'
+                ],
+                // and more fields ... 
+            ]
+        ]
+    ],
+    'relations' => [
+        'article.author_id' => [
+            'owningAlias' => 'Article',
+            'owningField' => 'author_id',
+            'owningTable' => 'article',
+            'refAlias' => 'Author',
+            'refField' => 'id',
+            'refTable' => 'author',
+            'type' => '1-m',
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'RESTRICT'
+        ]
+    ]
+]
+```
 
 
 Field types vs database column types
@@ -245,25 +349,85 @@ Attributes applicable:
  - (array)``values`` - Accepted values
 
 
-Foreign key relations
----------------------
-
-Indexes
+Index definition
 -------
 
-Behaviours
-----------
+Indexes can be defined at the table definition level by the sub-key ``indexes`` using their database names as key. 
+
+By the default there two index types: ``UNIQUE`` and ``INDEX``, defined by ``\Dive\Platform\PlatformInterface``.
+MySQL (``Dive\Platform\MysqlPlatform``) defines additionally the ``FULLTEXT`` index.
+
+
+```php
+'indexes' => [
+    'UQ_name' => [
+        'type' => 'unique',
+        'fields' => ['name']
+    ],
+    'UQ_composite' => [
+        'type' => 'unique',
+        'fields' => ['field1', 'field2'],
+        'nullConstrained' => true
+    ],
+    'FK_author_id' => [
+        'type' => 'index',
+        'fields' => ['author_id']
+    ],
+    'FT_description' => [
+        'type' => 'fulltext',
+        'fields' => ['description']
+    ],
+    // and possibly more ...
+],
+```
+
+
+### Null constrained unique constraints
+
+__NOTE__: The unique constraint that referencing nullable fields are differently implemented in database management systems.
+Check out the different [unique constraint handlings](http://troels.arvin.dk/db/rdbms/#constraints-unique) by Troels Arvin.
+
+Dive tried to abstract the different handling for those databases that follows the standard including the ``NULL``s allowed feature.
+By defining the sub-key ``nullConstrained`` with value ``true`` a unique constraint will be violated 
+if an update or save would cause a data row the same characteristics in table, see overview below. 
+
+The unique constraint for the fields ``field1`` and ``field2`` will not be violated by adding the dataset with ID: 2 if 
+``nullConstrained`` is not defined (this is the default behavior) or is ``false``.
+
+<table>
+<tr>
+  <td>ID</td>
+  <td>field1</td>
+  <td>field2</td>
+</tr>
+<tr>
+  <td>1</td>
+  <td>abc</td>
+  <td>NULL</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td>abc</td>
+  <td>NULL</td>
+</tr>
+</table>
+
+
+
+Behaviors
+---------
+
 
 Validators
 ----------
 
 
 Console
-===
+=======
 
 Common tasks, like schema imports or model generation, can be executed by the console functionality of Dive.
 
-Prints help for usage of the Dive concole:
+Prints help for usage of the Dive console:
 
 ```bash
 $> php ./cli/dive.php help
@@ -275,7 +439,7 @@ Prints help for usage of specified command:
 $> php ./cli/dive.php help <command name>
 ```
 
-If you like, you can write your own commands, see [Creating custom commands](#creating-custom-commands)
+If you like, you can write your own commands, see [Creating custom commands](#console-creating-custom-commands)
 
 
 Dive commands
@@ -351,20 +515,26 @@ class SampleCommand extends Command
 }
 ```
 
-Relations
-===
 
 Working with records
 ===
 
+
 Validation
+---
+
+
+Behaviors
+---
+
+
+Working with queries
 ===
 
-Behaviours
-===
 
 Migration
 ===
+
 
 Data type mapper
 ===

@@ -231,9 +231,6 @@ abstract class SchemaImporter implements SchemaImporterInterface
             return $relation;
         }
 
-//        $relation['owningAlias'] = CamelCase::toCamelCase($relation['refTable']);
-//        $relation['refAlias'] = CamelCase::toCamelCase($relation['owningTable']);
-
         $relation['owningAlias'] = CamelCase::toCamelCase($relation['owningTable']);
         $relation['refAlias'] = CamelCase::toCamelCase($relation['refTable']);
 
@@ -315,8 +312,9 @@ abstract class SchemaImporter implements SchemaImporterInterface
         // get length by longest value entry
         if (!empty($values)) {
             foreach ($values as $value) {
-                if ($length < strlen($value)) {
-                    $length = strlen($value);
+                $valueStringLength = strlen($value);
+                if ($length < $valueStringLength) {
+                    $length = $valueStringLength;
                 }
             }
             $definition['values'] = $values;
@@ -324,6 +322,7 @@ abstract class SchemaImporter implements SchemaImporterInterface
         if ($length !== null) {
             $definition['length'] = (int)$length;
         }
+        ksort($definition);
 
         return $definition;
     }

@@ -15,6 +15,9 @@ namespace Dive\Connection\Driver;
  */
 class DriverFactory
 {
+    /** @var DriverInterface[] */
+    private static $registeredDrivers = array();
+
 
     /**
      * @param  string $scheme
@@ -23,6 +26,9 @@ class DriverFactory
      */
     public static function createByScheme($scheme)
     {
+        if (isset(self::$registeredDrivers[$scheme])) {
+            return self::$registeredDrivers[$scheme];
+        }
         $className = '\\Dive\\Connection\Driver\\' . ucfirst($scheme) . 'Driver';
         if (class_exists($className)) {
             return new $className;
@@ -46,4 +52,13 @@ class DriverFactory
         return self::createByScheme($scheme);
     }
 
+
+    /**
+     * @param string          $scheme
+     * @param DriverInterface $driver
+     */
+    public static function registerDriverForScheme($scheme, DriverInterface $driver)
+    {
+        self::$registeredDrivers[$scheme] = $driver;
+    }
 }

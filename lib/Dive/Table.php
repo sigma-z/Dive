@@ -152,10 +152,14 @@ class Table
      */
     public function createRecord(array $data = array(), $exists = false)
     {
-        /** @var Record $record */
+        /** @var ConcreteRecord $record */
+        if ($this->recordClass === '\Dive\\Record') {
+            $this->recordClass = '\Dive\\ConcreteRecord';
+        }
         $record = new $this->recordClass($this, $data, $exists);
         $this->repository->add($record);
-        return $record;
+        $model = new Model($record);
+        return $model;
     }
 
 

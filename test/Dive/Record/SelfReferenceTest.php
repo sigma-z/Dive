@@ -103,6 +103,6 @@ class SelfReferenceTest extends TestCase
 
     private function thenRecordHasSelfReference()
     {
-        $this->assertEquals($this->record, $this->record->Parent);
+        $this->assertEquals($this->record->getRecord(), $this->record->Parent);
     }
 }

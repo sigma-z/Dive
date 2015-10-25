@@ -9,6 +9,7 @@
 
 namespace Dive\Collection;
 
+use Dive\Model;
 use Dive\Relation\Relation;
 use Dive\Record;
 use Dive\Table;
@@ -66,6 +67,9 @@ class RecordCollection extends Collection
      */
     public function has($item)
     {
+        if ($item instanceof Model) {
+            $item = $item->getRecord();
+        }
         return in_array($item, $this->items, true);
     }
 
@@ -78,6 +82,9 @@ class RecordCollection extends Collection
      */
     public function add($item, $id = null)
     {
+        if ($item instanceof Model) {
+            $item = $item->getRecord();
+        }
         $this->throwExceptionIfRecordDoesNotMatchTable($item);
 
         // TODO throw exception record already added??
@@ -148,6 +155,10 @@ class RecordCollection extends Collection
      */
     public function unlinkRecord(Record $record)
     {
+        if ($record instanceof Model) {
+            $record = $record->getRecord();
+        }
+
         $key = $this->search($record);
         if ($key === false) {
             return false;
@@ -179,6 +190,10 @@ class RecordCollection extends Collection
      */
     public function deleteRecord(Record $record)
     {
+        if ($record instanceof Model) {
+            $record = $record->getRecord();
+        }
+
         if (!$this->has($record)) {
             $id = $record->getInternalId();
             throw new CollectionException("$id is not in collection!");

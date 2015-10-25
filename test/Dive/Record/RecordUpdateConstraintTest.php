@@ -10,6 +10,7 @@ namespace Dive\Test\Record;
 
 use Dive\Collection\RecordCollection;
 use Dive\Event\EventDispatcher;
+use Dive\Model;
 use Dive\Platform\PlatformInterface;
 use Dive\Record\FieldValueChangeEvent;
 use Dive\RecordManager;
@@ -242,11 +243,15 @@ class RecordUpdateConstraintTest extends ConstraintTestCase
 
 
     /**
-     * @param Record $record
-     * @param array  $visited
+     * @param \Dive\Record $record
+     * @param array        $visited
      */
-    private function modifyRecordGraphConstraintFields(Record $record, array &$visited = array())
+    private function modifyRecordGraphConstraintFields(\Dive\Record $record, array &$visited = array())
     {
+        if ($record instanceof Model) {
+            $record = $record->getRecord();
+        }
+
         $oid = $record->getOid();
         if (in_array($oid, $visited)) {
             return;

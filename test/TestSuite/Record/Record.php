@@ -9,11 +9,13 @@
 
 namespace Dive\TestSuite\Record;
 
+use Dive\ConcreteRecord;
+
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 17.12.13
  */
-class Record extends \Dive\Record
+class Record extends ConcreteRecord
 {
 
     /**

@@ -481,12 +481,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @param Record          $record
-     * @param string          $relationName
-     * @param Record|Record[] $otherRecords
-     * @param string          $message
+     * @param \Dive\Record                $record
+     * @param string                      $relationName
+     * @param \Dive\Record|\Dive\Record[] $otherRecords
+     * @param string                      $message
      */
-    protected function assertRelationReferences(Record $record, $relationName, $otherRecords, $message = '')
+    protected function assertRelationReferences(\Dive\Record $record, $relationName, $otherRecords, $message = '')
     {
         if (!is_array($otherRecords)) {
             $otherRecords = array($otherRecords);
@@ -501,12 +501,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
 
     /**
-     * @param Record          $record
-     * @param string          $relationName
-     * @param Record|Record[] $otherRecords
-     * @param string          $message
+     * @param \Dive\Record                $record
+     * @param string                      $relationName
+     * @param \Dive\Record|\Dive\Record[] $otherRecords
+     * @param string                      $message
      */
-    protected function assertNoRelationReferences(Record $record, $relationName, $otherRecords, $message = '')
+    protected function assertNoRelationReferences(\Dive\Record $record, $relationName, $otherRecords, $message = '')
     {
         if (!is_array($otherRecords)) {
             $otherRecords = array($otherRecords);

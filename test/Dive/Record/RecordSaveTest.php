@@ -407,7 +407,10 @@ class RecordSaveTest extends TestCase
         if ($relation->isOneToMany()) {
             $recordCollection = $referenceMap->getRelatedCollection($referencedRecord->getOid());
             $this->assertNotNull($recordCollection);
-            $this->assertTrue($recordCollection->has($owningRecord));
+            $this->assertTrue(
+                $recordCollection->has($owningRecord),
+                "Expected '$owningRecord' is referenced in relation '" . $relation->getReferencedAlias() . "'"
+            );
         }
     }
 }

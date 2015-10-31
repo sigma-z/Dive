@@ -322,13 +322,6 @@ type: ``time``
 Time field type has the format: ``hh:mm:ss``.
 
 
-### Timestamp
-
-type: ``timestamp``
-
-Represents a unix timestamp.
-
-
 ### Blob
 
 type: ``blob``

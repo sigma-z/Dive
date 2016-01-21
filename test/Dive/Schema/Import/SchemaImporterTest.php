@@ -44,9 +44,10 @@ class SchemaImporterTest extends TestCase
     }
 
 
-
     /**
      * @dataProvider provideGetTableNames
+     * @param array $database
+     * @param array $expectedArray
      */
     public function testGetTableNames(array $database, array $expectedArray)
     {
@@ -65,7 +66,7 @@ class SchemaImporterTest extends TestCase
             'user'
         );
 
-        $actual = $importer->getTableNames(true);
+        $actual = $importer->getTableNames();
         sort($actual);
         $this->assertEquals($expected, $actual);
     }
@@ -91,6 +92,8 @@ class SchemaImporterTest extends TestCase
 
     /**
      * @dataProvider provideGetTableFields
+     * @param array $database
+     * @param array $expectedArray
      */
     public function testGetTableFields(array $database, array $expectedArray)
     {
@@ -136,11 +139,13 @@ class SchemaImporterTest extends TestCase
                     ),
                     'username'  => array(
                         'type'      => 'string',
-                        'length'    => 64
+                        'length'    => 64,
+                        'collation' => 'utf8_general_ci'
                     ),
                     'password'  => array(
                         'type'      => 'string',
-                        'length'    => 32
+                        'length'    => 32,
+                        'collation' => 'utf8_general_ci'
                     )
                 )
             )

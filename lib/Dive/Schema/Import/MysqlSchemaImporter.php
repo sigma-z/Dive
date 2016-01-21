@@ -56,7 +56,7 @@ class MysqlSchemaImporter extends SchemaImporter
     private function getFields($tableName)
     {
         $fields = array();
-        $dbFields = $this->conn->query('SHOW FIELDS FROM ' . $this->conn->quoteIdentifier($tableName));
+        $dbFields = $this->conn->query('SHOW FULL FIELDS FROM ' . $this->conn->quoteIdentifier($tableName));
         foreach ($dbFields as $fieldData) {
             $fieldDefinition = $this->parseDbType($fieldData['Type']);
 
@@ -64,6 +64,7 @@ class MysqlSchemaImporter extends SchemaImporter
             if ($fieldData['Null'] == 'YES')                $fieldDefinition['nullable'] = true;
             if ($fieldData['Default'] !== null)             $fieldDefinition['default'] = $fieldData['Default'];
             if ($fieldData['Extra'] == 'auto_increment')    $fieldDefinition['autoIncrement'] = true;
+            if ($fieldData['Collation'] !== null)           $fieldDefinition['collation'] = $fieldData['Collation'];
 
             $fields[$fieldData['Field']] = $fieldDefinition;
         }

@@ -140,12 +140,12 @@ class SchemaImporterTest extends TestCase
                     'username'  => array(
                         'type'      => 'string',
                         'length'    => 64,
-                        'collation' => 'utf8_general_ci'
+                        'collation' => 'utf8_unicode_ci'
                     ),
                     'password'  => array(
                         'type'      => 'string',
                         'length'    => 32,
-                        'collation' => 'utf8_general_ci'
+                        'collation' => 'utf8_unicode_ci'
                     )
                 )
             )

@@ -157,6 +157,9 @@ class SchemaImporterTest extends TestCase
 
     /**
      * @dataProvider provideGetTableIndexes
+     * @param array  $database
+     * @param string $tableName
+     * @param array  $expectedArray
      */
     public function testGetTableIndexes(array $database, $tableName, array $expectedArray)
     {

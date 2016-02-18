@@ -38,3 +38,6 @@ install:
 
 before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -e 'create database dive;'; fi
+
+script:
+  - vendor/bin/phpunit

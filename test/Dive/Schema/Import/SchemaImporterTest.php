@@ -332,6 +332,8 @@ class SchemaImporterTest extends TestCase
 
     /**
      * @dataProvider provideGetViewFields
+     * @param array $database
+     * @param array $expectedArray
      */
     public function testGetViewFields(array $database, array $expectedArray)
     {
@@ -376,6 +378,9 @@ class SchemaImporterTest extends TestCase
                         'type' => 'string',
                         'length' => 255
                     ),
+                    'user_id' => array(
+                        'type' => 'integer',
+                    ),
                     'username' => array(
                         'type' => 'string',
                         'length' => 64
@@ -401,6 +406,9 @@ class SchemaImporterTest extends TestCase
                     'email' => array(
                         'type' => 'string',
                         'length' => 255
+                    ),
+                    'user_id' => array(
+                        'type' => 'integer',
                     ),
                     'username' => array(
                         'type' => 'string',

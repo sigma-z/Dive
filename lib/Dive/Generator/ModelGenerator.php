@@ -88,7 +88,7 @@ class ModelGenerator
     public function getNeededModels(Schema $schema)
     {
         $baseRecordClass = $schema->getRecordBaseClass();
-        $tableNames = $schema->getTableNames();
+        $tableNames = array_merge($schema->getTableNames(), $schema->getViewNames());
         foreach ($tableNames as $key => $tableName) {
             $recordClass = $schema->getRecordClass($tableName);
             if ($recordClass == $baseRecordClass) {

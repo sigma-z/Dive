@@ -98,6 +98,10 @@ class UnitOfWork
      */
     public function scheduleSave(Record $record, $resetVisited = false)
     {
+        if ($record->getTable()->isView()) {
+            return;
+        }
+
         $oid = $record->getOid();
 
         if ($resetVisited) {
@@ -126,6 +130,10 @@ class UnitOfWork
      */
     public function scheduleDelete(Record $record)
     {
+        if ($record->getTable()->isView()) {
+            return;
+        }
+
         if (!$record->exists()) {
             return;
         }

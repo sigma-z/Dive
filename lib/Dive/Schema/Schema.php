@@ -20,6 +20,7 @@ class Schema
 
     const DEFAULT_BASE_RECORD_CLASS = '\\Dive\\Record';
     const DEFAULT_BASE_TABLE_CLASS = '\\Dive\\Table';
+    const DEFAULT_BASE_VIEW_CLASS = '\\Dive\\View';
 
     /** @var array */
     private $definition = array();
@@ -29,6 +30,9 @@ class Schema
 
     /** @var string */
     protected $tableBaseClass = self::DEFAULT_BASE_TABLE_CLASS;
+
+    /** @var string */
+    protected $viewBaseClass = self::DEFAULT_BASE_VIEW_CLASS;
 
     /** @var array */
     protected $tableSchemes = array();
@@ -111,11 +115,18 @@ class Schema
         if (isset($this->tableSchemes[$tableName])) {
             return;
         }
-        if (!isset($this->definition['tables'][$tableName])) {
-            throw new SchemaException("Table $tableName is not defined in schema!");
+        if (isset($this->definition['tables'][$tableName])) {
+            $definition = $this->definition['tables'][$tableName];
+            $this->addTableByDefinition($tableName, $definition);
+            return;
         }
-        $definition = $this->definition['tables'][$tableName];
-        $this->addTableByDefinition($tableName, $definition);
+
+        // fallback, if it's not a table, then it must be a view
+        $this->initView($tableName);
+
+        if (!isset($this->viewSchemes[$tableName])) {
+            throw new SchemaException("Table/View '$tableName' is not defined in schema!");
+        }
     }
 
 
@@ -128,11 +139,10 @@ class Schema
         if (isset($this->viewSchemes[$viewName])) {
             return;
         }
-        if (!isset($this->definition['views'][$viewName])) {
-            throw new SchemaException("View $viewName is not defined in schema!");
+        if (isset($this->definition['views'][$viewName])) {
+            $definition = $this->definition['views'][$viewName];
+            $this->addViewByDefinition($viewName, $definition);
         }
-        $definition = $this->definition['views'][$viewName];
-        $this->addViewByDefinition($viewName, $definition);
     }
 
 
@@ -211,6 +221,29 @@ class Schema
     public function getTableBaseClass()
     {
         return $this->tableBaseClass;
+    }
+
+
+
+    /**
+     * Sets view base class
+     *
+     * @param string $viewBaseClass
+     */
+    public function setViewBaseClass($viewBaseClass)
+    {
+        $this->viewBaseClass = $viewBaseClass;
+    }
+
+
+    /**
+     * Gets view base class
+     *
+     * @return string
+     */
+    public function getViewBaseClass()
+    {
+        return $this->viewBaseClass;
     }
 
 
@@ -400,16 +433,41 @@ class Schema
     /**
      * Gets record class
      *
-     * @param  string $name
+     * @param string $name
      * @return string
+     * @throws SchemaException
      */
     public function getRecordClass($name)
     {
         $this->initTable($name);
-        if (empty($this->tableSchemes[$name]['recordClass'])) {
+        $schemeTarget = $this->isDefinedAsView($name)
+            ? $this->viewSchemes
+            : $this->tableSchemes;
+        return $this->getRecordClassForTableOrView($name, $schemeTarget);
+    }
+
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+    private function isDefinedAsView($name)
+    {
+        return isset($this->definition['views'][$name]);
+    }
+
+
+    /**
+     * @param string $name
+     * @param array  $tableOrViewScheme
+     * @return string
+     */
+    private function getRecordClassForTableOrView($name, array $tableOrViewScheme)
+    {
+        if (empty($tableOrViewScheme[$name]['recordClass'])) {
             return $this->recordBaseClass;
         }
-        return $this->tableSchemes[$name]['recordClass'];
+        return $tableOrViewScheme[$name]['recordClass'];
     }
 
 
@@ -582,10 +640,11 @@ class Schema
      * @param  string $name
      * @param  array  $fields
      * @param  string $sqlStatement
-     * @throws SchemaException
+     * @param  string $recordClass
      * @return $this
+     * @throws SchemaException
      */
-    public function addView($name, array $fields, $sqlStatement)
+    public function addView($name, array $fields, $sqlStatement, $recordClass)
     {
         if ($this->validationEnabled) {
             foreach ($fields as $fieldName => $definition) {
@@ -597,6 +656,7 @@ class Schema
         }
         $this->viewSchemes[$name] = array(
             'fields' => $fields,
+            'recordClass' => $recordClass,
             'sqlStatement' => $sqlStatement
         );
         return $this;
@@ -614,7 +674,8 @@ class Schema
     {
         $fields         = isset($definition['fields'])          ? $definition['fields']         : array();
         $sqlStatement   = isset($definition['sqlStatement'])    ? $definition['sqlStatement']   : '';
-        $this->addView($name, $fields, $sqlStatement);
+        $recordClass    = isset($definition['recordClass'])     ? $definition['recordClass']    : '';
+        $this->addView($name, $fields, $sqlStatement, $recordClass);
         return $this;
     }
 
@@ -683,6 +744,30 @@ class Schema
             throw new SchemaException("Missing sql statement for view '$viewName'!");
         }
         return $this->viewSchemes[$viewName]['sqlStatement'];
+    }
+
+
+    /**
+     * Gets view class
+     *
+     * @param   string  $name
+     * @param   bool    $autoLoad
+     * @return  string
+     */
+    public function getViewClass($name, $autoLoad = false)
+    {
+        $this->initView($name);
+        $recordClass = $this->getRecordClassForTableOrView($name, $this->viewSchemes);
+        if ($recordClass == $this->getRecordBaseClass()) {
+            $viewClass = $this->getViewBaseClass();
+        }
+        else {
+            $viewClass = $recordClass . 'View';
+            if ($autoLoad && !class_exists($viewClass)) {
+                $viewClass = $this->getViewBaseClass();
+            }
+        }
+        return $viewClass;
     }
 
 

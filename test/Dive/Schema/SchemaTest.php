@@ -9,16 +9,15 @@
 
 namespace Dive\Test\Schema;
 
-/**
- * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
- * Date: 01.11.12
- */
-
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
 use Dive\TestSuite\TestCase;
 
+/**
+ * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
+ * Date: 01.11.12
+ */
 class SchemaTest extends TestCase
 {
 
@@ -59,6 +58,11 @@ class SchemaTest extends TestCase
 
     /**
      * @dataProvider provideGetTableClassWithoutAutoload
+     * @param string $tableBaseClass
+     * @param string $recordBaseClass
+     * @param string $recordClass
+     * @param string $expectedRecordClass
+     * @param string $expectedTableClass
      */
     public function testGetTableClassWithoutAutoload(
         $tableBaseClass, $recordBaseClass, $recordClass, $expectedRecordClass, $expectedTableClass
@@ -83,7 +87,7 @@ class SchemaTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetTableClassWithoutAutoload()
     {
@@ -222,10 +226,12 @@ class SchemaTest extends TestCase
 
     /**
      * @dataProvider provideGetTableRelations
+     * @param $tableName
+     * @param $expected
      */
-    public function testGetTableRelations($table, $expected)
+    public function testGetTableRelations($tableName, $expected)
     {
-        $tableRelations = $this->schema->getTableRelations($table);
+        $tableRelations = $this->schema->getTableRelations($tableName);
         $actual = array(
             'owning' => array_keys($tableRelations['owning']),
             'referenced' => array_keys($tableRelations['referenced'])
@@ -237,49 +243,49 @@ class SchemaTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideGetTableRelations()
     {
         $testCases = array();
 
         $testCases[] = array(
-            'table' => 'author',
+            'tableName' => 'author',
             'expected' => array(
                 'owning' => array('author.editor_id', 'author.user_id'),
                 'referenced' => array('article.author_id', 'author.editor_id')
             )
         );
         $testCases[] = array(
-            'table' => 'user',
+            'tableName' => 'user',
             'expected' => array(
                 'owning' => array(),
-                'referenced' => array('author.user_id', 'comment.user_id')
+                'referenced' => array('author.user_id', 'author_user_view.user_id', 'comment.user_id')
             )
         );
         $testCases[] = array(
-            'table' => 'article',
+            'tableName' => 'article',
             'expected' => array(
                 'owning' => array('article.author_id'),
                 'referenced' => array('article2tag.article_id', 'comment.article_id')
             )
         );
         $testCases[] = array(
-            'table' => 'comment',
+            'tableName' => 'comment',
             'expected' => array(
                 'owning' => array('comment.article_id', 'comment.comment_id', 'comment.user_id'),
                 'referenced' => array('comment.comment_id')
             )
         );
         $testCases[] = array(
-            'table' => 'tag',
+            'tableName' => 'tag',
             'expected' => array(
                 'owning' => array(),
                 'referenced' => array('article2tag.tag_id')
             )
         );
         $testCases[] = array(
-            'table' => 'article2tag',
+            'tableName' => 'article2tag',
             'expected' => array(
                 'owning' => array('article2tag.article_id', 'article2tag.tag_id'),
                 'referenced' => array()
@@ -293,6 +299,8 @@ class SchemaTest extends TestCase
     /**
      * @expectedException \Dive\Schema\SchemaException
      * @dataProvider provideAddRelationThrowsInvalidRelationException
+     * @param string $missingKey
+     * @throws \Dive\Schema\SchemaException
      */
     public function testAddRelationThrowsInvalidRelationException($missingKey)
     {
@@ -311,7 +319,7 @@ class SchemaTest extends TestCase
 
 
     /**
-     * @return array
+     * @return array[]
      */
     public function provideAddRelationThrowsInvalidRelationException()
     {

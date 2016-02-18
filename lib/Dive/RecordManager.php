@@ -124,6 +124,16 @@ class RecordManager
 
 
     /**
+     * @param string $name
+     * @return Table
+     */
+    public function getView($name)
+    {
+        return $this->getTable($name);
+    }
+
+
+    /**
      * @param  string $name
      * @return \Dive\Table\Repository
      */
@@ -152,23 +162,29 @@ class RecordManager
     private function initTable($tableName)
     {
         if (!isset($this->tables[$tableName])) {
-            if (!$this->schema->hasTable($tableName)) {
-                throw new SchemaException("Table '$tableName' not found!");
+            if ($this->schema->hasTable($tableName)) {
+                $this->tables[$tableName] = $this->createTable($tableName);
+                return;
             }
 
-            $this->tables[$tableName] = $this->createTable($tableName);
+            if ($this->schema->hasView($tableName)) {
+                $this->tables[$tableName] = $this->createView($tableName);
+                return;
+            }
+
+            throw new SchemaException("Table/View '$tableName' not found!");
         }
     }
 
 
     /**
      * @param  string $tableName
-     * @param  bool   $autoLoadClass
-     * @return Table
+     * @return \Dive\Table
+     * @throws SchemaException
      */
-    private function createTable($tableName, $autoLoadClass = true)
+    private function createTable($tableName)
     {
-        $tableClass = $this->schema->getTableClass($tableName, $autoLoadClass);
+        $tableClass = $this->schema->getTableClass($tableName, true);
         $recordClass = $this->schema->getRecordClass($tableName);
         $fields = $this->schema->getTableFields($tableName);
 
@@ -179,6 +195,24 @@ class RecordManager
         $this->initTableBehaviors($tableName);
 
         return new $tableClass($this, $tableName, $recordClass, $fields, $relations, $indexes);
+    }
+
+
+    /**
+     * @param string $viewName
+     * @return \Dive\Table
+     * @throws SchemaException
+     */
+    private function createView($viewName)
+    {
+        $viewClass = $this->schema->getViewClass($viewName, true);
+        $recordClass = $this->schema->getRecordClass($viewName);
+        $fields = $this->schema->getViewFields($viewName);
+
+        $relationsData = $this->schema->getTableRelations($viewName);
+        $relations = $this->instantiateRelations($relationsData);
+
+        return new $viewClass($this, $viewName, $recordClass, $fields, $relations);
     }
 
 

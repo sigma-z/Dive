@@ -300,6 +300,7 @@ class ModelGeneratorTest extends TestCase
                     '\Dive\TestSuite\Model\Article',
                     '\Dive\TestSuite\Model\Article2tag',
                     '\Dive\TestSuite\Model\Author',
+                    '\Dive\TestSuite\Model\AuthorUserView',
                     '\Dive\TestSuite\Model\Comment',
                     '\Dive\TestSuite\Model\Tag',
                     '\Dive\TestSuite\Model\User',

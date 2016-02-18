@@ -121,8 +121,14 @@ class TableTest extends TestCase
 
         $testCases[] = array(
             'tableName' => 'user',
-            'owning' => array('Author', 'Comment'),
+            'owning' => array('Author', 'AuthorUserView', 'Comment'),
             'referenced' => array()
+        );
+
+        $testCases[] = array(
+            'tableName' => 'author_user_view',
+            'owning' => array(),
+            'referenced' => array('User')
         );
 
         return $testCases;
@@ -130,8 +136,8 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
      * @dataProvider provideDatabaseAwareTestCases
+     * @param string $database
      */
     public function testToString($database)
     {
@@ -142,11 +148,38 @@ class TableTest extends TestCase
     }
 
 
-    public function testCreateRecord()
+    /**
+     * @dataProvider provideCreateRecord
+     * @param string $tableName
+     * @param string $expectedRecordClass
+     * @param string $expectedTableClass
+     */
+    public function testCreateRecord($tableName, $expectedRecordClass, $expectedTableClass)
     {
         $rm = self::createDefaultRecordManager();
-        $table = $rm->getTable('user');
-        $this->assertInstanceOf('\Dive\TestSuite\Model\User', $table->createRecord());
+        $table = $rm->getTable($tableName);
+        $this->assertInstanceOf($expectedTableClass, $table);
+        $this->assertInstanceOf($expectedRecordClass, $table->createRecord());
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideCreateRecord()
+    {
+        return array(
+            array(
+                'tableName' => 'user',
+                'expectedRecordClass' => '\Dive\TestSuite\Model\User',
+                'expectedTableClass' => '\Dive\Table'
+            ),
+            array(
+                'tableName' => 'author_user_view',
+                'expectedRecordClass' => '\Dive\TestSuite\Model\AuthorUserView',
+                'expectedTableClass' => '\Dive\View'
+            ),
+        );
     }
 
 

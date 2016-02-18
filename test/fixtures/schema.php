@@ -484,6 +484,17 @@ return array(
             'onUpdate' => 'CASCADE',
             'onDelete' => 'SET NULL'
         ),
+        'author_user_view.user_id' => array(
+            'owningAlias' => 'AuthorUserView',
+            'owningField' => 'user_id',
+            'owningTable' => 'author_user_view',
+            'refAlias' => 'User',
+            'refField' => 'id',
+            'refTable' => 'user',
+            'type' => '1-1',
+            'onUpdate' => 'CASCADE',
+            'onDelete' => 'CASCADE'
+        ),
         'comment.user_id' => array(
             'owningAlias' => 'Comment',
             'owningField' => 'user_id',
@@ -555,6 +566,7 @@ return array(
         'author_user_view' => array(
             'fields' => array(
                 'id' => array(
+                    'primary' => true,
                     'type' => 'integer',
                     'nullable' => true
                 ),
@@ -573,6 +585,12 @@ return array(
                     'length' => 255,
                     'nullable' => true
                 ),
+                'user_id' => array(
+                    'type' => 'integer',
+                    'length' => 10,
+                    'unsigned' => true,
+                    'foreign' => 'user.id'
+                ),
                 'username' => array(
                     'type' => 'string',
                     'length' => 64,
@@ -584,7 +602,8 @@ return array(
                     'nullable' => true
                 )
             ),
-            'sqlStatement' => 'SELECT a.id, a.firstname, a.lastname, a.email, u.username, u.password FROM author a LEFT JOIN user u ON a.user_id = u.id'
+            'recordClass' => '\Dive\TestSuite\Model\AuthorUserView',
+            'sqlStatement' => 'SELECT a.id, a.firstname, a.lastname, a.email, u.id AS user_id, u.username, u.password FROM author a LEFT JOIN user u ON a.user_id = u.id'
         )
     ),
     'baseRecordClass' => '\\Dive\\TestSuite\\Record\\Record'

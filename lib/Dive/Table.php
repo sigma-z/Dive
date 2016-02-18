@@ -97,6 +97,7 @@ class Table
 
     /**
      * @param array $fields
+     * @throws TableException
      */
     protected function setFields(array $fields)
     {
@@ -107,6 +108,9 @@ class Table
             }
         }
 
+        if (empty($identifier)) {
+            throw new TableException("Table '$this->tableName' has no identifier fields.");
+        }
         $this->fields = $fields;
         $this->identifierFields = $identifier;
     }
@@ -131,6 +135,16 @@ class Table
     public function getTableName()
     {
         return $this->tableName;
+    }
+
+
+    /**
+     * TODO find a better way instead of use instanceof
+     * @return bool
+     */
+    public function isView()
+    {
+        return ($this instanceof View);
     }
 
 

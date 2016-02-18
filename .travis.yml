@@ -33,7 +33,7 @@ sudo: false
 
 install:
   - travis_retry composer self-update
-  - travis_retry composer install --no-interaction --prefer-source
+  - travis_retry composer install --no-interaction
   - cp phpunit_db_config.travis.$DB.php phpunit_db_config.php;
 
 before_script:

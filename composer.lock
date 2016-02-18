@@ -976,25 +976,25 @@
         },
         {
             "name": "symfony/yaml",
-            "version": "dev-master",
+            "version": "2.8.x-dev",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "6abf61b4e0f8330ccf891c046273966272ff3f49"
+                "reference": "a254665f949aafe04239c80b147cb3de75b5c5c2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/6abf61b4e0f8330ccf891c046273966272ff3f49",
-                "reference": "6abf61b4e0f8330ccf891c046273966272ff3f49",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/a254665f949aafe04239c80b147cb3de75b5c5c2",
+                "reference": "a254665f949aafe04239c80b147cb3de75b5c5c2",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.5.9"
+                "php": ">=5.3.9"
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "3.1-dev"
+                    "dev-master": "2.8-dev"
                 }
             },
             "autoload": {
@@ -1021,7 +1021,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2016-02-18 10:31:35"
+            "time": "2016-02-18 08:58:48"
         }
     ],
     "aliases": [],

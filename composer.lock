@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "34ceb2ff3e0ee6429ad2fb31a5e89c07",
-    "content-hash": "724d07f64426022a5b208106b57c4378",
+    "hash": "9c7ef39aa369dff75d5af86edd949f9c",
+    "content-hash": "ff21f7d95b307c1fefa1a657f41c99e6",
     "packages": [
         {
             "name": "symfony/event-dispatcher",
@@ -980,12 +980,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "91dbeb63c08bf4daf74b007d1a0cdc940d6c7efb"
+                "reference": "6abf61b4e0f8330ccf891c046273966272ff3f49"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/91dbeb63c08bf4daf74b007d1a0cdc940d6c7efb",
-                "reference": "91dbeb63c08bf4daf74b007d1a0cdc940d6c7efb",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/6abf61b4e0f8330ccf891c046273966272ff3f49",
+                "reference": "6abf61b4e0f8330ccf891c046273966272ff3f49",
                 "shasum": ""
             },
             "require": {
@@ -1021,7 +1021,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2016-02-16 08:48:00"
+            "time": "2016-02-18 10:31:35"
         }
     ],
     "aliases": [],

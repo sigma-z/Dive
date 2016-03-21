@@ -176,7 +176,7 @@ abstract class SchemaImporter implements SchemaImporterInterface
             }
 
             $indexes = $this->getTableIndexes($tableName);
-            $relations = $this->getTableForeignKeys($tableName, $indexes);
+            $relations = $this->getTableForeignKeys($tableName);
 
             // add foreign key name to field property 'foreign'
             foreach ($relations as $name => $relation) {
@@ -210,7 +210,7 @@ abstract class SchemaImporter implements SchemaImporterInterface
         $views = $this->getViewNames();
         foreach ($views as $viewName) {
             $fields = $this->getViewFields($viewName);
-            $this->schemaDefinition['tables'][$viewName]['fields'] = $fields;
+            $this->schemaDefinition['views'][$viewName]['fields'] = $fields;
         }
     }
 
@@ -218,8 +218,8 @@ abstract class SchemaImporter implements SchemaImporterInterface
     /**
      * tries to guess relation alias names
      *
-     * @param   array $relation
-     * @return  array
+     * @param array $relation
+     * @return array
      */
     protected function guessRelationAliases(array $relation)
     {
@@ -244,7 +244,7 @@ abstract class SchemaImporter implements SchemaImporterInterface
     /**
      * parses type definition
      *
-     * @param  string $type
+     * @param string $type
      * @throws \Dive\Schema\SchemaException
      * @return array
      */

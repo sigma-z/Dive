@@ -11,6 +11,7 @@ namespace Dive\Schema\Import;
 
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
+use Dive\Schema\SchemaException;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -171,6 +172,31 @@ class SqliteSchemaImporter extends SchemaImporter
     public function getViewFields($viewName)
     {
         return $this->getFields($viewName);
+    }
+
+
+    /**
+     * gets view statement
+     *
+     * @param string $viewName
+     * @return string
+     * @throws SchemaException
+     */
+    public function getViewStatement($viewName)
+    {
+        $createViewStatement = $this->conn->queryOne(
+            "SELECT sql FROM sqlite_master WHERE type = 'view' AND name = ?", array($viewName)
+        );
+        if (empty($createViewStatement)) {
+            throw new SchemaException("Could not fetch table structure from database for '$viewName'.");
+        }
+
+        $quotedName = $this->conn->quoteIdentifier($viewName);
+        $pattern = '/CREATE\s+.*?VIEW\s+' . preg_quote($quotedName) . '\s+AS\s+(.+)$/';
+        if (!preg_match($pattern, $createViewStatement['sql'], $matches)) {
+            return '';
+        }
+        return $matches[1];
     }
 
 

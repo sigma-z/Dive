@@ -9,6 +9,8 @@
 
 namespace Dive\Schema\Import;
 
+use Dive\Schema\SchemaException;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 04.11.12
@@ -69,12 +71,21 @@ interface SchemaImporterInterface
 
 
     /**
-     * gets field names
+     * gets view fields
      *
      * @param  string $viewName
      * @return array[]
      */
     public function getViewFields($viewName);
+
+
+    /**
+     * gets view statement
+     * @param string $viewName
+     * @return string
+     * @throws SchemaException
+     */
+    public function getViewStatement($viewName);
 
 
     /**

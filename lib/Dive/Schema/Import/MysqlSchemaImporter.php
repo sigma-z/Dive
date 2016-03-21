@@ -11,6 +11,7 @@ namespace Dive\Schema\Import;
 
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
+use Dive\Schema\SchemaException;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -105,14 +106,21 @@ class MysqlSchemaImporter extends SchemaImporter
     /**
      * gets table foreign keys
      *
-     * @param  string $tableName
-     * @return  array
+     * @param string $tableName
+     * @return array
+     * @throws SchemaException
      */
     public function getTableForeignKeys($tableName)
     {
-        $createTableStmt = $this->conn->query('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
-        $pattern = '/CONSTRAINT\s*`(\w+)`\s*FOREIGN KEY\s*\(`(\w+)`\)\s*REFERENCES\s*`(\w+)`\s*\(`(\w+)`\)\s*(.*)/';
-        if (!preg_match_all($pattern, $createTableStmt[0]['Create Table'], $matches, PREG_SET_ORDER)) {
+        $createTableStmt = $this->conn->queryOne('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
+        if (!isset($createTableStmt['Create Table'])) {
+            throw new SchemaException("Could not fetch table structure from database for '$tableName'.");
+        }
+
+        $pattern = '/CONSTRAINT\s*`([0-9,a-z,A-Z$_]+)`\s*'
+            . 'FOREIGN KEY\s*\(`([0-9,a-z,A-Z$_]+)`\)\s*'
+            . 'REFERENCES\s*`([0-9,a-z,A-Z$_]+)`\s*\(`([0-9,a-z,A-Z$_]+)`\)\s*(.*)/';
+        if (!preg_match_all($pattern, $createTableStmt['Create Table'], $matches, PREG_SET_ORDER)) {
             return array();
         }
 
@@ -176,6 +184,29 @@ class MysqlSchemaImporter extends SchemaImporter
     public function getViewFields($viewName)
     {
         return $this->getFields($viewName);
+    }
+
+
+    /**
+     * gets view statement
+     *
+     * @param string $viewName
+     * @return string
+     * @throws SchemaException
+     */
+    public function getViewStatement($viewName)
+    {
+        $quotedName = $this->conn->quoteIdentifier($viewName);
+        $createViewStatement = $this->conn->queryOne('SHOW CREATE VIEW ' . $quotedName);
+        if (empty($createViewStatement['Create View'])) {
+            throw new SchemaException("Could not fetch table structure from database for '$viewName'.");
+        }
+
+        $pattern = '/CREATE\s+.*?VIEW\s+' . preg_quote($quotedName) . '\s+AS\s+(.+)$/';
+        if (!preg_match($pattern, $createViewStatement['Create View'], $matches)) {
+            return '';
+        }
+        return $matches[1];
     }
 
 

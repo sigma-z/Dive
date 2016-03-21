@@ -142,7 +142,11 @@ abstract class SchemaImporter implements SchemaImporterInterface
     public function importDefinition(array $schemaDefinition = null)
     {
         if (empty($schemaDefinition)) {
-            $schemaDefinition = array('tables' => array(), 'relations' => array());
+            $schemaDefinition = array(
+                'tables' => array(),
+                'views' => array(),
+                'relations' => array()
+            );
         }
         $this->schemaDefinition = $schemaDefinition;
 
@@ -209,8 +213,8 @@ abstract class SchemaImporter implements SchemaImporterInterface
     {
         $views = $this->getViewNames();
         foreach ($views as $viewName) {
-            $fields = $this->getViewFields($viewName);
-            $this->schemaDefinition['views'][$viewName]['fields'] = $fields;
+            $this->schemaDefinition['views'][$viewName]['fields'] = $this->getViewFields($viewName);
+            $this->schemaDefinition['views'][$viewName]['sqlStatement'] = $this->getViewStatement($viewName);;
         }
     }
 

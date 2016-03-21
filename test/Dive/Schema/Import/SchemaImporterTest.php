@@ -25,11 +25,14 @@ use Dive\TestSuite\TestCase;
 class SchemaImporterTest extends TestCase
 {
 
-    /** @var SchemaImporterGuessRelationNamesMock */
-    private $schemaImporterMock;
+    /** @var SchemaImporterGuessRelationNamesMock|SchemaImporter */
+    private $schemaImporter;
 
     /** @var array */
     private $relationDefinitionWithGuessedNames;
+
+    /** @var array */
+    private $importedDefinition = array();
 
 
     /**
@@ -449,6 +452,19 @@ class SchemaImporterTest extends TestCase
 
 
     /**
+     * @dataProvider \Dive\TestSuite\TestCase::provideDatabaseAwareTestCases
+     * @param array $database
+     */
+    public function testImportViews(array $database)
+    {
+        $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
+        $this->givenIHaveASchemaImporterForConnection($conn);
+        $this->whenIImportViews();
+        $this->thenItShouldHaveImportedViewsWithSqlStatement();
+    }
+
+
+    /**
      * @dataProvider provideDatabaseAwareTestCases
      * @param  array $database
      */
@@ -503,7 +519,7 @@ class SchemaImporterTest extends TestCase
      */
     private function givenIHaveAMockOfAbstractSchemaImporterClass($conn)
     {
-        $this->schemaImporterMock = $this->getMockForAbstractClass(
+        $this->schemaImporter = $this->getMockForAbstractClass(
             '\Dive\Test\Schema\Import\SchemaImporterGuessRelationNamesMock',
             array($conn)
         );
@@ -515,7 +531,7 @@ class SchemaImporterTest extends TestCase
      */
     private function whenIGuessRelationNamesFor(array $relation)
     {
-        $this->relationDefinitionWithGuessedNames = $this->schemaImporterMock->guessRelationAliases($relation);
+        $this->relationDefinitionWithGuessedNames = $this->schemaImporter->guessRelationAliases($relation);
     }
 
 
@@ -534,6 +550,31 @@ class SchemaImporterTest extends TestCase
     private function thenReferencedAliasShouldBe($expected)
     {
         $this->assertEquals($expected, $this->relationDefinitionWithGuessedNames['refAlias']);
+    }
+
+
+    private function whenIImportViews()
+    {
+        $this->importedDefinition = $this->schemaImporter->importDefinition();
+    }
+
+
+    private function thenItShouldHaveImportedViewsWithSqlStatement()
+    {
+        $this->assertArrayHasKey('views', $this->importedDefinition);
+        $this->assertNotEmpty($this->importedDefinition['views']);
+        $viewDefinition = current($this->importedDefinition['views']);
+        $this->assertArrayHasKey('sqlStatement', $viewDefinition);
+        $this->assertNotEmpty($viewDefinition['sqlStatement']);
+    }
+
+
+    /**
+     * @param Connection $conn
+     */
+    private function givenIHaveASchemaImporterForConnection(Connection $conn)
+    {
+        $this->schemaImporter = $conn->getDriver()->getSchemaImporter($conn);
     }
 }
 

@@ -234,6 +234,8 @@ class SchemaImporterTest extends TestCase
 
     /**
      * @dataProvider provideGetTableForeignKeys
+     * @param array $database
+     * @param array $expectedArray
      */
     public function testGetTableForeignKeys(array $database, array $expectedArray)
     {
@@ -303,6 +305,8 @@ class SchemaImporterTest extends TestCase
 
     /**
      * @dataProvider provideGetViewNames
+     * @param array $database
+     * @param array $expectedArray
      */
     public function testGetViewNames(array $database, array $expectedArray)
     {
@@ -427,11 +431,18 @@ class SchemaImporterTest extends TestCase
 
     /**
      * @dataProvider \Dive\TestSuite\TestCase::provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testImportDefinitionIsValidSchema(array $database)
     {
         $importer = $this->getImporter($database);
         $definition = $importer->importDefinition();
+        $this->assertArrayHasKey('tables', $definition);
+        $this->assertNotEmpty($definition['tables']);
+        $this->assertArrayHasKey('views', $definition);
+        $this->assertNotEmpty($definition['views']);
+        $this->assertArrayHasKey('relations', $definition);
+        $this->assertNotEmpty($definition['relations']);
         $schema = new Schema($definition);
         $this->assertInstanceOf('\Dive\Schema\Schema', $schema);
     }
@@ -499,18 +510,27 @@ class SchemaImporterTest extends TestCase
     }
 
 
-    private function whenIGuessRelationNamesFor($relation)
+    /**
+     * @param array $relation
+     */
+    private function whenIGuessRelationNamesFor(array $relation)
     {
         $this->relationDefinitionWithGuessedNames = $this->schemaImporterMock->guessRelationAliases($relation);
     }
 
 
+    /**
+     * @param string $expected
+     */
     private function thenOwningAliasShouldBe($expected)
     {
         $this->assertEquals($expected, $this->relationDefinitionWithGuessedNames['owningAlias']);
     }
 
 
+    /**
+     * @param string $expected
+     */
     private function thenReferencedAliasShouldBe($expected)
     {
         $this->assertEquals($expected, $this->relationDefinitionWithGuessedNames['refAlias']);
@@ -518,8 +538,18 @@ class SchemaImporterTest extends TestCase
 }
 
 
+/**
+ * mock class for schema importer
+ */
 abstract class SchemaImporterGuessRelationNamesMock extends SchemaImporter
 {
+
+    /**
+     * tries to guess relation alias names
+     *
+     * @param array $relation
+     * @return array
+     */
     public function guessRelationAliases(array $relation)
     {
         return parent::guessRelationAliases($relation);

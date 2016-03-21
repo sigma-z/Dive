@@ -340,9 +340,8 @@ class Schema
 
     /**
      * Adds table
-
      *
-*@param  string $name
+     * @param  string $name
      * @param  array  $fields
      * @param  array  $indexes
      * @param  array $behaviors
@@ -390,7 +389,7 @@ class Schema
         $indexes   = isset($definition['indexes'])      ? $definition['indexes']    : array();
         $behaviors = isset($definition['behaviors'])    ? $definition['behaviors']  : array();
         $this->addTable($name, $fields, $indexes, $behaviors);
-        if (isset($definition['recordClass'])) {
+        if (!empty($definition['recordClass'])) {
             $this->setRecordClass($name, $definition['recordClass']);
         }
         return $this;
@@ -654,11 +653,15 @@ class Schema
         if (empty($sqlStatement)) {
             throw new SchemaException("Sql statement for view '$name' is empty!");
         }
-        $this->viewSchemes[$name] = array(
+        $viewScheme = array(
             'fields' => $fields,
-            'recordClass' => $recordClass,
             'sqlStatement' => $sqlStatement
         );
+        if (!empty($recordClass)) {
+            $viewScheme['recordClass'] = $recordClass;
+        }
+        $this->viewSchemes[$name] = $viewScheme;
+
         return $this;
     }
 

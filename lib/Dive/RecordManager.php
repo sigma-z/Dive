@@ -26,7 +26,7 @@ use Dive\Validation\ValidationContainer;
 class RecordManager
 {
 
-    const ORM_VERSION = '1.0.3';
+    const ORM_VERSION = '1.0.4';
 
     const FETCH_RECORD_COLLECTION = 'record-collection';
     const FETCH_RECORD = 'record';
@@ -40,10 +40,10 @@ class RecordManager
     private $tables = array();
 
     /** @var Connection */
-    private $conn = null;
+    private $conn;
 
     /** @var Schema */
-    private $schema = null;
+    private $schema;
 
     /** @var \Dive\Relation\Relation[] */
     private $relations = array();
@@ -55,7 +55,7 @@ class RecordManager
     private $hydrators = array();
 
     /** @var UnitOfWork */
-    private $unitOfWork = null;
+    private $unitOfWork;
 
     /** @var string */
     private $queryClass = '\Dive\Query\Query';
@@ -294,12 +294,12 @@ class RecordManager
     private function getBehaviorInstance(array $definition)
     {
         if (!isset($definition['class'])) {
-            throw new Exception("Missing table behavior class in schema definition!");
+            throw new Exception('Missing table behavior class in schema definition!');
         }
 
         $sharedInstance = isset($definition['instanceShared']) && $definition['instanceShared'] === true;
         $className = $definition['class'];
-        if ($className[0] != '\\') {
+        if ($className[0] !== '\\') {
             $className = "\\Dive\\Table\\Behavior\\$className";
         }
         if ($sharedInstance && isset($this->tableBehaviors[$className])) {
@@ -539,8 +539,7 @@ class RecordManager
     protected function createConfiguredFieldTypeValidator()
     {
         $dataTypeMapper = $this->getDriver()->getDataTypeMapper();
-        $fieldTypeValidator = new FieldValidator($dataTypeMapper);
-        return $fieldTypeValidator;
+        return new FieldValidator($dataTypeMapper);
     }
 
 }

@@ -22,20 +22,6 @@ class MysqlPlatform extends Platform
 
 
     /**
-     * @var string
-     */
-    protected $identifierQuote = '`';
-
-    /**
-     * @var array
-     */
-    protected $supportedEncodings = array(
-        self::ENC_UTF8 => 'utf8',
-        self::ENC_LATIN1 => 'latin1'
-    );
-
-
-    /**
      * constructor
      *
      * @param DataTypeMapper $dataTypeMapper
@@ -44,7 +30,12 @@ class MysqlPlatform extends Platform
     {
         parent::__construct($dataTypeMapper);
 
+        $this->identifierQuote = '`';
         $this->indexTypes[self::INDEX_FULLTEXT] = self::INDEX_FULLTEXT;
+        $this->supportedEncodings = [
+            self::ENC_UTF8 => 'utf8',
+            self::ENC_LATIN1 => 'latin1'
+        ];
     }
 
 
@@ -82,18 +73,20 @@ class MysqlPlatform extends Platform
         else {
             $dbType = $this->getDataType($definition);
             $length = $this->getColumnLength($definition);
-            if ($dbType == 'enum') {
+            if ($dbType === 'enum') {
                 if (empty($definition['values']) || !is_array($definition['values'])) {
-                    throw new PlatformException("Missing values for enum for column!");
+                    throw new PlatformException('Missing values for enum for column!');
                 }
                 $dbType  .= '(';
-                foreach ($definition['values'] as $value) {
+                /** @var array $values */
+                $values = $definition['values'];
+                foreach ($values as $value) {
                     $dbType .= $this->quote($value, 'string') . ',';
                 }
                 $dbType = substr($dbType, 0, -1) . ')';
             }
             // TODO length is not supported for some types
-            else if ($dbType != 'double' && $length) {
+            else if ($dbType !== 'double' && $length) {
                 if (isset($definition['scale'])) {
                     $precision = $length - 1;
                     $scale = $definition['scale'];
@@ -135,7 +128,7 @@ class MysqlPlatform extends Platform
      */
     protected function getColumnLength(array $definition)
     {
-        if ($definition['type'] == 'time') {
+        if ($definition['type'] === 'time') {
             return 8;
         }
         return parent::getColumnLength($definition);

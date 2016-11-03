@@ -12,7 +12,6 @@ namespace Dive\Relation;
 use Dive\Collection\RecordCollection;
 use Dive\Record;
 use Dive\RecordManager;
-use Dive\Table;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>

@@ -184,10 +184,12 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             $dbConfigDistFile = __DIR__ . '/../../phpunit_db_config.php.dist';
             $databases = array();
             if (is_file($dbConfigFile)) {
+                /** @noinspection UsingInclusionOnceReturnValueInspection */
                 /** @noinspection PhpIncludeInspection */
                 $databases = require_once $dbConfigFile;
             }
             else if (is_file($dbConfigDistFile)) {
+                /** @noinspection UsingInclusionOnceReturnValueInspection */
                 /** @noinspection PhpIncludeInspection */
                 $databases = require_once $dbConfigDistFile;
             }

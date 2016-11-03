@@ -73,19 +73,25 @@ class Schema
         }
 
         if (!empty($this->definition['tables'])) {
-            foreach ($this->definition['tables'] as $name => $tableDefinition) {
+            /** @var array[] $tables */
+            $tables = $this->definition['tables'];
+            foreach ($tables as $name => $tableDefinition) {
                 $this->initTable($name);
             }
         }
 
         if (!empty($this->definition['views'])) {
-            foreach ($this->definition['views'] as $name => $viewDefinition) {
+            /** @var array[] $views */
+            $views = $this->definition['views'];
+            foreach ($views as $name => $viewDefinition) {
                 $this->initView($name);
             }
         }
 
         if (!empty($this->definition['relations'])) {
-            foreach ($this->definition['relations'] as $name => $relation) {
+            /** @var array[] $relations */
+            $relations = $this->definition['relations'];
+            foreach ($relations as $name => $relation) {
                 if (!isset($relation['owningTable'])) {
                     throw new SchemaException("Relation '$name' definition missing key 'owningTable'!");
                 }
@@ -154,11 +160,13 @@ class Schema
         if (isset($this->relations[$tableName])) {
             return;
         }
-        foreach ($this->definition['relations'] as $relationName => $definition) {
-            if ($definition['owningTable'] == $tableName) {
+        /** @var array[] $relations */
+        $relations = $this->definition['relations'];
+        foreach ($relations as $relationName => $definition) {
+            if ($definition['owningTable'] === $tableName) {
                 $this->addOwningTableRelation($relationName, $definition);
             }
-            if ($definition['refTable'] == $tableName) {
+            if ($definition['refTable'] === $tableName) {
                 $this->addReferencedTableRelation($relationName, $definition);
             }
         }
@@ -496,7 +504,7 @@ class Schema
     {
         $this->initTable($name);
         $recordClass = $this->getRecordClass($name);
-        if ($recordClass == $this->getRecordBaseClass()) {
+        if ($recordClass === $this->getRecordBaseClass()) {
             $tableClass = $this->getTableBaseClass();
         }
         else {
@@ -556,7 +564,7 @@ class Schema
         $this->initTable($tableName);
         $definition = array(
             'type' => $type,
-            'fields' => is_array($fields) ? $fields : array($fields)
+            'fields' => is_array($fields) ?: array($fields)
         );
         if ($this->validateIndex($indexName, $definition)) {
             $this->tableSchemes[$tableName]['indexes'][$indexName] = $definition;
@@ -761,7 +769,7 @@ class Schema
     {
         $this->initView($name);
         $recordClass = $this->getRecordClassForTableOrView($name, $this->viewSchemes);
-        if ($recordClass == $this->getRecordBaseClass()) {
+        if ($recordClass === $this->getRecordBaseClass()) {
             $viewClass = $this->getViewBaseClass();
         }
         else {
@@ -856,7 +864,9 @@ class Schema
             $schemaDefinition['relations'] = array();
             foreach ($this->relations as $data) {
                 if (!empty($data['owning'])) {
-                    foreach ($data['owning'] as $relation) {
+                    /** @var array[] $owningRelations */
+                    $owningRelations = $data['owning'];
+                    foreach ($owningRelations as $relation) {
                         $name = $relation['owningTable'] . '.' . $relation['owningField'];
                         $schemaDefinition['relations'][$name] = $relation;
                     }
@@ -864,11 +874,11 @@ class Schema
             }
         }
 
-        if ($this->recordBaseClass != self::DEFAULT_BASE_RECORD_CLASS) {
+        if ($this->recordBaseClass !== self::DEFAULT_BASE_RECORD_CLASS) {
             $schemaDefinition['baseRecordClass'] = $this->recordBaseClass;
         }
 
-        if ($this->tableBaseClass != self::DEFAULT_BASE_TABLE_CLASS) {
+        if ($this->tableBaseClass !== self::DEFAULT_BASE_TABLE_CLASS) {
             $schemaDefinition['baseTableClass'] = $this->tableBaseClass;
         }
 

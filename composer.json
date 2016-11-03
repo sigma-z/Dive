@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-0": {
-            "Dive": "lib"
+            "Dive": "src"
         }
     }
 }

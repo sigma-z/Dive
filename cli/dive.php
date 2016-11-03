@@ -20,5 +20,5 @@ array_shift($arguments);
 $console = new \Dive\Console\Console();
 /** @var \Dive\Console\Command\CommandLoader $commandLoader */
 $commandLoader = $console->getCommandLoader();
-$commandLoader->addDirectory(__DIR__ . '/../lib/Dive/Console/Command', '\\Dive\\Console\\Command');
+$commandLoader->addDirectory(__DIR__ . '/../src/Dive/Console/Command', '\\Dive\\Console\\Command');
 $console->run($arguments);

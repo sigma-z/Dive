@@ -14,7 +14,6 @@ use Dive\Schema\Import\SchemaImporterInterface;
 use Dive\Platform\PlatformInterface;
 use Dive\Connection\Connection;
 use Dive\Schema\Schema;
-use Dive\Table;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -107,16 +106,16 @@ abstract class Migration implements MigrationInterface
     public function importFromDb(SchemaImporterInterface $importer)
     {
         $tableNames = $importer->getTableNames();
-        if (!in_array($this->tableName, $tableNames)) {
-            if ($this->mode == self::ALTER_TABLE) {
+        if (!in_array($this->tableName, $tableNames, true)) {
+            if ($this->mode === self::ALTER_TABLE) {
                 $this->mode = self::CREATE_TABLE;
             }
         }
-        else if ($this->mode == self::CREATE_TABLE) {
+        else if ($this->mode === self::CREATE_TABLE) {
             $this->mode = self::ALTER_TABLE;
         }
 
-        if ($this->mode == self::ALTER_TABLE) {
+        if ($this->mode === self::ALTER_TABLE) {
             $this->columns = $importer->getTableFields($this->tableName);
             $this->indexes = $importer->getTableIndexes($this->tableName);
             $this->foreignKeys = $importer->getTableForeignKeys($this->tableName);
@@ -132,7 +131,9 @@ abstract class Migration implements MigrationInterface
         $this->columns = $schema->getTableFields($this->tableName);
         $this->indexes = $schema->getTableIndexes($this->tableName);
         $foreignKeys = $schema->getTableRelations($this->tableName);
-        foreach ($foreignKeys['owning'] as $definition) {
+        /** @var array[] $owningRelations */
+        $owningRelations = $foreignKeys['owning'];
+        foreach ($owningRelations as $definition) {
             $owningField = $definition['owningField'];
             $this->foreignKeys[$owningField] = array(
                 'refTable' => $definition['refTable'],
@@ -230,7 +231,7 @@ abstract class Migration implements MigrationInterface
     /**
      * gets table option
      *
-     * @param  string $name
+     * @param string $name
      * @return string
      */
     public function getTableOption($name)
@@ -240,6 +241,9 @@ abstract class Migration implements MigrationInterface
 
 
     // <editor-fold desc="COLUMNS">
+    /**
+     * @return array[]
+     */
     public function getColumns()
     {
         return $this->columns;
@@ -249,7 +253,7 @@ abstract class Migration implements MigrationInterface
     /**
      * checks if column is defined
      *
-     * @param  string   $name
+     * @param string $name
      * @return bool
      */
     public function hasColumn($name)
@@ -304,7 +308,7 @@ abstract class Migration implements MigrationInterface
         $this->dropForeignKey($name);
 
         foreach ($this->indexes as $indexName => $definition) {
-            if (false !== ($pos = array_search($name, $definition['fields']))) {
+            if (false !== ($pos = array_search($name, $definition['fields'], true))) {
                 array_splice($definition['fields'], $pos, 1);
                 if (empty($definition['fields'])) {
                     $this->dropIndex($indexName);
@@ -351,7 +355,7 @@ abstract class Migration implements MigrationInterface
             }
 
             foreach ($this->indexes as $indexName => $indexDefinition) {
-                if (false !== ($pos = array_search($name, $indexDefinition['fields']))) {
+                if (false !== ($pos = array_search($name, $indexDefinition['fields'], true))) {
                     $this->dropIndex($indexName);
                     array_splice($indexDefinition['fields'], $pos, 1, $newName);
                     $affectedIndexes[$indexName] = $indexDefinition;
@@ -365,7 +369,7 @@ abstract class Migration implements MigrationInterface
         $this->operations[] = array(
             'type' => self::CHANGE_COLUMN,
             'name' => $name,
-            'newName' => $newName != $name ? $newName : null
+            'newName' => $newName !== $name ? $newName : null
         );
 
         foreach ($affectedIndexes as $indexName => $indexDefinition) {
@@ -388,6 +392,9 @@ abstract class Migration implements MigrationInterface
 
 
     // <editor-fold desc="INDEXES">
+    /**
+     * @return array[]
+     */
     public function getIndexes()
     {
         return $this->indexes;
@@ -521,6 +528,9 @@ abstract class Migration implements MigrationInterface
 
 
     // <editor-fold desc="FOREIGN KEYS">
+    /**
+     * @return array[]
+     */
     public function getForeignKeys()
     {
         return $this->foreignKeys;
@@ -581,7 +591,7 @@ abstract class Migration implements MigrationInterface
      */
     public function addForeignKeyByRelation(Relation $relation)
     {
-        if ($relation->getOwningTable() != $this->tableName) {
+        if ($relation->getOwningTable() !== $this->tableName) {
             throw new MigrationException("
                 Relation does not belong to table $this->tableName, it belongs to " . $relation->getOwningTable() . '!'
             );
@@ -651,7 +661,7 @@ abstract class Migration implements MigrationInterface
 
     /**
      * @throws MigrationException
-     * @return array[]
+     * @return string[]
      */
     public function getSqlStatements()
     {
@@ -873,7 +883,7 @@ abstract class Migration implements MigrationInterface
      */
     protected function throwExceptionIfMethodNotSupported(array $unsupportedModes)
     {
-        if (in_array($this->mode, $unsupportedModes)) {
+        if (in_array($this->mode, $unsupportedModes, true)) {
             throw new MigrationException("Method not supported for $this->mode!");
         }
     }

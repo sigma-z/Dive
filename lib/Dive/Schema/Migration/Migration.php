@@ -530,8 +530,8 @@ abstract class Migration implements MigrationInterface
     /**
      * checks if foreign key is defined
      *
-     * @param  string $owningField
-     * @return Migration
+     * @param string $owningField
+     * @return bool
      */
     public function hasForeignKey($owningField)
     {
@@ -542,12 +542,12 @@ abstract class Migration implements MigrationInterface
     /**
      * adds foreign key
      *
-     * @param   string  $owningField
-     * @param   string  $refTable
-     * @param   string  $refField
-     * @param   string  $onDelete
-     * @param   string  $onUpdate
-     * @return  Migration
+     * @param string $owningField
+     * @param string $refTable
+     * @param string $refField
+     * @param string $onDelete
+     * @param string $onUpdate
+     * @return $this
      */
     public function addForeignKey($owningField, $refTable, $refField, $onDelete = null, $onUpdate = null)
     {
@@ -623,11 +623,11 @@ abstract class Migration implements MigrationInterface
     /**
      * changes foreign key
      *
-     * @param   string  $owningField
-     * @param   string  $onDelete
-     * @param   string  $onUpdate
-     * @throws  MigrationException
-     * @return  MigrationInterface
+     * @param string $owningField
+     * @param string $onDelete
+     * @param string $onUpdate
+     * @throws MigrationException
+     * @return $this
      */
     public function changeForeignKey($owningField, $onDelete = null, $onUpdate = null)
     {

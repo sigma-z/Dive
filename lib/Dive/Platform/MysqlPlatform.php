@@ -229,9 +229,9 @@ class MysqlPlatform extends Platform
         }
         if (!empty($tableOptions['charset'])) {
             $sql .= ' CHARACTER SET ' . $tableOptions['charset'];
-            if (!empty($tableOptions['collation'])) {
-                $sql .= ' COLLATE ' . $tableOptions['collation'];
-            }
+        }
+        if (!empty($tableOptions['collation'])) {
+            $sql .= ' COLLATE ' . $tableOptions['collation'];
         }
         if (!empty($tableOptions['comment'])) {
             $sql .= ' COMMENT ' . $this->stringQuote . $tableOptions['comment'] . $this->stringQuote;

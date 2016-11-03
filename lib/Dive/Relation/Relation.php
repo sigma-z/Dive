@@ -575,11 +575,19 @@ class Relation
             $recordCollection->add($record);
         }
 
-        $identifiers = $recordCollection->getIdentifiers();
-        $query = $this->getReferenceQuery($record, $relationName, $identifiers);
+        if ($record->exists()) {
+            $identifiers = $recordCollection->getIdentifiers();
+            $query = $this->getReferenceQuery($record, $relationName, $identifiers);
 
-        /** @var \Dive\Record[]|\Dive\Collection\RecordCollection $relatedCollection */
-        $relatedCollection = $query->execute(RecordManager::FETCH_RECORD_COLLECTION);
+            /** @var \Dive\Record[]|\Dive\Collection\RecordCollection $relatedCollection */
+            $relatedCollection = $query->execute(RecordManager::FETCH_RECORD_COLLECTION);
+        }
+        else {
+            $table = $record->getTable();
+            $rm = $table->getRecordManager();
+            $relatedTable = $this->getJoinTable($rm, $relationName);
+            $relatedCollection = new RecordCollection($relatedTable);
+        }
 
         // updates reference map between both collections
         $isOwningSide = $this->isOwningSide($relationName);

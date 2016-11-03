@@ -96,8 +96,10 @@ class DbInit
         /** @var $createMigration Migration */
         $createMigration = $driver->createSchemaMigration($this->conn, $tableName, MigrationInterface::CREATE_TABLE);
         $createMigration->importFromSchema($this->schema);
-        if ($this->conn->getScheme() == 'mysql') {
+        if ($this->conn->getScheme() === 'mysql') {
+            // TODO tableOptions should be defined by Schema
             $createMigration->setTableOption('engine', 'InnoDB');
+            $createMigration->setTableOption('collation', 'utf8_unicode_ci');
         }
         $createMigration->execute();
     }

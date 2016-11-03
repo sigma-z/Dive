@@ -137,7 +137,7 @@ class SqlitePlatform extends Platform
      */
     protected function getColumnLength(array $definition)
     {
-        if ($definition['type'] == 'time') {
+        if ($definition['type'] === 'time') {
             return 8;
         }
         return parent::getColumnLength($definition);
@@ -185,7 +185,7 @@ class SqlitePlatform extends Platform
      */
     public function getCreateIndexSql($tableName, $indexName, $fieldNames, $indexType = null)
     {
-        if (substr($indexName, 0, strlen($tableName) + 1) != $tableName . '_') {
+        if (0 !== strpos($indexName, $tableName . '_')) {
             $indexName = $tableName . '_' . $indexName;
         }
         return parent::getCreateIndexSql($tableName, $indexName, $fieldNames, $indexType);
@@ -201,7 +201,7 @@ class SqlitePlatform extends Platform
      */
     public function getDropIndexSql($tableName, $indexName)
     {
-        if (substr($indexName, 0, strlen($tableName) + 1) != $tableName . '_') {
+        if (0 !== strpos($indexName, $tableName . '_')) {
             $indexName = $tableName . '_' . $indexName;
         }
         return parent::getDropIndexSql($tableName, $indexName);

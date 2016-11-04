@@ -70,15 +70,15 @@ class Query implements QueryInterface, QueryHydrationInterface
     /**
      * @var array
      */
-    protected $params = array(
-        self::PART_SELECT   => array(),
-        self::PART_FROM     => array(),
+    protected $params = [
+        self::PART_SELECT   => [],
+        self::PART_FROM     => [],
         //'set'       => array(), // TODO only for update
-        self::PART_WHERE    => array(),
-        self::PART_GROUP_BY  => array(),
-        self::PART_HAVING   => array(),
-        self::PART_ORDER_BY => array()
-    );
+        self::PART_WHERE    => [],
+        self::PART_GROUP_BY  => [],
+        self::PART_HAVING   => [],
+        self::PART_ORDER_BY => []
+    ];
 
     /**
      * @var array
@@ -501,10 +501,10 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     protected function addWhereInClause($expr, $params, $notIn = false, $logicalGlue = 'AND')
     {
-        if (empty($params)) {
-            // TODO IN-clause must be not empty!!
-            //throw new QueryException('Missing params for WHERE IN clause');
-        }
+//        if (empty($params)) {
+//            // TODO IN-clause must be not empty!!
+//            throw new QueryException('Missing params for WHERE IN clause');
+//        }
         if (!is_array($params)) {
             $params = array($params);
         }
@@ -933,6 +933,7 @@ class Query implements QueryInterface, QueryHydrationInterface
             $params = $this->params;
         }
         $flattenParams = array();
+        /** @noinspection ForeachSourceInspection */
         foreach ($params as $partParams) {
             if (!empty($partParams)) {
                 $flattenParams = array_merge($flattenParams, $partParams);
@@ -966,7 +967,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     public function getQueryPart($part)
     {
         if (!isset($this->queryParts[$part])) {
-            throw new QueryException("Query part '$part' is not defined!");
+            throw new QueryException("Query part '$part' is not defined.");
         }
         return $this->queryParts[$part];
     }
@@ -991,7 +992,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     public function removeQueryPart($part)
     {
         if (!isset($this->queryParts[$part])) {
-            throw new QueryException("Query part '$part' is not defined/supported!");
+            throw new QueryException("Query part '$part' is not defined/supported.");
         }
 
         $default = in_array($part, [self::PART_FOR_UPDATE, self::PART_DISTINCT], true) ? false : array();
@@ -1067,7 +1068,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         if ($this->hasQueryComponent($alias)) {
             return $this->queryComponents[$alias];
         }
-        throw new QueryException("No query component for '$alias' defined!");
+        throw new QueryException("No query component for '$alias' defined.");
     }
 
 
@@ -1103,7 +1104,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     {
         $alias = $this->rootAlias;
         if ($alias === null || !isset($this->queryComponents[$alias])) {
-            throw new QueryException("Root table is not defined, yet!");
+            throw new QueryException('Root table is not defined, yet.');
         }
         $tableName = $this->queryComponents[$alias]['table'];
         return $this->rm->getTable($tableName);

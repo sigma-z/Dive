@@ -892,7 +892,7 @@ class QueryTest extends TestCase
 
     public function testGetRootTableThrowsMissingFromException()
     {
-        $this->setExpectedException('\Dive\Query\QueryException', 'Root table is not defined, yet!');
+        $this->setExpectedException('\Dive\Query\QueryException', 'Root table is not defined, yet.');
         $rm = self::createDefaultRecordManager();
         $query = new Query($rm);
         $query->getRootTable();

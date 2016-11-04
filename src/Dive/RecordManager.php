@@ -406,7 +406,13 @@ class RecordManager
 
     public function commit()
     {
-        $this->unitOfWork->commitChanges();
+        try {
+            $this->unitOfWork->commitChanges();
+        }
+        catch (\Exception $e) {
+            $this->rollback();
+            throw $e;
+        }
     }
 
 

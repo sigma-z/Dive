@@ -12,9 +12,12 @@ use Dive\Hydrator\HydratorInterface;
 use Dive\RecordManager;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Table\Behavior\TimestampableBehavior;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
+use Dive\UnitOfWork\UnitOfWork;
 use Dive\Validation\FieldValidator\FieldValidator;
+use Dive\Validation\RecordInvalidException;
 use Dive\Validation\ValidationContainer;
 
 /**
@@ -32,7 +35,7 @@ class RecordManagerTest extends TestCase
     {
         parent::setUp();
 
-        $this->rm = $this->createDefaultRecordManager();
+        $this->rm = self::createDefaultRecordManager();
     }
 
 
@@ -184,6 +187,27 @@ class RecordManagerTest extends TestCase
         $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldValidator', $fieldTypeValidator);
         $booleanOrmDataTypeValidator = $fieldTypeValidator->getDataTypeValidator(DataTypeMapper::OTYPE_BOOLEAN);
         $this->assertInstanceOf('\Dive\Schema\OrmDataType\BooleanOrmDataType', $booleanOrmDataTypeValidator);
+    }
+
+
+    public function testCommitInvalidRecordSaveWillResetScheduledForCommitData()
+    {
+        $rm = self::createDefaultRecordManager();
+        $userTable = $rm->getTable('user');
+        /** @var User $user */
+        $user = $userTable->createRecord();
+        $user->username = 'test';
+
+        $rm->scheduleSave($user);
+        try {
+            $rm->commit();
+            $this->fail('Invalid record should have thrown exception.');
+        }
+        catch (RecordInvalidException $e) {
+            /** @var UnitOfWork $unitOfWork */
+            $unitOfWork = self::readAttribute($rm, 'unitOfWork');
+            $this->assertFalse($unitOfWork->isRecordScheduledForCommit($user, UnitOfWork::OPERATION_SAVE));
+        }
     }
 
 }

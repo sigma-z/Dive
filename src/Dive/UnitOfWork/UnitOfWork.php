@@ -170,10 +170,10 @@ class UnitOfWork
      */
     private function throwAlreadyScheduledAsDeleteException(Record $record, $operation)
     {
-        if ($operation == self::OPERATION_SAVE && $this->isRecordScheduledForDelete($record)) {
+        if ($operation === self::OPERATION_SAVE && $this->isRecordScheduledForDelete($record)) {
             throw new UnitOfWorkException(
-                "Scheduling record for " . strtoupper($operation) . " failed!\n"
-                . "Reason: Record already has been scheduled for " . strtoupper(self::OPERATION_DELETE)
+                'Scheduling record for ' . strtoupper($operation) . " failed!\n"
+                . 'Reason: Record already has been scheduled for ' . strtoupper(self::OPERATION_DELETE)
             );
         }
     }
@@ -190,7 +190,7 @@ class UnitOfWork
         if (!isset($this->scheduledForCommit[$oid])) {
             return false;
         }
-        return $operation === null || $this->scheduledForCommit[$oid] == $operation;
+        return $operation === null || $this->scheduledForCommit[$oid] === $operation;
     }
 
 

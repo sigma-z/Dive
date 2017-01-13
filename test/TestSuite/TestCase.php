@@ -163,6 +163,10 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         array $events,
         array &$expectedEventsCalled
     ) {
+        /**
+         * @param Event  $event
+         * @param string $eventName
+         */
         $callOnEvent = function(Event $event, $eventName) use (&$expectedEventsCalled) {
             $expectedEventsCalled[] = $eventName;
         };

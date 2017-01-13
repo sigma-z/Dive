@@ -83,7 +83,7 @@ class FindOrCreateRecordTableTest extends TestCase
 
 
     /**
-     * @expectedException \Dive\Hydrator\HydratorException
+     * @expectedException \Dive\Table\TableException
      */
     public function testFindOrCreateRecordByUniqueKeyFindsMoreRecordsThrowsException()
     {

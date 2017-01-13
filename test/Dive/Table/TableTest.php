@@ -13,7 +13,6 @@ namespace Dive\Test\Table;
 use Dive\Collection\Collection;
 use Dive\Record;
 use Dive\RecordManager;
-use Dive\Table;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -24,7 +23,7 @@ class TableTest extends TestCase
 {
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testFindByFk($database)
@@ -50,7 +49,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testFindByFkOnNonExistingRecord($database)
@@ -62,7 +61,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      * @expectedException \Dive\Table\TableException
      */
@@ -137,7 +136,7 @@ class TableTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
-     * @param string $database
+     * @param array $database
      */
     public function testToString($database)
     {
@@ -184,9 +183,9 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array  $database
      * @param string $field
-     * @param bool $throwsException
+     * @param bool   $throwsException
      * @dataProvider provideGetField
      */
     public function testGetField($database, $field, $throwsException)
@@ -205,7 +204,7 @@ class TableTest extends TestCase
      */
     public function provideGetField()
     {
-        $testCases = $this->provideDatabaseAwareTestCases();
+        $testCases = self::provideDatabaseAwareTestCases();
         $fields = array(
             'id' => false,
             'username' => false,
@@ -351,7 +350,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testFindByUniqueIndexReturnsRecord($database)
@@ -374,7 +373,7 @@ class TableTest extends TestCase
     }
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testFindByUniqueIndexReturnsFalse($database)
@@ -386,7 +385,7 @@ class TableTest extends TestCase
             'password' => 'my secret'
         );
         $id = self::insertDataset($table, $data);
-        $this->assertTrue($id !== false);
+        $this->assertNotFalse($id);
 
         $record = $table->findByUniqueIndex('UNIQUE', array('username' => 'Johanna Stuart'));
 
@@ -395,7 +394,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testGetUniqueIndexes($database)
@@ -411,7 +410,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testGetUniqueIndexesOnTableWithoutUniques($database)
@@ -424,7 +423,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testGetUniqueIndexesOnTableWithTwoUniques($database)
@@ -439,15 +438,15 @@ class TableTest extends TestCase
 
 
     /**
-     * @param $database
-     * @param $tableName
-     * @param $tableRows
-     * @param $findFieldValues
-     * @param $expectedRecords
+     * @param array  $database
+     * @param string $tableName
+     * @param array  $tableRows
+     * @param array  $findFieldValues
+     * @param array  $expectedRecords
      * @dataProvider provideFindByFields
      */
     public function testFindByFields(
-        $database, $tableName, $tableRows, $findFieldValues, $expectedRecords
+        $database, $tableName, array $tableRows, array $findFieldValues, array $expectedRecords
     )
     {
         $rm = self::createRecordManager($database);
@@ -473,6 +472,9 @@ class TableTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideFindByFields()
     {
         $johnDoe = array(
@@ -600,7 +602,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      * @expectedException \Dive\Hydrator\HydratorException
      */
@@ -619,7 +621,7 @@ class TableTest extends TestCase
 
     /**
      * @TODO: is this case, what we want? e.g. mySql allows this case, but should Dive work the same way?
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testNullableUniqueWorksLikeFindByFieldValuesWhenFetchModeIsCollection($database)
@@ -653,7 +655,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testNullableUniqueWorksForNotNullValues($database)
@@ -677,7 +679,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      * @expectedException \Dive\Table\TableException
      */
@@ -699,7 +701,7 @@ class TableTest extends TestCase
 
 
     /**
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      * @expectedException \Dive\Table\TableException
      */
@@ -727,7 +729,7 @@ class TableTest extends TestCase
      * Info: This is a copy of "testNullableUniqueWorksForNotNullValues" with commented out first name!
      * Not give a field will be implicit accepted as NULL!
      *
-     * @param string $database
+     * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
      */
     public function testFindByUniqueWithIncompleteFieldValues($database)

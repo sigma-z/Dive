@@ -11,6 +11,7 @@ namespace Dive;
 
 use Dive\Collection\Collection;
 use Dive\Connection\Connection;
+use Dive\Hydrator\HydratorException;
 use Dive\Query\Query;
 use Dive\Table\Repository;
 use Dive\Table\TableException;
@@ -682,18 +683,9 @@ class Table
      */
     public function findByUniqueIndexes(array $fieldValues, $fetchMode = RecordManager::FETCH_RECORD)
     {
-        $uniqueIndexes = $this->getUniqueIndexes();
+        $uniqueIndexes = $this->getUniqueIndexesForFieldValues($fieldValues);
         if (!$uniqueIndexes) {
-            throw new TableException(
-                "There are no unique indexes for creating query to check whether the record is unique, or not!"
-            );
-        }
-
-        $uniqueIndexes = $this->removeUnusedIndexes($uniqueIndexes, $fieldValues);
-        if (!$uniqueIndexes) {
-            throw new TableException(
-                "There are no field values unique indexes for creating query to check whether the record is unique, or not!"
-            );
+            return false;
         }
 
         $conn = $this->getConnection();
@@ -715,10 +707,9 @@ class Table
                 else if ($isNullConstrained) {
                     $condition .= $fieldNameQuoted . ' IS NULL AND ';
                 }
+                // TODO: do we need this else?
                 else {
-                    throw new TableException(
-                        "Cannot process unique index for creating query to check whether the record is unique, or not!"
-                    );
+                    continue 2;
                 }
             }
             // strip last AND from string
@@ -729,8 +720,26 @@ class Table
         $query = $this->createQuery();
         $query->where(implode(' OR ', $conditions), $queryParams);
 
-        return $query->execute($fetchMode);
+        try {
+            return $query->execute($fetchMode);
+        }
+        catch (HydratorException $e) {
+            $uniqueNames = implode(array_keys($uniqueIndexes));
+            throw new TableException('Found more than one record. Used unique indexes for query: ' . $uniqueNames, 0, $e);
+        }
     }
+
+
+    /**
+     * @param array $fieldValues
+     * @return array
+     */
+    private function getUniqueIndexesForFieldValues(array $fieldValues)
+    {
+        $uniqueIndexes = $this->getUniqueIndexes();
+        return $this->removeUnusedIndexes($uniqueIndexes, $fieldValues);
+    }
+
 
 
     /**

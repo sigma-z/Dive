@@ -134,13 +134,14 @@ abstract class ChangeForCommitTestCase extends TestCase
      */
     protected function createUserWithAuthor(RecordManager $rm, $username)
     {
-        $recordGenerator = $this->createRecordGenerator($rm);
+        $recordGenerator = self::createRecordGenerator($rm);
         $recordGenerator
             ->setTablesMapField(array('user' => 'username'))
             ->setTablesRows($this->tableRows[$username])
             ->generate();
         $userId = $recordGenerator->getRecordIdFromMap('user', $username);
         $userTable = $rm->getTable('user');
+        /** @var User $user */
         $user = $userTable->findByPk($userId);
         $this->assertInstanceOf('\Dive\Record', $user);
         /** @noinspection PhpUndefinedFieldInspection */

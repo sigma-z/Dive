@@ -227,10 +227,11 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param  array $defaultFieldValues
      * @return Record
      */
-    protected function getRecordWithRandomData(Table $table, array $defaultFieldValues = array())
+    protected static function getRecordWithRandomData(Table $table, array $defaultFieldValues = array())
     {
         $fieldValueGenerator = new FieldValuesGenerator();
         $recordData = $fieldValueGenerator->getRandomRecordData($table->getFields(), $defaultFieldValues);
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $table->createRecord($recordData);
     }
 
@@ -350,7 +351,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param   string $className
      * @param   string $scheme
      * @param   array  $arguments
-     * @return  object
+     * @return  object|bool
      */
     protected static function createInstance($namespace, $className, $scheme, array $arguments = array())
     {
@@ -496,6 +497,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $owningFieldMappingConstraint = new OwningFieldMappingConstraint($record, $relationName);
         $relationReferenceMapConstraint = new RelationReferenceMapConstraint($record, $relationName);
         $constraint = self::logicalAnd($relationReferenceMapConstraint, $owningFieldMappingConstraint);
+        /** @noinspection ForeachSourceInspection */
         foreach ($otherRecords as $otherRecord) {
             $this->assertThat($otherRecord, $constraint, $message);
         }
@@ -517,6 +519,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $relationReferenceMapConstraint = new RelationReferenceMapConstraint($record, $relationName);
         $constraint = self::logicalAnd($relationReferenceMapConstraint, $owningFieldMappingConstraint);
         $invertedConstraint = self::logicalNot($constraint);
+        /** @noinspection ForeachSourceInspection */
         foreach ($otherRecords as $otherRecord) {
             $this->assertThat($otherRecord, $invertedConstraint, $message);
         }
@@ -527,7 +530,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param  RecordManager $rm
      * @return RecordGenerator
      */
-    protected function createRecordGenerator(RecordManager $rm)
+    protected static function createRecordGenerator(RecordManager $rm)
     {
         $fvGenerator = new FieldValuesGenerator();
         return new RecordGenerator($rm, $fvGenerator);
@@ -572,6 +575,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         if ($table->hasCompositePrimaryKey()) {
             $pk = explode(Record::COMPOSITE_ID_SEPARATOR, $pk);
         }
+        /** @var Record $record */
         $record = $table->findByPk($pk);
         $message = "Could not load record for '$recordKey' in table '$tableName'";
         $this->assertInstanceOf('\Dive\Record', $record, $message);

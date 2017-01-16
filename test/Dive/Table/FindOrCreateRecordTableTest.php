@@ -34,84 +34,79 @@ class FindOrCreateRecordTableTest extends TestCase
     private $resultRecord;
 
 
-    public function testFindOrCreateRecordByPrimaryKeyWithRecordFound()
+    public function testStoredRecordCanBeFoundByPrimaryKey()
     {
         $this->givenIHaveARecordManager();
-        $this->givenIHaveAUserTable();
-        $this->givenIHaveARecordStoredWithData(array('username' => 'Hugo'));
+        $this->givenIUseTable('user');
+        $this->givenIHaveARecordStoredWithData(['username' => 'Hugo']);
+
         $this->whenIFindOrCreateByPrimaryKey();
-        $this->thenItShouldHaveFoundRecord();
+
+        $this->thenItShouldHaveFoundOneMatchingRecord();
     }
 
 
-    public function testFindOrCreateRecordByPrimaryKeyWithRecordNotFound()
+    public function testNoneExistingPrimaryKey()
     {
         $this->givenIHaveARecordManager();
-        $this->givenIHaveAUserTable();
-        $this->whenIFindOrCreateTheRecordWithData(array('username' => 'Hugo', 'id' => 123));
-        $this->thenItShouldHaveCreatedARecordWithData(array('username' => 'Hugo', 'id' => 123));
+        $this->givenIUseTable('user');
+
+        $this->whenIFindOrCreateTheRecordWithData(['username' => 'Hugo', 'id' => 123]);
+
+        $this->thenItShouldNotHaveFoundAnyMatchingRecord();
+        $this->thenItShouldHaveCreatedARecordWithData(['username' => 'Hugo', 'id' => 123]);
     }
 
 
-    public function testFindOrCreateRecordByUniqueKeyWithRecordFound()
+    public function testExistingRecordCanBeFoundByUniqueIndex()
     {
         $this->givenIHaveARecordManager();
-        $this->givenIHaveAUserTable();
-        $this->givenIHaveARecordStoredWithData(array('username' => 'Hugo'));
-        $this->whenIFindOrCreateTheRecordWithData(array('username' => 'Hugo'));
-        $this->thenItShouldHaveFoundRecord();
+        $this->givenIUseTable('user');
+        $this->givenIHaveARecordStoredWithData(['username' => 'Hugo']);
+
+        $this->whenIFindOrCreateTheRecordWithData(['username' => 'Hugo']);
+
+        $this->thenItShouldHaveFoundOneMatchingRecord();
     }
 
 
-    public function testFindOrCreateRecordByUniqueKeyWithRecordNotFound()
+    public function testNoneMatchingUniqueIndex()
     {
         $this->givenIHaveARecordManager();
-        $this->givenIHaveAUserTable();
-        $this->whenIFindOrCreateTheRecordWithData(array('username' => 'Hugo'));
-        $this->thenItShouldHaveCreatedARecordWithData(array('username' => 'Hugo'));
+        $this->givenIUseTable('user');
+
+        $this->whenIFindOrCreateTheRecordWithData(['username' => 'Hugo']);
+
+        $this->thenItShouldNotHaveFoundAnyMatchingRecord();
+        $this->thenItShouldHaveCreatedARecordWithData(['username' => 'Hugo']);
     }
 
 
-    public function testFindOrCreateRecordByRepository()
+    public function testFindRecordByRepository()
     {
         $this->givenIHaveARecordManager();
-        $this->givenIHaveAUserTable();
-        $this->givenIHaveARecordStoredWithData(array('username' => 'Hugo'));
+        $this->givenIUseTable('user');
+        $this->givenIHaveARecordStoredWithData(['username' => 'Hugo']);
+
         $this->whenIFindOrCreateTheRecordFromRepository();
-        $this->thenItShouldHaveFoundRecord();
+
+        $this->thenItShouldHaveFoundOneMatchingRecord();
     }
 
 
     /**
      * @expectedException \Dive\Table\TableException
      */
-    public function testFindOrCreateRecordByUniqueKeyFindsMoreRecordsThrowsException()
+    public function testFindOrCreateRecordByUniqueKeyFindsMoreThanOneRecordsThrowsException()
     {
         $this->givenIHaveARecordManager();
-        $this->givenIHaveAUniqueConstraintTestTable();
+        $this->givenIUseTable('unique_constraint_test');
 
-        $recordOneData = array(
-            'single_unique' => 'test',
-            'single_unique_null_constrained' => 'test',
-            'composite_unique1' => 'test',
-            'composite_unique2' => 'test',
-            'composite_unique_null_constrained1' => 'test',
-            'composite_unique_null_constrained2' => 'test'
-        );
-        $this->givenIHaveARecordStoredWithData($recordOneData);
-
-        $recordTwoData = array(
-            'single_unique' => '123',
-            'single_unique_null_constrained' => '123',
-            'composite_unique1' => '123',
-            'composite_unique2' => '123',
-            'composite_unique_null_constrained1' => '123',
-            'composite_unique_null_constrained2' => '123'
-        );
-        $this->givenIHaveARecordStoredWithData($recordTwoData);
+        $recordOneData = $this->givenIHaveStoredAUniqueConstraintTestRecord('test');
+        $recordTwoData = $this->givenIHaveStoredAUniqueConstraintTestRecord('123');
 
         // record data will join the data of unique data from two records, so it can not be found be its unique keys
-        $recordData = array();
+        $recordData = [];
         foreach ($this->table->getFieldNames() as $fieldName) {
             if (strpos($fieldName, 'single_unique_') === 0) {
                 $recordData[$fieldName] = $recordOneData[$fieldName];
@@ -125,21 +120,98 @@ class FindOrCreateRecordTableTest extends TestCase
     }
 
 
+    public function testUniqueIndexWithIncompleteFieldValues()
+    {
+        $this->givenIHaveARecordManager();
+        $this->givenIUseTable('unique_constraint_test');
+        $this->givenIHaveStoredAUniqueConstraintTestRecord('test');
+
+        $this->whenIFindOrCreateTheRecordWithData(['composite_unique1' => 'test', 'composite_unique_null_constrained1' => 'test']);
+
+        $this->thenItShouldNotHaveFoundAnyMatchingRecord();
+        $this->thenItShouldHaveCreatedARecordWithData(['composite_unique1' => 'test', 'composite_unique_null_constrained1' => 'test']);
+    }
+
+
+    public function testTableHasNoUniqueIndexes()
+    {
+        $this->givenIHaveARecordManager();
+        $this->givenIUseTable('tree_node');
+
+        $this->whenIFindOrCreateTheRecordWithData(['name' => 'My Node']);
+
+        $this->thenItShouldNotHaveFoundAnyMatchingRecord();
+        $this->thenItShouldHaveCreatedARecordWithData(['name' => 'My Node']);
+    }
+
+
+    /**
+     * @dataProvider provideNullConstraintedUniqueIndex
+     * @param array $fieldValuesForFind
+     * @param bool  $found
+     */
+    public function testNullConstraintedUniqueIndex(array $fieldValuesForFind, $found)
+    {
+        $this->givenIHaveARecordManager();
+        $this->givenIUseTable('unique_constraint_test');
+        $this->givenIHaveStoredAUniqueConstraintTestRecordWithNullValues('test');
+
+        $this->whenIFindOrCreateTheRecordWithData($fieldValuesForFind);
+
+        $found
+            ? $this->thenItShouldHaveFoundOneMatchingRecord()
+            : $this->thenItShouldNotHaveFoundAnyMatchingRecord();
+    }
+
+
+    /**
+     * @return array[]
+     */
+    public function provideNullConstraintedUniqueIndex()
+    {
+        return [
+            [
+                'fieldValuesForFind' => [
+                    'composite_unique_null_constrained1' => null,
+                    'composite_unique_null_constrained2' => null
+                ],
+                'found' => true
+            ],
+            [
+                'fieldValuesForFind' => [
+                    'single_unique_null_constrained' => null,
+                ],
+                'found' => true
+            ],
+            [
+                'fieldValuesForFind' => [
+                    'composite_unique_null_constrained1' => null,
+                    'composite_unique_null_constrained2' => 'test'
+                ],
+                'found' => false
+            ],
+            [
+                'fieldValuesForFind' => [
+                    'single_unique_null_constrained' => 'test',
+                ],
+                'found' => false
+            ],
+        ];
+    }
+
+
     private function givenIHaveARecordManager()
     {
         $this->rm = self::createDefaultRecordManager();
     }
 
 
-    private function givenIHaveAUserTable()
+    /**
+     * @param string $tableName
+     */
+    private function givenIUseTable($tableName)
     {
-        $this->table = $this->rm->getTable('user');
-    }
-
-
-    private function givenIHaveAUniqueConstraintTestTable()
-    {
-        $this->table = $this->rm->getTable('unique_constraint_test');
+        $this->table = $this->rm->getTable($tableName);
     }
 
 
@@ -168,10 +240,17 @@ class FindOrCreateRecordTableTest extends TestCase
     }
 
 
-    private function thenItShouldHaveFoundRecord()
+    private function thenItShouldHaveFoundOneMatchingRecord()
     {
         $this->assertNotNull($this->resultRecord);
         $this->assertTrue($this->resultRecord->exists());
+    }
+
+
+    private function thenItShouldNotHaveFoundAnyMatchingRecord()
+    {
+        $this->assertNotNull($this->resultRecord);
+        $this->assertFalse($this->resultRecord->exists());
     }
 
 
@@ -193,7 +272,45 @@ class FindOrCreateRecordTableTest extends TestCase
         // use fresh instances
         $rm = self::createDefaultRecordManager();
         $userTable = $rm->getTable('user');
-        $this->resultRecord = $userTable->findOrCreateRecord(array('id' => $this->storedRecord->id));
+        $this->resultRecord = $userTable->findOrCreateRecord(['id' => $this->storedRecord->get('id')]);
+    }
+
+
+    /**
+     * @param string $fieldValue
+     * @return array
+     */
+    private function givenIHaveStoredAUniqueConstraintTestRecord($fieldValue)
+    {
+        $recordData = [
+            'single_unique' => $fieldValue,
+            'single_unique_null_constrained' => $fieldValue,
+            'composite_unique1' => $fieldValue,
+            'composite_unique2' => $fieldValue,
+            'composite_unique_null_constrained1' => $fieldValue,
+            'composite_unique_null_constrained2' => $fieldValue
+        ];
+        $this->givenIHaveARecordStoredWithData($recordData);
+        return $recordData;
+    }
+
+
+    /**
+     * @param string $fieldValue
+     * @return array
+     */
+    private function givenIHaveStoredAUniqueConstraintTestRecordWithNullValues($fieldValue)
+    {
+        $recordData = [
+            'single_unique' => $fieldValue,
+            'single_unique_null_constrained' => null,
+            'composite_unique1' => $fieldValue,
+            'composite_unique2' => $fieldValue,
+            'composite_unique_null_constrained1' => null,
+            'composite_unique_null_constrained2' => null
+        ];
+        $this->givenIHaveARecordStoredWithData($recordData);
+        return $recordData;
     }
 
 }

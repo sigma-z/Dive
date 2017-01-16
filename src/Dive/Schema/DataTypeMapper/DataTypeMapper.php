@@ -208,53 +208,79 @@ class DataTypeMapper
      * @param   int     $length optional, default is null, which stands for undefined
      * @return  string
      */
-    public function getMappedDataType($ormType, $length = null)
+    public function getMappedDataType($ormType, $length = 0)
     {
         if (!isset($this->ormTypeMapping[$ormType])) {
             return $ormType;
         }
 
-        $recommendedDataType = null;
-        $biggestDataType = null;
-        $defaultType = null;
-        $maxLength = null;
         $mapping = $this->ormTypeMapping[$ormType];
-        $unit = isset($mapping['unit']) ? $mapping['unit'] : 'chars';
-
         if (is_string($mapping)) {
             return $mapping;
         }
-        else if (isset($mapping['default'])) {
-            $defaultType = $mapping['default'];
-        }
 
-        if ($length <= 0 && $defaultType) {
-            return $defaultType;
-        }
-
-        if ($unit === self::UNIT_BYTES) {
-            $length = (int)floor((log(pow(10, $length)) / log(2)) / 8);
-        }
+        $defaultType = isset($mapping['default']) ? $mapping['default'] : null;
         if (!isset($mapping['types'])) {
             return $defaultType;
         }
-        foreach ($mapping['types'] as $dataType => $lengthCompare) {
+
+        if ($defaultType && ($length === null || $length === 0)) {
+            return $defaultType;
+        }
+
+        $unit = isset($mapping['unit']) ? $mapping['unit'] : 'chars';
+        if ($unit === self::UNIT_BYTES) {
+            $length = (int)floor((log(pow(10, $length)) / log(2)) / 8);
+        }
+        return $this->getBestMatchingType($mapping['types'], $defaultType, $length);
+    }
+
+
+    /**
+     * @param array  $possibleTypes
+     * @param string $defaultType
+     * @param int    $length
+     * @return string
+     */
+    private function getBestMatchingType(array $possibleTypes, $defaultType, $length)
+    {
+        $recommendedDataType = null;
+        $maxLength = null;
+        $biggestDataType = null;
+        foreach ($possibleTypes as $dataType => $lengthCompare) {
             if (($maxLength === null || $maxLength > $lengthCompare) && $length <= $lengthCompare) {
                 $recommendedDataType = $dataType;
                 $maxLength = $lengthCompare;
             }
-            else if ($biggestDataType === null || $lengthCompare > $mapping['types'][$biggestDataType]) {
+            else if ($biggestDataType === null || $lengthCompare > $possibleTypes[$biggestDataType]) {
                 $biggestDataType = $dataType;
             }
         }
 
-        if (empty($recommendedDataType)
-            && $defaultType
-            && (!isset($mapping['types'][$defaultType]) || $mapping['types'][$defaultType] >= $length)
-        ) {
-            return $defaultType;
+        if ($recommendedDataType) {
+            return $recommendedDataType;
         }
-        return $recommendedDataType ?: $biggestDataType;
+
+        if ($length <= 0) {
+            return $biggestDataType;
+        }
+
+        $defaultTypeLength = $this->getDefaultTypeLength($possibleTypes, $defaultType);
+        return $defaultTypeLength <= $length ? $defaultType : $biggestDataType;
+    }
+
+
+    /**
+     * @param array $possibleTypes
+     * @param       $defaultType
+     * @return int|mixed
+     */
+    private function getDefaultTypeLength(array $possibleTypes, $defaultType)
+    {
+        $defaultTypeLength = $defaultType && isset($possibleTypes[$defaultType])
+            ? $possibleTypes[$defaultType]
+            : 0;
+        return $defaultTypeLength;
     }
 
 }

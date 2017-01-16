@@ -114,20 +114,22 @@ class DataTypeMapper
      * adds mapping for orm type to data type
      *
      * @param   OrmDataTypeInterface $ormDataType
-     * @param   string      $dataType
-     * @param   int|string  $dataTypeMaxLength
+     * @param   string               $dataType
+     * @param   int|string           $dataTypeMaxLength
      * @return  $this
      */
-    public function addOrmType($ormDataType, $dataType, $dataTypeMaxLength = 'default')
+    public function addOrmType(OrmDataTypeInterface $ormDataType, $dataType, $dataTypeMaxLength = 'default')
     {
         $type = $ormDataType->getType();
         $this->ormDataTypeInstance[$type] = $ormDataType;
 
-        if ($dataTypeMaxLength === 'default' && (!isset($this->ormTypeMapping[$type]) || is_string($this->ormTypeMapping[$type]))) {
-            $this->ormTypeMapping[$type] = $dataType;
-        }
-        else if ($dataTypeMaxLength === 'default') {
-            $this->ormTypeMapping[$type]['default'] = $dataType;
+        if ($dataTypeMaxLength === 'default') {
+            if (!isset($this->ormTypeMapping[$type]) || is_string($this->ormTypeMapping[$type])) {
+                $this->ormTypeMapping[$type] = $dataType;
+            }
+            else {
+                $this->ormTypeMapping[$type]['default'] = $dataType;
+            }
         }
         else {
             $this->ormTypeMapping[$type]['types'][$dataType] = $dataTypeMaxLength;

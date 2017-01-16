@@ -232,16 +232,22 @@ class Connection
     {
         if (!$this->isConnected()) {
             $this->dispatchEvent(self::EVENT_PRE_CONNECT);
-            try {
-                $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
-            }
-            catch (\PDOException $e) {
-                throw new ConnectionException($e->getMessage());
-            }
+            $this->tryToConnect();
             $this->dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $encodingSql = $this->platform->getSetConnectionEncodingSql($this->encoding);
             $this->dbh->exec($encodingSql);
             $this->dispatchEvent(self::EVENT_POST_CONNECT);
+        }
+    }
+
+
+    private function tryToConnect()
+    {
+        try {
+            $this->dbh = new \PDO($this->dsn, $this->user, $this->password);
+        }
+        catch (\PDOException $e) {
+            throw new ConnectionException($e->getMessage());
         }
     }
 

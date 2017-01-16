@@ -242,6 +242,9 @@ class MigrationTest extends TestCase
 
     /**
      * @dataProvider provideCreateTableMigration
+     * @param array  $database
+     * @param string $tableName
+     * @param array  $expectedArray
      */
     public function testCreateTableMigration($database, $tableName, array $expectedArray)
     {
@@ -276,6 +279,9 @@ class MigrationTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideCreateTableMigration()
     {
         $testCases = array(
@@ -293,7 +299,7 @@ class MigrationTest extends TestCase
                     ),
                     'mysql' => array(
                         "CREATE TABLE IF NOT EXISTS `user` (\n"
-                            . "`id` bigint(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
+                            . "`id` int(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
                             . "`username` varchar(64) NOT NULL,\n"
                             . "`password` varchar(32) NOT NULL,\n"
                             . "PRIMARY KEY(`id`),\n"
@@ -313,8 +319,8 @@ class MigrationTest extends TestCase
                             . "\"firstname\" varchar(64),\n"
                             . "\"lastname\" varchar(64) NOT NULL,\n"
                             . "\"email\" varchar(255) NOT NULL,\n"
-                            . "\"user_id\" unsigned bigint(10) NOT NULL,\n"
-                            . "\"editor_id\" unsigned bigint(10),\n"
+                            . "\"user_id\" unsigned integer(10) NOT NULL,\n"
+                            . "\"editor_id\" unsigned integer(10),\n"
                             . "CONSTRAINT \"author_fk_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"user\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE,\n"
                             . "CONSTRAINT \"author_fk_editor_id\" FOREIGN KEY (\"editor_id\") REFERENCES \"author\" (\"id\") ON DELETE SET NULL ON UPDATE CASCADE\n"
                             . ")",
@@ -323,12 +329,12 @@ class MigrationTest extends TestCase
                     ),
                     'mysql' => array(
                         "CREATE TABLE IF NOT EXISTS `author` (\n"
-                            . "`id` bigint(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
+                            . "`id` int(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
                             . "`firstname` varchar(64),\n"
                             . "`lastname` varchar(64) NOT NULL,\n"
                             . "`email` varchar(255) NOT NULL,\n"
-                            . "`user_id` bigint(10) UNSIGNED NOT NULL,\n"
-                            . "`editor_id` bigint(10) UNSIGNED,\n"
+                            . "`user_id` int(10) UNSIGNED NOT NULL,\n"
+                            . "`editor_id` int(10) UNSIGNED,\n"
                             . "PRIMARY KEY(`id`),\n"
                             . "UNIQUE INDEX `UNIQUE` (`firstname`, `lastname`),\n"
                             . "UNIQUE INDEX `UQ_user_id` (`user_id`),\n"
@@ -346,6 +352,10 @@ class MigrationTest extends TestCase
 
     /**
      * @dataProvider provideAlterTableMigration
+     * @param array  $database
+     * @param string $tableName
+     * @param array  $operations
+     * @param array  $expectedArray
      */
     public function testAlterTableMigration($database, $tableName, array $operations, array $expectedArray)
     {
@@ -366,6 +376,9 @@ class MigrationTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideAlterTableMigration()
     {
         $testCases = array();
@@ -503,7 +516,7 @@ class MigrationTest extends TestCase
                         . '"id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,' . "\n"
                         . '"username" varchar(64) NOT NULL,' . "\n"
                         . '"password" varchar(32) NOT NULL,' . "\n"
-                        . '"manager_id" bigint(10),' . "\n"
+                        . '"manager_id" integer(10),' . "\n"
                         . 'CONSTRAINT "user_fk_manager_id" FOREIGN KEY ("manager_id") REFERENCES "user" ("id") ON DELETE SET NULL ON UPDATE CASCADE'
                         . "\n)",
                     'CREATE UNIQUE INDEX IF NOT EXISTS "user_UNIQUE" ON "user" ("username")',
@@ -512,7 +525,7 @@ class MigrationTest extends TestCase
                     'DROP TABLE "user_backup"'
                 ),
                 'mysql' => array(
-                    'ALTER TABLE `user` ADD COLUMN `manager_id` bigint(10)',
+                    'ALTER TABLE `user` ADD COLUMN `manager_id` int(10)',
                     'CREATE INDEX IF NOT EXISTS `FK_manager_id` ON `user` (`manager_id`)',
                     'ALTER TABLE `user` ADD CONSTRAINT `user_fk_manager_id` FOREIGN KEY (`manager_id`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE'
                 )
@@ -576,8 +589,8 @@ class MigrationTest extends TestCase
                         . '"firstname" varchar(64),' . "\n"
                         . '"lastname" varchar(64) NOT NULL,' . "\n"
                         . '"email" varchar(255) NOT NULL,' . "\n"
-                        . '"user_id" unsigned bigint(10) NOT NULL,' . "\n"
-                        . '"editor_id" unsigned bigint(10),' . "\n"
+                        . '"user_id" unsigned integer(10) NOT NULL,' . "\n"
+                        . '"editor_id" unsigned integer(10),' . "\n"
                         . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE SET NULL ON UPDATE CASCADE' . "\n"
                         . ")",
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
@@ -608,8 +621,8 @@ class MigrationTest extends TestCase
                         . '"firstname" varchar(64),' . "\n"
                         . '"lastname" varchar(64) NOT NULL,' . "\n"
                         . '"email" varchar(255) NOT NULL,' . "\n"
-                        . '"user_id" unsigned bigint(10) NOT NULL,' . "\n"
-                        . '"editor_id" unsigned bigint(10),' . "\n"
+                        . '"user_id" unsigned integer(10) NOT NULL,' . "\n"
+                        . '"editor_id" unsigned integer(10),' . "\n"
                         . 'CONSTRAINT "author_fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,' . "\n"
                         . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE SET NULL ON UPDATE CASCADE' . "\n"
                         . ")",
@@ -642,7 +655,7 @@ class MigrationTest extends TestCase
                         . '"firstname" varchar(64),' . "\n"
                         . '"lastname" varchar(64) NOT NULL,' . "\n"
                         . '"email" varchar(255) NOT NULL,' . "\n"
-                        . '"editor_id" unsigned bigint(10),' . "\n"
+                        . '"editor_id" unsigned integer(10),' . "\n"
                         . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE SET NULL ON UPDATE CASCADE' . "\n"
                         . ")",
                     'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',

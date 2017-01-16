@@ -82,6 +82,7 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
 
     public function testAddOrmType()
     {
+        /** @var \Dive\Schema\OrmDataType\OrmDataType $ormDataType */
         $ormDataType = $this->getMockForAbstractClass('\Dive\Schema\OrmDataType\OrmDataType', array('test'));
         $this->dataTypeMapper->addOrmType($ormDataType, DataTypeMapper::OTYPE_STRING);
         $this->assertTrue($this->dataTypeMapper->hasOrmType('test'));
@@ -117,11 +118,14 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider provideGetMappedDataType
+     * @param int    $length
+     * @param string $ormType
+     * @param string $expectedType
      */
-    public function testGetMappedDataType($length, $ormType, $expected)
+    public function testGetMappedDataType($length, $ormType, $expectedType)
     {
         $actual = $this->dataTypeMapper->getMappedDataType($ormType, $length);
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($expectedType, $actual);
     }
 
 
@@ -130,26 +134,25 @@ class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
      */
     public function provideGetMappedDataType()
     {
-        $testCases = array();
-        $testCases[] = array(null,  DataTypeMapper::OTYPE_INTEGER, 'int');
-        $testCases[] = array(0,     DataTypeMapper::OTYPE_INTEGER, 'int');
-        $testCases[] = array(1,     DataTypeMapper::OTYPE_INTEGER, 'tinyint');
-        $testCases[] = array(2,     DataTypeMapper::OTYPE_INTEGER, 'tinyint');
-        $testCases[] = array(3,     DataTypeMapper::OTYPE_INTEGER, 'smallint');
-        $testCases[] = array(4,     DataTypeMapper::OTYPE_INTEGER, 'smallint');
-        $testCases[] = array(5,     DataTypeMapper::OTYPE_INTEGER, 'mediumint');
-        $testCases[] = array(6,     DataTypeMapper::OTYPE_INTEGER, 'mediumint');
-        $testCases[] = array(7,     DataTypeMapper::OTYPE_INTEGER, 'mediumint');
-        $testCases[] = array(8,     DataTypeMapper::OTYPE_INTEGER, 'int');
-        $testCases[] = array(9,     DataTypeMapper::OTYPE_INTEGER, 'int');
-        $testCases[] = array(10,    DataTypeMapper::OTYPE_INTEGER, 'bigint');
-        $testCases[] = array(19,    DataTypeMapper::OTYPE_INTEGER, 'bigint');
-        $testCases[] = array(20,    DataTypeMapper::OTYPE_INTEGER, 'bigint');
-        $testCases[] = array(255,   DataTypeMapper::OTYPE_STRING,  'varchar');
-        $testCases[] = array(300,   DataTypeMapper::OTYPE_STRING,  'text');
-        $testCases[] = array(null,  DataTypeMapper::OTYPE_BLOB,    'blob');
-
-        return $testCases;
+        return [
+            [null,  DataTypeMapper::OTYPE_INTEGER, 'int'],
+            [0,     DataTypeMapper::OTYPE_INTEGER, 'int'],
+            [1,     DataTypeMapper::OTYPE_INTEGER, 'tinyint'],
+            [2,     DataTypeMapper::OTYPE_INTEGER, 'tinyint'],
+            [3,     DataTypeMapper::OTYPE_INTEGER, 'tinyint'],
+            [4,     DataTypeMapper::OTYPE_INTEGER, 'tinyint'],
+            [5,     DataTypeMapper::OTYPE_INTEGER, 'smallint'],
+            [6,     DataTypeMapper::OTYPE_INTEGER, 'smallint'],
+            [7,     DataTypeMapper::OTYPE_INTEGER, 'smallint'],
+            [8,     DataTypeMapper::OTYPE_INTEGER, 'mediumint'],
+            [9,     DataTypeMapper::OTYPE_INTEGER, 'mediumint'],
+            [10,    DataTypeMapper::OTYPE_INTEGER, 'int'],
+            [19,    DataTypeMapper::OTYPE_INTEGER, 'bigint'],
+            [20,    DataTypeMapper::OTYPE_INTEGER, 'bigint'],
+            [255,   DataTypeMapper::OTYPE_STRING,  'varchar'],
+            [300,   DataTypeMapper::OTYPE_STRING,  'text'],
+            [null,  DataTypeMapper::OTYPE_BLOB,    'blob'],
+        ];
     }
 
 }

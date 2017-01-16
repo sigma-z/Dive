@@ -233,7 +233,7 @@ class DataTypeMapper
         }
 
         if ($unit === self::UNIT_BYTES) {
-            $length = (int)ceil(((log(pow(10, $length)) / log(2))) / 8);
+            $length = (int)floor((log(pow(10, $length)) / log(2)) / 8);
         }
         if (!isset($mapping['types'])) {
             return $defaultType;

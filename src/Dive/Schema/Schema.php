@@ -593,7 +593,7 @@ class Schema
      * Gets table relations
      *
      * @param  string $tableName
-     * @return array
+     * @return array[]
      */
     public function getTableRelations($tableName)
     {

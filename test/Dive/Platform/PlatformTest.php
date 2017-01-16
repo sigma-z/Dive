@@ -71,6 +71,9 @@ class PlatformTest extends TestCase
 
     /**
      * @dataProvider provideGetCreateTableSql
+     * @param array  $database
+     * @param string $tableName
+     * @param array  $expectedArray
      */
     public function testGetCreateTableSql($database, $tableName, array $expectedArray)
     {
@@ -85,7 +88,7 @@ class PlatformTest extends TestCase
         $columns = $schema->getTableFields($tableName);
         $indexes = $schema->getTableIndexes($tableName);
         $relations = $schema->getTableRelations($tableName);
-        $foreignKeys = array();
+        $foreignKeys = [];
         foreach ($relations['owning'] as $owningRelation) {
             $foreignKeys[$owningRelation['owningField']] = $owningRelation;
         }
@@ -95,58 +98,61 @@ class PlatformTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideGetCreateTableSql()
     {
-        $testCases = array(
+        $testCases = [
             // test case #0
-            array(
+            [
                 'tableName' => 'user',
-                'expectedArray' => array(
+                'expectedArray' => [
                     'sqlite' => "CREATE TABLE IF NOT EXISTS \"user\" (\n"
                                 . "\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL,\n"
                                 . "\"username\" varchar(64) NOT NULL,\n"
                                 . "\"password\" varchar(32) NOT NULL\n"
                                 . ")",
                     'mysql' => "CREATE TABLE IF NOT EXISTS `user` (\n"
-                                . "`id` bigint(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
+                                . "`id` int(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
                                 . "`username` varchar(64) NOT NULL,\n"
                                 . "`password` varchar(32) NOT NULL,\n"
                                 . "PRIMARY KEY(`id`),\n"
                                 . "UNIQUE INDEX `UNIQUE` (`username`)\n"
                                 . ")"
-                )
-            ),
+                ]
+            ],
 
             // test case #1
-            array(
+            [
                 'tableName' => 'author',
-                'expectedArray' => array(
+                'expectedArray' => [
                     'sqlite' => "CREATE TABLE IF NOT EXISTS \"author\" (\n"
                                 . "\"id\" integer PRIMARY KEY AUTOINCREMENT NOT NULL,\n"
                                 . "\"firstname\" varchar(64),\n"
                                 . "\"lastname\" varchar(64) NOT NULL,\n"
                                 . "\"email\" varchar(255) NOT NULL,\n"
-                                . "\"user_id\" unsigned bigint(10) NOT NULL,\n"
-                                . "\"editor_id\" unsigned bigint(10),\n"
+                                . "\"user_id\" unsigned integer(10) NOT NULL,\n"
+                                . "\"editor_id\" unsigned integer(10),\n"
                                 . "CONSTRAINT \"author_fk_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"user\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE,\n"
                                 . "CONSTRAINT \"author_fk_editor_id\" FOREIGN KEY (\"editor_id\") REFERENCES \"author\" (\"id\") ON DELETE SET NULL ON UPDATE CASCADE\n"
                                 . ")",
                     'mysql' => "CREATE TABLE IF NOT EXISTS `author` (\n"
-                                . "`id` bigint(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
+                                . "`id` int(10) UNSIGNED AUTO_INCREMENT NOT NULL,\n"
                                 . "`firstname` varchar(64),\n"
                                 . "`lastname` varchar(64) NOT NULL,\n"
                                 . "`email` varchar(255) NOT NULL,\n"
-                                . "`user_id` bigint(10) UNSIGNED NOT NULL,\n"
-                                . "`editor_id` bigint(10) UNSIGNED,\n"
+                                . "`user_id` int(10) UNSIGNED NOT NULL,\n"
+                                . "`editor_id` int(10) UNSIGNED,\n"
                                 . "PRIMARY KEY(`id`),\n"
                                 . "UNIQUE INDEX `UNIQUE` (`firstname`, `lastname`),\n"
                                 . "UNIQUE INDEX `UQ_user_id` (`user_id`),\n"
                                 . "CONSTRAINT `author_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,\n"
                                 . "CONSTRAINT `author_fk_editor_id` FOREIGN KEY (`editor_id`) REFERENCES `author` (`id`) ON DELETE SET NULL ON UPDATE CASCADE\n"
                                 . ")"
-                )
-            )
-        );
+                ]
+            ]
+        ];
 
         return self::getDatabaseAwareTestCases($testCases);
     }
@@ -197,6 +203,9 @@ class PlatformTest extends TestCase
 
     /**
      * @dataProvider provideGetColumnDefinitionSql
+     * @param array $database
+     * @param array $definition
+     * @param array $expectedArray
      */
     public function testGetColumnDefinitionSql($database, array $definition, array $expectedArray)
     {
@@ -276,8 +285,8 @@ class PlatformTest extends TestCase
                 'nullable' => true
             ),
             'expectedArray' => array(
-                'sqlite' => 'unsigned mediumint(6)',
-                'mysql' => 'mediumint(6) UNSIGNED ZEROFILL',
+                'sqlite' => 'unsigned smallint(6)',
+                'mysql' => 'smallint(6) UNSIGNED ZEROFILL',
             )
         );
 
@@ -365,7 +374,7 @@ class PlatformTest extends TestCase
             ),
             'expectedArray' => array(
                 'sqlite' => 'integer PRIMARY KEY AUTOINCREMENT NOT NULL',
-                'mysql' => 'bigint(10) AUTO_INCREMENT NOT NULL',
+                'mysql' => 'int(10) AUTO_INCREMENT NOT NULL',
             )
         );
 

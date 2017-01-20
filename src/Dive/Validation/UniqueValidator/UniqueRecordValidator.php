@@ -33,7 +33,7 @@ class UniqueRecordValidator extends RecordValidator
         }
 
         if (!($record instanceof Record)) {
-            throw new \InvalidArgumentException("Expects record instance as #1 argument");
+            throw new \InvalidArgumentException('Expects record instance as #1 argument');
         }
 
         if ($record->exists() && !$record->isModified()) {
@@ -75,9 +75,10 @@ class UniqueRecordValidator extends RecordValidator
         $isNullConstrained = $table->isUniqueIndexNullConstrained($uniqueName);
         $uniqueFields = $uniqueIndex['fields'];
         $checkIsRequired = false;
+        $isModified = false;
         foreach ($uniqueFields as $fieldName) {
-            if ($record->exists() && !$record->isFieldModified($fieldName)) {
-                continue;
+            if (!$record->exists() || $record->isFieldModified($fieldName)) {
+                $isModified = true;
             }
             if ($isNullConstrained) {
                 return true;
@@ -87,7 +88,7 @@ class UniqueRecordValidator extends RecordValidator
             }
             $checkIsRequired = true;
         }
-        return $checkIsRequired;
+        return $checkIsRequired || $isModified;
     }
 
 
@@ -136,7 +137,7 @@ class UniqueRecordValidator extends RecordValidator
 
         if ($recordExists) {
             $condition = '';
-            foreach ($record->getIdentifierFieldIndexed() as $idField => $idValue) {
+            foreach ($record->getStoredIdentifierFieldIndexed() as $idField => $idValue) {
                 $condition .= $conn->quoteIdentifier($idField) . ' != ? AND ';
                 $identifier[] = $idValue;
             }
@@ -161,7 +162,7 @@ class UniqueRecordValidator extends RecordValidator
                     $condition .= $fieldNameQuoted . ' IS NULL AND ';
                 }
                 else {
-                    throw new Exception("Cannot process unique index for creating query to check whether the record is unique, or not!");
+                    throw new Exception('Cannot process unique index for creating query to check whether the record is unique, or not!');
                 }
             }
             // strip last AND from string

@@ -163,10 +163,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         array $events,
         array &$expectedEventsCalled
     ) {
-        /**
-         * @param Event  $event
-         * @param string $eventName
-         */
+        /** @noinspection PhpUnusedParameterInspection */
         $callOnEvent = function(Event $event, $eventName) use (&$expectedEventsCalled) {
             $expectedEventsCalled[] = $eventName;
         };
@@ -231,7 +228,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param  array $defaultFieldValues
      * @return Record
      */
-    protected static function getRecordWithRandomData(Table $table, array $defaultFieldValues = array())
+    public static function getRecordWithRandomData(Table $table, array $defaultFieldValues = array())
     {
         $fieldValueGenerator = new FieldValuesGenerator();
         $recordData = $fieldValueGenerator->getRandomRecordData($table->getFields(), $defaultFieldValues);

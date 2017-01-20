@@ -261,6 +261,16 @@ class Record
 
 
     /**
+     * @return array|null
+     */
+    public function getStoredIdentifierFieldIndexed()
+    {
+        $fieldValues = array_merge($this->_data, array_filter($this->_modifiedFields));
+        return $this->_table->getIdentifierFieldValues($fieldValues);
+    }
+
+
+    /**
      * @return string
      */
     public function getOid()
@@ -753,7 +763,7 @@ class Record
             $refAlias = $relation->getReferencedAlias();
             if ($tableName == $owningTable && !isset($references[$refAlias])) {
                 $reference = $this->getReferenceAsArray($relation, $refAlias, $withMappedFields, $visited);
-                if ($reference !== false && !isset($references[$refAlias])) {
+                if ($reference !== false) {
                     $references[$refAlias] = $reference;
                 }
             }

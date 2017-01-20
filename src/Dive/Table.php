@@ -718,7 +718,10 @@ class Table
             $queryParams = array_merge($queryParams, $conditionParams);
         }
         $query = $this->createQuery();
-        $query->where(implode(' OR ', $conditions), $queryParams);
+        if (!$conditions) {
+            return false;
+        }
+        $query->where(trim(implode(' OR ', $conditions)), $queryParams);
 
         try {
             return $query->execute($fetchMode);

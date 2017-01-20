@@ -544,6 +544,9 @@ class UnitOfWork
         if ($newIdentifierValues !== $identifierValues) {
             $record->assignIdentifier($newIdentifierValues, $identifierValues);
         }
+        else {
+            $record->clearModified();
+        }
 
         $this->invokeRecordEvent(Record::EVENT_POST_SAVE, $record);
         $this->invokeRecordEvent(Record::EVENT_POST_UPDATE, $record);

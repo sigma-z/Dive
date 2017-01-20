@@ -323,7 +323,7 @@ class Record
             $relation->updateRecordIdentifier($this, $relationName, $newIdentifierAsString, $oldIdentifierAsString);
         }
 
-        $this->_modifiedFields = array();
+        $this->clearModified();
         $this->_exists = true;
 
         $repository = $this->_table->getRepository();
@@ -543,6 +543,12 @@ class Record
     }
 
 
+    public function clearModified()
+    {
+        $this->_modifiedFields = [];
+    }
+
+
     /**
      * @return string
      */
@@ -601,7 +607,7 @@ class Record
 
         if ($values !== false) {
             $this->_data = $values;
-            $this->_modifiedFields = array();
+            $this->clearModified();
         }
         else {
             $this->_exists = false;

@@ -301,12 +301,12 @@ class RecordTest extends TestCase
      */
     public function provideModifiedTestCases()
     {
-        return array(
-            array(array('username' => 'John'), false, array('username' => 'David')),
-            array(array('username' => 'John'), true, array('username' => 'David')),
-            array(array('username' => 'David'), false, array()),
-            array(array('username' => 'David'), true, array()),
-        );
+        return [
+            [['username' => 'John'], false, ['username' => 'David']],
+            [['username' => 'John'], true, ['username' => 'David']],
+            [['username' => 'David'], false, []],
+            [['username' => 'David'], true, []],
+        ];
     }
 
 
@@ -345,10 +345,11 @@ class RecordTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testSaveNewRecord(array $database)
     {
-        $rm = $this->createRecordManager($database);
+        $rm = self::createRecordManager($database);
         $user = $this->createUserRecord($rm);
         $rm->scheduleSave($user);
         $rm->commit();
@@ -366,10 +367,11 @@ class RecordTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testSaveExistingRecord(array $database)
     {
-        $rm = $this->createRecordManager($database);
+        $rm = self::createRecordManager($database);
         $user = $this->createUserRecord($rm);
         $rm->scheduleSave($user);
         $rm->commit();
@@ -393,10 +395,11 @@ class RecordTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testDeleteNewRecord(array $database)
     {
-        $rm = $this->createRecordManager($database);
+        $rm = self::createRecordManager($database);
         $user = $this->createUserRecord($rm);
 
         $logger = new SqlLogger();
@@ -411,10 +414,11 @@ class RecordTest extends TestCase
 
     /**
      * @dataProvider provideDatabaseAwareTestCases
+     * @param array $database
      */
     public function testDeleteExistingRecord(array $database)
     {
-        $rm = $this->createRecordManager($database);
+        $rm = self::createRecordManager($database);
         $user = $this->createUserRecord($rm);
 
         $rm->scheduleSave($user);

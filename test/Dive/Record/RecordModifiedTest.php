@@ -34,18 +34,13 @@ class RecordModifiedTest extends TestCase
 
         $rm->scheduleSave($user)->commit();
         $this->assertFalse($user->isModified());
-
-        $user->set('username', 'changedValue');
-        $this->assertTrue($user->isModified());
-
-        $rm->scheduleSave($user)->commit();
-        $this->assertFalse($user->isModified());
     }
 
 
     public function testRecordIsNotModifiedAfterUpdate()
     {
         $rm = $this->givenIHaveARecordManager();
+        /** @var User $user */
         $user = $this->givenIHaveStoredARecord('user', ['username' => 'Joe']);
 
         $user->set('username', 'changedValue');
@@ -59,6 +54,7 @@ class RecordModifiedTest extends TestCase
     public function testRecordIsModifiedAfterQuery()
     {
         $this->givenIHaveARecordManager();
+        /** @var User $user */
         $user = $this->givenIHaveStoredARecord('user', ['username' => 'Joe']);
 
         $user->set('username', 'changedValue');
@@ -74,6 +70,7 @@ class RecordModifiedTest extends TestCase
     public function testRecordIsNotModifiedAfterRefresh()
     {
         $this->givenIHaveARecordManager();
+        /** @var User $user */
         $user = $this->givenIHaveStoredARecord('user', ['username' => 'Joe']);
 
         $user->set('username', 'changedValue');

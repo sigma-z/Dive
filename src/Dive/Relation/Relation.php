@@ -554,7 +554,6 @@ class Relation
         if (is_string($refId) && $refTable->isInRepository($refId)) {
             return $refTable->getFromRepository($refId);
         }
-
         return false;
     }
 
@@ -574,6 +573,7 @@ class Relation
             $recordCollection->add($record);
         }
 
+        $relatedCollection = null;
         if ($record->exists()) {
             $identifiers = $recordCollection->getIdentifiers();
             $query = $this->getReferenceQuery($record, $relationName, $identifiers);
@@ -581,7 +581,10 @@ class Relation
             /** @var \Dive\Record[]|\Dive\Collection\RecordCollection $relatedCollection */
             $relatedCollection = $query->execute(RecordManager::FETCH_RECORD_COLLECTION);
         }
-        else {
+        else if ($this->isReferencedSide($relationName)){
+            $relatedCollection = $this->loadReferenceSide($record, $relationName);
+        }
+        if ($relatedCollection === null) {
             $table = $record->getTable();
             $rm = $table->getRecordManager();
             $relatedTable = $this->getJoinTable($rm, $relationName);
@@ -593,6 +596,29 @@ class Relation
         $ownerCollection      = $isOwningSide ? $relatedCollection : $recordCollection;
         $referencedCollection = $isOwningSide ? $recordCollection  : $relatedCollection;
         $this->map->updateOwnerCollectionWithReferencedCollection($ownerCollection, $referencedCollection);
+    }
+
+
+    /**
+     * @param Record $record
+     * @param string $relationName
+     * @return array
+     */
+    private function loadReferenceSide(Record $record, $relationName)
+    {
+        $refId = $this->getRecordReferencedIdentifiers($record, $relationName);
+        if ($refId) {
+            $table = $record->getTable();
+            $rm = $table->getRecordManager();
+            $relatedTable = $this->getJoinTable($rm, $relationName);
+            $connection = $rm->getConnection();
+            $expression = $connection->quoteIdentifier("a.$this->refField");
+            $query = $relatedTable->createQuery('a')
+                ->where("$expression = ?", $refId);
+            /** @var \Dive\Record[]|\Dive\Collection\RecordCollection $relatedCollection */
+            return $query->execute(RecordManager::FETCH_RECORD_COLLECTION);
+        }
+        return null;
     }
 
 

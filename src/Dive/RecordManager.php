@@ -12,7 +12,6 @@ use Dive\Schema\Schema;
 use Dive\Schema\SchemaException;
 use Dive\Connection\Connection;
 use Dive\Relation\Relation;
-use Dive\Table;
 use Dive\Platform\PlatformInterface;
 use Dive\UnitOfWork\UnitOfWork;
 use Dive\Validation\FieldValidator\FieldValidator;
@@ -26,7 +25,7 @@ use Dive\Validation\ValidationContainer;
 class RecordManager
 {
 
-    const ORM_VERSION = '1.0.6';
+    const ORM_VERSION = '1.0.7';
 
     const FETCH_RECORD_COLLECTION = 'record-collection';
     const FETCH_RECORD = 'record';
@@ -37,7 +36,7 @@ class RecordManager
 
 
     /** @var Table[] */
-    private $tables = array();
+    private $tables = [];
 
     /** @var Connection */
     private $conn;
@@ -46,13 +45,13 @@ class RecordManager
     private $schema;
 
     /** @var \Dive\Relation\Relation[] */
-    private $relations = array();
+    private $relations = [];
 
     /** @var Table\Behavior\Behavior[] */
-    private $tableBehaviors = array();
+    private $tableBehaviors = [];
 
     /** @var \Dive\Hydrator\HydratorInterface[] */
-    private $hydrators = array();
+    private $hydrators = [];
 
     /** @var UnitOfWork */
     private $unitOfWork;
@@ -217,16 +216,21 @@ class RecordManager
 
 
     /**
-     * @param $relationsData
-     * @return array
+     * @param string[][][] $relationsData
+     * @return Relation[]
      */
-    private function instantiateRelations($relationsData)
+    private function instantiateRelations(array $relationsData)
     {
+        /** @var Relation[] $relations */
         $relations = array();
-        foreach ($relationsData['owning'] as $relName => $relData) {
+        /** @var string[][] $owning */
+        $owning = $relationsData['owning'];
+        foreach ($owning as $relName => $relData) {
             $relations[$relData['refAlias']] = $this->getRelationInstance($relName, $relData);
         }
-        foreach ($relationsData['referenced'] as $relName => $relData) {
+        /** @var string[][] $referenced */
+        $referenced = $relationsData['referenced'];
+        foreach ($referenced as $relName => $relData) {
             $relations[$relData['owningAlias']] = $this->getRelationInstance($relName, $relData);
         }
         return $relations;
@@ -236,8 +240,8 @@ class RecordManager
     /**
      * gets relation instance
      *
-     * @param   string $name
-     * @param   array  $relationData
+     * @param   string   $name
+     * @param   string[] $relationData
      * @return  \Dive\Relation\Relation
      */
     private function getRelationInstance($name, array $relationData)

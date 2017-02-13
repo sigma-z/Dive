@@ -18,6 +18,7 @@ matrix:
       env: DB=sqlite # sqlite below 3.8.10.2 has a bug
     - php: 5.6
       env: DB=sqlite # sqlite below 3.8.10.2 has a bug
+    - php: nightly
 
 env:
  - DB=mysql

@@ -21,42 +21,38 @@ use Dive\Util\FieldValuesGenerator;
 class RecordGenerator
 {
 
-    /**
-     * @var RecordManager
-     */
-    private $rm = null;
+    /** @var RecordManager */
+    private $rm;
+
+    /** @var FieldValuesGenerator */
+    private $fieldValueGenerator;
 
     /**
-     * @var FieldValuesGenerator
-     */
-    private $fieldValueGenerator = null;
-
-    /**
-     * @var array
+     * @var array[]
      * keys: table names
      * values: rows
      */
-    private $tableRows = array();
+    private $tableRows = [];
 
     /**
      * @var array[]
      * keys: keys provided by table rows
      * values: record identifier as string
      */
-    private $recordAliasIdMap = array();
+    private $recordAliasIdMap = [];
 
     /**
      * @var array[]
      * values: array with key 'tableName' and 'id'
      */
-    private $generatedRecords = array();
+    private $generatedRecords = [];
 
     /**
      * @var array
      * keys: table name
      * values: map field name
      */
-    private $tableMapFields = array();
+    private $tableMapFields = [];
 
 
     /**
@@ -235,9 +231,9 @@ class RecordGenerator
     /**
      * Saves records related for referenced relation
      *
-     * @param Relation      $relation
-     * @param array|string  $relatedRows
-     * @param string        $id
+     * @param Relation $relation
+     * @param array    $relatedRows
+     * @param string   $id
      */
     private function saveRecordsOnOwningRelation(Relation $relation, $relatedRows, $id)
     {
@@ -386,7 +382,7 @@ class RecordGenerator
     {
         $idList = array();
         foreach ($this->generatedRecords as $recordData) {
-            if ($recordData['tableName'] == $tableName) {
+            if ($recordData['tableName'] === $tableName) {
                 $idList[] = $recordData['id'];
             }
         }
@@ -417,7 +413,13 @@ class RecordGenerator
     {
         foreach ($table->getRelations() as $relationName => $relation) {
             $owning = $relation->getOwningField();
-            if (!$relation->isReferencedSide($relationName) || isset($row[$relationName]) || isset($row[$owning])) {
+            if (!$relation->isReferencedSide($relationName)) {
+                continue;
+            }
+            if (isset($row[$relationName])) {
+                continue;
+            }
+            if (isset($row[$owning])) {
                 continue;
             }
             if ($table->isFieldRequired($owning)) {
@@ -429,18 +431,17 @@ class RecordGenerator
 
 
     /**
-     * @param $refTableName
-     * @param $refField
-     * @param $id
-     * @param $relatedKey
+     * @param string $refTableName
+     * @param string $refField
+     * @param string $id
+     * @param string $relatedKey
      * @throws RecordGeneratorException
-     * @throws \Dive\Table\TableException
      */
     private function updateRelatedRecord($refTableName, $refField, $id, $relatedKey)
     {
         $record = $this->rm->getTable($refTableName)->getFromRepository($this->getRecordIdFromMap($refTableName, $relatedKey));
         if (!$record) {
-            throw new RecordGeneratorException("record not found");
+            throw new RecordGeneratorException('Record not found');
         }
         $record->set($refField, $id);
         $this->rm->scheduleSave($record);

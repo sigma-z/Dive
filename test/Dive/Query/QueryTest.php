@@ -318,6 +318,34 @@ class QueryTest extends TestCase
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?)',
             'expectedNumOfRows' => 0
         );
+        $testCases[] = array(
+            'operations' => array(
+                array('andWhereIn', array('username', array()))
+            ),
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
+            'expectedNumOfRows' => 0
+        );
+        $testCases[] = array(
+            'operations' => array(
+                array('andWhereNotIn', array('username', array()))
+            ),
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
+            'expectedNumOfRows' => 2
+        );
+        $testCases[] = array(
+            'operations' => array(
+                array('orWhereIn', array('username', array()))
+            ),
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
+            'expectedNumOfRows' => 0
+        );
+        $testCases[] = array(
+            'operations' => array(
+                array('orWhereNotIn', array('username', array()))
+            ),
+            'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
+            'expectedNumOfRows' => 2
+        );
         //-- where tests
 
         // from/left join tests

@@ -501,10 +501,12 @@ class Query implements QueryInterface, QueryHydrationInterface
      */
     protected function addWhereInClause($expr, $params, $notIn = false, $logicalGlue = 'AND')
     {
-//        if (empty($params)) {
-//            // TODO IN-clause must be not empty!!
-//            throw new QueryException('Missing params for WHERE IN clause');
-//        }
+        if (empty($params)) {
+            $param = $notIn ? true : false;
+            $this->addWherePart(' (?) ', [$param], $logicalGlue);
+            return;
+        }
+
         if (!is_array($params)) {
             $params = array($params);
         }

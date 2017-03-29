@@ -277,7 +277,7 @@ abstract class SchemaImporter implements SchemaImporterInterface
         }
 
         // parsing attributes like UNSIGNED, ZEROFILL, AND BINARY
-        if (isset($match[0])) {
+        if (isset($match[0]) && $dataType !== 'enum') {
             $attributesString = strtolower(substr($type, strlen($match[0])));
             $attributesString = trim($attributesString);
             if (!empty($attributesString)) {

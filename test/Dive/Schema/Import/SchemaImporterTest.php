@@ -206,7 +206,6 @@ class SchemaImporterTest extends TestCase
                     'author_UNIQUE' => array(
                         'fields' => array('firstname', 'lastname'),
                         'type' => 'unique',
-                        'nullConstrained' => false
                     ),
                     'author_UQ_user_id' => array(
                         'fields' => array('user_id'),
@@ -217,7 +216,6 @@ class SchemaImporterTest extends TestCase
                     'UNIQUE' => array(
                         'fields' => array('firstname', 'lastname'),
                         'type' => 'unique',
-                        'nullConstrained' => false
                     ),
                     'UQ_user_id' => array(
                         'fields' => array('user_id'),

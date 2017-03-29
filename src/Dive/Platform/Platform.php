@@ -10,6 +10,7 @@
 namespace Dive\Platform;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
+use Dive\Util\Guid;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -217,7 +218,7 @@ abstract class Platform implements PlatformInterface
         // foreign keys
         foreach ($foreignKeys as $owningField => $definition) {
             if (empty($definition['constraint'])) {
-                $definition['constraint'] = $tableName . '_fk_' . $owningField;
+                $definition['constraint'] = $this->getConstraintName($tableName, $owningField);
             }
             $sql .= $this->getForeignKeyDefinitionSql($owningField, $definition) . ",\n";
         }
@@ -582,6 +583,21 @@ abstract class Platform implements PlatformInterface
     protected function throwUnsupportedEncodingException($encoding)
     {
         throw new PlatformException("Encoding '$encoding' is not supported for this platform!");
+    }
+
+
+    /**
+     * @param string $tableName
+     * @param string $owningField
+     * @return string
+     */
+    private function getConstraintName($tableName, $owningField)
+    {
+        $constraintName = $tableName . '_fk_' . $owningField;
+        if (strlen($constraintName) > 64) {
+            $constraintName = Guid::createGUID();
+        }
+        return $constraintName;
     }
 
 }

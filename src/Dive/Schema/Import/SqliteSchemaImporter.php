@@ -103,8 +103,9 @@ class SqliteSchemaImporter extends SchemaImporter
 
                 foreach ($indexRows as $indexRow) {
                     $fieldName = $indexRow['name'];
-                    if (isset($tableFields[$fieldName]['nullable']) && $tableFields[$fieldName]['nullable'] === true) {
-                        $indexes[$name]['nullConstrained'] = $this->conn->getPlatform()->isUniqueConstraintNullConstrained();
+                    if (isset($tableFields[$fieldName]['nullable']) && $tableFields[$fieldName]['nullable'] === true
+                        && $this->conn->getPlatform()->isUniqueConstraintNullConstrained()) {
+                        $indexes[$name]['nullConstrained'] = true;
                     }
                     $indexes[$name]['fields'][] = $fieldName;
                 }

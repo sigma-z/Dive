@@ -92,8 +92,10 @@ class MysqlSchemaImporter extends SchemaImporter
                     $type = $row['Non_unique'] === '1' ? PlatformInterface::INDEX : PlatformInterface::UNIQUE;
                     $indexes[$name] = array('type' => $type, 'fields' => array());
                 }
-                if ($indexes[$name]['type'] == PlatformInterface::UNIQUE && $row['Null'] === 'YES') {
-                    $indexes[$name]['nullConstrained'] = $this->conn->getPlatform()->isUniqueConstraintNullConstrained();
+                if ($indexes[$name]['type'] == PlatformInterface::UNIQUE && $row['Null'] === 'YES'
+                    && $this->conn->getPlatform()->isUniqueConstraintNullConstrained()
+                ) {
+                    $indexes[$name]['nullConstrained'] = true;
                 }
                 $indexes[$name]['fields'][] = $row['Column_name'];
             }

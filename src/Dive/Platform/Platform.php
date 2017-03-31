@@ -9,6 +9,7 @@
 
 namespace Dive\Platform;
 
+use Dive\Expression;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Util\Guid;
 
@@ -103,13 +104,13 @@ abstract class Platform implements PlatformInterface
 
 
     /**
-     * @param string|\Dive\Expression $value
-     * @param string $type
+     * @param string|Expression $value
+     * @param string            $type
      * @return string
      */
     public function quote($value, $type = null)
     {
-        if ($value instanceof \Dive\Expression) {
+        if ($value instanceof Expression) {
             return $value->getSql();
         }
         if ($type === null) {
@@ -124,7 +125,7 @@ abstract class Platform implements PlatformInterface
                 return $value;
             case 'bool':
             case 'boolean':
-                return (bool)($value) ? 'TRUE' : 'FALSE';
+                return (bool)$value ? 'TRUE' : 'FALSE';
             case 'array':
             case 'object':
                 $value = serialize($value);
@@ -376,7 +377,7 @@ abstract class Platform implements PlatformInterface
         if (isset($definition['precision'])) {
             return $definition['precision'] + 1;
         }
-        else if (isset($definition['length'])) {
+        if (isset($definition['length'])) {
             return $definition['length'];
         }
         return '';
@@ -595,7 +596,7 @@ abstract class Platform implements PlatformInterface
     {
         $constraintName = $tableName . '_fk_' . $owningField;
         if (strlen($constraintName) > 64) {
-            $constraintName = Guid::createGUID();
+            $constraintName = 'fk_' . Guid::create();
         }
         return $constraintName;
     }

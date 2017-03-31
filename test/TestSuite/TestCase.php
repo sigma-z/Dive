@@ -662,7 +662,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         $conn = $table->getConnection();
         $affectedRows = $conn->insert($table, $data);
-        return $affectedRows == 1 ? $conn->getLastInsertId() : false;
+        return $affectedRows === 1 ? $conn->getLastInsertId() : false;
     }
 
 
@@ -680,7 +680,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             if (empty($tables)) {
                 continue;
             }
-
+            /** @noinspection DisconnectedForeachInstructionInspection */
             if (self::$debug) {
                 echo "\ncleaning up data records\n";
             }

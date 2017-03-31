@@ -25,7 +25,7 @@ use Dive\Validation\ValidationContainer;
 class RecordManager
 {
 
-    const ORM_VERSION = '1.0.7';
+    const ORM_VERSION = '1.0.8';
 
     const FETCH_RECORD_COLLECTION = 'record-collection';
     const FETCH_RECORD = 'record';

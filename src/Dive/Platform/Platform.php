@@ -376,7 +376,7 @@ abstract class Platform implements PlatformInterface
         if (isset($definition['precision'])) {
             return $definition['precision'] + 1;
         }
-        else if (isset($definition['length'])) {
+        if (isset($definition['length'])) {
             return $definition['length'];
         }
         return '';
@@ -492,7 +492,7 @@ abstract class Platform implements PlatformInterface
     public function getAddForeignKeySql($tableName, $owningField, array $definition)
     {
         if (!isset($definition['constraint'])) {
-            $definition['constraint'] = $tableName . '_fk_' . $owningField;
+            $definition['constraint'] = $this->getConstraintName($tableName, $owningField);
         }
         $foreignKeyDefinitionSql = $this->getForeignKeyDefinitionSql($owningField, $definition);
         $sql = 'ALTER TABLE ' . $this->quoteIdentifier($tableName)

@@ -23,11 +23,11 @@ env:
  - DB=mysql
  - DB=sqlite
 
-sudo: false
-#sudo: required
+#sudo: false
+sudo: required
 #
-#before_install:
-#  - sudo apt-get update
+before_install:
+  - sudo apt-get update
 #  - sudo apt-get install sqlite3 (alternative version?)
 
 install:

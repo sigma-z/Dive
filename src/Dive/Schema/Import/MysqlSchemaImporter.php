@@ -61,11 +61,11 @@ class MysqlSchemaImporter extends SchemaImporter
         foreach ($dbFields as $fieldData) {
             $fieldDefinition = $this->parseDbType($fieldData['Type']);
 
-            if ($fieldData['Key'] === 'PRI')                 $fieldDefinition['primary'] = true;
-            if ($fieldData['Null'] === 'YES')                $fieldDefinition['nullable'] = true;
-            if ($fieldData['Default'] !== null)             $fieldDefinition['default'] = $fieldData['Default'];
-            if ($fieldData['Extra'] === 'auto_increment')    $fieldDefinition['autoIncrement'] = true;
-            if ($fieldData['Collation'] !== null)           $fieldDefinition['collation'] = $fieldData['Collation'];
+            if ($fieldData['Key'] === 'PRI')              $fieldDefinition['primary'] = true;
+            if ($fieldData['Null'] === 'YES')             $fieldDefinition['nullable'] = true;
+            if ($fieldData['Default'] !== null)           $fieldDefinition['default'] = $fieldData['Default'];
+            if ($fieldData['Extra'] === 'auto_increment') $fieldDefinition['autoIncrement'] = true;
+            if ($fieldData['Collation'] !== null)         $fieldDefinition['collation'] = $fieldData['Collation'];
 
             $fields[$fieldData['Field']] = $fieldDefinition;
         }
@@ -92,7 +92,7 @@ class MysqlSchemaImporter extends SchemaImporter
                     $type = $row['Non_unique'] === '1' ? PlatformInterface::INDEX : PlatformInterface::UNIQUE;
                     $indexes[$name] = array('type' => $type, 'fields' => array());
                 }
-                if ($indexes[$name]['type'] == PlatformInterface::UNIQUE && $row['Null'] === 'YES'
+                if ($row['Null'] === 'YES' && $indexes[$name]['type'] === PlatformInterface::UNIQUE
                     && $this->conn->getPlatform()->isUniqueConstraintNullConstrained()
                 ) {
                     $indexes[$name]['nullConstrained'] = true;
@@ -114,7 +114,7 @@ class MysqlSchemaImporter extends SchemaImporter
      */
     public function getTableForeignKeys($tableName)
     {
-        $createTableStmt = $this->conn->queryOne('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
+        $createTableStmt = $this->getCreateTableStatement($tableName);
         if (!isset($createTableStmt['Create Table'])) {
             throw new SchemaException("Could not fetch table structure from database for '$tableName'.");
         }
@@ -129,6 +129,7 @@ class MysqlSchemaImporter extends SchemaImporter
         $indexes = $this->getTableIndexes($tableName);
         $pkFields = $this->getPkFields($tableName);
         $foreignKeys = array();
+        /** @var array $matches */
         foreach ($matches as $match) {
             $localField = $match[2];
             $name = $tableName  . '.' . $localField;
@@ -136,6 +137,7 @@ class MysqlSchemaImporter extends SchemaImporter
                 ? Relation::ONE_TO_ONE
                 : Relation::ONE_TO_MANY;
 
+            $constraintName = $match[1];
             $foreignKey = array(
                 'owningTable' => $tableName,
                 'owningField' => $localField,
@@ -146,12 +148,17 @@ class MysqlSchemaImporter extends SchemaImporter
                 'type' => $relationType
             );
 
+            if (isset($foreignKeys[$name])) {
+                throw $this->createForeignKeyHasMultipleDefinitions($name, $constraintName);
+            }
+
             $behavior = $match[5];
             $pattern = '/ON\s+(UPDATE|DELETE)\s+(CASCADE|SET NULL|NO ACTION|RESTRICT)/';
+            /** @var array $behaviorMatches */
             preg_match_all($pattern, $behavior, $behaviorMatches, PREG_SET_ORDER);
 
             foreach ($behaviorMatches as $behaviorMatch) {
-                if ($behaviorMatch[1] == 'DELETE') {
+                if ($behaviorMatch[1] === 'DELETE') {
                     $foreignKey['onDelete'] = $behaviorMatch[2];
                 }
                 else {
@@ -204,7 +211,7 @@ class MysqlSchemaImporter extends SchemaImporter
             throw new SchemaException("Could not fetch table structure from database for '$viewName'.");
         }
 
-        $pattern = '/CREATE\s+.*?VIEW\s+' . preg_quote($quotedName) . '\s+AS\s+(.+)$/';
+        $pattern = '/CREATE\s+.*?VIEW\s+' . preg_quote($quotedName, '/') . '\s+AS\s+(.+)$/';
         if (!preg_match($pattern, $createViewStatement['Create View'], $matches)) {
             return '';
         }
@@ -225,6 +232,28 @@ class MysqlSchemaImporter extends SchemaImporter
             $sql .= ' WHERE table_type = \'' . strtoupper($tableType) . '\'';
         }
         return $this->conn->query($sql, array(), \PDO::FETCH_COLUMN);
+    }
+
+
+    /**
+     * @param string $name
+     * @param string $constraintName
+     * @return SchemaImporterException
+     */
+    private function createForeignKeyHasMultipleDefinitions($name, $constraintName)
+    {
+        $message = "Foreign key for '$name' is defined more than once. Conflicting constraint name us '$constraintName'.";
+        return new SchemaImporterException($message);
+    }
+
+
+    /**
+     * @param string $tableName
+     * @return mixed
+     */
+    protected function getCreateTableStatement($tableName)
+    {
+        return $this->conn->queryOne('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
     }
 
 }

@@ -253,52 +253,32 @@ class SchemaImporterTest extends TestCase
      */
     public function provideGetTableForeignKeys()
     {
-        $testCases = array();
-
-        $testCases[] = array(
-            'expectedArray' => array(
-                'sqlite' => array(
-                    'author.user_id' => array(
-                        'owningTable' => 'author',
-                        'owningField' => 'user_id',
-                        'refTable' => 'user',
-                        'refField' => 'id',
-                        'onDelete' => PlatformInterface::CASCADE,
-                        'onUpdate' => PlatformInterface::CASCADE,
-                        'type' => Relation::ONE_TO_ONE
-                    ),
-                    'author.editor_id' => array(
-                        'owningTable' => 'author',
-                        'owningField' => 'editor_id',
-                        'refTable' => 'author',
-                        'refField' => 'id',
-                        'onDelete' => PlatformInterface::SET_NULL,
-                        'onUpdate' => PlatformInterface::CASCADE,
-                        'type' => Relation::ONE_TO_MANY
-                    )
-                ),
-                'mysql' => array(
-                    'author.user_id' => array(
-                        'owningTable' => 'author',
-                        'owningField' => 'user_id',
-                        'refTable' => 'user',
-                        'refField' => 'id',
-                        'onDelete' => PlatformInterface::CASCADE,
-                        'onUpdate' => PlatformInterface::CASCADE,
-                        'type' => Relation::ONE_TO_ONE
-                    ),
-                    'author.editor_id' => array(
-                        'owningTable' => 'author',
-                        'owningField' => 'editor_id',
-                        'refTable' => 'author',
-                        'refField' => 'id',
-                        'onDelete' => PlatformInterface::SET_NULL,
-                        'onUpdate' => PlatformInterface::CASCADE,
-                        'type' => Relation::ONE_TO_MANY
-                    )
-                )
-            )
-        );
+        $expectedForeignKeys = [
+            'author.user_id' => [
+                'owningTable' => 'author',
+                'owningField' => 'user_id',
+                'refTable' => 'user',
+                'refField' => 'id',
+                'onDelete' => PlatformInterface::CASCADE,
+                'onUpdate' => PlatformInterface::CASCADE,
+                'type' => Relation::ONE_TO_ONE
+            ],
+            'author.editor_id' => [
+                'owningTable' => 'author',
+                'owningField' => 'editor_id',
+                'refTable' => 'author',
+                'refField' => 'id',
+                'onDelete' => PlatformInterface::SET_NULL,
+                'onUpdate' => PlatformInterface::CASCADE,
+                'type' => Relation::ONE_TO_MANY
+            ]
+        ];
+        $testCases = [
+            'expectedArray' => [
+                'sqlite' => $expectedForeignKeys,
+                'mysql' => $expectedForeignKeys
+            ]
+        ];
 
         return self::getDatabaseAwareTestCases($testCases);
     }

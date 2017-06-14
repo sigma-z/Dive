@@ -14,7 +14,6 @@ use Dive\Hydrator\SingleHydrator;
 use Dive\Query\Query;
 use Dive\Record;
 use Dive\RecordManager;
-use Dive\Table;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -25,19 +24,19 @@ class QueryTest extends TestCase
 {
 
     /** @var array */
-    private static $usersData = array(
-        array(
+    private static $usersData = [
+        [
             'username' => 'John Doe',
             'password' => 'my secret'
-        ),
-        array(
+        ],
+        [
             'username' => 'Johanna Stuart',
             'password' => 'johanna secret'
-        )
-    );
+        ]
+    ];
 
     /** @var array */
-    private static $userIds = array();
+    private static $userIds = [];
 
 
     public static function setUpBeforeClass()
@@ -62,7 +61,7 @@ class QueryTest extends TestCase
         $rm = self::createRecordManager($database);
 
         $query = $rm->createQuery('user', 'u');
-        $query->select('IFNULL(? = ?, ?) = ? AS test', array(1, 1, 2, 1));
+        $query->select('IFNULL(? = ?, ?) = ? AS test', [1, 1, 2, 1]);
         $query->limit(1);
 
         $this->assertEquals('1', $query->fetchSingleScalar());
@@ -77,19 +76,19 @@ class QueryTest extends TestCase
     {
         $rm = self::createRecordManager($database);
 
-        $params = array(
+        $params = [
             'username' => 'John Doe',
             'two' => 3,
             'zero' => 0,
-        );
+        ];
         $query = $rm->createQuery('user', 'u');
         $query->select('IFNULL(:zero = :two, :username) = :zero AS test, u.username', $params);
-        $query->where('u.username = :username', array('username' => 'Johanna Stuart'));
+        $query->where('u.username = :username', ['username' => 'Johanna Stuart']);
 
-        $expectedResult = array(
+        $expectedResult = [
             'test' => '1',
             'username' => 'Johanna Stuart'
-        );
+        ];
         $this->assertEquals($expectedResult, $query->fetchOneAsArray());
     }
 
@@ -104,7 +103,7 @@ class QueryTest extends TestCase
         $rm = self::createRecordManager($database);
 
         $query = $rm->createQuery('user', 'u');
-        $query->select('IFNULL(? != ?, :one) = :one AS test, ? AS test2', array(0, 2, 'one' => 1, 2));
+        $query->select('IFNULL(? != ?, :one) = :one AS test, ? AS test2', [0, 2, 'one' => 1, 2]);
         $query->limit(1);
 
         $this->assertEquals('1', $query->fetchSingleScalar());
@@ -123,10 +122,8 @@ class QueryTest extends TestCase
         $rm = self::createRecordManager($database);
         $query = $rm->createQuery('user', 'u');
         self::applyQueryObjectOperations($query, $operations);
+        $this->markSkippedIfSelectQueryWithForUpdateOnSqlite($query);
 
-        if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
-            $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
-        }
         $actual = $query->getSql();
         // removing identifier quotations
         $actual = str_replace($rm->getConnection()->getIdentifierQuote(), '', $actual);
@@ -140,456 +137,456 @@ class QueryTest extends TestCase
      */
     public function provideSqlParts()
     {
-        $testCases = array();
+        $testCases = [];
 
-        $testCases[] = array(
-            'operations' => array(),
+        $testCases[] = [
+            'operations' => [],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u',
             'expectedNumOfRows' => 2
-        );
+        ];
 
         // select tests
-        $testCases[] = array(
-            'operations' => array(
-                array('select', array('id'))
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['select', ['id']]
+            ],
             'expected' => 'SELECT id FROM user u',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('addSelect', array('username'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['addSelect', ['username']]
+            ],
             'expected' => 'SELECT username FROM user u',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('addSelect', array('username')),
-                array('select', array('id'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['addSelect', ['username']],
+                ['select', ['id']]
+            ],
             'expected' => 'SELECT id FROM user u',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('select', array('id')),
-                array('addSelect', array('username'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['select', ['id']],
+                ['addSelect', ['username']]
+            ],
             'expected' => 'SELECT id, username FROM user u',
             'expectedNumOfRows' => 2
-        );
+        ];
         //-- select tests
 
         // where tests
-        $testCases[] = array(
-            'operations' => array(
-                array('where', array('id = ?', '-1'))
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['where', ['id = ?', '-1']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('andWhere', array('username = ?', 'Joe')),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['andWhere', ['username = ?', 'Joe']],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username = ?',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('orWhere', array('username = ?', 'Joe')),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['orWhere', ['username = ?', 'Joe']],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username = ?',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('andWhere', array('username = ?', 'Joe')),
-                array('where', array('id = ?', '-1'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['andWhere', ['username = ?', 'Joe']],
+                ['where', ['id = ?', '-1']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('orWhere', array('username = ?', 'Joe')),
-                array('where', array('id = ?', '-1'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['orWhere', ['username = ?', 'Joe']],
+                ['where', ['id = ?', '-1']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('where', array('id = ?', '-1')),
-                array('andWhere', array('username = ?', 'Joe')),
-                array('orWhere', array('username = ?', 'Joe'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['where', ['id = ?', '-1']],
+                ['andWhere', ['username = ?', 'Joe']],
+                ['orWhere', ['username = ?', 'Joe']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ? AND username = ? OR username = ?',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('where', array('id = ?', '-1')),
-                array('whereIn', array('username', array('John', 'Doe'))),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['where', ['id = ?', '-1']],
+                ['whereIn', ['username', ['John', 'Doe']]],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?)',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('whereIn', array('username', array('John', 'Doe'))),
-                array('where', array('id = ?', '-1')),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['whereIn', ['username', ['John', 'Doe']]],
+                ['where', ['id = ?', '-1']],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE id = ?',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('whereIn', array('username', array('John', 'Doe')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['whereIn', ['username', ['John', 'Doe']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?)',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('whereIn', array('username', array('John', 'Doe'))),
-                array('orWhereNotIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['whereIn', ['username', ['John', 'Doe']]],
+                ['orWhereNotIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?) OR username NOT IN (?,?)',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('whereIn', array('username', array('John', 'Doe'))),
-                array('andWhereNotIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['whereIn', ['username', ['John', 'Doe']]],
+                ['andWhereNotIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?) AND username NOT IN (?,?)',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('orWhereNotIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['orWhereNotIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username NOT IN (?,?)',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('andWhereNotIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['andWhereNotIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username NOT IN (?,?)',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('whereNotIn', array('username', array('John', 'Doe')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['whereNotIn', ['username', ['John', 'Doe']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username NOT IN (?,?)',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('whereNotIn', array('username', array('John', 'Doe'))),
-                array('orWhereIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['whereNotIn', ['username', ['John', 'Doe']]],
+                ['orWhereIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username NOT IN (?,?) OR username IN (?,?)',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('whereNotIn', array('username', array('John', 'Doe'))),
-                array('andWhereIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['whereNotIn', ['username', ['John', 'Doe']]],
+                ['andWhereIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username NOT IN (?,?) AND username IN (?,?)',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('orWhereIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['orWhereIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?)',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('andWhereIn', array('username', array('Jamie', 'McDonald')))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['andWhereIn', ['username', ['Jamie', 'McDonald']]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE username IN (?,?)',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('andWhereIn', array('username', array()))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['andWhereIn', ['username', []]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('andWhereNotIn', array('username', array()))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['andWhereNotIn', ['username', []]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('orWhereIn', array('username', array()))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['orWhereIn', ['username', []]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('orWhereNotIn', array('username', array()))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['orWhereNotIn', ['username', []]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u WHERE (?) ',
             'expectedNumOfRows' => 2
-        );
+        ];
         //-- where tests
 
         // from/left join tests
-        $testCases[] = array(
-            'operations' => array(
-                array('from', array('author a'))
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['from', ['author a']]
+            ],
             'expected' => 'SELECT a.id, a.firstname, a.lastname, a.email, a.user_id, a.editor_id FROM author a',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('leftJoin', array('u.Author a'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['leftJoin', ['u.Author a']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u LEFT JOIN author a ON a.user_id = u.id',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('leftJoinOn', array('u.Author a', 'u.id > a.id'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['leftJoinOn', ['u.Author a', 'u.id > a.id']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u LEFT JOIN author a ON u.id > a.id',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('leftJoinWith', array('u.Author a', 'u.id > a.id'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['leftJoinWith', ['u.Author a', 'u.id > a.id']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u LEFT JOIN author a ON a.user_id = u.id AND u.id > a.id',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('leftJoin', array('u.Author a')), // left join will be overwritten by "from" in the next line
-                array('from', array('tag t')),
-                array('leftJoin', array('t.Article2tagHasMany art2t')),
-                array('leftJoin', array('art2t.Article art'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['leftJoin', ['u.Author a']], // left join will be overwritten by "from" in the next line
+                ['from', ['tag t']],
+                ['leftJoin', ['t.Article2tagHasMany art2t']],
+                ['leftJoin', ['art2t.Article art']]
+            ],
             'expected' => 'SELECT t.id, t.name FROM tag t '
                 . 'LEFT JOIN article2tag art2t ON art2t.tag_id = t.id '
                 . 'LEFT JOIN article art ON art2t.article_id = art.id',
             'expectedNumOfRows' => 0
-        );
+        ];
         //-- from/left join tests
 
         // group by
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username'))
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u GROUP BY username',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('addGroupBy', array('id'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['addGroupBy', ['id']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u GROUP BY id',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('addGroupBy', array('id')),
-                array('groupBy', array('username'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['addGroupBy', ['id']],
+                ['groupBy', ['username']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u GROUP BY username',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username')),
-                array('addGroupBy', array('id'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']],
+                ['addGroupBy', ['id']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u GROUP BY username, id',
             'expectedNumOfRows' => 2
-        );
+        ];
         //-- group by
 
         // having
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username')),
-                array('having', array('count(u.id) > 1'))
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']],
+                ['having', ['count(u.id) > 1']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u'
                 . ' GROUP BY username'
                 . ' HAVING count(u.id) > 1',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username')),
-                array('andHaving', array('length(u.username) > 5')),
-                array('having', array('count(u.id) > 1'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']],
+                ['andHaving', ['length(u.username) > 5']],
+                ['having', ['count(u.id) > 1']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u'
                 . ' GROUP BY username'
                 . ' HAVING count(u.id) > 1',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username')),
-                array('andHaving', array('length(u.username) > 5'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']],
+                ['andHaving', ['length(u.username) > 5']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u'
                 . ' GROUP BY username'
                 . ' HAVING length(u.username) > 5',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username')),
-                array('orHaving', array('length(u.username) = 4'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']],
+                ['orHaving', ['length(u.username) = 4']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u'
                 . ' GROUP BY username'
                 . ' HAVING length(u.username) = 4',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username')),
-                array('orHaving', array('length(u.username) = 4')),
-                array('having', array('count(u.id) > 1'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']],
+                ['orHaving', ['length(u.username) = 4']],
+                ['having', ['count(u.id) > 1']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u'
                 . ' GROUP BY username'
                 . ' HAVING count(u.id) > 1',
             'expectedNumOfRows' => 0
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('groupBy', array('username')),
-                array('having', array('count(u.id) > 1')),
-                array('andHaving', array('length(u.username) > 5')),
-                array('orHaving', array('length(u.username) = 4'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['groupBy', ['username']],
+                ['having', ['count(u.id) > 1']],
+                ['andHaving', ['length(u.username) > 5']],
+                ['orHaving', ['length(u.username) = 4']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u'
                 . ' GROUP BY username'
                 . ' HAVING count(u.id) > 1 AND length(u.username) > 5 OR length(u.username) = 4',
             'expectedNumOfRows' => 0
-        );
+        ];
         //-- having
 
         // order by
-        $testCases[] = array(
-            'operations' => array(
-                array('orderBy', array('LENGTH(u.username) DESC'))
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['orderBy', ['LENGTH(u.username) DESC']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u ORDER BY LENGTH(u.username) DESC',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('addOrderBy', array('u.username ASC'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['addOrderBy', ['u.username ASC']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u ORDER BY u.username ASC',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('addOrderBy', array('u.username ASC')),
-                array('orderBy', array('LENGTH(u.username) DESC'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['addOrderBy', ['u.username ASC']],
+                ['orderBy', ['LENGTH(u.username) DESC']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u ORDER BY LENGTH(u.username) DESC',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('orderBy', array('LENGTH(u.username) DESC')),
-                array('addOrderBy', array('u.username ASC'))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['orderBy', ['LENGTH(u.username) DESC']],
+                ['addOrderBy', ['u.username ASC']]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u ORDER BY LENGTH(u.username) DESC, u.username ASC',
             'expectedNumOfRows' => 2
-        );
+        ];
         //-- order by
 
         // limit/offset
-        $testCases[] = array(
-            'operations' => array(
-                array('limit', array(10)),
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['limit', [10]],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u LIMIT 10',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('offset', array(10)),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['offset', [10]],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('limit', array(10)),
-                array('offset', array(5))
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['limit', [10]],
+                ['offset', [5]]
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u LIMIT 10 OFFSET 5',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('limitOffset', array(10, 5)),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['limitOffset', [10, 5]],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u LIMIT 10 OFFSET 5',
             'expectedNumOfRows' => 2
-        );
+        ];
         //-- limit/offset
 
         // distinct
-        $testCases[] = array(
-            'operations' => array(
-                array('distinct', array(true)),
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['distinct', [true]],
+            ],
             'expected' => 'SELECT DISTINCT u.id, u.username, u.password FROM user u',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('distinct', array(true)),
-                array('distinct', array(false)),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['distinct', [true]],
+                ['distinct', [false]],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u',
             'expectedNumOfRows' => 2
-        );
+        ];
         //-- distinct
 
         // forUpdate
-        $testCases[] = array(
-            'operations' => array(
-                array('forUpdate', array(true)),
-            ),
+        $testCases[] = [
+            'operations' => [
+                ['forUpdate', [true]],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u FOR UPDATE',
             'expectedNumOfRows' => 2
-        );
-        $testCases[] = array(
-            'operations' => array(
-                array('forUpdate', array(true)),
-                array('forUpdate', array(false)),
-            ),
+        ];
+        $testCases[] = [
+            'operations' => [
+                ['forUpdate', [true]],
+                ['forUpdate', [false]],
+            ],
             'expected' => 'SELECT u.id, u.username, u.password FROM user u',
             'expectedNumOfRows' => 2
-        );
+        ];
         //-- forUpdate
 
         return $testCases;
@@ -607,7 +604,7 @@ class QueryTest extends TestCase
         $this->setExpectedException('\Dive\Query\QueryException', $expectedMessage);
         $rm = self::createDefaultRecordManager();
         $query = $rm->createQuery('user', 'u');
-        call_user_func_array(array($query, $method), $args);
+        call_user_func_array([$query, $method], $args);
         $query->getSql();
     }
 
@@ -617,33 +614,33 @@ class QueryTest extends TestCase
      */
     public function provideGetSqlThrowsAliasException()
     {
-        $testCases = array();
+        $testCases = [];
 
-        $testCases[] = array(
+        $testCases[] = [
             'method' => 'from',
-            'args' => array('user'),
+            'args' => ['user'],
             'expectedMessage' => "Missing alias in query from 'user'!"
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'method' => 'leftJoin',
-            'args' => array('u.author u'),
+            'args' => ['u.author u'],
             'expectedMessage' => "Duplicate alias 'u' in query!"
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'method' => 'leftJoin',
-            'args' => array('a.author u'),
+            'args' => ['a.author u'],
             'expectedMessage' => "Parent alias 'a' is not defined in query!"
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'method' => 'leftJoin',
-            'args' => array('u.author'),
+            'args' => ['u.author'],
             'expectedMessage' => "Left join 'u.author' misses alias!"
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'method' => 'leftJoin',
-            'args' => array('author a'),
+            'args' => ['author a'],
             'expectedMessage' => "Left join 'author a' misses parent alias!"
-        );
+        ];
 
         return $testCases;
     }
@@ -669,7 +666,7 @@ class QueryTest extends TestCase
         $query = $rm->createQuery('user', 'u');
         self::applyQueryObjectOperations($query, $operations);
 
-        if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
+        if ($this->isSqlite($rm) && $query->getQueryPart('forUpdate') === true) {
             $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
         }
         $result = $query->fetchArray();
@@ -704,9 +701,7 @@ class QueryTest extends TestCase
         $query = $rm->createQuery('user', 'u');
         self::applyQueryObjectOperations($query, $operations);
 
-        if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
-            $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
-        }
+        $this->markSkippedIfSelectQueryWithForUpdateOnSqlite($query);
         $result = $query->count();
         $this->assertInternalType('integer', $result);
         $this->assertEquals($expectedNumOfRows, $result);
@@ -727,9 +722,7 @@ class QueryTest extends TestCase
         $query = $rm->createQuery('user', 'u');
         self::applyQueryObjectOperations($query, $operations);
 
-        if ($rm->getConnection()->getScheme() == 'sqlite' && $query->getQueryPart('forUpdate') === true) {
-            $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
-        }
+        $this->markSkippedIfSelectQueryWithForUpdateOnSqlite($query);
         $query->removeQueryPart('orderBy');
         $query->removeQueryPart('groupBy');
         $query->removeQueryPart('having');
@@ -750,7 +743,7 @@ class QueryTest extends TestCase
     public function provideSqlPartsDatabaseAware()
     {
         $testCases = $this->provideSqlParts();
-        return $this->getDatabaseAwareTestCases($testCases);
+        return static::getDatabaseAwareTestCases($testCases);
     }
 
 
@@ -761,8 +754,8 @@ class QueryTest extends TestCase
     private static function saveUserRecords(RecordManager $rm)
     {
         $table = $rm->getTable('user');
-        $userIds = array();
-        foreach (self::$usersData as &$userData) {
+        $userIds = [];
+        foreach (self::$usersData as $userData) {
             $userIds[] = self::insertDataset($table, $userData);
         }
         return $userIds;
@@ -780,10 +773,11 @@ class QueryTest extends TestCase
     {
         // prepare
         $rm = self::createRecordManager($database);
+        /** @var array $userIds */
         $userIds = self::$userIds[$rm->getConnection()->getDsn()];
 
-        $recordFetchModes = array(RecordManager::FETCH_RECORD, RecordManager::FETCH_RECORD_COLLECTION);
-        $isRecordFetchMode = in_array($fetchMode, $recordFetchModes);
+        $recordFetchModes = [RecordManager::FETCH_RECORD, RecordManager::FETCH_RECORD_COLLECTION];
+        $isRecordFetchMode = in_array($fetchMode, $recordFetchModes, true);
 
         $table = $rm->getTable('user');
         $query = $table->createQuery();
@@ -795,14 +789,14 @@ class QueryTest extends TestCase
         }
 
         if ($isRecordFetchMode) {
-            if ($fetchMode == RecordManager::FETCH_RECORD) {
+            if ($fetchMode === RecordManager::FETCH_RECORD) {
                 $expected['id'] = $userIds[0];
             }
             else {
                 $expectedTmp = $expected;
-                $expected = array();
+                $expected = [];
                 foreach ($userIds as $index => $id) {
-                    $expected[] = array('id' => $id) + $expectedTmp[$index];
+                    $expected[] = ['id' => $id] + $expectedTmp[$index];
                 }
             }
         }
@@ -813,7 +807,7 @@ class QueryTest extends TestCase
         // execute unit
         $this->assertTrue(method_exists($query, $method));
         $executedResult = $query->execute($fetchMode);
-        $methodResult = call_user_func(array($query, $method));
+        $methodResult = $query->$method();
 
         // assert
         $this->assertQueryResult($executedResult, $expected);
@@ -842,53 +836,53 @@ class QueryTest extends TestCase
      */
     public function provideExecute()
     {
-        $testCases = array();
+        $testCases = [];
 
-        $testCases[] = array(
+        $testCases[] = [
             'fetchMode' => RecordManager::FETCH_ARRAY,
             'method' => 'fetchArray',
             'expected' => self::$usersData
-        );
+        ];
 
-        $testCases[] = array(
+        $testCases[] = [
             'fetchMode' => RecordManager::FETCH_SINGLE_ARRAY,
             'method' => 'fetchOneAsArray',
             'expected' => self::$usersData[0]
-        );
+        ];
 
-        $testCases[] = array(
+        $testCases[] = [
             'fetchMode' => RecordManager::FETCH_SINGLE_SCALAR,
             'method' => 'fetchSingleScalar',
             'expected' => self::$usersData[0]['username']
-        );
+        ];
 
-        $expected = array();
+        $expected = [];
         foreach (self::$usersData as $userData) {
             $expected[] = $userData['username'];
         }
-        $testCases[] = array(
+        $testCases[] = [
             'fetchMode' => RecordManager::FETCH_SCALARS,
             'method' => 'fetchScalars',
             'expected' => $expected
-        );
+        ];
 
-        $usersDataWithExistsFlag = array();
+        $usersDataWithExistsFlag = [];
         foreach (self::$usersData as $userData) {
             $userData[Record::FROM_ARRAY_EXISTS_KEY] = true;
             $usersDataWithExistsFlag[] = $userData;
         }
 
-        $testCases[] = array(
+        $testCases[] = [
             'fetchMode' => RecordManager::FETCH_RECORD,
             'method' => 'fetchOneAsObject',
             'expected' => $usersDataWithExistsFlag[0]
-        );
+        ];
 
-        $testCases[] = array(
+        $testCases[] = [
             'fetchMode' => RecordManager::FETCH_RECORD_COLLECTION,
             'method' => 'fetchObjects',
             'expected' => $usersDataWithExistsFlag
-        );
+        ];
 
         return self::getDatabaseAwareTestCases($testCases);
     }
@@ -951,22 +945,22 @@ class QueryTest extends TestCase
      */
     public function provideQueryHasResult()
     {
-        $testCases = array();
-        $testCases[] = array(
-            'conditions' => array('username = ?', 'password = ?'),
-            'params' => array('Johanna Stuart', 'johanna secret'),
+        $testCases = [];
+        $testCases[] = [
+            'conditions' => ['username = ?', 'password = ?'],
+            'params' => ['Johanna Stuart', 'johanna secret'],
             'expected' => true
-        );
-        $testCases[] = array(
-            'conditions' => array('password = ? OR password = ?'),
-            'params' => array('johanna secret', 'my secret'),
+        ];
+        $testCases[] = [
+            'conditions' => ['password = ? OR password = ?'],
+            'params' => ['johanna secret', 'my secret'],
             'expected' => true
-        );
-        $testCases[] = array(
-            'conditions' => array('password = ?', 'password = ?'),
-            'params' => array('johanna secret', 'my secret'),
+        ];
+        $testCases[] = [
+            'conditions' => ['password = ?', 'password = ?'],
+            'params' => ['johanna secret', 'my secret'],
             'expected' => false
-        );
+        ];
         return $testCases;
     }
 
@@ -977,10 +971,29 @@ class QueryTest extends TestCase
      */
     private static function applyQueryObjectOperations(Query $query, array $operations)
     {
-        foreach ($operations as $operation) {
-            $method = $operation[0];
-            $args = $operation[1];
-            call_user_func_array(array($query, $method), $args);
+        foreach ($operations as list($method, $args)) {
+            call_user_func_array([$query, $method], $args);
+        }
+    }
+
+
+    /**
+     * @param RecordManager $rm
+     * @return bool
+     */
+    private function isSqlite(RecordManager $rm)
+    {
+        return $rm->getConnection()->getScheme() === 'sqlite';
+    }
+
+
+    /**
+     * @param Query $query
+     */
+    private function markSkippedIfSelectQueryWithForUpdateOnSqlite(Query $query)
+    {
+        if ($query->getQueryPart('forUpdate') === true && $query->getConnection()->getScheme() === 'sqlite') {
+            $this->markTestSkipped('FOR UPDATE clause is not supported for sqlite!');
         }
     }
 

@@ -9,7 +9,6 @@
 namespace Dive\Test\Table;
 
 use Dive\Record;
-use Dive\RecordManager;
 use Dive\Table;
 use Dive\TestSuite\RecordBehaviorTrait;
 use Dive\TestSuite\TestCase;
@@ -23,9 +22,6 @@ class FindOrCreateRecordTableTest extends TestCase
 {
 
     use RecordBehaviorTrait;
-
-    /** @var RecordManager */
-    private $rm;
 
     /** @var Table */
     private $table;

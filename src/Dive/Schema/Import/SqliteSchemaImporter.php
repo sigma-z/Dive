@@ -68,7 +68,7 @@ class SqliteSchemaImporter extends SchemaImporter
             if ($fieldData['pk'] === '1')           $fieldDefinition['primary'] = true;
             if ($fieldData['notnull'] !== '1')      $fieldDefinition['nullable'] = true;
             if ($fieldData['dflt_value'] !== null)  $fieldDefinition['default'] = $fieldData['dflt_value'];
-            if (strcasecmp($dbType, 'integer') === 0 && $fieldData['pk'] === '1') {
+            if ($fieldData['pk'] === '1' && strcasecmp($dbType, 'integer') === 0) {
                 $fieldDefinition['autoIncrement'] = true;
             }
             if ($unsigned) {
@@ -193,7 +193,7 @@ class SqliteSchemaImporter extends SchemaImporter
         }
 
         $quotedName = $this->conn->quoteIdentifier($viewName);
-        $pattern = '/CREATE\s+.*?VIEW\s+' . preg_quote($quotedName) . '\s+AS\s+(.+)$/';
+        $pattern = '/CREATE\s+.*?VIEW\s+' . preg_quote($quotedName, '/') . '\s+AS\s+(.+)$/';
         if (!preg_match($pattern, $createViewStatement['sql'], $matches)) {
             return '';
         }

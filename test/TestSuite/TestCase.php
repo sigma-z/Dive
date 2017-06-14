@@ -210,7 +210,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param  string $givenScheme
      * @return array|bool
      */
-    public static function getDatabaseForScheme($givenScheme)
+    protected static function getDatabaseForScheme($givenScheme)
     {
         $databases = self::getDatabases();
         foreach ($databases as $database) {
@@ -220,6 +220,25 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             }
         }
         return false;
+    }
+
+
+    /**
+     * @param string $givenScheme
+     * @return array
+     */
+    protected function getDatabaseForSchemeOrSkipTest($givenScheme)
+    {
+        $databases = self::getDatabases();
+        foreach ($databases as $database) {
+            $scheme = self::getSchemeFromDsn($database['dsn']);
+            if ($scheme === $givenScheme) {
+                return $database;
+            }
+        }
+        $message = "Skipped test - no database defined for scheme '$givenScheme'";
+        $this->markTestSkipped($message);
+        return [];
     }
 
 
@@ -608,7 +627,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * NOTE: 3 test cases * 2 databases = 6 test cases
      *
      * @param  array $testCases
-     * @return array
+     * @return array[]
      * @throws Exception
      */
     protected static function getDatabaseAwareTestCases($testCases = array())
@@ -662,7 +681,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     {
         $conn = $table->getConnection();
         $affectedRows = $conn->insert($table, $data);
-        return $affectedRows == 1 ? $conn->getLastInsertId() : false;
+        return $affectedRows === 1 ? $conn->getLastInsertId() : false;
     }
 
 
@@ -680,7 +699,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
             if (empty($tables)) {
                 continue;
             }
-
+            /** @noinspection DisconnectedForeachInstructionInspection */
             if (self::$debug) {
                 echo "\ncleaning up data records\n";
             }

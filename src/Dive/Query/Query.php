@@ -42,22 +42,22 @@ class Query implements QueryInterface, QueryHydrationInterface
     /**
      * @var array
      */
-    protected $queryParts = array(
-        self::PART_SELECT     => array(),
+    protected $queryParts = [
+        self::PART_SELECT     => [],
         self::PART_DISTINCT   => false,
         self::PART_FOR_UPDATE => false,
-        self::PART_FROM       => array(),
-        //'set'       => array(), // TODO only for update
-        self::PART_WHERE      => array(),
-        self::PART_GROUP_BY   => array(),
-        self::PART_HAVING     => array(),
-        self::PART_ORDER_BY   => array()
-    );
+        self::PART_FROM       => [],
+        //'set'       => [], // TODO only for update
+        self::PART_WHERE      => [],
+        self::PART_GROUP_BY   => [],
+        self::PART_HAVING     => [],
+        self::PART_ORDER_BY   => []
+    ];
 
     /**
      * @var array
      */
-    protected $sqlParts = array(
+    protected $sqlParts = [
         self::PART_SELECT     => '',
         self::PART_FROM       => '',
         self::PART_WHERE      => '',
@@ -65,7 +65,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         self::PART_HAVING     => '',
         self::PART_ORDER_BY   => '',
         self::PART_FOR_UPDATE => ''
-    );
+    ];
 
     /**
      * @var array
@@ -73,7 +73,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     protected $params = [
         self::PART_SELECT   => [],
         self::PART_FROM     => [],
-        //'set'       => array(), // TODO only for update
+        //'set'       => [], // TODO only for update
         self::PART_WHERE    => [],
         self::PART_GROUP_BY  => [],
         self::PART_HAVING   => [],
@@ -83,7 +83,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     /**
      * @var array
      */
-    protected $queryComponents = array();
+    protected $queryComponents = [];
     /**
      * @var string
      */
@@ -162,7 +162,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string  $params
      * @return $this
      */
-    public function select($select, $params = array())
+    public function select($select, $params = [])
     {
         $this->setQueryPart(self::PART_SELECT, $select, $params);
         return $this;
@@ -176,7 +176,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string  $params
      * @return $this
      */
-    public function addSelect($select, $params = array())
+    public function addSelect($select, $params = [])
     {
         $this->addQueryPart(self::PART_SELECT, $select, $params);
         return $this;
@@ -217,7 +217,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @throws QueryException
      * @return $this
      */
-    public function from($from, $params = array())
+    public function from($from, $params = [])
     {
         $pos = strpos($from, ' ');
         if ($pos === false) {
@@ -226,9 +226,9 @@ class Query implements QueryInterface, QueryHydrationInterface
         list($tableName, $alias) = StringExplode::explodeAt($from, $pos);
         $alias = trim($alias);
         $this->rootAlias = $alias;
-        $this->queryComponents[$alias] = array(
+        $this->queryComponents[$alias] = [
             'table' => $tableName
-        );
+        ];
         $quote = $this->getRecordManager()->getConnection()->getIdentifierQuote();
         $from = $quote . $tableName . $quote . ' ' . $alias;
         $this->setQueryPart(self::PART_FROM, $from, $params);
@@ -243,7 +243,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string  $params
      * @return $this
      */
-    public function leftJoin($leftJoin, $params = array())
+    public function leftJoin($leftJoin, $params = [])
     {
         $joinDef = $this->parseLeftJoin($leftJoin);
         $alias = $joinDef['alias'];
@@ -262,9 +262,9 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array  $params
      * @return $this
      */
-    public function leftJoinOn($leftJoin, $onClause, $params = array())
+    public function leftJoinOn($leftJoin, $onClause, $params = [])
     {
-        $joinDef = $this->parseLeftJoin($leftJoin, array('onClause' => $onClause));
+        $joinDef = $this->parseLeftJoin($leftJoin, ['onClause' => $onClause]);
         $alias = $joinDef['alias'];
         $this->queryComponents[$alias] = $joinDef;
         $leftJoin = $this->getLeftJoinByDefinition($joinDef);
@@ -281,9 +281,9 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array  $params
      * @return $this
      */
-    public function leftJoinWith($leftJoin, $withClause, $params = array())
+    public function leftJoinWith($leftJoin, $withClause, $params = [])
     {
-        $joinDef = $this->parseLeftJoin($leftJoin, array('withClause' => $withClause));
+        $joinDef = $this->parseLeftJoin($leftJoin, ['withClause' => $withClause]);
         $alias = $joinDef['alias'];
         $this->queryComponents[$alias] = $joinDef;
         $leftJoin = $this->getLeftJoinByDefinition($joinDef);
@@ -300,7 +300,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @return array
      * @throws QueryException
      */
-    protected function parseLeftJoin($leftJoin, $addDefinition = array())
+    protected function parseLeftJoin($leftJoin, $addDefinition = [])
     {
         $joinDef = $this->parser->parseLeftJoin($leftJoin, $this);
         $parentAlias = $joinDef['parent'];
@@ -352,7 +352,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param   array|string $params
      * @return  $this
      */
-    public function where($expr, $params = array())
+    public function where($expr, $params = [])
     {
         $this->setQueryPart(self::PART_WHERE, $expr, $params);
         return $this;
@@ -366,7 +366,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function andWhere($expr, $params = array())
+    public function andWhere($expr, $params = [])
     {
         $this->addWherePart($expr, $params);
         return $this;
@@ -380,7 +380,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function orWhere($expr, $params = array())
+    public function orWhere($expr, $params = [])
     {
         $this->addWherePart($expr, $params, 'OR');
         return $this;
@@ -394,7 +394,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function whereIn($expr, $params = array())
+    public function whereIn($expr, $params = [])
     {
         $this->removeQueryPart(self::PART_WHERE);
         $this->addWhereInClause($expr, $params);
@@ -409,7 +409,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function whereNotIn($expr, $params = array())
+    public function whereNotIn($expr, $params = [])
     {
         $this->removeQueryPart(self::PART_WHERE);
         $this->addWhereInClause($expr, $params, true);
@@ -424,7 +424,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function andWhereIn($expr, $params = array())
+    public function andWhereIn($expr, $params = [])
     {
         $this->addWhereInClause($expr, $params);
         return $this;
@@ -438,7 +438,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function andWhereNotIn($expr, $params = array())
+    public function andWhereNotIn($expr, $params = [])
     {
         $this->addWhereInClause($expr, $params, true);
         return $this;
@@ -452,7 +452,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function orWhereIn($expr, $params = array())
+    public function orWhereIn($expr, $params = [])
     {
         $this->addWhereInClause($expr, $params, false, 'OR');
         return $this;
@@ -466,7 +466,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function orWhereNotIn($expr, $params = array())
+    public function orWhereNotIn($expr, $params = [])
     {
         $this->addWhereInClause($expr, $params, true, 'OR');
         return $this;
@@ -508,7 +508,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         }
 
         if (!is_array($params)) {
-            $params = array($params);
+            $params = [$params];
         }
         $marks = substr(str_repeat('?,', count($params)), 0, -1);
         $expr .= ($notIn ? ' NOT ' : '') . ' IN (' . $marks . ')';
@@ -524,7 +524,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function groupBy($expr, $params = array())
+    public function groupBy($expr, $params = [])
     {
         $this->setQueryPart(self::PART_GROUP_BY, $expr, $params);
         return $this;
@@ -538,7 +538,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function addGroupBy($expr, $params = array())
+    public function addGroupBy($expr, $params = [])
     {
         $this->addQueryPart(self::PART_GROUP_BY, $expr, $params);
         return $this;
@@ -552,7 +552,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function having($expr, $params = array())
+    public function having($expr, $params = [])
     {
         $this->setQueryPart(self::PART_HAVING, $expr, $params);
         return $this;
@@ -566,7 +566,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function andHaving($expr, $params = array())
+    public function andHaving($expr, $params = [])
     {
         if (!empty($this->queryParts[self::PART_HAVING])) {
             $expr = ' AND ' . $expr;
@@ -583,7 +583,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function orHaving($expr, $params = array())
+    public function orHaving($expr, $params = [])
     {
         if (!empty($this->queryParts[self::PART_HAVING])) {
             $expr = ' OR ' . $expr;
@@ -600,7 +600,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function orderBy($expr, $params = array())
+    public function orderBy($expr, $params = [])
     {
         $this->setQueryPart(self::PART_ORDER_BY, $expr, $params);
         return $this;
@@ -614,7 +614,7 @@ class Query implements QueryInterface, QueryHydrationInterface
      * @param  array|string $params
      * @return $this
      */
-    public function addOrderBy($expr, $params = array())
+    public function addOrderBy($expr, $params = [])
     {
         $this->addQueryPart(self::PART_ORDER_BY, $expr, $params);
         return $this;
@@ -681,7 +681,7 @@ class Query implements QueryInterface, QueryHydrationInterface
     public function __clone()
     {
         $this->isDirty = true;
-        $this->sqlParts = array();
+        $this->sqlParts = [];
         $this->sql = '';
         $this->parser = clone $this->parser;
     }
@@ -920,7 +920,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         if (isset($this->params[$part])) {
             return $this->params[$part];
         }
-        return array();
+        return [];
     }
 
 
@@ -934,7 +934,7 @@ class Query implements QueryInterface, QueryHydrationInterface
         if ($params === null) {
             $params = $this->params;
         }
-        $flattenParams = array();
+        $flattenParams = [];
         /** @noinspection ForeachSourceInspection */
         foreach ($params as $partParams) {
             if (!empty($partParams)) {
@@ -997,7 +997,7 @@ class Query implements QueryInterface, QueryHydrationInterface
             throw new QueryException("Query part '$part' is not defined/supported.");
         }
 
-        $default = in_array($part, [self::PART_FOR_UPDATE, self::PART_DISTINCT], true) ? false : array();
+        $default = in_array($part, [self::PART_FOR_UPDATE, self::PART_DISTINCT], true) ? false : [];
         $this->queryParts[$part] = $default;
         unset($this->params[$part]);
         return $this;

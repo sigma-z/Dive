@@ -190,7 +190,6 @@ class Record
             }
 
             $this->_data[$fieldName] = $value;
-            $this->handleOwningFieldRelation($fieldName, null);
         }
     }
 

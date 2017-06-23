@@ -354,7 +354,7 @@ class Relation
             }
             return $record->get($this->owningField);
         }
-        else if (!$this->map->isReferenced($id) && !$this->map->hasNullReference($id)) {
+        if (!$this->map->isReferenced($id) && !$this->map->hasNullReference($id)) {
             return false;
         }
         return $this->map->getOwning($id);
@@ -595,7 +595,9 @@ class Relation
         $isOwningSide = $this->isOwningSide($relationName);
         $ownerCollection      = $isOwningSide ? $relatedCollection : $recordCollection;
         $referencedCollection = $isOwningSide ? $recordCollection  : $relatedCollection;
-        $this->map->updateOwnerCollectionWithReferencedCollection($ownerCollection, $referencedCollection);
+        if ($isOwningSide || $this->isOneToOne()) {
+            $this->map->updateOwnerCollectionWithReferencedCollection($ownerCollection, $referencedCollection);
+        }
     }
 
 

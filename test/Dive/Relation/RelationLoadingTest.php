@@ -90,7 +90,7 @@ class RelationLoadingTest extends TestCase
             ->leftJoin('u.Author au')
             ->where('au.id IS NOT NULL')
             ->execute();
-        $this->assertEquals(count(self::$tableRows['author']), $users->count());
+        $this->assertCount(count(self::$tableRows['author']), $users);
 
         foreach ($users as $user) {
             if (($author = $user->Author)) {
@@ -105,6 +105,27 @@ class RelationLoadingTest extends TestCase
 
         $sqlLogger->setEchoOutput(false);
         $this->assertEquals(3, $sqlLogger->getCount());
+    }
+
+
+    public function testLoadArticleComments()
+    {
+        $articleId = self::$recordGenerator->getRecordIdFromMap('article', 'tableSupport');
+        $rm = self::createDefaultRecordManager();
+        $article = $rm->getTable('article')->findByPk($articleId);
+        $comments = $article->get('Comment');
+        $this->assertCount(4, $comments);
+    }
+
+
+    public function testLoadReferencesToSelf()
+    {
+        $commentId = self::$recordGenerator->getRecordIdFromMap('comment', 'tableSupport#1');
+        $rm = self::createDefaultRecordManager();
+        $comment = $rm->getTable('comment')->findByPk($commentId);
+        $article = $comment->get('Article');
+        $comments = $article->get('Comment');
+        $this->assertCount(4, $comments);
     }
 
 
@@ -203,7 +224,7 @@ class RelationLoadingTest extends TestCase
     /**
      * @param  Record $record
      * @param  array  $visited
-     * @return array
+     * @return array|bool
      */
     private function getLoadedReferences(Record $record, array $visited = array())
     {

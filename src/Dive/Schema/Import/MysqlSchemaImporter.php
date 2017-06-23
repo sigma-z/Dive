@@ -114,7 +114,7 @@ class MysqlSchemaImporter extends SchemaImporter
      */
     public function getTableForeignKeys($tableName)
     {
-        $createTableStmt = $this->conn->queryOne('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
+        $createTableStmt = $this->getCreateTableStatement($tableName);
         if (!isset($createTableStmt['Create Table'])) {
             throw new SchemaException("Could not fetch table structure from database for '$tableName'.");
         }
@@ -137,6 +137,7 @@ class MysqlSchemaImporter extends SchemaImporter
                 ? Relation::ONE_TO_ONE
                 : Relation::ONE_TO_MANY;
 
+            $constraintName = $match[1];
             $foreignKey = array(
                 'owningTable' => $tableName,
                 'owningField' => $localField,
@@ -146,6 +147,10 @@ class MysqlSchemaImporter extends SchemaImporter
                 'onUpdate' => PlatformInterface::RESTRICT,
                 'type' => $relationType
             );
+
+            if (isset($foreignKeys[$name])) {
+                throw $this->createForeignKeyHasMultipleDefinitions($name, $constraintName);
+            }
 
             $behavior = $match[5];
             $pattern = '/ON\s+(UPDATE|DELETE)\s+(CASCADE|SET NULL|NO ACTION|RESTRICT)/';
@@ -227,6 +232,28 @@ class MysqlSchemaImporter extends SchemaImporter
             $sql .= ' WHERE table_type = \'' . strtoupper($tableType) . '\'';
         }
         return $this->conn->query($sql, array(), \PDO::FETCH_COLUMN);
+    }
+
+
+    /**
+     * @param string $name
+     * @param string $constraintName
+     * @return SchemaImporterException
+     */
+    private function createForeignKeyHasMultipleDefinitions($name, $constraintName)
+    {
+        $message = "Foreign key for '$name' is defined more than once. Conflicting constraint name us '$constraintName'.";
+        return new SchemaImporterException($message);
+    }
+
+
+    /**
+     * @param string $tableName
+     * @return mixed
+     */
+    protected function getCreateTableStatement($tableName)
+    {
+        return $this->conn->queryOne('SHOW CREATE TABLE ' . $this->conn->quoteIdentifier($tableName));
     }
 
 }

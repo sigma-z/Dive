@@ -597,6 +597,10 @@ class Relation
         $referencedCollection = $isOwningSide ? $recordCollection  : $relatedCollection;
         if ($isOwningSide || $this->isOneToOne()) {
             $this->map->updateOwnerCollectionWithReferencedCollection($ownerCollection, $referencedCollection);
+            if ($isOwningSide && !$this->isOneToOne()) {
+                $id = $record->getInternalId();
+                $this->map->setReferenceLoaded($id);
+            }
         }
     }
 

@@ -75,8 +75,8 @@ class ToOneReferenceMap
     /**
      * Gets owning side id (one-to-one) or owning side ids (one-to-many)
      *
-     * @param  string $refId
-     * @return array|string
+     * @param string $refId
+     * @return array|string|null
      */
     public function getOwning($refId)
     {

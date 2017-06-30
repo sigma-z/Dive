@@ -26,6 +26,9 @@ class ToManyReferenceMap extends ToOneReferenceMap
      */
     private $relatedCollections = array();
 
+    /** @var bool[] */
+    private $referenceLoaded = [];
+
 
     /**
      * @param  string $refId
@@ -209,6 +212,10 @@ class ToManyReferenceMap extends ToOneReferenceMap
             if ($relatedCollection) {
                 $relatedCollection->add($owningRecord);
             }
+
+            if (!$referencedRecord->exists()) {
+                $this->setReferenceLoaded($referencedRecord->getInternalId());
+            }
         }
     }
 
@@ -227,7 +234,7 @@ class ToManyReferenceMap extends ToOneReferenceMap
 
         parent::setOwningReferenceByForeignKey($record, $newId);
 
-        $refRepository = $this->getRefRepository($record, $this->relation->getOwningAlias());
+        $refRepository = $this->getRefRepository($record, $this->relation->getReferencedAlias());
         $newRefRecord = $refRepository->getByInternalId($newId);
         if ($newRefRecord) {
             $relatedCollection = $this->getRelatedCollection($newRefRecord->getOid());
@@ -358,6 +365,29 @@ class ToManyReferenceMap extends ToOneReferenceMap
         parent::clear();
 
         $this->relatedCollections = array();
+    }
+
+
+    /**
+     * @param string $refId
+     * @param bool   $mustBeLoaded
+     * @return array|null|string
+     */
+    public function getOwning($refId, $mustBeLoaded = true)
+    {
+        if ($mustBeLoaded && (!isset($this->referenceLoaded[$refId]) || $this->referenceLoaded[$refId] === false)) {
+            return null;
+        }
+        return parent::getOwning($refId);
+    }
+
+
+    /**
+     * @param string $refId
+     */
+    public function setReferenceLoaded($refId)
+    {
+        $this->referenceLoaded[$refId] = true;
     }
 
 }

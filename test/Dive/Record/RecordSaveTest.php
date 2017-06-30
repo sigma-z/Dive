@@ -374,9 +374,9 @@ class RecordSaveTest extends TestCase
 
 
     /**
-     * @param Record    $owningRecord
-     * @param Relation  $relation
-     * @param string    $refObjectId
+     * @param Record   $owningRecord
+     * @param Relation $relation
+     * @param string   $refObjectId
      */
     private function assertReferencedRelatedReferences(Record $owningRecord, Relation $relation, $refObjectId)
     {
@@ -401,16 +401,6 @@ class RecordSaveTest extends TestCase
         }
         else {
             $this->assertEquals($newIdentifier, $referenceMapping[$refId]);
-        }
-
-        // assert record collection
-        if ($relation->isOneToMany()) {
-            $recordCollection = $referenceMap->getRelatedCollection($referencedRecord->getOid());
-            $this->assertNotNull($recordCollection);
-            $this->assertTrue(
-                $recordCollection->has($owningRecord),
-                "Expected '$owningRecord' is referenced in relation '" . $relation->getReferencedAlias() . "'"
-            );
         }
     }
 }

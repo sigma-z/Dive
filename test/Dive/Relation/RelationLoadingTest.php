@@ -129,6 +129,20 @@ class RelationLoadingTest extends TestCase
     }
 
 
+    public function testLoadReferenceBySettingOwningField()
+    {
+        $this->markTestSkipped('Not supported, yes');
+        $articleId = self::$recordGenerator->getRecordIdFromMap('article', 'DiveORM released');
+        $rm = self::createDefaultRecordManager();
+        $article = $rm->getTable('article')->findByPk($articleId);
+        $comment = $rm->getTable('comment')->createRecord();
+        $comment->article_id = $articleId;
+        $comment->user_id = self::$recordGenerator->getRecordIdFromMap('user', 'JohnD');
+
+        $this->assertCount(2, $article->Comment);
+    }
+
+
     /**
      * @dataProvider provideLoadReferences
      * @param string $tableName

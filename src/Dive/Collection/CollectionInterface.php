@@ -87,4 +87,16 @@ interface CollectionInterface extends \Countable, \ArrayAccess, \IteratorAggrega
      */
     public function key();
 
+
+    /**
+     * @param array|\Dive\Record[] $items keys are the primary keys of the items, values can be array or objects
+     */
+    public function setItems(array $items);
+
+
+    /**
+     * @return array|\Dive\Record[]
+     */
+    public function getItems();
+
 }

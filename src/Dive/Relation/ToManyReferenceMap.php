@@ -314,10 +314,15 @@ class ToManyReferenceMap extends ToOneReferenceMap
      */
     protected function updateReferenceInMap($refId, $newIdentifier, $oldIdentifier)
     {
-        $pos = array_search($oldIdentifier, $this->references[$refId], true);
-        if ($pos !== false) {
-            $this->references[$refId][$pos] = $newIdentifier;
+        if (isset($this->references[$refId])) {
+            $pos = array_search($oldIdentifier, $this->references[$refId], true);
+            if ($pos !== false) {
+                $this->references[$refId][$pos] = $newIdentifier;
+                return;
+            }
         }
+        $this->references[$refId][] = $newIdentifier;
+
     }
 
 

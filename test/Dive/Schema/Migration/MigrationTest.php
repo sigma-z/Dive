@@ -295,7 +295,7 @@ class MigrationTest extends TestCase
                             . "\"username\" varchar(64) NOT NULL,\n"
                             . "\"password\" varchar(32) NOT NULL\n"
                             . ")",
-                        'CREATE UNIQUE INDEX IF NOT EXISTS "user_UNIQUE" ON "user" ("username")'
+                        'CREATE UNIQUE INDEX "user_UNIQUE" ON "user" ("username")'
                     ),
                     'mysql' => array(
                         "CREATE TABLE IF NOT EXISTS `user` (\n"
@@ -324,8 +324,8 @@ class MigrationTest extends TestCase
                             . "CONSTRAINT \"author_fk_user_id\" FOREIGN KEY (\"user_id\") REFERENCES \"user\" (\"id\") ON DELETE CASCADE ON UPDATE CASCADE,\n"
                             . "CONSTRAINT \"author_fk_editor_id\" FOREIGN KEY (\"editor_id\") REFERENCES \"author\" (\"id\") ON DELETE SET NULL ON UPDATE CASCADE\n"
                             . ")",
-                        'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
-                        'CREATE UNIQUE INDEX IF NOT EXISTS "author_UQ_user_id" ON "author" ("user_id")'
+                        'CREATE UNIQUE INDEX "author_UNIQUE" ON "author" ("firstname", "lastname")',
+                        'CREATE UNIQUE INDEX "author_UQ_user_id" ON "author" ("user_id")'
                     ),
                     'mysql' => array(
                         "CREATE TABLE IF NOT EXISTS `author` (\n"
@@ -424,14 +424,14 @@ class MigrationTest extends TestCase
                         . '"id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,' . "\n"
                         . '"password" varchar(32) NOT NULL,' . "\n"
                         . '"login" varchar(64) NOT NULL' . "\n)",
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "user_UNIQUE" ON "user" ("login")',
+                    'CREATE UNIQUE INDEX "user_UNIQUE" ON "user" ("login")',
                     'INSERT INTO "user" ("login", "id", "password") SELECT "username", "id", "password" FROM "user_backup"',
                     'DROP TABLE "user_backup"'
                 ),
                 'mysql' => array(
-                    'DROP INDEX IF EXISTS `UNIQUE` ON `user`',
+                    'DROP INDEX `UNIQUE` ON `user`',
                     'ALTER TABLE `user` CHANGE COLUMN `username` `login` varchar(64) NOT NULL',
-                    'CREATE UNIQUE INDEX IF NOT EXISTS `UNIQUE` ON `user` (`login`)',
+                    'CREATE UNIQUE INDEX `UNIQUE` ON `user` (`login`)',
                 )
             )
         );
@@ -450,7 +450,7 @@ class MigrationTest extends TestCase
                     'CREATE TABLE IF NOT EXISTS "user" (' . "\n"
                         . '"id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,' . "\n"
                         . '"username" varchar(64) NOT NULL' . "\n)",
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "user_UNIQUE" ON "user" ("username")',
+                    'CREATE UNIQUE INDEX "user_UNIQUE" ON "user" ("username")',
                     'INSERT INTO "user" ("id", "username") SELECT "id", "username" FROM "user_backup"',
                     'DROP TABLE "user_backup"'
                 ),
@@ -480,11 +480,11 @@ class MigrationTest extends TestCase
             'expectedArray' => array(
                 'sqlite' => array(
                     'ALTER TABLE "user" ADD COLUMN "is_active" boolean DEFAULT TRUE NOT NULL',
-                    'CREATE INDEX IF NOT EXISTS "user_IX_is_active" ON "user" ("is_active")'
+                    'CREATE INDEX "user_IX_is_active" ON "user" ("is_active")'
                 ),
                 'mysql' => array(
                     'ALTER TABLE `user` ADD COLUMN `is_active` tinyint DEFAULT TRUE NOT NULL',
-                    'CREATE INDEX IF NOT EXISTS `IX_is_active` ON `user` (`is_active`)'
+                    'CREATE INDEX `IX_is_active` ON `user` (`is_active`)'
                 )
             )
         );
@@ -519,14 +519,14 @@ class MigrationTest extends TestCase
                         . '"manager_id" integer(10),' . "\n"
                         . 'CONSTRAINT "user_fk_manager_id" FOREIGN KEY ("manager_id") REFERENCES "user" ("id") ON DELETE SET NULL ON UPDATE CASCADE'
                         . "\n)",
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "user_UNIQUE" ON "user" ("username")',
-                    'CREATE INDEX IF NOT EXISTS "user_FK_manager_id" ON "user" ("manager_id")',
+                    'CREATE UNIQUE INDEX "user_UNIQUE" ON "user" ("username")',
+                    'CREATE INDEX "user_FK_manager_id" ON "user" ("manager_id")',
                     'INSERT INTO "user" ("id", "username", "password") SELECT "id", "username", "password" FROM "user_backup"',
                     'DROP TABLE "user_backup"'
                 ),
                 'mysql' => array(
                     'ALTER TABLE `user` ADD COLUMN `manager_id` int(10)',
-                    'CREATE INDEX IF NOT EXISTS `FK_manager_id` ON `user` (`manager_id`)',
+                    'CREATE INDEX `FK_manager_id` ON `user` (`manager_id`)',
                     'ALTER TABLE `user` ADD CONSTRAINT `user_fk_manager_id` FOREIGN KEY (`manager_id`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE'
                 )
             )
@@ -542,12 +542,12 @@ class MigrationTest extends TestCase
             ),
             'expectedArray' => array(
                 'sqlite' => array(
-                    'DROP INDEX IF EXISTS "user_UNIQUE"',
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "user_UNIQUE" ON "user" ("username", "password")'
+                    'DROP INDEX "user_UNIQUE"',
+                    'CREATE UNIQUE INDEX "user_UNIQUE" ON "user" ("username", "password")'
                 ),
                 'mysql' => array(
-                    'DROP INDEX IF EXISTS `UNIQUE` ON `user`',
-                    'CREATE UNIQUE INDEX IF NOT EXISTS `UNIQUE` ON `user` (`username`, `password`)'
+                    'DROP INDEX `UNIQUE` ON `user`',
+                    'CREATE UNIQUE INDEX `UNIQUE` ON `user` (`username`, `password`)'
                 )
             )
         );
@@ -562,12 +562,12 @@ class MigrationTest extends TestCase
             ),
             'expectedArray' => array(
                 'sqlite' => array(
-                    'DROP INDEX IF EXISTS "user_UNIQUE"',
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "user_UNIQUE" ON "user" ("username", "password")'
+                    'DROP INDEX "user_UNIQUE"',
+                    'CREATE UNIQUE INDEX "user_UNIQUE" ON "user" ("username", "password")'
                 ),
                 'mysql' => array(
-                    'DROP INDEX IF EXISTS `UNIQUE` ON `user`',
-                    'CREATE UNIQUE INDEX IF NOT EXISTS `UNIQUE` ON `user` (`username`, `password`)'
+                    'DROP INDEX `UNIQUE` ON `user`',
+                    'CREATE UNIQUE INDEX `UNIQUE` ON `user` (`username`, `password`)'
                 )
             )
         );
@@ -593,8 +593,8 @@ class MigrationTest extends TestCase
                         . '"editor_id" unsigned integer(10),' . "\n"
                         . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE SET NULL ON UPDATE CASCADE' . "\n"
                         . ")",
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "author_UQ_user_id" ON "author" ("user_id")',
+                    'CREATE UNIQUE INDEX "author_UNIQUE" ON "author" ("firstname", "lastname")',
+                    'CREATE UNIQUE INDEX "author_UQ_user_id" ON "author" ("user_id")',
                     'INSERT INTO "author" ("id", "firstname", "lastname", "email", "user_id", "editor_id") SELECT "id", "firstname", "lastname", "email", "user_id", "editor_id" FROM "author_backup"',
                     'DROP TABLE "author_backup"'
                 ),
@@ -626,8 +626,8 @@ class MigrationTest extends TestCase
                         . 'CONSTRAINT "author_fk_user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,' . "\n"
                         . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE SET NULL ON UPDATE CASCADE' . "\n"
                         . ")",
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "author_UQ_user_id" ON "author" ("user_id")',
+                    'CREATE UNIQUE INDEX "author_UNIQUE" ON "author" ("firstname", "lastname")',
+                    'CREATE UNIQUE INDEX "author_UQ_user_id" ON "author" ("user_id")',
                     'INSERT INTO "author" ("id", "firstname", "lastname", "email", "user_id", "editor_id") SELECT "id", "firstname", "lastname", "email", "user_id", "editor_id" FROM "author_backup"',
                     'DROP TABLE "author_backup"'
                 ),
@@ -658,13 +658,13 @@ class MigrationTest extends TestCase
                         . '"editor_id" unsigned integer(10),' . "\n"
                         . 'CONSTRAINT "author_fk_editor_id" FOREIGN KEY ("editor_id") REFERENCES "author" ("id") ON DELETE SET NULL ON UPDATE CASCADE' . "\n"
                         . ")",
-                    'CREATE UNIQUE INDEX IF NOT EXISTS "author_UNIQUE" ON "author" ("firstname", "lastname")',
+                    'CREATE UNIQUE INDEX "author_UNIQUE" ON "author" ("firstname", "lastname")',
                     'INSERT INTO "author" ("id", "firstname", "lastname", "email", "editor_id") SELECT "id", "firstname", "lastname", "email", "editor_id" FROM "author_backup"',
                     'DROP TABLE "author_backup"'
                 ),
                 'mysql' => array(
                     'ALTER TABLE `author` DROP FOREIGN KEY `author_fk_user_id`',
-                    'DROP INDEX IF EXISTS `UQ_user_id` ON `author`',
+                    'DROP INDEX `UQ_user_id` ON `author`',
                     'ALTER TABLE `author` DROP COLUMN `user_id`'
                 )
             )

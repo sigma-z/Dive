@@ -573,8 +573,8 @@ class PlatformTest extends TestCase
             'fields' => 'username',
             'indexType' => PlatformInterface::UNIQUE,
             array(
-                'sqlite' => 'CREATE UNIQUE INDEX IF NOT EXISTS "user_UQ_username" ON "user" ("username")',
-                'mysql' => 'CREATE UNIQUE INDEX IF NOT EXISTS `UQ_username` ON `user` (`username`)'
+                'sqlite' => 'CREATE UNIQUE INDEX "user_UQ_username" ON "user" ("username")',
+                'mysql' => 'CREATE UNIQUE INDEX `UQ_username` ON `user` (`username`)'
             )
         );
         $testCases[] = array(
@@ -582,8 +582,8 @@ class PlatformTest extends TestCase
             'fields' => 'username',
             'indexType' => PlatformInterface::INDEX,
             array(
-                'sqlite' => 'CREATE INDEX IF NOT EXISTS "user_IX_username" ON "user" ("username")',
-                'mysql' => 'CREATE INDEX IF NOT EXISTS `IX_username` ON `user` (`username`)'
+                'sqlite' => 'CREATE INDEX "user_IX_username" ON "user" ("username")',
+                'mysql' => 'CREATE INDEX `IX_username` ON `user` (`username`)'
             )
         );
         $testCases[] = array(
@@ -591,8 +591,8 @@ class PlatformTest extends TestCase
             'fields' => array('username', 'password'),
             'indexType' => PlatformInterface::INDEX,
             array(
-                'sqlite' => 'CREATE INDEX IF NOT EXISTS "user_IX_username" ON "user" ("username", "password")',
-                'mysql' => 'CREATE INDEX IF NOT EXISTS `IX_username` ON `user` (`username`, `password`)'
+                'sqlite' => 'CREATE INDEX "user_IX_username" ON "user" ("username", "password")',
+                'mysql' => 'CREATE INDEX `IX_username` ON `user` (`username`, `password`)'
             )
         );
 
@@ -624,8 +624,8 @@ class PlatformTest extends TestCase
         $testCases[] = array(
             'indexName' => 'UNIQUE',
             'expected' => array(
-                'sqlite' => 'DROP INDEX IF EXISTS "user_UNIQUE"',
-                'mysql' => 'DROP INDEX IF EXISTS `UNIQUE` ON `user`'
+                'sqlite' => 'DROP INDEX "user_UNIQUE"',
+                'mysql' => 'DROP INDEX `UNIQUE` ON `user`'
             )
         );
 

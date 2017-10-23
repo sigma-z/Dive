@@ -722,7 +722,7 @@ abstract class Migration implements MigrationInterface
      */
     protected function getDropTableStatements()
     {
-        $sql = 'DROP TABLE ' . ($this->preventErrors ? ' IF EXISTS' : '')
+        $sql = 'DROP TABLE' . ($this->preventErrors ? ' IF EXISTS' : '')
             . ' ' . $this->conn->quoteIdentifier($this->tableName);
         return array($sql);
     }

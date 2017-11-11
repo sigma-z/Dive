@@ -492,8 +492,8 @@ return [
             'refField' => 'id',
             'refTable' => 'user',
             'type' => '1-1',
-            'onUpdate' => 'CASCADE',
-            'onDelete' => 'CASCADE'
+            'onUpdate' => 'RESTRICT',
+            'onDelete' => 'RESTRICT'
         ],
         'comment.user_id' => [
             'owningAlias' => 'Comment',

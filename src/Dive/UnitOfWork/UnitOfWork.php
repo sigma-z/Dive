@@ -35,30 +35,30 @@ class UnitOfWork
 
 
     /** @var RecordManager */
-    private $recordManager = null;
+    private $recordManager;
 
     /**
      * @var string[]
      * keys: record oid's
      */
-    private $scheduledForCommit = array();
+    private $scheduledForCommit = [];
 
     /**
      * @var Record[]
      * keys: record oid's
      */
-    private $restrictNotDeletedOnCommit = array();
+    private $restrictNotDeletedOnCommit = [];
 
     /**
      * @var Record[]
      * keys: record oid's
      */
-    private $recordIdentityMap = array();
+    private $recordIdentityMap = [];
 
     /**
      * @var array
      */
-    private $visitedSaveRecords = array();
+    private $visitedSaveRecords = [];
 
 
     /**
@@ -105,7 +105,7 @@ class UnitOfWork
         $oid = $record->getOid();
 
         if ($resetVisited) {
-            $this->visitedSaveRecords = array();
+            $this->visitedSaveRecords = [];
         }
         else if (in_array($oid, $this->visitedSaveRecords, true)) {
             return;
@@ -225,9 +225,12 @@ class UnitOfWork
 
         $owningRelations = $record->getTable()->getOwningRelations();
         foreach ($owningRelations as $relationName => $owningRelation) {
-            $owningRecords = $owningRelation->getOriginalReferenceFor($record, $relationName);
-            foreach ($owningRecords as $owningRecord) {
-                $this->applyUpdateConstraint($owningRelation, $owningRecord, $record);
+            $owningTableName = $owningRelation->getOwningTable();
+            if (!$this->recordManager->getTable($owningTableName)->isView()) {
+                $owningRecords = $owningRelation->getOriginalReferenceFor($record, $relationName);
+                foreach ($owningRecords as $owningRecord) {
+                    $this->applyUpdateConstraint($owningRelation, $owningRecord, $record);
+                }
             }
         }
     }
@@ -272,7 +275,7 @@ class UnitOfWork
             case PlatformInterface::RESTRICT:
             case PlatformInterface::NO_ACTION:
                 // TODO exception not specific enough?
-                throw new UnitOfWorkException("Update record is restricted by onUpdate!");
+                throw new UnitOfWorkException('Update record is restricted by onUpdate!');
         }
     }
 
@@ -346,9 +349,12 @@ class UnitOfWork
 
         $owningRelations = $record->getTable()->getOwningRelations();
         foreach ($owningRelations as $relationName => $owningRelation) {
-            $owningRecords = $owningRelation->getOriginalReferenceFor($record, $relationName);
-            foreach ($owningRecords as $owningRecord) {
-                $this->applyDeleteConstraint($owningRelation, $owningRecord);
+            $owningTableName = $owningRelation->getOwningTable();
+            if (!$this->recordManager->getTable($owningTableName)->isView()) {
+                $owningRecords = $owningRelation->getOriginalReferenceFor($record, $relationName);
+                foreach ($owningRecords as $owningRecord) {
+                    $this->applyDeleteConstraint($owningRelation, $owningRecord);
+                }
             }
         }
     }
@@ -441,9 +447,9 @@ class UnitOfWork
 
     public function resetScheduled()
     {
-        $this->scheduledForCommit = array();
-        $this->recordIdentityMap = array();
-        $this->restrictNotDeletedOnCommit = array();
+        $this->scheduledForCommit = [];
+        $this->recordIdentityMap = [];
+        $this->restrictNotDeletedOnCommit = [];
     }
 
 
@@ -521,9 +527,9 @@ class UnitOfWork
         $this->invokeRecordEvent(Record::EVENT_PRE_SAVE, $record);
 
         $table = $record->getTable();
-        $newIdentifierValues = array();
-        $identifierValues = array();
-        $modifiedFields = array();
+        $newIdentifierValues = [];
+        $identifierValues = [];
+        $modifiedFields = [];
         foreach ($table->getFields() as $fieldName => $fieldDef) {
             if (isset($fieldDef['primary']) && $fieldDef['primary'] === true) {
                 $fieldValue = $record->get($fieldName);
@@ -586,7 +592,7 @@ class UnitOfWork
         $length = 12; // length of Dive.Record.
         $hookMethod = substr($eventName, $length);
         if (method_exists($record, $hookMethod)) {
-            call_user_func(array($record, $hookMethod));
+            $record->{$hookMethod}();
         }
 
         $eventDispatcher = $this->recordManager->getEventDispatcher();
@@ -617,7 +623,7 @@ class UnitOfWork
         foreach ($this->restrictNotDeletedOnCommit as $restrictedRecord) {
             if (!$this->isRecordScheduledForDelete($restrictedRecord)) {
                 // TODO exception not specific enough?
-                throw new UnitOfWorkException("Delete record is restricted by onDelete!");
+                throw new UnitOfWorkException('Delete record is restricted by onDelete!');
             }
         }
     }
@@ -626,10 +632,8 @@ class UnitOfWork
     private function validateScheduledSaveRecords()
     {
         foreach ($this->recordIdentityMap as $record) {
-            if ($this->isRecordScheduledForSave($record)) {
-                if (!$this->validateRecord($record)) {
-                    throw RecordInvalidException::createByRecord($record);
-                }
+            if ($this->isRecordScheduledForSave($record) && !$this->validateRecord($record)) {
+                throw RecordInvalidException::createByRecord($record);
             }
         }
     }
@@ -642,11 +646,7 @@ class UnitOfWork
     private function validateRecord(Record $record)
     {
         $validator = $this->recordManager->getRecordValidationContainer();
-        $isValid = $validator->validate($record);
-//        if (!$isValid) {
-//            var_dump($record->toArray(false));
-//        }
-        return $isValid;
+        return $validator->validate($record);
 
     }
 

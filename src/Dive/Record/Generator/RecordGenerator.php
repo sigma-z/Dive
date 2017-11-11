@@ -71,9 +71,9 @@ class RecordGenerator
      */
     public function clear()
     {
-        $this->tableRows = array();
-        $this->tableMapFields = array();
-        $this->recordAliasIdMap = array();
+        $this->tableRows = [];
+        $this->tableMapFields = [];
+        $this->recordAliasIdMap = [];
     }
 
 
@@ -85,7 +85,7 @@ class RecordGenerator
      */
     public function setTablesMapField(array $tablesMapField)
     {
-        $this->tableMapFields = array();
+        $this->tableMapFields = [];
         foreach ($tablesMapField as $tableName => $mapField) {
             $this->setTableMapField($tableName, $mapField);
         }
@@ -140,22 +140,32 @@ class RecordGenerator
     public function generate()
     {
         foreach ($this->tableRows as $tableName => $rows) {
-            $rowKey = 0;
-            $table = $this->rm->getTable($tableName);
-            foreach ($rows as $key => $row) {
+            foreach ($rows as $recordKey => $fieldValues) {
                 // if row is a string, than try to map it
-                if (is_string($row)) {
+                if (is_string($fieldValues)) {
                     $mapField = $this->getTableMapField($tableName);
-                    $key = $row;
-                    $row = array($mapField => $row);
+                    $recordKey = $fieldValues;
+                    $fieldValues = [$mapField => $fieldValues];
                 }
-                else if (!is_string($key)) {
-                    $key = null;
-                }
-                $this->saveRecord($table, $row, $key);
-                $rowKey++;
+                $this->generateRecord($tableName, $fieldValues, $recordKey);
             }
         }
+    }
+
+
+    /**
+     * @param string      $tableName
+     * @param array       $fieldValues
+     * @param string|null $recordKey
+     * @return string
+     */
+    public function generateRecord($tableName, array $fieldValues = [], $recordKey = null)
+    {
+        if (!is_string($recordKey)) {
+            $recordKey = null;
+        }
+        $table = $this->rm->getTable($tableName);
+        return $this->saveRecord($table, $fieldValues, $recordKey);
     }
 
 
@@ -423,7 +433,7 @@ class RecordGenerator
                 continue;
             }
             if ($table->isFieldRequired($owning)) {
-                $row[$owning] = $this->saveRelatedRecord($relation->getReferencedTable(), null, array());
+                $row[$owning] = $this->saveRelatedRecord($relation->getReferencedTable(), null);
             }
         }
         return $row;

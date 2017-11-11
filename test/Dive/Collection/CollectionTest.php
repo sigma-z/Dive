@@ -29,11 +29,11 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
         parent::setUp();
         /** @var \Dive\Collection\Collection $coll */
         $coll = $this->getMockForAbstractClass('\Dive\Collection\Collection');
-        $array = array(
-            'a' => array('name' => 'Item I'),
-            'b' => array('name' => 'Item II'),
-            'c' => array('name' => 'Item III')
-        );
+        $array = [
+            'a' => ['name' => 'Item I'],
+            'b' => ['name' => 'Item II'],
+            'c' => ['name' => 'Item III']
+        ];
         $coll->setItems($array);
         $this->coll = $coll;
     }
@@ -41,20 +41,31 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testOffsetGetWithWithIntegerIndex()
     {
-        $array = array(
-            array('name' => 'Item I'),
-            array('name' => 'Item II'),
-            array('name' => 'Item III')
-        );
-
+        $array = [
+            ['name' => 'Item I'],
+            ['name' => 'Item II'],
+            ['name' => 'Item III']
+        ];
         $this->coll->setItems($array);
-        $this->assertEquals('Item III', $this->coll[2]['name']);
+        $this->assertSame('Item III', $this->coll[2]['name']);
+    }
+
+
+    public function testGetItems()
+    {
+        $array = [
+            ['name' => 'Item I'],
+            ['name' => 'Item II'],
+            ['name' => 'Item III']
+        ];
+        $this->coll->setItems($array);
+        $this->assertSame($array, $this->coll->getItems());
     }
 
 
     public function testOffsetGetWithStringIndex()
     {
-        $this->assertEquals('Item III', $this->coll['c']['name']);
+        $this->assertSame('Item III', $this->coll['c']['name']);
     }
 
 
@@ -86,34 +97,34 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testAddItem()
     {
-        $item = array('name' => 'Item D');
+        $item = ['name' => 'Item D'];
         $this->coll->add($item, 'd');
-        $this->assertEquals($item, $this->coll->get('d'));
+        $this->assertSame($item, $this->coll->get('d'));
     }
 
 
     public function testDoubleAddItem()
     {
-        $item = array('name' => 'Item D');
+        $item = ['name' => 'Item D'];
         $count = $this->coll->count();
         $this->coll->add($item, 'd');
         $count++;
-        $this->assertEquals($count, $this->coll->count());
+        $this->assertSame($count, $this->coll->count());
         $this->coll->add($item, 'd');
-        $this->assertEquals($count, $this->coll->count());
-        $this->assertEquals($item, $this->coll->get('d'));
+        $this->assertSame($count, $this->coll->count());
+        $this->assertSame($item, $this->coll->get('d'));
     }
 
 
     public function testCount()
     {
-        $this->assertEquals(3, $this->coll->count());
+        $this->assertCount(3, $this->coll);
     }
 
 
     public function testKeys()
     {
-        $this->assertEquals(array('a', 'b', 'c'), $this->coll->keys());
+        $this->assertSame(['a', 'b', 'c'], $this->coll->keys());
     }
 
 

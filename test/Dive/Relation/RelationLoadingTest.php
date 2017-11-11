@@ -104,7 +104,7 @@ class RelationLoadingTest extends TestCase
         }
 
         $sqlLogger->setEchoOutput(false);
-        $this->assertEquals(3, $sqlLogger->getCount());
+        $this->assertEquals(4, $sqlLogger->getCount());
     }
 
 
@@ -126,6 +126,40 @@ class RelationLoadingTest extends TestCase
         $article = $comment->get('Article');
         $comments = $article->get('Comment');
         $this->assertCount(4, $comments);
+    }
+
+
+    public function testLoadReferenceAfterSettingReferenceByOwningField()
+    {
+        $articleId = self::$recordGenerator->getRecordIdFromMap('article', 'DiveORM released');
+        $rm = self::createDefaultRecordManager();
+        $article = $rm->getTable('article')->findByPk($articleId);
+        $comment = $rm->getTable('comment')->createRecord();
+        $comment->article_id = $articleId;
+        $comment->user_id = self::$recordGenerator->getRecordIdFromMap('user', 'JohnD');
+
+        $commentCollection = $article->Comment;
+        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $commentCollection);
+        $this->assertContains($comment, $commentCollection);
+        $this->assertCount(2, $commentCollection);
+    }
+
+
+    public function testLoadReferenceThenSetReferenceByOwningFieldAndGetReferenceAsCollection()
+    {
+        $articleId = self::$recordGenerator->getRecordIdFromMap('article', 'DiveORM released');
+        $rm = self::createDefaultRecordManager();
+        $article = $rm->getTable('article')->findByPk($articleId);
+
+        $article->Comment;
+        $comment = $rm->getTable('comment')->createRecord();
+        $comment->article_id = $articleId;
+        $comment->user_id = self::$recordGenerator->getRecordIdFromMap('user', 'JohnD');
+
+        $commentCollection = $article->Comment;
+        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $commentCollection);
+        $this->assertContains($comment, $commentCollection);
+        $this->assertCount(2, $commentCollection);
     }
 
 

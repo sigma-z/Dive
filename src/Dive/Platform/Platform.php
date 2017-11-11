@@ -405,9 +405,6 @@ abstract class Platform implements PlatformInterface
 
         $indexTypeSql = $this->getIndexTypeAsSql($indexType);
         $sql = 'CREATE ' . $indexTypeSql;
-        if ($this->preventErrors) {
-            $sql .= ' IF NOT EXISTS';
-        }
         $sql .= ' ' . $this->quoteIdentifier($indexName);
         $sql .= ' ON ' . $this->quoteIdentifier($tableName);
         $sql .= ' (' . $this->quoteIdentifiersSeparated($fieldNames) . ')';
@@ -424,7 +421,7 @@ abstract class Platform implements PlatformInterface
      */
     public function getDropIndexSql($tableName, $indexName)
     {
-        $sql = 'DROP INDEX ' . ($this->preventErrors ? 'IF EXISTS ' : '') . $this->quoteIdentifier($indexName);
+        $sql = 'DROP INDEX ' . $this->quoteIdentifier($indexName);
         return $sql;
     }
 

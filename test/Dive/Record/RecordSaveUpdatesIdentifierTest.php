@@ -9,11 +9,13 @@
 namespace Dive\Test\Record;
 
 use Dive\Record;
+use Dive\Record\Generator\RecordGenerator;
 use Dive\RecordManager;
 use Dive\Relation\ReferenceMap;
 use Dive\Relation\Relation;
 use Dive\TestSuite\Model\Article;
 use Dive\TestSuite\Model\Author;
+use Dive\TestSuite\Model\Comment;
 use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
 use Dive\Util\CamelCase;
@@ -40,6 +42,9 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
     /** @var string */
     private $oldIdentifierRelatedRecord;
 
+    /** @var RecordGenerator */
+    private $recordGenerator;
+
 
     protected function tearDown()
     {
@@ -51,6 +56,10 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
             $this->rm->scheduleDelete($this->relatedRecord);
         }
         $this->rm->commit();
+
+        if ($this->recordGenerator) {
+            $this->recordGenerator->removeGeneratedRecords();
+        }
 
         parent::tearDown();
     }
@@ -141,6 +150,36 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
     }
 
 
+    public function testSetReferenceOnOwningRecord()
+    {
+        $article = $this->givenIHaveASavedArticle('Post #1');
+        $comment1 = $this->givenIHaveCreatedAComment_withUser('comment1', 'Hugo');
+        $comment1->Article = $article;
+        $this->whenISaveTheComment($comment1);
+
+        $comment2 = $this->givenIHaveCreatedAComment_withUser('comment2', 'Herbert');
+        $comment2->Article = $article;
+        $this->whenISaveTheComment($comment2);
+
+        $this->assertCount(2, $article->Comment);
+    }
+
+
+    public function testSetReferenceOnReferencedRecord()
+    {
+        $article = $this->givenIHaveASavedArticle('Post #1');
+        $comment1 = $this->givenIHaveCreatedAComment_withUser('comment1', 'Hugo');
+        $article->Comment[] = $comment1;
+        $this->whenISaveTheComment($comment1);
+
+        $comment2 = $this->givenIHaveCreatedAComment_withUser('comment2', 'Herbert');
+        $article->Comment[] = $comment2;
+        $this->whenISaveTheComment($comment2);
+
+        $this->assertCount(2, $article->Comment);
+    }
+
+
     // #####  given / when / then methods  #####
     private function givenIHaveARecordManager()
     {
@@ -208,8 +247,6 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         $this->storedRecord = $article;
         $this->relatedRecord = $author;
     }
-
-
 
 
     private function givenIHaveAReferencedRecordWithAnOneToManyRelatedRecord()
@@ -296,12 +333,13 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
 
 
     /**
+     * @param string $userName
      * @return User
      */
-    private function createUser()
+    private function createUser($userName = 'Hugo')
     {
         $table = $this->rm->getTable('user');
-        return self::getRecordWithRandomData($table, array('id' => '1', 'username' => 'Hugo'));
+        return self::getRecordWithRandomData($table, ['username' => $userName]);
     }
 
 
@@ -391,6 +429,52 @@ class RecordSaveUpdatesIdentifierTest extends TestCase
         return $relation->isReferencedSide($relationName)
             ? $this->relatedRecord
             : $this->storedRecord;
+    }
+
+
+    /**
+     * @param string $articleTitle
+     * @return Article
+     */
+    private function givenIHaveASavedArticle($articleTitle)
+    {
+        $this->givenIHaveARecordManager();
+        $this->initRecordGenerator();
+        $id = $this->recordGenerator->generateRecord('article', [['title' => $articleTitle]]);
+        return $this->rm->getTable('article')->findByPk($id);
+    }
+
+
+    private function initRecordGenerator()
+    {
+        if (!$this->recordGenerator) {
+            $this->recordGenerator = self::createRecordGenerator($this->rm);
+        }
+    }
+
+
+    /**
+     * @param string $commentTitle
+     * @param string $userName
+     * @return Comment
+     */
+    private function givenIHaveCreatedAComment_withUser($commentTitle, $userName)
+    {
+        $user = $this->createUser($userName);
+        $this->rm->scheduleSave($user)->commit();
+        $table = $this->rm->getTable('comment');
+        $recordData = ['title' => $commentTitle, 'user_id' => $user->id];
+        return self::getRecordWithRandomData($table, $recordData);
+
+    }
+
+
+    /**
+     * @param Comment $comment
+     */
+    private function whenISaveTheComment(Comment $comment)
+    {
+        $this->rm->scheduleSave($comment)->commit();
     }
 
 }

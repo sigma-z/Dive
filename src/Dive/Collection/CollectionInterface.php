@@ -6,14 +6,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Dive\Collection;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 11.02.13
  */
-
-namespace Dive\Collection;
-
-
 interface CollectionInterface extends \Countable, \ArrayAccess, \IteratorAggregate
 {
 
@@ -86,5 +85,17 @@ interface CollectionInterface extends \Countable, \ArrayAccess, \IteratorAggrega
      * @return string|int
      */
     public function key();
+
+
+    /**
+     * @param array|\Dive\Record[] $items keys are the primary keys of the items, values can be array or objects
+     */
+    public function setItems(array $items);
+
+
+    /**
+     * @return array|\Dive\Record[]
+     */
+    public function getItems();
 
 }

@@ -21,6 +21,11 @@ class RecordToFromArrayTest extends TestCase
 
     /**
      * @dataProvider provideToFromArray
+     * @param string $tableName
+     * @param array  $data
+     * @param bool   $deep
+     * @param bool   $withMappedFields
+     * @param array  $expected
      */
     public function testToFromArray($tableName, array $data, $deep, $withMappedFields, $expected)
     {
@@ -38,7 +43,7 @@ class RecordToFromArrayTest extends TestCase
      */
     public function provideToFromArray()
     {
-        $testCases = array();
+        $testCases = [];
         $testCases = array_merge($testCases, $this->provideToFromArrayOneToOneTestCases());
         $testCases = array_merge($testCases, $this->provideToFromArrayOneToManyTestCases());
         return $testCases;
@@ -51,94 +56,94 @@ class RecordToFromArrayTest extends TestCase
     private function provideToFromArrayOneToOneTestCases()
     {
         $authorDefaultFields = self::getDefaultFields('author');
-        $authorFields = array(
+        $authorFields = [
             'firstname' => 'John',
             'lastname' => 'Doe',
             'email' => 'doe@example.com'
-        );
-        $authorMappedFields = array('initials' => 'jdo');
+        ];
+        $authorMappedFields = ['initials' => 'jdo'];
 
         $userDefaultFields = self::getDefaultFields('user');
-        $userFields = array(
+        $userFields = [
             'username' => 'John',
             'password' => 'secret',
             'id' => 1234
-        );
-        $userMappedFields = array('column1' => 'foo', 'column2' => 'bar');
+        ];
+        $userMappedFields = ['column1' => 'foo', 'column2' => 'bar'];
 
-        $userInputDataWithAuthor = $userFields + $userMappedFields + array(
+        $userInputDataWithAuthor = $userFields + $userMappedFields + [
             'Author' => $authorFields + $authorMappedFields
-        );
-        $authorInputDataWithUser = $authorFields + $authorMappedFields + array(
+            ];
+        $authorInputDataWithUser = $authorFields + $authorMappedFields + [
             'User' => $userFields + $userMappedFields
-        );
+            ];
 
 
-        $testCases = array();
+        $testCases = [];
 
         // TEST user -> Author (referenced side)
-        $testCases[] = array(
+        $testCases[] = [
             'user',
             $userInputDataWithAuthor,
             false,  // recursive flag
             false,  // map fields flag
             $userFields + $userDefaultFields
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'user',
             $userInputDataWithAuthor,
             false,  // recursive flag
             true,   // map fields flag
             $userFields + $userDefaultFields + $userMappedFields
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'user',
             $userInputDataWithAuthor,
             true,   // recursive flag
             false,  // map fields flag
-            $userFields + $userDefaultFields + array('Author' => $authorFields + $authorDefaultFields)
-        );
-        $testCases[] = array(
+            $userFields + $userDefaultFields + ['Author' => $authorFields + $authorDefaultFields]
+        ];
+        $testCases[] = [
             'user',
             $userInputDataWithAuthor,
             true,   // recursive flag
             true,   // map fields flag
-            $userFields + $userDefaultFields + $userMappedFields + array(
+            $userFields + $userDefaultFields + $userMappedFields + [
                 'Author' => $authorFields + $authorDefaultFields + $authorMappedFields
-            )
-        );
+            ]
+        ];
 
         // TEST author -> User (owning side)
-        $testCases[] = array(
+        $testCases[] = [
             'author',
             $authorInputDataWithUser,
             false,  // recursive flag
             false,  // map fields flag
             $authorFields + $authorDefaultFields
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'author',
             $authorInputDataWithUser,
             false,  // recursive flag
             true,   // map fields flag
             $authorFields + $authorDefaultFields + $authorMappedFields
-        );
-        $testCases[] = array(
+        ];
+        $testCases[] = [
             'author',
             $authorInputDataWithUser,
             true,   // recursive flag
             false,  // map fields flag
-            $authorFields + $authorDefaultFields + array('User' => $userFields + $userDefaultFields)
-        );
-        $testCases[] = array(
+            $authorFields + $authorDefaultFields + ['User' => $userFields + $userDefaultFields]
+        ];
+        $testCases[] = [
             'author',
             $authorInputDataWithUser,
             true,   // recursive flag
             true,   // map fields flag
-            $authorFields + $authorDefaultFields + $authorMappedFields + array(
+            $authorFields + $authorDefaultFields + $authorMappedFields + [
                 'User' => $userFields + $userDefaultFields + $userMappedFields
-            )
-        );
+            ]
+        ];
 
         return $testCases;
     }
@@ -151,120 +156,120 @@ class RecordToFromArrayTest extends TestCase
     {
         $authorDefaultFields = self::getDefaultFields('author');
 
-        $authorOneFields = array(
+        $authorOneWithFields = [
             'firstname' => 'John',
             'lastname' => 'Doe',
             'email' => 'doe@example.com'
-        );
-        $authorOneMappedFields = array('initials' => 'jdo');
+        ];
+        $authorOneWithMappedFields = ['initials' => 'jdo'];
 
-        $authorTwoFields = array(
+        $authorTwoWithFields = [
             'firstname' => 'Larry',
             'lastname' => 'Potter',
             'email' => 'lpt@example.com'
-        );
-        $authorTwoMappedFields = array('initials' => 'lpt');
+        ];
+        $authorTwoWithMappedFields = ['initials' => 'lpt'];
 
-        $authorThreeFields = array(
+        $authorThreeFields = [
             'firstname' => 'Sue',
             'lastname' => 'Tiger',
             'email' => 'sti@example.com'
-        );
-        $authorThreeMappedFields = array('initials' => 'sti');
+        ];
+        $authorThreeWithMappedFields = ['initials' => 'sti'];
 
 
-        $authorInputDataWithEditor = $authorOneFields + $authorOneMappedFields + array(
-            'Editor' => array_merge($authorTwoMappedFields, $authorTwoFields)
-        );
+        $authorInputDataWithEditor = $authorOneWithFields + $authorOneWithMappedFields + [
+            'Editor' => array_merge($authorTwoWithMappedFields, $authorTwoWithFields)
+            ];
 
-        $editorInputDataWithAuthor = $authorOneFields + $authorOneMappedFields + array(
-            'Author' => array(
-                array_merge($authorTwoMappedFields, $authorTwoFields),
-                array_merge($authorThreeMappedFields, $authorThreeFields)
-            )
-        );
+        $editorInputDataWithAuthor = $authorOneWithFields + $authorOneWithMappedFields + [
+            'Author' => [
+                array_merge($authorTwoWithMappedFields, $authorTwoWithFields),
+                array_merge($authorThreeWithMappedFields, $authorThreeFields)
+            ]
+            ];
 
-        $testCases = array();
+        $testCases = [];
 
         // TEST author -> Editor (owning side)
-        $testCases[] = array(
+        $testCases[] = [
             'author',
             $authorInputDataWithEditor,
             false,  // recursive flag
             false,  // map fields flag
-            array_merge($authorDefaultFields, $authorOneFields)
-        );
-        $testCases[] = array(
+            array_merge($authorDefaultFields, $authorOneWithFields)
+        ];
+        $testCases[] = [
             'author',
             $authorInputDataWithEditor,
             false,  // recursive flag
             true,   // map fields flag
-            array_merge($authorDefaultFields, $authorOneFields, $authorOneMappedFields)
-        );
-        $testCases[] = array(
+            array_merge($authorDefaultFields, $authorOneWithFields, $authorOneWithMappedFields)
+        ];
+        $testCases[] = [
             'author',
             $authorInputDataWithEditor,
             true,   // recursive flag
             false,  // map fields flag
-            $authorOneFields + $authorDefaultFields + array(
-                'Editor' => array_merge($authorDefaultFields, $authorTwoFields, array('Author' => array(false)))
-            )
-        );
-        $testCases[] = array(
+            $authorOneWithFields + $authorDefaultFields + [
+                'Editor' => array_merge($authorDefaultFields, $authorTwoWithFields, ['Author' => [false]])
+            ]
+        ];
+        $testCases[] = [
             'author',
             $authorInputDataWithEditor,
             true,   // recursive flag
             true,   // map fields flag
-            $authorOneFields + $authorDefaultFields + $authorOneMappedFields + array(
+            $authorOneWithFields + $authorDefaultFields + $authorOneWithMappedFields + [
                 'Editor' => array_merge(
                     $authorDefaultFields,
-                    $authorTwoFields,
-                    $authorTwoMappedFields,
-                    array('Author' => array(false))
+                    $authorTwoWithFields,
+                    $authorTwoWithMappedFields,
+                    ['Author' => [false]]
                 )
-            )
-        );
+            ]
+        ];
 
         // TEST on author table
-        $testCases[] = array(
+        $testCases[] = [
             'author',
             $editorInputDataWithAuthor,
             false,  // recursive flag
             false,  // map fields flag
-            $authorOneFields + $authorDefaultFields
-        );
-        $testCases[] = array(
+            $authorOneWithFields + $authorDefaultFields
+        ];
+        $testCases[] = [
             'author',
             $editorInputDataWithAuthor,
             false,  // recursive flag
             true,   // map fields flag
-            array_merge($authorDefaultFields, $authorOneFields, $authorOneMappedFields)
-        );
+            array_merge($authorDefaultFields, $authorOneWithFields, $authorOneWithMappedFields)
+        ];
 
-        $testCases[] = array(
+        $testCases[] = [
             'author',
             $editorInputDataWithAuthor,
             true,   // recursive flag
             false,  // map fields flag
-            $authorOneFields + $authorDefaultFields + array(
-                'Author' => array(
-                    array_merge($authorDefaultFields, $authorTwoFields),
+            $authorOneWithFields + $authorDefaultFields + [
+                'Author' => [
+                    array_merge($authorDefaultFields, $authorTwoWithFields),
                     array_merge($authorDefaultFields, $authorThreeFields)
-                )
-            )
-        );
-        $testCases[] = array(
+                ]
+            ]
+        ];
+        $testCases[] = [
             'author',
             $editorInputDataWithAuthor,
             true,   // recursive flag
             true,   // map fields flag
-            array_merge($authorDefaultFields, $authorOneFields, $authorOneMappedFields) + array(
-                'Author' => array(
-                    array_merge($authorDefaultFields, $authorTwoFields, $authorTwoMappedFields),
-                    array_merge($authorDefaultFields, $authorThreeFields, $authorThreeMappedFields)
-                )
-            )
-        );
+            array_merge($authorDefaultFields, $authorOneWithFields, $authorOneWithMappedFields) + [
+                'Author' => [
+                    array_merge($authorDefaultFields, $authorTwoWithFields, $authorTwoWithMappedFields),
+                    array_merge($authorDefaultFields, $authorThreeFields, $authorThreeWithMappedFields)
+                ]
+            ]
+        ];
 
         return $testCases;
     }
@@ -293,7 +298,7 @@ class RecordToFromArrayTest extends TestCase
         $this->assertEquals($relatedByRelation, $relatedByRecord);
 
         if ($expectedNotNull) {
-            $this->assertRelationReferences($record, $relationName, array($relatedByRelation));
+            $this->assertRelationReferences($record, $relationName, [$relatedByRelation]);
         }
     }
 
@@ -303,54 +308,54 @@ class RecordToFromArrayTest extends TestCase
      */
     public function provideFromArrayOneToOneNoneExistingRecords()
     {
-        $testCases = array();
+        $testCases = [];
 
-        $testCases[] = array(
+        $testCases[] = [
             'tableName' => 'user',
-            'recordGraph' => array(
+            'recordGraph' => [
                 'username' => 'CarlH',
                 'password' => 'my-secret',
-                'Author' => array(
+                'Author' => [
                     'firstname' => 'Carl',
                     'lastname' => 'Hanson',
                     'email' => 'c.hanson@example.com'
-                )
-            ),
+                ]
+            ],
             'relationName' => 'Author'
-        );
+        ];
 
-        $testCases[] = array(
+        $testCases[] = [
             'tableName' => 'user',
-            'recordGraph' => array(
+            'recordGraph' => [
                 'username' => 'CarlH',
                 'password' => 'my-secret',
-                'Author' => array(
+                'Author' => [
                     'firstname' => 'Carl',
                     'lastname' => 'Hanson',
                     'email' => 'c.hanson@example.com'
-                )
-            ),
+                ]
+            ],
             'relationName' => 'Author'
-        );
+        ];
 
-        $testCases[] = array(
+        $testCases[] = [
             'tableName' => 'author',
-            'recordGraph' => array(
+            'recordGraph' => [
                 'firstname' => 'Carl',
                 'lastname' => 'Hanson',
                 'email' => 'c.hanson@example.com'
-            ),
+            ],
             'relationName' => 'User'
-        );
+        ];
 
-        $testCases[] = array(
+        $testCases[] = [
             'tableName' => 'user',
-            'recordGraph' => array(
+            'recordGraph' => [
                 'username' => 'CarlH',
                 'password' => 'my-secret'
-            ),
+            ],
             'relationName' => 'Author'
-        );
+        ];
 
         return $testCases;
     }
@@ -358,49 +363,49 @@ class RecordToFromArrayTest extends TestCase
 
     public function testFromArrayExistingRecords()
     {
-        $tableRows = array();
-        $tableRows['user'] = array('JohnD', 'BartS');
-        $tableRows['author'] = array(
-            'John Doe' => array(
+        $tableRows = [];
+        $tableRows['user'] = ['JohnD', 'BartS'];
+        $tableRows['author'] = [
+            'John Doe' => [
                 'firstname' => 'John',
                 'lastname' => 'Doe',
                 'email' => 'j.doe@example.com',
                 'User' => 'JohnD'
-            ),
-        );
-        $tableRows['article'] = array(
-            'DiveORM released' => array(
+            ],
+        ];
+        $tableRows['article'] = [
+            'DiveORM released' => [
                 'title' => 'Dive ORM Framework released',
                 'Author' => 'John Doe',
                 'is_published' => true,
                 'datetime' => '2013-01-10 13:48:00',
-                'Comment' => array(
-                    'DiveORM released#1' => array(
+                'Comment' => [
+                    'DiveORM released#1' => [
                         'title' => 'Can\'t wait to see more of this...',
                         'User' => 'BartS',
                         'datetime' => '2013-01-15 17:25:00'
-                    )
-                )
-            )
-        );
+                    ]
+                ]
+            ]
+        ];
 
         $rm = self::createDefaultRecordManager();
         $recordGenerator = self::saveTableRows($rm, $tableRows);
 
-        $recordGraph = array(
+        $recordGraph = [
             Record::FROM_ARRAY_EXISTS_KEY => true,
             'id' => $recordGenerator->getRecordIdFromMap('article', 'DiveORM released'),
-            'Author' => array(
+            'Author' => [
                 Record::FROM_ARRAY_EXISTS_KEY => true,
                 'id' => $recordGenerator->getRecordIdFromMap('author', 'John Doe'),
-            ),
-            'Comment' => array(
-                array(
+            ],
+            'Comment' => [
+                [
                     Record::FROM_ARRAY_EXISTS_KEY => true,
                     'id' => $recordGenerator->getRecordIdFromMap('comment', 'DiveORM released#1'),
-                )
-            )
-        );
+                ]
+            ]
+        ];
 
         $rm = self::createDefaultRecordManager();
         $articleTable = $rm->getTable('article');
@@ -422,7 +427,7 @@ class RecordToFromArrayTest extends TestCase
     {
         $schema = self::getSchema();
 
-        $defaultFields = array();
+        $defaultFields = [];
         $authorFields = $schema->getTableFields($tableName);
         foreach ($authorFields as $fieldName => $fieldData) {
             $defaultFields[$fieldName] = isset($fieldData['default']) ? $fieldData['default'] : null;

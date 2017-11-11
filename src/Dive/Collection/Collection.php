@@ -20,15 +20,24 @@ class Collection implements CollectionInterface
      * array with integer-indexes
      * @var \Dive\Record[]|array
      */
-    protected $items = array();
+    protected $items = [];
 
 
     /**
-     * @param array $items keys are the primary keys of the items, values can be array or objects
+     * @param array|\Dive\Record[] $items keys are the primary keys of the items, values can be array or objects
      */
     public function setItems(array $items)
     {
         $this->items = $items;
+    }
+
+
+    /**
+     * @return array|\Dive\Record[]
+     */
+    public function getItems()
+    {
+        return $this->items;
     }
 
 

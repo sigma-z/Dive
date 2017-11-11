@@ -159,9 +159,11 @@ abstract class Command
     {
         $pos = strrpos($name, '\\');
         if ($pos !== false) {
+            /** @noinspection CallableParameterUseCaseInTypeContextInspection */
             $name = substr($name, $pos + 1);
         }
         if (substr($name, -7) === 'Command') {
+            /** @noinspection CallableParameterUseCaseInTypeContextInspection */
             $name = substr($name, 0, -7);
         }
         return lcfirst($name);
@@ -245,7 +247,7 @@ abstract class Command
     public function readInput($message, $type = 'string')
     {
         do {
-            $this->outputWriter->write($message . ': ');
+            $this->write($message . ': ');
             $input = trim(fgets(STDIN));
         }
         while ($input === '');
@@ -266,6 +268,28 @@ abstract class Command
     {
         $input = strtolower($input);
         return $input === 'yes' || $input === 'on' || $input === 'true' || $input === '1';
+    }
+
+
+    /**
+     * @param string $message
+     * @param int    $level
+     * @param string $prefix
+     */
+    protected function write($message, $level = OutputWriterInterface::LEVEL_NORMAL, $prefix = '')
+    {
+        $this->outputWriter->write($message, $level, $prefix);
+    }
+
+
+    /**
+     * @param string $message
+     * @param int    $level
+     * @param string $prefix
+     */
+    protected function writeLine($message, $level = OutputWriterInterface::LEVEL_NORMAL, $prefix = '')
+    {
+        $this->outputWriter->writeLine($message, $level, $prefix);
     }
 
 }

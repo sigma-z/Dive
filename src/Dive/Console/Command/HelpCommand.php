@@ -39,7 +39,7 @@ class HelpCommand extends Command
         else {
             $usage = $this->getGeneralUsage();
         }
-        $this->outputWriter->writeLine($usage);
+        $this->writeLine($usage);
         return true;
     }
 

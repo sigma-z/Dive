@@ -8,7 +8,7 @@ Dive can be installed with [Composer](http://www.getcomposer.org).
 
 Add the following requirement in your ``composer.json`` file:
 
-```js
+```json
 {
     "require": {
         "sigma-z/dive": "*"
@@ -65,12 +65,42 @@ See also [Section Schema](#schema).
 
 
 Working with record objects
+===
+
+Fetching record by primary key
 ---
+
+```php
+<?php
+/** @var \Dive\RecordManager $recordManager */
+$user = $recordManager->getTable('user')->findByPk('5');
+// returns user object, if could have been fetched, otherwise FALSE
+```
+
+The primary key can be a composite key, given as array as the first argument.  
+
+```php
+<?php
+/** @var \Dive\RecordManager $recordManager */
+$user = $recordManager->getTable('user')->findByPk(['5', 'abc']);
+// returns user object, if could have been fetched, otherwise FALSE
+```
+
 
 Querying tables
----
+===
 
-
+Fetching records as collection
+```php
+<?php
+/** @var \Dive\RecordManager $recordManager */
+$query = $recordManager->getTable('user')->createQuery('u');
+$users = $query->select('u.id, u.username')
+    ->where('u.last_login > ?', '2017-01-01')
+    ->fetchObjects();
+// returns a collection containing user objects.
+// if none will be found, the collection will be empty. 
+```
 
 
 Schema
@@ -158,7 +188,7 @@ Table and view fields are indexed by its names.
         'type' => 'integer'
     ],
     // and more ...
-]
+];
 ```
 
 Every field must define at least its [field types](#schema-field-types-vs-database-column-types).
@@ -234,7 +264,7 @@ return [
             'onDelete' => 'RESTRICT'
         ]
     ]
-]
+];
 ```
 
 
@@ -499,18 +529,14 @@ class SampleCommand extends Command
         );
     }
 
-    public function execute(OutputWriterInterface $outputWriter)
+    public function execute()
     {
-        $outputWriter->writeLine('paramOne: ' . $this->getParam('paramOne'));
-        $outputWriter->writeLine('paramTwo: ' . $this->getParam('paramTwo'));
+        $this->writeLine('paramOne: ' . $this->getParam('paramOne'));
+        $this->writeLine('paramTwo: ' . $this->getParam('paramTwo'));
         return true;
     }
 }
 ```
-
-
-Working with records
-===
 
 
 Validation

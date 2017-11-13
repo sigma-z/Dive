@@ -35,12 +35,12 @@ class ListCommand extends Command
     {
         $commandLoader = $this->console->getCommandLoader();
         $classes = $commandLoader->getCommandClasses();
-        $this->outputWriter->writeLine(
+        $this->writeLine(
             'Command list (' . count($classes) . ')', OutputWriterInterface::LEVEL_LESS_INFO
         );
         foreach ($classes as $className) {
             $name = $this->getNameByClassName($className);
-            $this->outputWriter->writeLine("  - $name", OutputWriterInterface::LEVEL_LESS_INFO);
+            $this->writeLine("  - $name", OutputWriterInterface::LEVEL_LESS_INFO);
         }
         return true;
     }

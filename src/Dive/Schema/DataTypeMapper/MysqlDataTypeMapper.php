@@ -24,7 +24,7 @@ class MysqlDataTypeMapper extends DataTypeMapper
      */
     public function __construct(array $mapping = array(), array $ormTypeMapping = array())
     {
-        $defaultMapping = array(
+        $defaultMapping = [
             'bool'          => self::OTYPE_BOOLEAN,
             'boolean'       => self::OTYPE_BOOLEAN,
 
@@ -61,33 +61,32 @@ class MysqlDataTypeMapper extends DataTypeMapper
             'longblob'      => self::OTYPE_BLOB,
 
             'enum'          => self::OTYPE_ENUM
-        );
+        ];
 
-        $defaultOrmTypeMapping = array(
-            self::OTYPE_INTEGER => array(
+        $defaultOrmTypeMapping = [
+            self::OTYPE_INTEGER => [
                 'default'   => 'int',
                 'unit'      => self::UNIT_BYTES,
-                'types'     => array(
+                'types'     => [
                     'tinyint'       => 1,
                     'smallint'      => 2,
                     'mediumint'     => 3,
                     'int'           => 4,
                     'bigint'        => 8
-                )
-            ),
-            self::OTYPE_STRING => array(
+                ]
+            ],
+            self::OTYPE_STRING => [
                 'default'   => 'text',
                 'unit'      => self::UNIT_CHARS,
-                'types'     => array(
+                'types'     => [
                     'char'          => 1,
                     'varchar'       => 21845,       // utf8 character uses up to 3 bytes
                     'mediumtext'    => 5592405,     // utf8 character uses up to 3 bytes
                     'longtext'      => 1431655765   // utf8 character uses up to 3 bytes
-                )
-            ),
-            self::OTYPE_TIME => 'char',
+                ]
+            ],
             self::OTYPE_BOOLEAN => 'tinyint'
-        );
+        ];
 
         $mapping = array_merge($defaultMapping, $mapping);
         $ormTypeMapping = array_merge($defaultOrmTypeMapping, $ormTypeMapping);

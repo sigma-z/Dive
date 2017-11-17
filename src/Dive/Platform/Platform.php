@@ -184,9 +184,9 @@ abstract class Platform implements PlatformInterface
     public function getCreateTableSql(
         $tableName,
         array $columns,
-        array $indexes = array(),
-        array $foreignKeys = array(),
-        array $tableOptions = array()
+        array $indexes = [],
+        array $foreignKeys = [],
+        array $tableOptions = []
     ) {
         $sql = 'CREATE TABLE ';
         if ($this->preventErrors) {
@@ -194,7 +194,7 @@ abstract class Platform implements PlatformInterface
         }
         $sql .= $this->quoteIdentifier($tableName) . " (\n";
 
-        $primaryKey = array();
+        $primaryKey = [];
 
         // columns
         foreach ($columns as $name => $definition) {
@@ -421,8 +421,7 @@ abstract class Platform implements PlatformInterface
      */
     public function getDropIndexSql($tableName, $indexName)
     {
-        $sql = 'DROP INDEX ' . $this->quoteIdentifier($indexName);
-        return $sql;
+        return 'DROP INDEX ' . $this->quoteIdentifier($indexName);
     }
 
 

@@ -129,7 +129,7 @@ class MysqlPlatform extends Platform
     protected function getColumnLength(array $definition)
     {
         if ($definition['type'] === 'time') {
-            return 8;
+            return '';
         }
         return parent::getColumnLength($definition);
     }

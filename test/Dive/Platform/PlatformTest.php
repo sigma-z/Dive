@@ -328,7 +328,7 @@ class PlatformTest extends TestCase
             ),
             'expectedArray' => array(
                 'sqlite' => 'character(8) NOT NULL',
-                'mysql' => 'char(8) NOT NULL'
+                'mysql' => 'time NOT NULL'
             )
         );
 

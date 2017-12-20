@@ -34,7 +34,7 @@ class PlatformTest extends TestCase
     {
         $dataTypeMapper = $this->createInstanceOrMarkTestSkipped('Schema\DataTypeMapper', 'DataTypeMapper', $scheme);
         $platform = $this->createInstanceOrMarkTestSkipped('Platform', 'Platform', $scheme, array($dataTypeMapper));
-        $platform->setAddConstraintName($addConstraintName);
+        $platform->setConstraintName($addConstraintName);
         return $platform;
     }
 

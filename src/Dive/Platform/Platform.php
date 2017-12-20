@@ -59,6 +59,10 @@ abstract class Platform implements PlatformInterface
      * @var array
      */
     protected $supportedEncodings = array();
+    /**
+     * @var bool
+     */
+    protected $setConstraintName = true;
 
 
     /**
@@ -100,6 +104,15 @@ abstract class Platform implements PlatformInterface
     public function getStringQuote()
     {
         return $this->stringQuote;
+    }
+
+
+    /**
+     * @param bool $setConstraintName
+     */
+    public function setConstraintName($setConstraintName)
+    {
+        $this->setConstraintName = $setConstraintName;
     }
 
 
@@ -523,8 +536,11 @@ abstract class Platform implements PlatformInterface
      */
     public function getForeignKeyDefinitionSql($owningField, array $definition)
     {
-        $sql = 'CONSTRAINT ' . $this->quoteIdentifier($definition['constraint'])
-            . ' FOREIGN KEY (' . $this->quoteIdentifier($owningField) . ')';
+        $sql = 'CONSTRAINT';
+        if ($this->setConstraintName) {
+            $sql .= ' ' . $this->quoteIdentifier($definition['constraint']);
+        }
+        $sql .= ' FOREIGN KEY (' . $this->quoteIdentifier($owningField) . ')';
         $sql .= ' REFERENCES ' . $this->quoteIdentifier($definition['refTable']);
         $sql .= ' (' . $this->quoteIdentifier($definition['refField']) . ')';
         $onDelete = isset($definition['onDelete']) ? $definition['onDelete'] : null;

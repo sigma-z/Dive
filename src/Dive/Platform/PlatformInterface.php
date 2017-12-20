@@ -50,6 +50,13 @@ interface PlatformInterface
     public function getIdentifierQuote();
 
     /**
+     * add generated constraint name
+     *
+     * @param bool $addConstraintName
+     */
+    public function setConstraintName($addConstraintName);
+
+    /**
      * quotes value
      *
      * @param   string|\Dive\Expression $value

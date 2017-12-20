@@ -27,12 +27,14 @@ class PlatformTest extends TestCase
      * gets platform for given scheme
      *
      * @param  string $scheme
+     * @param bool $addConstraintName
      * @return PlatformInterface|bool
      */
-    private function createPlatform($scheme)
+    private function createPlatform($scheme, $addConstraintName = true)
     {
         $dataTypeMapper = $this->createInstanceOrMarkTestSkipped('Schema\DataTypeMapper', 'DataTypeMapper', $scheme);
         $platform = $this->createInstanceOrMarkTestSkipped('Platform', 'Platform', $scheme, array($dataTypeMapper));
+        $platform->setAddConstraintName($addConstraintName);
         return $platform;
     }
 
@@ -640,6 +642,7 @@ class PlatformTest extends TestCase
         $database,
         $tableName,
         $owningField,
+        $addConstraintName,
         array $definition,
         array $expectedArray
     ) {
@@ -652,7 +655,7 @@ class PlatformTest extends TestCase
         if ($expected instanceof Exception) {
             $this->setExpectedException(get_class($expected));
         }
-        $platform = $this->createPlatform($scheme);
+        $platform = $this->createPlatform($scheme, $addConstraintName);
         $actual = $platform->getAddForeignKeySql($tableName, $owningField, $definition);
         $this->assertEquals($expected, $actual);
     }
@@ -666,6 +669,7 @@ class PlatformTest extends TestCase
         $testCases[] = array(
             'tableName' => 'user',
             'owningField' => 'manager_id',
+            'addConstraintName' => true,
             'definition' => array(
                 'refTable' => 'user',
                 'refField' => 'id',
@@ -680,6 +684,7 @@ class PlatformTest extends TestCase
         $testCases[] = array(
             'tableName' => 'user',
             'owningField' => 'manager_id',
+            'addConstraintName' => true,
             'definition' => array(
                 'refTable' => 'user',
                 'refField' => 'id'
@@ -693,6 +698,7 @@ class PlatformTest extends TestCase
         $testCases[] = array(
             'tableName' => 'user',
             'owningField' => 'manager_id',
+            'addConstraintName' => true,
             'definition' => array(
                 'refTable' => 'user',
                 'refField' => 'id',
@@ -702,6 +708,22 @@ class PlatformTest extends TestCase
             'expected' => array(
                 'sqlite' => $platformException,
                 'mysql' => 'ALTER TABLE `user` ADD CONSTRAINT `user_fk_manager_id` FOREIGN KEY (`manager_id`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE'
+            )
+        );
+
+        $testCases[] = array(
+            'tableName' => 'user',
+            'owningField' => 'manager_id',
+            'addConstraintName' => false,
+            'definition' => array(
+                'refTable' => 'user',
+                'refField' => 'id',
+                'onDelete' => PlatformInterface::SET_NULL,
+                'onUpdate' => PlatformInterface::CASCADE
+            ),
+            'expected' => array(
+                'sqlite' => $platformException,
+                'mysql' => 'ALTER TABLE `user` ADD CONSTRAINT FOREIGN KEY (`manager_id`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE'
             )
         );
 

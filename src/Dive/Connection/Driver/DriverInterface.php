@@ -62,4 +62,12 @@ interface DriverInterface
      */
     public function getPlatform();
 
+    /**
+     * @param Connection $conn
+     * @param string     $tableName
+     * @param string     $columnName
+     * @return string|null
+     */
+    public function fetchConstraintName(Connection $conn, $tableName, $columnName);
+
 }

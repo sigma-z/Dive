@@ -202,12 +202,13 @@ class MysqlPlatform extends Platform
     /**
      * get create table as sql
      *
-     * @param   string  $tableName
-     * @param   array   $columns
-     * @param   array   $indexes
-     * @param   array   $foreignKeys
-     * @param   array   $tableOptions
-     * @return  string
+     * @param string $tableName
+     * @param array  $columns
+     * @param array  $indexes
+     * @param array  $foreignKeys
+     * @param array  $tableOptions
+     * @return string
+     * @throws PlatformException
      */
     public function getCreateTableSql(
         $tableName,

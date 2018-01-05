@@ -225,6 +225,25 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
 
     /**
      * @param string $givenScheme
+     * @return Connection
+     */
+    protected static function createConnectionForScheme($givenScheme)
+    {
+        $database = self::getDatabaseForScheme($givenScheme);
+        if ($database === false) {
+            self::markTestSkipped("Skipped, no database connection defined for scheme '$givenScheme'");
+        }
+
+        $dsn = $database['dsn'];
+        $scheme = self::getSchemeFromDsn($dsn);
+        /** @var \Dive\Connection\Driver\DriverInterface $driver */
+        $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
+        return new Connection($driver, $dsn, $database['user'], $database['password']);
+    }
+
+
+    /**
+     * @param string $givenScheme
      * @return array
      */
     protected function getDatabaseForSchemeOrSkipTest($givenScheme)

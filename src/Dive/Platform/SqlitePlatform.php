@@ -33,6 +33,7 @@ class SqlitePlatform extends Platform
      * @param array  $foreignKeys
      * @param array  $tableOptions
      * @return string
+     * @throws PlatformException
      */
     public function getCreateTableSql(
         $tableName,
@@ -69,9 +70,7 @@ class SqlitePlatform extends Platform
 
         // foreign keys
         foreach ($foreignKeys as $owningField => $definition) {
-            if (empty($definition['constraint'])) {
-                $definition['constraint'] = $tableName . '_fk_' . $owningField;
-            }
+            $definition = $this->generateConstraintNameIfNotDefined($definition, $tableName, $owningField);
             $sql .= $this->getForeignKeyDefinitionSql($owningField, $definition) . ",\n";
         }
 

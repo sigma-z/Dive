@@ -24,7 +24,7 @@ class MysqlDriver implements DriverInterface
     /**
      * @var \Dive\Schema\DataTypeMapper\MysqlDataTypeMapper
      */
-    private $dataTypeMapper = null;
+    private $dataTypeMapper;
 
 
     /**
@@ -54,14 +54,37 @@ class MysqlDriver implements DriverInterface
     /**
      * gets database name
      *
-     * @param   \Dive\Connection\Connection $conn
-     * @throws  DriverException
-     * @return  string
+     * @param \Dive\Connection\Connection $conn
+     * @return string
      */
     public function getDatabaseName(Connection $conn)
     {
         $result = $conn->query('SELECT DATABASE()', array(), \PDO::FETCH_COLUMN);
         return $result[0];
+    }
+
+
+    /**
+     * @param Connection $conn
+     * @param string     $tableName
+     * @param string     $columnName
+     * @return string|null
+     */
+    public function fetchConstraintName(Connection $conn, $tableName, $columnName)
+    {
+        $sql = 'SHOW CREATE TABLE `' . $tableName . '`';
+        $result = $conn->query($sql);
+        if ($result) {
+            $createTableStmt = $result[0]['Create Table'];
+            if (preg_match_all('/CONSTRAINT\s*`(\w+)`\s*FOREIGN KEY\s*\(`(\w+)`\)/', $createTableStmt, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    if ($match[2] === $columnName) {
+                        return $match[1];
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 

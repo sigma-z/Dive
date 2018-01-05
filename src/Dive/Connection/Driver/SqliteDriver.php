@@ -25,7 +25,7 @@ class SqliteDriver implements DriverInterface
     /**
      * @var \Dive\Schema\DataTypeMapper\SqliteDataTypeMapper
      */
-    private $dataTypeMapper = null;
+    private $dataTypeMapper;
 
 
     /**
@@ -92,6 +92,19 @@ class SqliteDriver implements DriverInterface
     {
         $dataTypeMapper = $this->getDataTypeMapper();
         return new SqlitePlatform($dataTypeMapper);
+    }
+
+
+    /**
+     * @param Connection $conn
+     * @param string     $tableName
+     * @param string     $columnName
+     * @return null|string
+     * @throws DriverException
+     */
+    public function fetchConstraintName(Connection $conn, $tableName, $columnName)
+    {
+        throw new DriverException('Fetching foreign key constraint name is not supported for sqlite, yet');
     }
 
 

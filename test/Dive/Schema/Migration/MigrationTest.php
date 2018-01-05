@@ -63,6 +63,9 @@ class MigrationTest extends TestCase
 
     /**
      * @dataProvider provideFluentInterface
+     * @param string $methodName
+     * @param array  $arguments
+     * @throws \ReflectionException
      */
     public function testFluentInterface($methodName, array $arguments)
     {
@@ -81,6 +84,9 @@ class MigrationTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideFluentInterface()
     {
         $testCases = array(
@@ -129,6 +135,10 @@ class MigrationTest extends TestCase
     /**
      * @dataProvider provideMethodsNotSupportedForDropTableMode
      * @expectedException \Dive\Schema\Migration\MigrationException
+     * @param string $mode
+     * @param string $methodName
+     * @param array  $arguments
+     * @throws \ReflectionException
      */
     public function testMethodsNotSupportedForDropTableMode($mode, $methodName, array $arguments)
     {
@@ -143,6 +153,9 @@ class MigrationTest extends TestCase
     }
 
 
+    /**
+     * @return array[]
+     */
     public function provideMethodsNotSupportedForDropTableMode()
     {
         $testCases = array(
@@ -222,8 +235,10 @@ class MigrationTest extends TestCase
 
     /**
      * @dataProvider \Dive\TestSuite\TestCase::provideDatabaseAwareTestCases
+     * @param array $database
+     * @throws \Dive\Schema\SchemaException
      */
-    public function testImportFromDb($database)
+    public function testImportFromDb(array $database)
     {
         $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
 
@@ -245,8 +260,9 @@ class MigrationTest extends TestCase
      * @param array  $database
      * @param string $tableName
      * @param array  $expectedArray
+     * @throws \Dive\Schema\SchemaException
      */
-    public function testCreateTableMigration($database, $tableName, array $expectedArray)
+    public function testCreateTableMigration(array $database, $tableName, array $expectedArray)
     {
         $expected = $this->getExpectedOrMarkTestIncomplete($expectedArray, $database);
         $conn = $this->createDatabaseConnectionOrMarkTestSkipped($database);
@@ -281,6 +297,7 @@ class MigrationTest extends TestCase
 
     /**
      * @return array[]
+     * @throws \Dive\Exception
      */
     public function provideCreateTableMigration()
     {
@@ -378,6 +395,7 @@ class MigrationTest extends TestCase
 
     /**
      * @return array[]
+     * @throws \Dive\Exception
      */
     public function provideAlterTableMigration()
     {

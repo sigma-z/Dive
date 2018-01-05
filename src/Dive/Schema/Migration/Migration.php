@@ -785,12 +785,12 @@ abstract class Migration implements MigrationInterface
                 break;
 
             case self::DROP_FOREIGN_KEY:
-                $constrainName = $this->tableName . '_fk_' . $operation['name'];
+                $constrainName = $this->fetchConstraintName($this->tableName, $operation['name']);
                 $statements[] = $this->platform->getDropForeignKeySql($this->tableName, $constrainName);
                 break;
 
             case self::CHANGE_FOREIGN_KEY:
-                $constrainName = $this->tableName . '_fk_' . $operation['name'];
+                $constrainName = $this->fetchConstraintName($this->tableName, $operation['name']);
                 $statements[] = $this->platform->getDropForeignKeySql($this->tableName, $constrainName);
                 $statements[] = $this->getAddForeignKeySql($operation['name']);
                 break;
@@ -886,6 +886,17 @@ abstract class Migration implements MigrationInterface
         if (in_array($this->mode, $unsupportedModes, true)) {
             throw new MigrationException("Method not supported for $this->mode!");
         }
+    }
+
+
+    /**
+     * @param string $tableName
+     * @param string $columnName
+     * @return string
+     */
+    protected function fetchConstraintName($tableName, $columnName)
+    {
+        return $this->conn->getDriver()->fetchConstraintName($this->conn, $tableName, $columnName);
     }
 
 }

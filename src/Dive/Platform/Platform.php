@@ -231,9 +231,7 @@ abstract class Platform implements PlatformInterface
 
         // foreign keys
         foreach ($foreignKeys as $owningField => $definition) {
-            if (empty($definition['constraint'])) {
-                $definition['constraint'] = $this->getConstraintName($tableName, $owningField);
-            }
+            $definition = $this->generateConstraintNameIfNotDefined($definition, $tableName, $owningField);
             $sql .= $this->getForeignKeyDefinitionSql($owningField, $definition) . ",\n";
         }
 
@@ -611,6 +609,21 @@ abstract class Platform implements PlatformInterface
             $constraintName = 'fk_' . Guid::create();
         }
         return $constraintName;
+    }
+
+
+    /**
+     * @param $definition
+     * @param $tableName
+     * @param $owningField
+     * @return mixed
+     */
+    protected function generateConstraintNameIfNotDefined($definition, $tableName, $owningField)
+    {
+        if (empty($definition['constraint'])) {
+            $definition['constraint'] = $this->getConstraintName($tableName, $owningField);
+        }
+        return $definition;
     }
 
 }

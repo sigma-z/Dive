@@ -3,6 +3,7 @@ php:
   - nightly
   - '7.0'
   - '7.1'
+  - '7.2'
   - '5.6'
   - '5.5'
 
@@ -16,6 +17,7 @@ matrix:
       env: DB=sqlite # sqlite below 3.8.10.2 has a bug
     - php: 5.6
       env: DB=sqlite # sqlite below 3.8.10.2 has a bug
+    - php: 7.2
     - php: nightly
 
 env:

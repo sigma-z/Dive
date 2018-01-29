@@ -25,7 +25,7 @@ use Dive\Validation\ValidationContainer;
 class RecordManager
 {
 
-    const ORM_VERSION = '1.0.13';
+    const ORM_VERSION = '1.0.14';
 
     const FETCH_RECORD_COLLECTION = 'record-collection';
     const FETCH_RECORD = 'record';
@@ -114,6 +114,8 @@ class RecordManager
     /**
      * @param  string $name
      * @return Table
+     * @throws SchemaException
+     * @throws Exception
      */
     public function getTable($name)
     {
@@ -125,6 +127,8 @@ class RecordManager
     /**
      * @param string $name
      * @return Table
+     * @throws SchemaException
+     * @throws Exception
      */
     public function getView($name)
     {
@@ -135,6 +139,8 @@ class RecordManager
     /**
      * @param  string $name
      * @return \Dive\Table\Repository
+     * @throws SchemaException
+     * @throws Exception
      */
     public function getTableRepository($name)
     {
@@ -157,6 +163,7 @@ class RecordManager
      *
      * @param  string $tableName
      * @throws SchemaException
+     * @throws Exception
      */
     private function initTable($tableName)
     {
@@ -180,6 +187,7 @@ class RecordManager
      * @param  string $tableName
      * @return \Dive\Table
      * @throws SchemaException
+     * @throws Exception
      */
     private function createTable($tableName)
     {
@@ -276,6 +284,7 @@ class RecordManager
 
     /**
      * @param string $tableName
+     * @throws Exception
      */
     private function initTableBehaviors($tableName)
     {
@@ -346,6 +355,8 @@ class RecordManager
      * @param  string $tableName
      * @param  string $alias
      * @return Query\Query
+     * @throws SchemaException
+     * @throws Exception
      */
     public function createQuery($tableName, $alias = 'a')
     {
@@ -434,6 +445,7 @@ class RecordManager
      *
      * @param  string $name
      * @return Hydrator\HydratorInterface
+     * @throws Exception
      */
     public function getHydrator($name)
     {
@@ -493,9 +505,11 @@ class RecordManager
      * Gets the record from the repository or creates a new instance
      *
      * @param  string $tableName
-     * @param  array $data
-     * @param  bool  $exists
+     * @param  array  $data
+     * @param  bool   $exists
      * @return Record
+     * @throws SchemaException
+     * @throws Exception
      */
     public function getOrCreateRecord($tableName, array $data, $exists = false)
     {
@@ -510,6 +524,8 @@ class RecordManager
      * @param  string $tableName
      * @param  array  $data
      * @return Record
+     * @throws SchemaException
+     * @throws Exception
      */
     public function findOrCreateRecord($tableName, array $data)
     {

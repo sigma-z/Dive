@@ -24,41 +24,57 @@ matrix:
       dist: precise
       php: '7.2'
       env: DB=mysql #mysql 5.5
+      services:
+        - mysql
     - name: '[mysql] 5.6 / [PHP] 7.2'
       os: linux
       dist: trusty
       php: '7.2'
       env: DB=mysql #mysql 5.6
+      services:
+        - mysql
     - name: '[mysql] 5.7 / [PHP] 7.2'
       os: linux
       dist: xenial
       php: '7.2'
       env: DB=mysql #mysql 5.7
+      services:
+        - mysql
     - name: '[mariadb] 10.0 / [PHP] 7.2'
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.0'
+      services:
+        - mysql
     - name: '[mariadb] 10.1 / [PHP] 7.2'
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.1'
+      services:
+        - mariadb
     - name: '[mariadb] 10.2 / [PHP] 7.2'
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.2'
+      services:
+        - mariadb
     - name: '[mariadb] 10.3 / [PHP] 7.2'
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.3'
+      services:
+        - mariadb
     - name: '[mariadb] 10.4 / [PHP] 7.2'
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.4'
+      services:
+        - mariadb
 
   allow_failures:
     - php: '7.3'

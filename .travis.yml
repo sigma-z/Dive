@@ -19,7 +19,7 @@ matrix:
     - php: 5.6
       env: DB=sqlite # sqlite below 3.8.10.2 has a bug
     #- php: 7.2
-    #- php: 7.3
+    - php: 7.3
     - php: nightly
 
 env:
@@ -31,7 +31,6 @@ sudo: false
 install:
   - travis_retry composer self-update
   - travis_retry composer install --no-interaction
-  - travis_retry composer update phpunit/phpunit # composer.lock contains phpunit dependencies for php 5.5 / newer php-versions have other dependencies
   - cp phpunit_db_config.travis.$DB.php phpunit_db_config.php;
 
 before_script:

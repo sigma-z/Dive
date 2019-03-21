@@ -19,38 +19,44 @@ branches:
 
 matrix:
   include:
-    - name: 'mysql5.5'
+    - name: '[mysql] 5.5 / [PHP] 7.2'
       os: linux
       dist: precise
+      php: '7.2'
       env: DB=mysql #mysql 5.5
-    - name: 'mysql5.6'
+    - name: '[mysql] 5.6 / [PHP] 7.2'
       os: linux
       dist: trusty
+      php: '7.2'
       env: DB=mysql #mysql 5.6
-    - name: 'mysql5.7'
+    - name: '[mysql] 5.7 / [PHP] 7.2'
       os: linux
       dist: xenial
+      php: '7.2'
       env: DB=mysql #mysql 5.7
-    - name: 'sqlite'
-      env: DB=sqlite
-    - name: 'mariadb10.0'
+    - name: '[mariadb] 10.0 / [PHP] 7.2'
       env: DB=mariadb
+      php: '7.2'
       addons:
         mariadb: '10.0'
-    - name: 'mariadb10.1'
+    - name: '[mariadb] 10.1 / [PHP] 7.2'
       env: DB=mariadb
+      php: '7.2'
       addons:
         mariadb: '10.1'
-    - name: 'mariadb10.2'
+    - name: '[mariadb] 10.2 / [PHP] 7.2'
       env: DB=mariadb
+      php: '7.2'
       addons:
         mariadb: '10.2'
-    - name: 'mariadb10.3'
+    - name: '[mariadb] 10.3 / [PHP] 7.2'
       env: DB=mariadb
+      php: '7.2'
       addons:
         mariadb: '10.3'
-    - name: 'mariadb10.4'
+    - name: '[mariadb] 10.4 / [PHP] 7.2'
       env: DB=mariadb
+      php: '7.2'
       addons:
         mariadb: '10.4'
 
@@ -67,6 +73,7 @@ install:
 
 before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -e 'create database dive;'; fi
+  - if [[ "$DB" == "mariadb" ]]; then mysql -e 'create database dive;'; fi
 
 script:
   - vendor/bin/phpunit

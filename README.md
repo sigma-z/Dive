@@ -19,7 +19,11 @@ Concepts behind
 
 Requirements
 ---
- * PHP 5.5.9 or greater
+ * PHP 5.5.9 or greater (tested: 5.5, 5.6, 7.0, 7.1, 7.2, 7.3)
+ * supported Databases
+   * MySql 5.5, 5.6, 5.7
+   * MariaDB 10.0, 10.1, 10.2, 10.3, 10.4 
+   * SQLite 3
  * [Symfony's EventDispatcher](https://github.com/symfony/EventDispatcher)
  * Important: SQLite 3.8.5 up to 3.8.9 not supported! @see Issue #8
    * PHP versions bundled with incompatible SQLite libraries: 5.5.21 to 25 and 5.6.5 to 9

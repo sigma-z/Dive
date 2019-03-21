@@ -44,7 +44,7 @@ class CommandTest extends \PHPUnit_Framework_TestCase
             'optParamOne' => 'This is optional parameter one',
             'optParamTwo' => 'This is optional parameter two'
         ));
-        $usage = <<<USAGE
+        $usage = <<<DESCRIPTION
 Mock command description
 
 USAGE: mocked-script.php mock <paramOne> <paramTwo> [<optParamOne>] [<optParamTwo>]
@@ -56,7 +56,7 @@ Optional params:
   optParamOne: This is optional parameter one
   optParamTwo: This is optional parameter two
 
-USAGE;
+DESCRIPTION;
         $this->thenTheUsageShouldBe($usage);
     }
 

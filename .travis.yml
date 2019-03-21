@@ -77,7 +77,6 @@ matrix:
         - mariadb
 
   allow_failures:
-    - php: '7.3'
     - php: nightly
 
 sudo: false

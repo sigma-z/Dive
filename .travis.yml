@@ -36,18 +36,18 @@ matrix:
       env: DB=mariadb
       addons:
         mariadb: '10.1'
-  - name: 'mariadb10.2'
-    env: DB=mariadb
-    addons:
-      mariadb: '10.2'
-  - name: 'mariadb10.3'
-    env: DB=mariadb
-    addons:
-      mariadb: '10.3'
-  - name: 'mariadb10.4'
-    env: DB=mariadb
-    addons:
-      mariadb: '10.4'
+    - name: 'mariadb10.2'
+      env: DB=mariadb
+      addons:
+        mariadb: '10.2'
+    - name: 'mariadb10.3'
+      env: DB=mariadb
+      addons:
+        mariadb: '10.3'
+    - name: 'mariadb10.4'
+      env: DB=mariadb
+      addons:
+        mariadb: '10.4'
 
   allow_failures:
     - php: '7.3'

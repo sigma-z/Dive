@@ -14,12 +14,7 @@ branches:
 
 matrix:
   allow_failures:
-    - php: 5.5
-      env: DB=sqlite # sqlite below 3.8.10.2 has a bug
-    - php: 5.6
-      env: DB=sqlite # sqlite below 3.8.10.2 has a bug
-    #- php: 7.2
-    - php: 7.3
+    - php: '7.3'
     - php: nightly
 
 env:

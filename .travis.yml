@@ -1,35 +1,86 @@
 language: php
 php:
-  - nightly
+  - '5.5'
+  - '5.6'
   - '7.0'
   - '7.1'
   - '7.2'
-  - '5.6'
-  - '5.5'
+  - '7.3'
+  - nightly
+
+env:
+  - DB=mysql
+  - DB=sqlite
+
 
 branches:
   except:
     - ModelToRecordMapping
 
 matrix:
+  include:
+    - name: '[mysql] 5.5 / [PHP] 7.2'
+      os: linux
+      dist: precise
+      php: '7.2'
+      env: DB=mysql #mysql 5.5
+      services:
+        - mysql
+    - name: '[mysql] 5.6 / [PHP] 7.2'
+      os: linux
+      dist: trusty
+      php: '7.2'
+      env: DB=mysql #mysql 5.6
+      services:
+        - mysql
+    - name: '[mysql] 5.7 / [PHP] 7.2'
+      os: linux
+      dist: xenial
+      php: '7.2'
+      env: DB=mysql #mysql 5.7
+      services:
+        - mysql
+    - name: '[mariadb] 10.0 / [PHP] 7.2'
+      env: DB=mariadb
+      php: '7.2'
+      addons:
+        mariadb: '10.0'
+      services:
+        - mysql
+    - name: '[mariadb] 10.1 / [PHP] 7.2'
+      env: DB=mariadb
+      php: '7.2'
+      addons:
+        mariadb: '10.1'
+      services:
+        - mariadb
+    - name: '[mariadb] 10.2 / [PHP] 7.2'
+      env: DB=mariadb
+      php: '7.2'
+      addons:
+        mariadb: '10.2'
+      services:
+        - mariadb
+    - name: '[mariadb] 10.3 / [PHP] 7.2'
+      env: DB=mariadb
+      php: '7.2'
+      addons:
+        mariadb: '10.3'
+      services:
+        - mariadb
+    - name: '[mariadb] 10.4 / [PHP] 7.2'
+      env: DB=mariadb
+      php: '7.2'
+      addons:
+        mariadb: '10.4'
+      services:
+        - mariadb
+
   allow_failures:
-    - php: 5.5
-      env: DB=sqlite # sqlite below 3.8.10.2 has a bug
-    - php: 5.6
-      env: DB=sqlite # sqlite below 3.8.10.2 has a bug
-    - php: 7.2
+    - php: '7.3'
     - php: nightly
 
-env:
- - DB=mysql
- - DB=sqlite
-
-#sudo: false
-sudo: required
-#
-before_install:
-  - sudo apt-get update
-#  - sudo apt-get install sqlite3 (alternative version?)
+sudo: false
 
 install:
   - travis_retry composer self-update
@@ -38,6 +89,7 @@ install:
 
 before_script:
   - if [[ "$DB" == "mysql" ]]; then mysql -e 'create database dive;'; fi
+  - if [[ "$DB" == "mariadb" ]]; then mysql -e 'create database dive;'; fi
 
 script:
   - vendor/bin/phpunit

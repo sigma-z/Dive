@@ -8,6 +8,11 @@ php:
   - '7.3'
   - nightly
 
+env:
+  - DB=mysql
+  - DB=sqlite
+
+
 branches:
   except:
     - ModelToRecordMapping

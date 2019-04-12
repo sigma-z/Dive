@@ -461,7 +461,6 @@ class UnitOfWork
         $this->invokeRecordEvent(Record::EVENT_PRE_INSERT, $record);
         $this->invokeRecordEvent(Record::EVENT_PRE_SAVE, $record);
 
-        $identifier = $record->getIdentifier();
         $table = $record->getTable();
         $data = array();
         foreach ($table->getFields() as $fieldName => $fieldDef) {
@@ -471,8 +470,8 @@ class UnitOfWork
         $conn->insert($table, $data);
         $oldIdentifier = $record->getInternalId();
 
+        $identifier = $this->getIdentifier($record);
         if (!$table->hasCompositePrimaryKey()) {
-            $identifier = $conn->getLastInsertId($table->getTableName());
             $this->setForeignKeyFieldOfRelatedRecords($record, $identifier);
         }
 
@@ -481,6 +480,20 @@ class UnitOfWork
 
         $this->invokeRecordEvent(Record::EVENT_POST_SAVE, $record);
         $this->invokeRecordEvent(Record::EVENT_POST_INSERT, $record);
+    }
+
+
+    /**
+     * @param Record $record
+     *
+     * @return null|string
+     */
+    private function getIdentifier(Record $record)
+    {
+        if($record->getTable()->hasAutoIncrementTrigger()){
+            return $record->getTable()->getConnection()->getLastInsertId($record->getTable()->getTableName());
+        }
+        return $record->getIdentifier();
     }
 
 

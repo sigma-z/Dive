@@ -453,6 +453,20 @@ class Table
 
 
     /**
+     * Returns true, if field is auto increment
+     *
+     * @param  string $fieldName
+     * @return bool
+     * @throws TableException
+     */
+    public function isFieldAutoIncrement($fieldName)
+    {
+        $this->throwExceptionIfFieldNotExists($fieldName);
+        return isset($this->fields[$fieldName]['autoIncrement']) && $this->fields[$fieldName]['autoIncrement'] === true;
+    }
+
+
+    /**
      * @param  string $fieldName
      * @return string
      */

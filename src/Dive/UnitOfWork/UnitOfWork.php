@@ -490,7 +490,7 @@ class UnitOfWork
      */
     private function getIdentifier(Record $record)
     {
-        if($record->getTable()->hasAutoIncrementTrigger()){
+        if ($record->getTable()->hasAutoIncrementTrigger()) {
             return $record->getTable()->getConnection()->getLastInsertId($record->getTable()->getTableName());
         }
         return $record->getIdentifier();

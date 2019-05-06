@@ -154,6 +154,7 @@ class SchemaTest extends TestCase
             'comment',
             'data_types',
             'donation',
+            'no_autoincrement_test',
             'tag',
             'tree_node',
             'unique_constraint_test',

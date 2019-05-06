@@ -448,6 +448,15 @@ return [
                     'nullConstrained' => true
                 ]
             ]
+        ],
+        'no_autoincrement_test' => [
+            'fields' => [
+                'id' => [
+                    'primary'   => true,
+                    'type'      => 'string',
+                    'length'    => 255
+                ]
+            ]
         ]
     ],
     'relations' => [

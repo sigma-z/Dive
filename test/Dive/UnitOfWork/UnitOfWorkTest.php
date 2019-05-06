@@ -10,6 +10,8 @@
 
 namespace Dive\Test\UnitOfWork;
 
+use Dive\Table\TableException;
+use Dive\TestSuite\DbInit;
 use Dive\TestSuite\TestCase;
 use Dive\Validation\RecordInvalidException;
 
@@ -27,10 +29,13 @@ class UnitOfWorkTest extends TestCase
      * @param string|null $givenId
      * @param string|null $expectedId
      * @param null $expectedException
-     * @throws \Dive\Table\TableException
+     * @return array
+     * @throws TableException
      */
     public function testInsertRecordWithIdentifier($database, $tableName, $givenId = null, $expectedId = null, $expectedException = null)
     {
+        $this->reInitDatabase($database);
+
         if ($expectedException !== null) {
             $this->setExpectedException($expectedException);
         }
@@ -44,6 +49,32 @@ class UnitOfWorkTest extends TestCase
         $this->assertSame($expectedId, $record->get('id'));
         $recordManager->scheduleSave($record)->commit();
         $this->assertSame($expectedId, $record->get('id'));
+
+        return [
+            $recordManager->getConnection(),
+            $tableName,
+            $expectedId
+        ];
+    }
+
+
+    /**
+     * not working: @depends      testInsertRecordWithIdentifier
+     *
+     * @dataProvider provideInsertRecordWithIdentifier
+     * @param array $database
+     * @param string $tableName
+     * @param string|null $givenId
+     * @param string|null $expectedId
+     * @param null $expectedException
+     * @throws TableException
+     */
+    public function testLastInsertIdOfConnection($database, $tableName, $givenId = null, $expectedId = null, $expectedException = null)
+    {
+        list($connection, $tableName, $expectedId) = $this->testInsertRecordWithIdentifier(
+            $database, $tableName, $givenId, $expectedId, $expectedException
+        );
+        $this->assertSame($expectedId, $connection->getLastInsertId($tableName));
     }
 
 
@@ -51,15 +82,10 @@ class UnitOfWorkTest extends TestCase
     {
         $testCases = [];
 
-        // important: these test cases are dependent on each other and order!
         // first author => expected id '1'
         $testCases['autoincrement-without-id'] = ['author', null, '1'];
-        // second author => expected id '2'
-        $testCases['autoincrement-without-id2'] = ['author', null, '2'];
-        // third author with given id => expected same id // @see #20
+        // second author with given id => expected same id // @see #20
         $testCases['autoincrement-with-id'] = ['author', '12345', '12345'];
-        // fourth author => expected id '12346' (next autoincrement after given id
-        $testCases['autoincrement-without-id3'] = ['author', null, '12346'];
 
         // @see #19
         $testCases['non-autoincrement-without-id'] = ['no_autoincrement_test', null, null, RecordInvalidException::class];
@@ -67,4 +93,14 @@ class UnitOfWorkTest extends TestCase
 
         return self::getDatabaseAwareTestCases($testCases);
     }
+
+
+    private function reInitDatabase(array $database)
+    {
+        $connection = self::createDatabaseConnection($database);
+
+        $dbInit = new DbInit($connection, self::getSchema());
+        $dbInit->initSchema();
+    }
+
 }

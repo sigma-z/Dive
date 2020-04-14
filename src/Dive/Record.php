@@ -349,7 +349,7 @@ class Record
         }
 
         $recordPropertyEvent = new RecordPropertyEvent($this, $name);
-        $this->getEventDispatcher()->dispatch(self::EVENT_NON_EXISTING_PROPERTY_GET, $recordPropertyEvent);
+        $this->getEventDispatcher()->dispatch($recordPropertyEvent, self::EVENT_NON_EXISTING_PROPERTY_GET);
         if ($recordPropertyEvent->isPropagationStopped()) {
             return $recordPropertyEvent->getValue();
         }
@@ -385,7 +385,7 @@ class Record
         }
 
         $recordPropertyEvent = new RecordPropertyEvent($this, $name, $value);
-        $this->getEventDispatcher()->dispatch(self::EVENT_NON_EXISTING_PROPERTY_SET, $recordPropertyEvent);
+        $this->getEventDispatcher()->dispatch($recordPropertyEvent, self::EVENT_NON_EXISTING_PROPERTY_SET);
         if ($recordPropertyEvent->isPropagationStopped()) {
             return;
         }
@@ -415,7 +415,7 @@ class Record
         $oldValue = $this->get($fieldName);
 
         $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $oldValue);
-        $this->getEventDispatcher()->dispatch(self::EVENT_PRE_FIELD_VALUE_CHANGE, $fieldValueChangeEvent);
+        $this->getEventDispatcher()->dispatch($fieldValueChangeEvent, self::EVENT_PRE_FIELD_VALUE_CHANGE);
         if ($fieldValueChangeEvent->isPropagationStopped()) {
             return;
         }
@@ -433,7 +433,7 @@ class Record
         $this->handleOwningFieldRelation($fieldName, $oldValue);
 
         $fieldValueChangeEvent = new FieldValueChangeEvent($this, $fieldName, $value, $oldValue);
-        $this->getEventDispatcher()->dispatch(self::EVENT_POST_FIELD_VALUE_CHANGE, $fieldValueChangeEvent);
+        $this->getEventDispatcher()->dispatch($fieldValueChangeEvent, self::EVENT_POST_FIELD_VALUE_CHANGE);
     }
 
 

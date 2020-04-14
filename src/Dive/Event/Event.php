@@ -9,10 +9,12 @@
 
 namespace Dive\Event;
 
+use Symfony\Contracts\EventDispatcher\Event as SymfonyEvent;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 31.10.12
  */
-class Event extends \Symfony\Component\EventDispatcher\Event
+class Event extends SymfonyEvent
 {
 }

@@ -5,6 +5,7 @@ php:
 
 services:
   - mysql
+  - mariadb
 
 env:
   - DB=mysql

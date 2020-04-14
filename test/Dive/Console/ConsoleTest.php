@@ -199,7 +199,7 @@ class ConsoleTest extends TestCase
      */
     private function givenCommand(array $properties)
     {
-        $this->command = $this->getMockForAbstractClass('\\Dive\Console\\Command\\Command');
+        $this->command = $this->getMockForAbstractClass(Command::class);
         $reflectionCommand = new \ReflectionClass($this->command);
         foreach ($properties as $name => $value) {
             $property = $reflectionCommand->getProperty($name);

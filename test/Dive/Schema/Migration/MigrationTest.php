@@ -10,10 +10,16 @@
 namespace Dive\Test\Schema\Migration;
 
 use Dive\Connection\Connection;
+use Dive\Connection\Driver\DriverInterface;
+use Dive\Exception;
 use Dive\Schema\Migration\Migration;
 use Dive\Platform\PlatformInterface;
+use Dive\Schema\Migration\MigrationException;
 use Dive\Schema\Migration\MigrationInterface;
+use Dive\Schema\SchemaException;
 use Dive\TestSuite\TestCase;
+use ReflectionClass;
+use ReflectionException;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -23,11 +29,11 @@ class MigrationTest extends TestCase
 {
 
     /**
-     * @var \Dive\Schema\Migration\Migration
+     * @var Migration
      */
     private $migration;
     /**
-     * @var \Dive\Connection\Connection[]
+     * @var Connection[]
      */
     private $revertTableForDbSchemas = array();
 
@@ -36,13 +42,10 @@ class MigrationTest extends TestCase
     {
         parent::setUp();
 
-        /** @var \Dive\Connection\Driver\DriverInterface $driver */
-        $driver = $this->getMockForAbstractClass('\Dive\Connection\Driver\DriverInterface');
+        /** @var DriverInterface $driver */
+        $driver = $this->getMockForAbstractClass(DriverInterface::class);
         $conn = new Connection($driver, 'sqlite:');
-        $this->migration = $this->getMockForAbstractClass(
-            '\Dive\Schema\Migration\Migration',
-            array($conn, 'user')
-        );
+        $this->migration = $this->getMockForAbstractClass(Migration::class, [$conn, 'user']);
     }
 
 
@@ -65,11 +68,11 @@ class MigrationTest extends TestCase
      * @dataProvider provideFluentInterface
      * @param string $methodName
      * @param array  $arguments
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function testFluentInterface($methodName, array $arguments)
     {
-        $reflectionClass = new \ReflectionClass($this->migration);
+        $reflectionClass = new ReflectionClass($this->migration);
         $reflectionProp = $reflectionClass->getProperty('indexes');
         $reflectionProp->setAccessible(true);
         $indexes = array(
@@ -134,15 +137,15 @@ class MigrationTest extends TestCase
 
     /**
      * @dataProvider provideMethodsNotSupportedForDropTableMode
-     * @expectedException \Dive\Schema\Migration\MigrationException
      * @param string $mode
      * @param string $methodName
      * @param array  $arguments
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public function testMethodsNotSupportedForDropTableMode($mode, $methodName, array $arguments)
     {
-        $reflectionClass = new \ReflectionClass($this->migration);
+        $this->expectException(MigrationException::class);
+        $reflectionClass = new ReflectionClass($this->migration);
 
         $modeProperty = $reflectionClass->getProperty('mode');
         $modeProperty->setAccessible(true);
@@ -236,7 +239,7 @@ class MigrationTest extends TestCase
     /**
      * @dataProvider \Dive\TestSuite\TestCase::provideDatabaseAwareTestCases
      * @param array $database
-     * @throws \Dive\Schema\SchemaException
+     * @throws SchemaException
      */
     public function testImportFromDb(array $database)
     {
@@ -260,7 +263,7 @@ class MigrationTest extends TestCase
      * @param array  $database
      * @param string $tableName
      * @param array  $expectedArray
-     * @throws \Dive\Schema\SchemaException
+     * @throws SchemaException
      */
     public function testCreateTableMigration(array $database, $tableName, array $expectedArray)
     {
@@ -297,7 +300,7 @@ class MigrationTest extends TestCase
 
     /**
      * @return array[]
-     * @throws \Dive\Exception
+     * @throws Exception
      */
     public function provideCreateTableMigration()
     {
@@ -395,7 +398,7 @@ class MigrationTest extends TestCase
 
     /**
      * @return array[]
-     * @throws \Dive\Exception
+     * @throws Exception
      */
     public function provideAlterTableMigration()
     {

@@ -40,7 +40,7 @@ class ConnectionTest extends TestCase
             $this->expectException(InvalidArgumentException::class);
         }
         $conn = new Connection($driver, $dsn);
-        $this->assertEquals($expected, $conn->getScheme());
+        self::assertSame($expected, $conn->getScheme());
     }
 
 

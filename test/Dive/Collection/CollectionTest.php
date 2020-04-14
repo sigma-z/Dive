@@ -10,6 +10,7 @@
 namespace Dive\Test\Collection;
 
 
+use Dive\Collection\Collection;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,7 +22,7 @@ class CollectionTest extends TestCase
 
 
     /**
-     * @var \Dive\Collection\Collection
+     * @var Collection
      */
     private $coll;
 
@@ -29,8 +30,7 @@ class CollectionTest extends TestCase
     protected function setUp()
     {
         parent::setUp();
-        /** @var \Dive\Collection\Collection $coll */
-        $coll = $this->getMockForAbstractClass('\Dive\Collection\Collection');
+        $coll = new Collection();
         $array = [
             'a' => ['name' => 'Item I'],
             'b' => ['name' => 'Item II'],
@@ -132,7 +132,7 @@ class CollectionTest extends TestCase
 
     public function testGetIterator()
     {
-        $this->assertInstanceOf('\Iterator', $this->coll->getIterator());
+        $this->assertInstanceOf(\Iterator::class, $this->coll->getIterator());
     }
 
 }

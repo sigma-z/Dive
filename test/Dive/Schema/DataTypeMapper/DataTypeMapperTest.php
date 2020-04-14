@@ -10,6 +10,7 @@
 namespace Dive\Test\Schema\DataTypeMapper;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
+use Dive\Schema\OrmDataType\OrmDataType;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -83,8 +84,8 @@ class DataTypeMapperTest extends TestCase
 
     public function testAddOrmType()
     {
-        /** @var \Dive\Schema\OrmDataType\OrmDataType $ormDataType */
-        $ormDataType = $this->getMockForAbstractClass('\Dive\Schema\OrmDataType\OrmDataType', array('test'));
+        /** @var OrmDataType $ormDataType */
+        $ormDataType = $this->getMockForAbstractClass(OrmDataType::class, ['test']);
         $this->dataTypeMapper->addOrmType($ormDataType, DataTypeMapper::OTYPE_STRING);
         $this->assertTrue($this->dataTypeMapper->hasOrmType('test'));
     }

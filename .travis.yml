@@ -5,10 +5,12 @@ php:
   - '7.4'
   - nightly
 
+services:
+  - mysql
+
 env:
   - DB=mysql
   - DB=sqlite
-
 
 branches:
   except:
@@ -38,40 +40,34 @@ matrix:
       services:
         - mysql
     - name: '[mariadb] 10.0 / [PHP] 7.2'
+      dist: precise
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.0'
-      services:
-        - mysql
     - name: '[mariadb] 10.1 / [PHP] 7.2'
+      dist: precise
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.1'
-      services:
-        - mariadb
     - name: '[mariadb] 10.2 / [PHP] 7.2'
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.2'
-      services:
-        - mariadb
     - name: '[mariadb] 10.3 / [PHP] 7.2'
+      dist: precise
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.3'
-      services:
-        - mariadb
     - name: '[mariadb] 10.4 / [PHP] 7.2'
+      dist: precise
       env: DB=mariadb
       php: '7.2'
       addons:
         mariadb: '10.4'
-      services:
-        - mariadb
 
   allow_failures:
     - php: nightly

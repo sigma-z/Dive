@@ -12,6 +12,7 @@ namespace Dive\TestSuite\Constraint;
 use Dive\Record;
 use Dive\Relation\ReferenceMap;
 use Dive\Relation\Relation;
+use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Constraint\Constraint;
 
 /**
@@ -104,14 +105,14 @@ class OwningFieldMappingConstraint extends Constraint
      * Gets the private ReferenceMap of a relation on a record
      *
      * @param  Relation $relation
-     * @throws \PHPUnit_Framework_AssertionFailedError
+     * @throws AssertionFailedError
      * @return ReferenceMap
      */
     private function getReferenceMap(Relation $relation)
     {
         $reflectionClass = new \ReflectionClass($relation);
         if (!$reflectionClass->hasProperty('map')) {
-            throw new \PHPUnit_Framework_AssertionFailedError("Property 'map' not found on relation!");
+            throw new AssertionFailedError("Property 'map' not found on relation!");
         }
         $property = $reflectionClass->getProperty('map');
         $property->setAccessible(true);

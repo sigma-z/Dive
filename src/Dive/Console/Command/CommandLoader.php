@@ -122,7 +122,7 @@ class CommandLoader implements CommandLoaderInterface
     private function isCommandClass($className)
     {
         $reflection = new \ReflectionClass($className);
-        return $reflection->isInstantiable() && $reflection->isSubclassOf('\Dive\Console\Command\Command');
+        return $reflection->isInstantiable() && $reflection->isSubclassOf(Command::class);
     }
 
 }

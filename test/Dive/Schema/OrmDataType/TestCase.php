@@ -8,6 +8,7 @@
  */
 namespace Dive\Test\Schema\OrmDataType;
 
+use Dive\Schema\OrmDataType\OrmDataType;
 use Dive\TestSuite\TestCase as BaseTestCase;
 use Dive\Util\CamelCase;
 use Dive\Validation\FieldValidator\FieldValidatorInterface;
@@ -77,7 +78,7 @@ abstract class TestCase extends BaseTestCase
     {
         $class = '\\Dive\\Schema\\OrmDataType\\' . CamelCase::toCamelCase($ormDataType) . 'OrmDataType';
         $this->validator = new $class($ormDataType);
-        $this->assertInstanceOf('\Dive\Schema\OrmDataType\OrmDataType', $this->validator);
+        $this->assertInstanceOf(OrmDataType::class, $this->validator);
     }
 
 

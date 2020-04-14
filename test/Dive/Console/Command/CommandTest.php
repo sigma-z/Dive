@@ -190,7 +190,7 @@ DESCRIPTION;
 
     private function thenAnExceptionShouldBeThrown()
     {
-        $this->assertInstanceOf('\Dive\Console\ConsoleException', $this->caughtException);
+        $this->assertInstanceOf(ConsoleException::class, $this->caughtException);
     }
 }
 

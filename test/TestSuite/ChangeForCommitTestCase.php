@@ -143,10 +143,10 @@ abstract class ChangeForCommitTestCase extends TestCase
         $userTable = $rm->getTable('user');
         /** @var User $user */
         $user = $userTable->findByPk($userId);
-        $this->assertInstanceOf('\Dive\Record', $user);
+        $this->assertInstanceOf(Record::class, $user);
         /** @noinspection PhpUndefinedFieldInspection */
         $author = $user->Author;
-        $this->assertInstanceOf('\Dive\Record', $author);
+        $this->assertInstanceOf(Record::class, $author);
 
         $this->assertRecordIsNotScheduledForDelete($author);
         $this->assertRecordIsNotScheduledForDelete($user);

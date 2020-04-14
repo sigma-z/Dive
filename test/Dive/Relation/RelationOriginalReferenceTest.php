@@ -314,11 +314,11 @@ class RelationOriginalReferenceTest extends TestCase
         /** @var User $user */
         $user = $userTable->findByPk($userId);
 
-        $this->assertInstanceOf('\Dive\Record', $user);
-        $this->assertInstanceOf('\Dive\Record', $user->Author);
+        $this->assertInstanceOf(Record::class, $user);
+        $this->assertInstanceOf(Record::class, $user->Author);
 
         if ($withArticles && isset($tablesRows['articles'])) {
-            $this->assertInstanceOf('\Dive\Collection\RecordCollection', $user->Author->Article);
+            $this->assertInstanceOf(RecordCollection::class, $user->Author->Article);
             $this->assertEquals(count($tablesRows['articles']), $user->Author->Article->count());
         }
 

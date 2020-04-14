@@ -162,7 +162,7 @@ class ValidationContainerTest extends TestCase
     {
         $this->whenIAccessTheValidator();
         $this->assertNotNull($this->validator);
-        $this->assertInstanceOf('\Dive\Validation\RecordValidator', $this->validator);
+        $this->assertInstanceOf(RecordValidator::class, $this->validator);
     }
 
 
@@ -171,7 +171,7 @@ class ValidationContainerTest extends TestCase
      */
     private function getMockedValidator()
     {
-        return $this->getMock('\Dive\Validation\RecordValidator');
+        return $this->getMock(RecordValidator::class);
     }
 
 
@@ -186,7 +186,7 @@ class ValidationContainerTest extends TestCase
      */
     private function getMockedRecord()
     {
-        return $this->getMock('\Dive\Record', null, array(), '', false);
+        return $this->getMock(Record::class, null, array(), '', false);
     }
 
 

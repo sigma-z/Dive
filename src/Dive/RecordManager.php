@@ -8,6 +8,7 @@
  */
 namespace Dive;
 
+use Dive\Query\Query;
 use Dive\Schema\Schema;
 use Dive\Schema\SchemaException;
 use Dive\Connection\Connection;
@@ -57,7 +58,7 @@ class RecordManager
     private $unitOfWork;
 
     /** @var string */
-    private $queryClass = '\Dive\Query\Query';
+    private $queryClass = Query::class;
 
     /** @var ValidationContainer */
     private $recordValidationContainer;

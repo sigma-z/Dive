@@ -109,7 +109,7 @@ class UnlinkReferenceTest extends RelationSetReferenceTestCase
         $relation = $table->getRelation('Editor');
 
         // assert test data setup was correct
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author);
+        $this->assertInstanceOf(RecordCollection::class, $editor->Author);
         $expectedReferences = array(
             $editor->getInternalId() => array(
                 $authorOne->getInternalId(),

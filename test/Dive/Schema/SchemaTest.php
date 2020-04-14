@@ -12,6 +12,8 @@ namespace Dive\Test\Schema;
 use Dive\Platform\PlatformInterface;
 use Dive\Relation\Relation;
 use Dive\Schema\Schema;
+use Dive\Schema\SchemaException;
+use Dive\Table;
 use Dive\TestSuite\TestCase;
 
 /**
@@ -46,12 +48,9 @@ class SchemaTest extends TestCase
         $this->assertFalse($this->schema->hasTable('unknown'));
     }
 
-
-    /**
-     * @expectedException \Dive\Schema\SchemaException
-     */
     public function testAddTableThrowsMissingFieldException()
     {
+        $this->expectException(SchemaException::class);
         $this->schema->addTable('stats', array());
     }
 
@@ -141,7 +140,7 @@ class SchemaTest extends TestCase
     public function testGetTableClassWithAutoload()
     {
         $tableClass = $this->schema->getTableClass('user', true);
-        $this->assertEquals('\Dive\Table', $tableClass);
+        $this->assertEquals(Table::class, ltrim($tableClass, '\\'));
     }
 
 
@@ -202,12 +201,9 @@ class SchemaTest extends TestCase
         $this->assertEquals($expected, array_keys($fields));
     }
 
-
-    /**
-     * @expectedException \Dive\Schema\SchemaException
-     */
     public function testGetTableFieldsFromUnknownTableThrowsException()
     {
+        $this->expectException(SchemaException::class);
         $this->schema->getTableFields('unknown');
     }
 
@@ -298,13 +294,13 @@ class SchemaTest extends TestCase
 
 
     /**
-     * @expectedException \Dive\Schema\SchemaException
      * @dataProvider provideAddRelationThrowsInvalidRelationException
      * @param string $missingKey
-     * @throws \Dive\Schema\SchemaException
+     * @throws SchemaException
      */
     public function testAddRelationThrowsInvalidRelationException($missingKey)
     {
+        $this->expectException(SchemaException::class);
         $relation = array(
             'owningTable' => 'user',
             'owningField' => 'username',
@@ -372,21 +368,15 @@ class SchemaTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-
-    /**
-     * @expectedException \Dive\Schema\SchemaException
-     */
     public function testAddRelationThrowsRelationAlreadyExistsException()
     {
+        $this->expectException(SchemaException::class);
         $this->schema->addTableRelation('author', 'user_id', $this->schemaDefinition['relations']['author.user_id']);
     }
 
-
-    /**
-     * @expectedException \Dive\Schema\SchemaException
-     */
     public function testAddTableFieldThrowsInvalidFieldException()
     {
+        $this->expectException(SchemaException::class);
         $this->schema->addTableField('user', 'saved_on', array());
     }
 
@@ -406,12 +396,9 @@ class SchemaTest extends TestCase
         $this->assertArrayHasKey('UQ_username_password', $indexes);
     }
 
-
-    /**
-     * @expectedException \Dive\Schema\SchemaException
-     */
     public function testAddTableIndexThrowsInvalidIndexException()
     {
+        $this->expectException(SchemaException::class);
         $this->schema->addTableIndex('user', 'UQ_username_password', array());
     }
 

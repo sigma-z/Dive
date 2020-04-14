@@ -12,6 +12,7 @@ namespace Dive\Generator;
 
 use Dive\Exception;
 use Dive\Generator\Formatter\FormatterInterface;
+use Dive\Record;
 use Dive\Relation\Relation;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
 use Dive\Schema\Schema;
@@ -67,7 +68,7 @@ class ModelGenerator
         $filterIterator = new ModelFilterIterator($dirReader);
         $iteratorIterator = new RecursiveIteratorIterator($filterIterator);
         $extractor = new ClassNameExtractor();
-        $extractor->setSubClassFilter('\Dive\Record');
+        $extractor->setSubClassFilter(Record::class);
 
         $classes = array();
         /** @var $model SplFileInfo */

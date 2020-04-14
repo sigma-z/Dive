@@ -426,7 +426,7 @@ class SchemaImporterTest extends TestCase
         $this->assertArrayHasKey('relations', $definition);
         $this->assertNotEmpty($definition['relations']);
         $schema = new Schema($definition);
-        $this->assertInstanceOf('\Dive\Schema\Schema', $schema);
+        $this->assertInstanceOf(Schema::class, $schema);
     }
 
 

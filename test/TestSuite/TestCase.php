@@ -619,7 +619,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         /** @var Record $record */
         $record = $table->findByPk($pk);
         $message = "Could not load record for '$recordKey' in table '$tableName'";
-        $this->assertInstanceOf('\Dive\Record', $record, $message);
+        $this->assertInstanceOf(Record::class, $record, $message);
         return $record;
     }
 

@@ -9,6 +9,7 @@
 
 namespace Dive\Test\Relation;
 
+use Dive\Collection\RecordCollection;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\TestSuite\Model\Author;
@@ -168,7 +169,7 @@ class RelationTest extends TestCase
             );
         }
         else {
-            $this->assertInstanceOf('\Dive\Collection\RecordCollection', $editor->Author);
+            $this->assertInstanceOf(RecordCollection::class, $editor->Author);
             $editor->Author[] = $author;
             $this->assertTrue(
                 $relation->hasReferenceLoadedFor($editor, 'Author'),

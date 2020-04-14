@@ -173,8 +173,8 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         // loading references for 'User' (for the the other author records, too)
         $authorOne->User;
 
-        $this->assertInstanceOf('\Dive\Record', $authorOne->User);
-        $this->assertInstanceOf('\Dive\Record', $authorTwo->User);
+        $this->assertInstanceOf(Record::class, $authorOne->User);
+        $this->assertInstanceOf(Record::class, $authorTwo->User);
 
         $this->assertNotEquals($authorOne->User, $authorTwo->User);
 
@@ -211,13 +211,13 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $users = $userTable->createQuery()->fetchObjects();
         $userOne = $users->getIterator()->current();
 
-        $this->assertInstanceOf('\Dive\Record', $userOne->Author);
+        $this->assertInstanceOf(Record::class, $userOne->Author);
 
         /** @var Author $newAuthor */
         $newAuthor = $authorTable->createRecord();
         $userOne->Author = $newAuthor;
 
-        $this->assertInstanceOf('\Dive\Record', $userOne->Author);
+        $this->assertInstanceOf(Record::class, $userOne->Author);
         $this->assertOwningFieldMapping($userOne, 'Author', $newAuthor);
         $this->assertRelationReference($userOne, 'Author', $newAuthor);
         $this->assertEquals($newAuthor, $userOne->Author);
@@ -281,14 +281,14 @@ class SetOneToOneReferenceTest extends RelationSetReferenceTestCase
         $authors = $authorTable->createQuery()->fetchObjects();
         $authorOne = $authors->getIterator()->current();
 
-        $this->assertInstanceOf('\Dive\Record', $authorOne->User);
+        $this->assertInstanceOf(Record::class, $authorOne->User);
 
         /** @var User $newUser */
         $newUser = $userTable->createRecord();
         $authorOne->User = $newUser;
         $this->assertNull($authorOne->user_id);
 
-        $this->assertInstanceOf('\Dive\Record', $authorOne->User);
+        $this->assertInstanceOf(Record::class, $authorOne->User);
         $this->assertOwningFieldMapping($authorOne, 'User', $newUser);
         $this->assertRelationReference($authorOne, 'User', $newUser);
         $this->assertEquals($newUser, $authorOne->User);

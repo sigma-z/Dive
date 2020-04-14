@@ -47,7 +47,7 @@ class SetOneToManyReferenceByRecordCollectionTest extends RelationSetReferenceTe
     public function testRecordCollectionAdd()
     {
         $message = 'Relation should be an instance of RecordCollection';
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $this->editor->Author, $message);
+        $this->assertInstanceOf(RecordCollection::class, $this->editor->Author, $message);
         $this->assertEquals(0, $this->editor->Author->count());
 
         $this->editor->Author[] = $this->authorOne;
@@ -89,7 +89,7 @@ class SetOneToManyReferenceByRecordCollectionTest extends RelationSetReferenceTe
     public function testOneToManyOwningSide()
     {
         $message = 'Relation should be an instance of RecordCollection';
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $this->editor->Author, $message);
+        $this->assertInstanceOf(RecordCollection::class, $this->editor->Author, $message);
         $this->assertEquals(0, $this->editor->Author->count());
 
         $this->editor->Author[] = $this->authorOne;

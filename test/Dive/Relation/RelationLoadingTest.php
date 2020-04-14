@@ -68,10 +68,10 @@ class RelationLoadingTest extends TestCase
                 $expected = $expectedArticles[$user->username];
                 $author = $user->Author;
                 $message = "Expected an author record for user '" . $user->username . "'!";
-                $this->assertInstanceOf('\Dive\Record', $author, $message);
-                /** @var \Dive\Collection\RecordCollection $articleColl */
+                $this->assertInstanceOf(Record::class, $author, $message);
+                /** @var RecordCollection $articleColl */
                 $articleColl = $author->Article;
-                $this->assertInstanceOf('\Dive\Collection\RecordCollection', $articleColl);
+                $this->assertInstanceOf(RecordCollection::class, $articleColl);
                 $this->assertEquals($expected, $articleColl->count());
             }
         }
@@ -85,7 +85,7 @@ class RelationLoadingTest extends TestCase
         self::$rm->getConnection()->setSqlLogger($sqlLogger);
 
         $userTable = self::$rm->getTable('user');
-        /** @var \Dive\Collection\RecordCollection|User[] $users */
+        /** @var RecordCollection|User[] $users */
         $users = $userTable->createQuery('u')
             ->leftJoin('u.Author au')
             ->where('au.id IS NOT NULL')
@@ -139,7 +139,7 @@ class RelationLoadingTest extends TestCase
         $comment->user_id = self::$recordGenerator->getRecordIdFromMap('user', 'JohnD');
 
         $commentCollection = $article->Comment;
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $commentCollection);
+        $this->assertInstanceOf(RecordCollection::class, $commentCollection);
         $this->assertContains($comment, $commentCollection);
         $this->assertCount(2, $commentCollection);
     }
@@ -157,7 +157,7 @@ class RelationLoadingTest extends TestCase
         $comment->user_id = self::$recordGenerator->getRecordIdFromMap('user', 'JohnD');
 
         $commentCollection = $article->Comment;
-        $this->assertInstanceOf('\Dive\Collection\RecordCollection', $commentCollection);
+        $this->assertInstanceOf(RecordCollection::class, $commentCollection);
         $this->assertContains($comment, $commentCollection);
         $this->assertCount(2, $commentCollection);
     }

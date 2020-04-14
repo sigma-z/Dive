@@ -12,6 +12,7 @@ namespace Dive\Test\Query;
 use Dive\Collection\RecordCollection;
 use Dive\Hydrator\SingleHydrator;
 use Dive\Query\Query;
+use Dive\Query\QueryException;
 use Dive\Record;
 use Dive\RecordManager;
 use Dive\TestSuite\TestCase;
@@ -115,7 +116,7 @@ class QueryTest extends TestCase
      * @param  array  $database
      * @param  array  $operations
      * @param  string $expected
-     * @throws \Dive\Query\QueryException
+     * @throws QueryException
      */
     public function testGetSql(array $database, array $operations, $expected)
     {
@@ -601,7 +602,7 @@ class QueryTest extends TestCase
      */
     public function testGetSqlThrowsAliasException($method, array $args, $expectedMessage)
     {
-        $this->setExpectedException('\Dive\Query\QueryException', $expectedMessage);
+        $this->expectedException(QueryException::class, $expectedMessage);
         $rm = self::createDefaultRecordManager();
         $query = $rm->createQuery('user', 'u');
         call_user_func_array([$query, $method], $args);
@@ -652,7 +653,7 @@ class QueryTest extends TestCase
      * @param  array  $operations
      * @param  string $expectedSql
      * @param  int    $expectedNumOfRows
-     * @throws \Dive\Query\QueryException
+     * @throws QueryException
      */
     public function testFetchArray(
         array $database,
@@ -686,7 +687,7 @@ class QueryTest extends TestCase
      * @param  array  $operations
      * @param  string $expectedSql
      * @param  int    $expectedNumOfRows
-     * @throws \Dive\Query\QueryException
+     * @throws QueryException
      */
     public function testCount(
         array $database,
@@ -712,7 +713,7 @@ class QueryTest extends TestCase
      * @dataProvider provideSqlPartsDatabaseAware
      * @param  array $database
      * @param  array $operations
-     * @throws \Dive\Query\QueryException
+     * @throws QueryException
      */
     public function testCountByPk(array $database, array $operations)
     {
@@ -914,7 +915,7 @@ class QueryTest extends TestCase
 
     public function testGetRootTableThrowsMissingFromException()
     {
-        $this->setExpectedException('\Dive\Query\QueryException', 'Root table is not defined, yet.');
+        $this->expectedException(QueryException::class, 'Root table is not defined, yet.');
         $rm = self::createDefaultRecordManager();
         $query = new Query($rm);
         $query->getRootTable();

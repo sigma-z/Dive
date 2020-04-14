@@ -11,9 +11,16 @@ namespace Dive\Test\Table;
 
 
 use Dive\Collection\Collection;
+use Dive\Hydrator\HydratorException;
 use Dive\Record;
 use Dive\RecordManager;
+use Dive\Table;
+use Dive\Table\TableException;
+use Dive\TestSuite\Model\AuthorUserView;
+use Dive\TestSuite\Model\User;
 use Dive\TestSuite\TestCase;
+use Dive\View;
+use const Dive\View;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -42,7 +49,7 @@ class TableTest extends TestCase
         $record = $table->findByPk($id);
 
         // assert
-        $this->assertInstanceOf('\Dive\Record', $record);
+        $this->assertInstanceOf(Record::class, $record);
         $this->assertEquals('user', $record->getTable()->getTableName());
         $this->assertEquals($id, $record->get('id'));
     }
@@ -63,10 +70,10 @@ class TableTest extends TestCase
     /**
      * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
-     * @expectedException \Dive\Table\TableException
      */
     public function testFindByFkOnNonMatchingIdentifier($database)
     {
+        $this->expectException(TableException::class);
         $rm = self::createRecordManager($database);
         $rm->getTable('user')->findByPk(array(10,10,10));
     }
@@ -167,18 +174,18 @@ class TableTest extends TestCase
      */
     public function provideCreateRecord()
     {
-        return array(
-            array(
+        return [
+            [
                 'tableName' => 'user',
-                'expectedRecordClass' => '\Dive\TestSuite\Model\User',
-                'expectedTableClass' => '\Dive\Table'
-            ),
-            array(
+                'expectedRecordClass' => User::class,
+                'expectedTableClass' => Table::class
+            ],
+            [
                 'tableName' => 'author_user_view',
-                'expectedRecordClass' => '\Dive\TestSuite\Model\AuthorUserView',
-                'expectedTableClass' => '\Dive\View'
-            ),
-        );
+                'expectedRecordClass' => AuthorUserView::class,
+                'expectedTableClass' => View::class
+            ],
+        ];
     }
 
 
@@ -191,7 +198,7 @@ class TableTest extends TestCase
     public function testGetField($database, $field, $throwsException)
     {
         if ($throwsException) {
-            $this->setExpectedException('Dive\Table\TableException');
+            $this->expectException(TableException::class);
         }
         $rm = self::createRecordManager($database);
         $table = $rm->getTable('user');
@@ -366,7 +373,7 @@ class TableTest extends TestCase
 
         $record = $table->findByUniqueIndex('UNIQUE', array('username' => 'John Doe'));
 
-        $this->assertInstanceOf('\Dive\Record', $record);
+        $this->assertInstanceOf(Record::class, $record);
         $this->assertEquals('user', $record->getTable()->getTableName());
         $this->assertEquals($id, $record->id);
         $this->assertSame($table->findByPk($id), $record);
@@ -458,7 +465,7 @@ class TableTest extends TestCase
         $table = $rm->getTable('author');
         $records = $table->findByFieldValues($findFieldValues);
 
-        $this->assertInstanceOf('\Dive\Collection\Collection', $records);
+        $this->assertInstanceOf(Collection::class, $records);
         $this->assertEquals(count($expectedRecords), $records->count());
 
         $expectedCollection = new Collection();
@@ -604,10 +611,10 @@ class TableTest extends TestCase
     /**
      * @param array $database
      * @dataProvider provideDatabaseAwareTestCases
-     * @expectedException \Dive\Hydrator\HydratorException
      */
     public function testNullableUniqueThrowsExceptionOnNotUniqueResult($database)
     {
+        $this->expectException(HydratorException::class);
         $rm = self::createRecordManager($database);
         $recordGenerator = self::createRecordGenerator($rm);
         $recordGenerator
@@ -640,7 +647,7 @@ class TableTest extends TestCase
         );
 
         $expectedRecords = array('null_1', 'null_2', 'null_3');
-        $this->assertInstanceOf('\Dive\Collection\Collection', $records);
+        $this->assertInstanceOf(Collection::class, $records);
         $this->assertEquals(count($expectedRecords), $records->count());
 
         $expectedCollection = new Collection();
@@ -673,18 +680,20 @@ class TableTest extends TestCase
             array('firstname' => 'Not', 'lastname' => 'Anonymous')
         );
 
-        $this->assertInstanceOf('\Dive\Record', $record);
+        $this->assertInstanceOf(Record::class, $record);
         $this->assertSame($table->findByPk($id), $record);
     }
 
-
     /**
      * @param array $database
+     * @throws TableException
+     * @throws \Dive\Exception
+     * @throws \Dive\Schema\SchemaException
      * @dataProvider provideDatabaseAwareTestCases
-     * @expectedException \Dive\Table\TableException
      */
     public function testFindByUniqueThrowsExceptionWhenIndexDoesNotExist($database)
     {
+        $this->expectException(TableException::class);
         $rm = self::createRecordManager($database);
         $recordGenerator = self::createRecordGenerator($rm);
         $recordGenerator
@@ -699,14 +708,16 @@ class TableTest extends TestCase
         );
     }
 
-
     /**
      * @param array $database
+     * @throws TableException
+     * @throws \Dive\Exception
+     * @throws \Dive\Schema\SchemaException
      * @dataProvider provideDatabaseAwareTestCases
-     * @expectedException \Dive\Table\TableException
      */
     public function testFindByUniqueThrowsExceptionWhenIndexIsNotUnique($database)
     {
+        $this->expectException(TableException::class);
         $schemaDefinition = self::getSchemaDefinition();
         // define 'UNIQUE' is not a unique index
         $schemaDefinition['tables']['author']['indexes']['UNIQUE']['type'] = 'index';
@@ -748,7 +759,7 @@ class TableTest extends TestCase
         );
 
         $expectedRecords = array('null_1', 'null_2', 'null_3');
-        $this->assertInstanceOf('\Dive\Collection\Collection', $records);
+        $this->assertInstanceOf(Collection::class, $records);
         $this->assertEquals(count($expectedRecords), $records->count());
 
         $expectedCollection = new Collection();

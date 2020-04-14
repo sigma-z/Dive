@@ -76,7 +76,7 @@ class ModelGeneratorTest extends TestCase
      */
     public function testGetNeededModels(array $expectedNotExistingModels, array $expectedExistingModels)
     {
-        $schema = $this->getSchema();
+        $schema = self::getSchema();
 
         $actualNeededModels = $this->modelGenerator->getNeededModels($schema);
         $expectedModels = array_merge($expectedExistingModels, $expectedNotExistingModels);

@@ -95,7 +95,7 @@ class SetOneToManyReferenceTest extends RelationSetReferenceTestCase
         $this->rm->clearTables();
 
         $author = $this->rm->findOrCreateRecord('author', array('lastname' => 'AuthorA', 'firstname' => 'AuthorA'));
-        $this->assertInstanceOf('\Dive\Record', $author);
+        $this->assertInstanceOf(Record::class, $author);
         $this->assertEquals($authorId, $author->id);
 
         $articleTable = $this->rm->getTable('article');

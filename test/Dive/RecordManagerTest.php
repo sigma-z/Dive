@@ -8,16 +8,30 @@
  */
 namespace Dive\Test;
 
+use Dive\Connection\Connection;
+use Dive\Exception;
+use Dive\Hydrator\ArrayHydrator;
 use Dive\Hydrator\HydratorInterface;
+use Dive\Hydrator\RecordCollectionHydrator;
+use Dive\Hydrator\RecordHydrator;
+use Dive\Hydrator\ScalarHydrator;
+use Dive\Hydrator\SingleArrayHydrator;
+use Dive\Hydrator\SingleScalarHydrator;
 use Dive\RecordManager;
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
+use Dive\Schema\OrmDataType\BooleanOrmDataType;
+use Dive\Schema\Schema;
+use Dive\Schema\SchemaException;
+use Dive\Table;
 use Dive\Table\Behavior\TimestampableBehavior;
+use Dive\Table\Repository;
 use Dive\TestSuite\Model\User;
 use Dive\TestSuite\Record\Record;
 use Dive\TestSuite\TestCase;
 use Dive\UnitOfWork\UnitOfWork;
 use Dive\Validation\FieldValidator\FieldValidator;
 use Dive\Validation\RecordInvalidException;
+use Dive\Validation\UniqueValidator\UniqueRecordValidator as UniqueRecordValidatorAlias;
 use Dive\Validation\ValidationContainer;
 
 /**
@@ -41,36 +55,33 @@ class RecordManagerTest extends TestCase
 
     public function testCreatedRecordManager()
     {
-        $this->assertInstanceOf('\Dive\RecordManager', $this->rm);
+        $this->assertInstanceOf(RecordManager::class, $this->rm);
     }
 
 
     public function testGetTable()
     {
         $table = $this->rm->getTable('user');
-        $this->assertInstanceOf('\Dive\Table', $table);
+        $this->assertInstanceOf(Table::class, $table);
     }
 
 
     public function testGetTableRepository()
     {
         $repository = $this->rm->getTableRepository('user');
-        $this->assertInstanceOf('\Dive\Table\Repository', $repository);
+        $this->assertInstanceOf(Repository::class, $repository);
     }
 
-
-    /**
-     * @expectedException \Dive\Schema\SchemaException
-     */
     public function testGetNotExistingTable()
     {
+        $this->expectException(SchemaException::class);
         $this->rm->getTable('notexistingtable');
     }
 
 
     public function testGetConnection()
     {
-        $this->assertInstanceOf('Dive\Connection\Connection', $this->rm->getConnection());
+        $this->assertInstanceOf(Connection::class, $this->rm->getConnection());
     }
 
 
@@ -107,18 +118,18 @@ class RecordManagerTest extends TestCase
     public function provideGetDiveDefinedHydrator()
     {
         return array(
-            array(RecordManager::FETCH_RECORD_COLLECTION, '\Dive\Hydrator\RecordCollectionHydrator'),
-            array(RecordManager::FETCH_RECORD,            '\Dive\Hydrator\RecordHydrator'),
-            array(RecordManager::FETCH_ARRAY,             '\Dive\Hydrator\ArrayHydrator'),
-            array(RecordManager::FETCH_SINGLE_ARRAY,      '\Dive\Hydrator\SingleArrayHydrator'),
-            array(RecordManager::FETCH_SCALARS,           '\Dive\Hydrator\ScalarHydrator'),
-            array(RecordManager::FETCH_SINGLE_SCALAR,     '\Dive\Hydrator\SingleScalarHydrator'),
+            array(RecordManager::FETCH_RECORD_COLLECTION, RecordCollectionHydrator::class),
+            array(RecordManager::FETCH_RECORD,            RecordHydrator::class),
+            array(RecordManager::FETCH_ARRAY,             ArrayHydrator::class),
+            array(RecordManager::FETCH_SINGLE_ARRAY,      SingleArrayHydrator::class),
+            array(RecordManager::FETCH_SCALARS,           ScalarHydrator::class),
+            array(RecordManager::FETCH_SINGLE_SCALAR,     SingleScalarHydrator::class),
         );
     }
 
 
     /**
-     * @expectedException \Dive\Exception
+     * @expectedException Exception
      */
     public function testGetDiveDefinedHydratorNotExistingException()
     {
@@ -128,7 +139,7 @@ class RecordManagerTest extends TestCase
 
     public function testGetSchema()
     {
-        $this->assertInstanceOf('\Dive\Schema\Schema', self::readAttribute($this->rm, 'schema'));
+        $this->assertInstanceOf(Schema::class, self::readAttribute($this->rm, 'schema'));
     }
 
 
@@ -142,11 +153,9 @@ class RecordManagerTest extends TestCase
     }
 
 
-    /**
-     * @expectedException \Dive\Schema\SchemaException
-     */
     public function testTableNotFoundException()
     {
+        $this->expectException(SchemaException::class);
         $this->rm->getTable('notexistingtablename');
     }
 
@@ -161,7 +170,7 @@ class RecordManagerTest extends TestCase
         $this->assertCount(1, $tableBehaviors);
         /** @var TimestampableBehavior $timestampableBehavior */
         $timestampableBehavior = current($tableBehaviors);
-        $this->assertInstanceOf('\Dive\Table\Behavior\TimestampableBehavior', $timestampableBehavior);
+        $this->assertInstanceOf(TimestampableBehavior::class, $timestampableBehavior);
 
         $eventDispatcher = $this->rm->getEventDispatcher();
         $this->assertCount(1, $eventDispatcher->getListeners(Record::EVENT_PRE_SAVE));
@@ -175,18 +184,18 @@ class RecordManagerTest extends TestCase
         $rm = self::createDefaultRecordManager();
         $validationContainer = $rm->getRecordValidationContainer();
         $this->assertNotNull($validationContainer);
-        $this->assertInstanceOf('\Dive\Validation\ValidationContainer', $validationContainer);
+        $this->assertInstanceOf(ValidationContainer::class, $validationContainer);
 
         $uniqueValidator = $validationContainer->getValidator(ValidationContainer::VALIDATOR_UNIQUE_CONSTRAINT);
         $this->assertNotNull($uniqueValidator);
-        $this->assertInstanceOf('\Dive\Validation\UniqueValidator\UniqueRecordValidator', $uniqueValidator);
+        $this->assertInstanceOf(UniqueRecordValidatorAlias::class, $uniqueValidator);
 
         /** @var FieldValidator $fieldTypeValidator */
         $fieldTypeValidator = $validationContainer->getValidator(ValidationContainer::VALIDATOR_FIELD);
         $this->assertNotNull($fieldTypeValidator);
-        $this->assertInstanceOf('\Dive\Validation\FieldValidator\FieldValidator', $fieldTypeValidator);
+        $this->assertInstanceOf(FieldValidator::class, $fieldTypeValidator);
         $booleanOrmDataTypeValidator = $fieldTypeValidator->getDataTypeValidator(DataTypeMapper::OTYPE_BOOLEAN);
-        $this->assertInstanceOf('\Dive\Schema\OrmDataType\BooleanOrmDataType', $booleanOrmDataTypeValidator);
+        $this->assertInstanceOf(BooleanOrmDataType::class, $booleanOrmDataTypeValidator);
     }
 
 

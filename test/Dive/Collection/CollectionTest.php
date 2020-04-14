@@ -10,11 +10,13 @@
 namespace Dive\Test\Collection;
 
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 11.02.13
  */
-class CollectionTest extends \PHPUnit_Framework_TestCase
+class CollectionTest extends TestCase
 {
 
 

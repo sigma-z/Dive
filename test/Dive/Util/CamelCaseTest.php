@@ -13,8 +13,9 @@
 namespace Dive\Test\Util;
 
 use Dive\Util\CamelCase;
+use PHPUnit\Framework\TestCase;
 
-class CamelCaseTest extends \PHPUnit_Framework_TestCase
+class CamelCaseTest extends TestCase
 {
 
     /**

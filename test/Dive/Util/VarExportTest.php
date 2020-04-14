@@ -9,12 +9,14 @@
 
 namespace Dive\Test\Util;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 31.10.12
  */
 
-class VarExportTest extends \PHPUnit_Framework_TestCase
+class VarExportTest extends TestCase
 {
 
     /**

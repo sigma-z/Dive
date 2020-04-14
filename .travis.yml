@@ -3,6 +3,9 @@ php:
   - '7.2'
   - '7.3'
 
+services:
+  - mysql
+
 env:
   - DB=mysql
   - DB=sqlite

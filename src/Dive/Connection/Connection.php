@@ -274,7 +274,7 @@ class Connection
     {
         if ($this->eventDispatcher) {
             $event = new ConnectionEvent($this, $sql, $params);
-            $this->eventDispatcher->dispatch($eventName, $event);
+            $this->eventDispatcher->dispatch($event, $eventName);
         }
     }
 
@@ -289,7 +289,7 @@ class Connection
     {
         if ($this->eventDispatcher) {
             $rowChangeEvent = new ConnectionRowChangeEvent($this, $table, $fields, $identifier);
-            $this->eventDispatcher->dispatch($eventName, $rowChangeEvent);
+            $this->eventDispatcher->dispatch($rowChangeEvent, $eventName);
         }
     }
 

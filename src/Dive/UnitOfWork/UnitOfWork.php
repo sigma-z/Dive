@@ -611,7 +611,7 @@ class UnitOfWork
         $eventDispatcher = $this->recordManager->getEventDispatcher();
         if ($eventDispatcher->hasListeners($eventName)) {
             $recordEvent = new Record\RecordEvent($record);
-            $eventDispatcher->dispatch($eventName, $recordEvent);
+            $eventDispatcher->dispatch($recordEvent, $eventName);
         }
     }
 

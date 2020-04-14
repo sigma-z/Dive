@@ -11,12 +11,13 @@ namespace Dive\Test\Schema;
 
 use Dive\Schema\Schema;
 use Dive\Schema\SchemaWriter;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 02.11.12
  */
-class SchemaWriterTest extends \PHPUnit_Framework_TestCase
+class SchemaWriterTest extends TestCase
 {
 
     public function testGetContent()

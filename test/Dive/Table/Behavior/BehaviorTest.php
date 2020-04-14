@@ -11,13 +11,14 @@
 namespace Dive\Test\Table\Behavior;
 
 use Dive\Table\Behavior\Behavior;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class BehaviorTest
  *
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class BehaviorTest extends \PHPUnit_Framework_TestCase
+class BehaviorTest extends TestCase
 {
 
     /** @var Behavior */

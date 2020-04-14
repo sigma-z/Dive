@@ -12,12 +12,13 @@ namespace Dive\Test\Console;
 
 use Dive\Console\Command\Command;
 use Dive\Console\Console;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class ConsoleTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class ConsoleTest extends \PHPUnit_Framework_TestCase
+class ConsoleTest extends TestCase
 {
 
     /** @var Console */

@@ -19,7 +19,7 @@ Concepts behind
 
 Requirements
 ---
- * PHP 5.5.9 or greater (tested: 5.5, 5.6, 7.0, 7.1, 7.2, 7.3)
+ * PHP 7.1.3 or greater (tested: 5.5, 5.6, 7.0, 7.1, 7.2, 7.3)
  * supported Databases
    * MySql 5.5, 5.6, 5.7
    * MariaDB 10.0, 10.1, 10.2, 10.3, 10.4 

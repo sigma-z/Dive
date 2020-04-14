@@ -10,12 +10,13 @@
 namespace Dive\Test\Schema\DataTypeMapper;
 
 use Dive\Schema\DataTypeMapper\DataTypeMapper;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 05.11.12
  */
-class DataTypeMapperTest extends \PHPUnit_Framework_TestCase
+class DataTypeMapperTest extends TestCase
 {
 
     /**

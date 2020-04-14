@@ -24,7 +24,7 @@ use Dive\Util\FieldValuesGenerator;
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 31.10.12
  */
-abstract class TestCase extends \PHPUnit_Framework_TestCase
+abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
 
     public static $debug = false;

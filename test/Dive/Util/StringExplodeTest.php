@@ -10,13 +10,13 @@
 namespace Dive\Test\Util;
 
 use Dive\Util\StringExplode;
-
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
  * Date: 23.02.13
  */
-class StringExplodeTest extends \PHPUnit_Framework_TestCase
+class StringExplodeTest extends TestCase
 {
 
     /**

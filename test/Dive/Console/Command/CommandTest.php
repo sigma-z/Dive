@@ -11,12 +11,13 @@ namespace Dive\Test\Console\Command;
 
 use Dive\Console\Command\Command;
 use Dive\Console\ConsoleException;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class CommandTest
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  */
-class CommandTest extends \PHPUnit_Framework_TestCase
+class CommandTest extends TestCase
 {
 
     /** @var MockCommand */

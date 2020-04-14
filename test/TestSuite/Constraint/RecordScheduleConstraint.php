@@ -10,12 +10,13 @@
 namespace Dive\TestSuite\Constraint;
 
 use Dive\Record;
+use PHPUnit\Framework\Constraint\Constraint;
 
 /**
  * @author  Steven Nikolic <steven@nindoo.de>
  * @created 01.11.13
  */
-class RecordScheduleConstraint extends \PHPUnit_Framework_Constraint
+class RecordScheduleConstraint extends Constraint
 {
 
     /**

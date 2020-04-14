@@ -11,12 +11,13 @@ namespace Dive\TestSuite\Constraint;
 
 use Dive\Record;
 use Dive\Relation\ReferenceMap;
+use PHPUnit\Framework\Constraint\Constraint;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 17.10.13
  */
-class RelationReferenceMapConstraint extends \PHPUnit_Framework_Constraint
+class RelationReferenceMapConstraint extends Constraint
 {
 
     /** @var Record */

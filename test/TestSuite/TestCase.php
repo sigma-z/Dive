@@ -19,6 +19,8 @@ use Dive\TestSuite\Constraint\ReferenceMapIsEmptyConstraint;
 use Dive\TestSuite\Constraint\RelationReferenceMapConstraint;
 use Dive\UnitOfWork\UnitOfWork;
 use Dive\Util\FieldValuesGenerator;
+use PHPUnit\Framework\IncompleteTestError;
+use PHPUnit\Framework\SkippedTestError;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -313,7 +315,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      *
      * @param  array $database
      * @return \Dive\Connection\Connection
-     * @throws \PHPUnit_Framework_SkippedTestError
+     * @throws SkippedTestError
      */
     protected function createDatabaseConnectionOrMarkTestSkipped(array $database)
     {
@@ -417,7 +419,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      * @param  string $scheme
      * @param  array  $arguments
      * @return object
-     * @throws \PHPUnit_Framework_SkippedTestError
+     * @throws SkippedTestError
      */
     protected function createInstanceOrMarkTestSkipped($namespace, $className, $scheme, array $arguments = array())
     {
@@ -628,7 +630,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
      * @param   array $expected
      * @param   array $database
      * @return  mixed
-     * @throws  \PHPUnit_Framework_IncompleteTestError
+     * @throws  IncompleteTestError
      */
     protected function getExpectedOrMarkTestIncomplete(array $expected, array $database)
     {

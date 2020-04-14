@@ -11,12 +11,13 @@ namespace Dive\TestSuite\Constraint;
 
 use Dive\Relation\ReferenceMap;
 use Dive\Relation\Relation;
+use PHPUnit\Framework\Constraint\Constraint;
 
 /**
  * @author  Steffen Zeidler <sigma_z@sigma-scripts.de>
  * @created 17.10.13
  */
-class ReferenceMapIsEmptyConstraint extends \PHPUnit_Framework_Constraint
+class ReferenceMapIsEmptyConstraint extends Constraint
 {
 
     /**

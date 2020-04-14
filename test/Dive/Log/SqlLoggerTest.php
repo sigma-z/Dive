@@ -87,7 +87,9 @@ class SqlLoggerTest extends TestCase
         $logger->startQuery('SELECT * FROM author');
         $logger->stopQuery();
         $logger->dumpQuery(300);
-        ob_end_clean();
+        $content = ob_get_clean();
+        self::assertContains('no queries logged yet', $content);
+        self::assertContains('Query 300 was not logged', $content);
     }
 
 

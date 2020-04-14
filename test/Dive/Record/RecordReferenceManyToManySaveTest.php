@@ -36,6 +36,8 @@ class RecordReferenceManyToManySaveTest extends TestCase
         $tag = $this->givenIHaveACreatedASavedTag('Tag #1');
 
         $this->whenISaveANewAssociationArticle2TagRecord($article, $tag);
+
+        $this->thenArticle_andTag_areRelated($article, $tag);
     }
 
 
@@ -46,6 +48,8 @@ class RecordReferenceManyToManySaveTest extends TestCase
         $tag = $this->givenIHaveACreatedAStoredTag('Tag #1');
 
         $this->whenISaveANewAssociationArticle2TagRecord($article, $tag);
+
+        $this->thenArticle_andTag_areRelated($article, $tag);
     }
 
 
@@ -56,6 +60,8 @@ class RecordReferenceManyToManySaveTest extends TestCase
         $tag = $this->givenIHaveACreatedASavedTag('Tag #1');
 
         $this->whenISaveANewAssociationArticle2TagRecord($article, $tag);
+
+        $this->thenArticle_andTag_areRelated($article, $tag);
     }
 
 
@@ -137,5 +143,15 @@ class RecordReferenceManyToManySaveTest extends TestCase
         $this->rm->scheduleSave($article2tag)->commit();
     }
 
+    /**
+     * @param Article $article
+     * @param Tag     $tag
+     */
+    private function thenArticle_andTag_areRelated(Article $article, Tag $tag): void
+    {
+        $this->rm->clearTables();
+        self::assertCount(1, $tag->Article2tagHasMany);
+        self::assertCount(1, $article->Article2tagHasMany);
+    }
 
 }

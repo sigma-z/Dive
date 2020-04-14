@@ -9,6 +9,7 @@
 namespace Dive\Test\Connection;
 
 use Dive\TestSuite\TestCase;
+use Dive\Validation\RecordInvalidException;
 
 /**
  * Class ConnectionFailedTransactionTest
@@ -24,12 +25,9 @@ class ConnectionFailedTransactionTest extends TestCase
         $user = $rm->getTable('user')->createRecord();
         $rm->scheduleSave($user);
 
-        try {
-            $rm->commit();
-            $this->fail('expected exception to be thrown');
-        }
-        catch (\Exception $e) {
-        }
+        $this->expectException(RecordInvalidException::class);
+        $rm->commit();
+        $this->fail('expected exception to be thrown');
 
         $user->set('username', 'user');
         $user->set('password', 'password');

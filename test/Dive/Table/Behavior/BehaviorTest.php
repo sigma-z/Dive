@@ -30,7 +30,7 @@ class BehaviorTest extends TestCase
         parent::setUp();
 
         /** @var Behavior $behavior */
-        $behavior = $this->getMockForAbstractClass('\Dive\Table\Behavior\Behavior');
+        $behavior = $this->getMockForAbstractClass(Behavior::class);
         $behaviorConfig = array(
             'onSave' => array('a', 'b'),
             'onInsert' => 'c'

@@ -498,10 +498,7 @@ class SchemaImporterTest extends TestCase
      */
     private function givenIHaveAMockOfAbstractSchemaImporterClass($conn)
     {
-        $this->schemaImporter = $this->getMockForAbstractClass(
-            '\Dive\Test\Schema\Import\SchemaImporterGuessRelationNamesMock',
-            array($conn)
-        );
+        $this->schemaImporter = $this->getMockForAbstractClass(SchemaImporterGuessRelationNamesMock::class, [$conn]);
     }
 
 

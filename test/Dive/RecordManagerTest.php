@@ -135,10 +135,10 @@ class RecordManagerTest extends TestCase
     public function testSetCustomHydrator()
     {
         /** @var HydratorInterface $customHydrator */
-        $customHydrator = $this->getMockForAbstractClass('\Dive\Hydrator\HydratorInterface');
+        $customHydrator = $this->getMockForAbstractClass(HydratorInterface::class);
         $this->rm->setHydrator('custom', $customHydrator);
         $actualCustomHydrator = $this->rm->getHydrator('custom');
-        $this->assertEquals($customHydrator, $actualCustomHydrator);
+        self::assertSame($customHydrator, $actualCustomHydrator);
     }
 
 

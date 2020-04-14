@@ -11,11 +11,13 @@ namespace Dive\Test\Connection;
 
 use Dive\Connection\Connection;
 use Dive\Connection\ConnectionEvent;
+use Dive\Connection\Driver\DriverInterface;
 use Dive\Log\SqlLogger;
 use Dive\RecordManager;
 use Dive\Relation\Relation;
 use Dive\TestSuite\TestCase;
 use Dive\Util\FieldValuesGenerator;
+use InvalidArgumentException;
 
 /**
  * @author Steffen Zeidler <sigma_z@sigma-scripts.de>
@@ -32,13 +34,13 @@ class ConnectionTest extends TestCase
      */
     public function testGetScheme($dsn, $expected, $throwsException)
     {
-        /** @var \Dive\Connection\Driver\DriverInterface $driver */
-        $driver = $this->getMockForAbstractClass('\Dive\Connection\Driver\DriverInterface');
+        /** @var DriverInterface $driver */
+        $driver = $this->getMockForAbstractClass(DriverInterface::class);
         if ($throwsException) {
-            $this->setExpectedException('\InvalidArgumentException');
+            $this->expectException(InvalidArgumentException::class);
         }
         $conn = new Connection($driver, $dsn);
-        $this->assertEquals($expected, $conn->getScheme());
+        self::assertSame($expected, $conn->getScheme());
     }
 
 
@@ -151,7 +153,7 @@ class ConnectionTest extends TestCase
     {
         $dsn = $database['dsn'];
         $scheme = self::getSchemeFromDsn($dsn);
-        /** @var \Dive\Connection\Driver\DriverInterface $driver */
+        /** @var DriverInterface $driver */
         $driver = self::createInstance('Connection\Driver', 'Driver', $scheme);
         return new Connection($driver, $dsn, $database['user'], $database['password']);
     }
